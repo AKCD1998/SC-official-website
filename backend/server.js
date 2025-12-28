@@ -14,12 +14,26 @@ console.log("ENV CHECK:", {
 
 // ตั้งค่า transporter สำหรับส่งอีเมล
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true, // SSL
       auth: {
         user: process.env.MAIL_USER,
-        pass: process.env.MAIL_APP_PASSWORD
+        pass: process.env.MAIL_APP_PASSWORD,
       },
+      connectionTimeout: 20000,
+      greetingTimeout: 20000,
+      socketTimeout: 20000,
+        
+      logger: true,   
+      debug: true     
     });
+
+    transporter.verify((err) => {
+      if (err) console.error("Mailer verify failed:", err);
+      else console.log("Mailer is ready");
+    });
+
 
 
 const app = express();
