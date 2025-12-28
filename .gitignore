@@ -1,0 +1,9 @@
+# Node
+node_modules/
+
+# Secrets
+backend/.env
+
+# Optional: OS / editor junk
+.DS_Store
+Thumbs.db
