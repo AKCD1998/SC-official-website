@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/AKCD1998/SC-official-website#readme",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
