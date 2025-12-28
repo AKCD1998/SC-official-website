@@ -1,96 +1,101 @@
 const express = require("express");
 const cors = require("cors");
-const nodemailer = require("nodemailer");
 const dotenv = require("dotenv");
+const sgMail = require("@sendgrid/mail");
 
 dotenv.config();
 
+// ==== ENV CHECK ====
 console.log("ENV CHECK:", {
   CORS_ORIGIN: process.env.CORS_ORIGIN,
-  MAIL_USER: process.env.MAIL_USER ? "SET" : "MISSING",
-  MAIL_APP_PASSWORD: process.env.MAIL_APP_PASSWORD ? "SET" : "MISSING",
+  MAIL_USER: process.env.MAIL_USER ? "SET" : "MISSING", // ใช้เป็น "from" ของเว็บ
   MAIL_TO: process.env.MAIL_TO ? "SET" : "MISSING",
+  SENDGRID_API_KEY: process.env.SENDGRID_API_KEY ? "SET" : "MISSING",
 });
 
-// ตั้งค่า transporter สำหรับส่งอีเมล
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true, // SSL
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_APP_PASSWORD,
-      },
-      connectionTimeout: 20000,
-      greetingTimeout: 20000,
-      socketTimeout: 20000,
-        
-      logger: true,   
-      debug: true     
-    });
+// ==== SendGrid setup ====
+if (!process.env.SENDGRID_API_KEY) {
+  console.error("Missing SENDGRID_API_KEY");
+}
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-    transporter.verify((err) => {
-      if (err) console.error("Mailer verify failed:", err);
-      else console.log("Mailer is ready");
-    });
+// (optional) quick sanity check (ไม่ยิงจริง แค่บอกให้รู้ว่า key มี)
+console.log("SendGrid configured:", !!process.env.SENDGRID_API_KEY);
 
-
-
+// ==== App ====
 const app = express();
+
 const allowed = (process.env.CORS_ORIGIN || "")
   .split(",")
-    .map(s => s.trim())
-    .filter(Boolean);
+  .map((s) => s.trim())
+  .filter(Boolean);
 
-app.use(cors({ 
-  origin: (origin, callBack) => {
-    // อนุญาตคำขอถ้าไม่มี origin (เช่น Postman) หรือถ้า origin อยู่ในรายการที่อนุญาต
-    if (!origin) return callBack(null, true);
-    if (allowed.includes(origin)) {
-      return callBack(null, true);
-    }
-    return callBack(new Error("Not allowed by CORS"), false);
-  } }));
+app.use(
+  cors({
+    origin: (origin, callBack) => {
+      if (!origin) return callBack(null, true);
+      if (allowed.includes(origin)) return callBack(null, true);
+      return callBack(new Error("Not allowed by CORS"), false);
+    },
+  })
+);
+
 app.use(express.json());
 
-// เช็กว่าเซิร์ฟเวอร์ทำงานอยู่
-app.get("/", (req, res) => {
-  res.send("Server is running");
-});
-
+// health checks
+app.get("/", (req, res) => res.send("Server is running"));
 app.get("/health", (req, res) => res.json({ ok: true }));
 
-
-// รับข้อความจากฟอร์ม
+// contact endpoint
 app.post("/api/contact", async (req, res) => {
   try {
-    const {name, email, message} = req.body;
+    const { name, email, message } = req.body;
 
     if (!name || !email || !message) {
       return res.status(400).json({ error: "All fields are required." });
     }
+
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     if (!emailOk) {
       return res.status(400).json({ error: "Invalid email." });
     }
 
-    
+    // IMPORTANT:
+    // - SendGrid "from" ควรเป็นอีเมลที่คุณ verify ใน SendGrid (Single Sender หรือ Domain Auth)
+    // - replyTo ใช้อีเมลผู้กรอกฟอร์มได้เหมือนเดิม
+    const msg = {
+  to: process.env.MAIL_TO,
+  from: {
+    email: process.env.MAIL_USER, // ต้องเป็น Single Sender ที่ verify แล้ว
+    name: "SC official website",
+  },
+  replyTo: email, // อีเมลคนกรอกฟอร์ม
+  subject: `[SC Website] Contact from ${name}`,
+  text: `Name: ${name}\nEmail: ${email}\n\nMessage: ${message}`,
+};
 
-    await transporter.sendMail({
-      from: `"SC official website" <${process.env.MAIL_USER}>`,
-      to: process.env.MAIL_TO,
-      replyTo: email,
-      subject:`[SC Website] Contact from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage: ${message}`,
-  });
 
-  res.json({ ok: true });
+    // ส่งเมลผ่าน SendGrid
+    const resp = await sgMail.send(msg);
+
+    // log เบาๆ
+    console.log("SendGrid send ok:", {
+      statusCode: resp?.[0]?.statusCode,
+      messageId: resp?.[0]?.headers?.["x-message-id"],
+    });
+
+    return res.json({ ok: true });
   } catch (error) {
-    console.error("Error sending email:", error);
-    res.status(500).json({ error: "Failed to send message." });
+    // SendGrid error จะมี response.body ช่วย debug
+    console.error("Error sending email:", {
+      message: error?.message,
+      code: error?.code,
+      statusCode: error?.response?.statusCode,
+      body: error?.response?.body,
+    });
+    return res.status(500).json({ error: "Failed to send message." });
   }
 });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => { console.log(`Server is running on port ${port}`); });
-
+app.listen(port, () => console.log(`Server is running on port ${port}`));
