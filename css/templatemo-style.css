@@ -16,11 +16,6 @@ https://templatemo.com/tm-516-known
   }
 
 
-
-
-
-  
-
     /*---------------------------------------
   /* ===== Under Construction Fullscreen Gate =====   
     -----------------------------------------*/
@@ -157,7 +152,7 @@ https://templatemo.com/tm-516-known
   }
 
   a:hover, a:active, a:focus {
-    color: #29ca8e;
+    color: #0000fe;
     outline: none;
   }
 
@@ -333,9 +328,28 @@ https://templatemo.com/tm-516-known
       MENU              
   -----------------------------------------*/
 
+  /* keep the brand area the same height as your navbar */
+  .navbar .navbar-brand{
+    display: flex;
+    align-items: center;
+    height: 50px;              /* matches your screenshot */
+    padding: 0;                /* optional: tighter */
+  }
+
+  /* the actual logo image size */
+  .navbar .navbar-brand img{
+    height: 50px;              /* lock height */
+    width: auto;               /* keep aspect ratio */
+    max-width: 80px;           /* make it “a bit wider” (tweak 70–120) */
+    object-fit: contain;
+    display: block;
+  }
+
+
+
   .custom-navbar {
     background: #ffffff;
-    border-top: 5px solid #29ca8e;
+    border-top: 5px solid #0000fe;
     border-bottom: 0;
     -webkit-box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
     -moz-box-shadow: 0 1px 30px rgba(0, 0, 0, 0.1);
@@ -362,7 +376,7 @@ https://templatemo.com/tm-516-known
   }
 
   .custom-navbar .navbar-nav.navbar-right li a .fa {
-    background: #29ca8e;
+    background: #0000fe;
     border-radius: 100%;
     color: #ffffff;
     width: 30px;
@@ -386,12 +400,12 @@ https://templatemo.com/tm-516-known
   }
 
   .custom-navbar .nav li a:hover {
-    background-color: #29ca8e;
+    background-color: #0000fe;
     color: #ffffff;
   }
 
   .custom-navbar .nav li.active > a {
-    background-color: #29ca8e;
+    background-color: #0000fe;
     color: #ffffff;
   }
 
@@ -459,16 +473,16 @@ https://templatemo.com/tm-516-known
   .caption h3 a:hover { color: #FF3; }
 
   .home-slider .item-first {
-    background-image: url(../images/slider-image1.jpg);
+    background-image: url(../images/cover-Facebook-company-page.png);
 	background-position: center;
   }
 
   .home-slider .item-second {
-    background-image: url(../images/slider-image2.jpg);
+    background-image: url(../images/cover-Facebook-HrRx.png);
   }
 
   .home-slider .item-third {
-    background-image: url(../images/slider-image3.jpg);
+    background-image: url(../images/sirichai-bangnoi.webp);
   }
 
 
@@ -483,7 +497,7 @@ https://templatemo.com/tm-516-known
   }
 
   .feature-thumb span {
-    background: #3f51b5;
+    background: #0000fe;
     border-radius: 50px;
     color: #ffffff;
     font-size: 25px;
@@ -521,7 +535,7 @@ https://templatemo.com/tm-516-known
   }
 
   #about figure span i {
-    background: #29ca8e;
+    background: #0000fe;
     border-radius: 50px;
     color: #ffffff;
     font-size: 25px;
@@ -891,7 +905,7 @@ https://templatemo.com/tm-516-known
   }
 
   .newsletter-form input[type="submit"]:hover {
-    background: #29ca8e;
+    background: #0000fe;
     border-color: transparent;
   }
 
@@ -922,7 +936,7 @@ https://templatemo.com/tm-516-known
 
   .social-icon li a {
     border-radius: 100px;
-    color: #29ca8e;
+    color: #0000fe;
     font-size: 15px;
     width: 35px;
     height: 35px;
@@ -935,7 +949,7 @@ https://templatemo.com/tm-516-known
   }
 
   .social-icon li a:hover {
-    background: #29ca8e;
+    background: #0000fe;
     color: #ffffff;
   }
 
