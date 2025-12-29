@@ -1,5 +1,11 @@
-const form =document.getElementById("contact-form");
+const form = document.getElementById("contact-form");
 const statusEl = document.getElementById("contact-status");
+
+const API_BASE = location.hostname === "localhost"
+  ? "http://localhost:3000"
+  : "https://sc-official-website.onrender.com";
+
+const ENDPOINT = `${API_BASE}/api/contact`;
 
 form.addEventListener("submit", async function (e) {
   e.preventDefault();
@@ -14,17 +20,14 @@ form.addEventListener("submit", async function (e) {
   statusEl.textContent = "Sending...";
 
   try {
-    const res = await fetch("https://localhost:3000/api/contact", {
+    const res = await fetch(ENDPOINT, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
     const data = await res.json();
-
-    if(!res.ok) throw new Error(data.error || 'Something went wrong!');
+    if (!res.ok) throw new Error(data.error || "Something went wrong!");
 
     statusEl.textContent = "Message sent successfully!";
     form.reset();
