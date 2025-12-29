@@ -18,6 +18,32 @@
   }
   #branches .branch-map iframe{width:100%;height:100%;border:0}
 
+
+
+.branch-panel{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.branch-search{
+  position: sticky;     /* ทำให้ช่องค้นหาติดด้านบนตอน scroll */
+  top: 0;
+  z-index: 5;
+}
+
+.branch-list{
+  max-height: 420px;    /* ปรับได้ */
+  overflow-y: auto;
+  padding-right: 6px;   /* กัน scrollbar ทับเนื้อหา */
+}
+
+  
+  @media (max-width: 900px){
+    .sc-map-layout{grid-template-columns:1fr;height:auto}
+    .sc-map{height:55vh}
+  }
+
   /* base (ของเดิมคุณ) */
 #branches .branch-card{
   border:1px solid rgba(0,0,0,.12);
@@ -54,29 +80,3 @@
   position: relative;
   z-index: 1;
 }
-
-
-.branch-panel{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.branch-search{
-  position: sticky;     /* ทำให้ช่องค้นหาติดด้านบนตอน scroll */
-  top: 0;
-  z-index: 5;
-}
-
-.branch-list{
-  max-height: 420px;    /* ปรับได้ */
-  overflow-y: auto;
-  padding-right: 6px;   /* กัน scrollbar ทับเนื้อหา */
-}
-
-  
-  @media (max-width: 900px){
-    .sc-map-layout{grid-template-columns:1fr;height:auto}
-    .sc-map{height:55vh}
-  }
-
