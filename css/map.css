@@ -8,13 +8,7 @@
   .sc-btn{padding:8px 12px;border-radius:12px;background:#2dd4bf;color:#05201c;text-decoration:none;font-weight:700}
   .sc-map{border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.12)}
   .sc-map iframe{width:100%;height:100%;border:0}
-  #branches .branch-card{
-    border:1px solid rgba(0,0,0,.12);
-    border-radius:12px;
-    padding:14px;
-    margin:0 0 12px;
-    background:#fff;
-  }
+  
   #branches .branch-card h3{margin:0 0 6px}
   #branches .branch-map{
     border-radius:12px;
@@ -23,6 +17,44 @@
     height:420px;
   }
   #branches .branch-map iframe{width:100%;height:100%;border:0}
+
+  /* base (ของเดิมคุณ) */
+#branches .branch-card{
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:12px;
+  padding:14px;
+  margin:0 0 12px;
+  background:#fff;
+
+  /* เพิ่ม */
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+}
+
+/* hover effect */
+#branches .branch-card:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.10);
+  border-color: rgba(0,0,0,.22);
+}
+
+/* active (ตอนคลิกแล้วเติม class .is-active ด้วย JS) */
+#branches .branch-card.is-active{
+  border-color: rgba(30,136,229,.75);
+  box-shadow: 0 12px 26px rgba(30,136,229,.18);
+}
+
+/* optional: ให้หัวข้อเด่นขึ้นตอน active */
+#branches .branch-card.is-active h3{
+  color: #1e88e5;
+}
+
+/* ทำให้ปุ่มใน card ยังคลิกได้ปกติ */
+#branches .branch-card a.btn{
+  position: relative;
+  z-index: 1;
+}
+
 
 .branch-panel{
   display:flex;
