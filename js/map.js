@@ -1,4 +1,4 @@
-document.addEventListener(DOMContentLoaded, () => {
+document.addEventListener("DOMContentLoaded", () => {
   const mapInput = document.getElementById("branchSearch");
   const mapList = document.getElementById("branchList");
   if (!mapInput || !mapList) return;
