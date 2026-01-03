@@ -1,80 +1,90 @@
-  // ✅ CHANGE THIS:
-  const API_BASE = "https://sc-official-website.onrender.com";
+const API_BASE = "https://sc-official-website.onrender.com";
 
+const form = document.getElementById("signupForm");
+const otpBox = document.getElementById("otpBox");
+const verifyBtn = document.getElementById("verifyBtn");
+const msg = document.getElementById("msg");
 
-  const form = document.getElementById("signupForm");
-  const otpBox = document.getElementById("otpBox");
-  const verifyBtn = document.getElementById("verifyBtn");
-  const msg = document.getElementById("msg");
+const fullNameEl = document.getElementById("fullName");
+const emailEl = document.getElementById("email");
+const passwordEl = document.getElementById("password");
+const otpEl = document.getElementById("otp");
 
-  const fullNameEl = document.getElementById("fullName");
-  const emailEl = document.getElementById("email");
-  const passwordEl = document.getElementById("password");
-  const otpEl = document.getElementById("otp");
+let savedEmail = "";
 
-  let savedEmail = "";
-  let signupDone = false;
+function setMsg(text, isError = false) {
+  msg.textContent = text;
+  msg.style.color = isError ? "crimson" : "inherit";
+}
 
-  function setMsg(text, isError=false){
-    msg.textContent = text;
-    msg.style.color = isError ? "crimson" : "inherit";
+// Step 1: send OTP (email only)
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  setMsg("");
+
+  const email = emailEl.value.trim();
+  const fullName = fullNameEl.value.trim();
+  const password = passwordEl.value;
+
+  if (!fullName || !email || !password) return setMsg("Fill all fields first.", true);
+
+  try {
+    setMsg("Sending verification code...");
+
+    const r = await fetch(`${API_BASE}/api/auth/start-signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Failed to send code");
+
+    savedEmail = email;
+    otpBox.style.display = "block";
+    setMsg("✅ Code sent. Check your email and enter the 6-digit code.");
+  } catch (err) {
+    setMsg("❌ " + err.message, true);
   }
+});
 
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    setMsg("");
+// Step 2: verify OTP, then create account
+verifyBtn.addEventListener("click", async () => {
+  setMsg("");
 
-    const fullName = fullNameEl.value.trim();
-    const email = emailEl.value.trim();
-    const password = passwordEl.value;
+  const fullName = fullNameEl.value.trim();
+  const password = passwordEl.value;
+  const code = otpEl.value.trim();
 
-    try {
-      setMsg("Creating account & sending verification code...");
+  if (!savedEmail) return setMsg("Please request a code first.", true);
+  if (!code) return setMsg("Enter the 6-digit code.", true);
 
-      const r = await fetch(`${API_BASE}/api/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fullName, email, password })
-      });
+  try {
+    setMsg("Verifying code...");
 
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || "Signup failed");
+    const r = await fetch(`${API_BASE}/api/auth/verify-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: savedEmail, code }),
+    });
 
-      signupDone = true;
-      savedEmail = email;
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Verification failed");
 
-      otpBox.style.display = "block";
-      setMsg("✅ Code sent. Please check your email and enter the 6-digit code.");
-    } catch (err) {
-      setMsg("❌ " + err.message, true);
-    }
-  });
+    setMsg("✅ Email verified. Creating account...");
 
-  verifyBtn.addEventListener("click", async () => {
-    setMsg("");
+    const r2 = await fetch(`${API_BASE}/api/auth/finish-signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fullName, email: savedEmail, password }),
+    });
 
-    if (!signupDone) return setMsg("Please sign up first.", true);
+    const data2 = await r2.json();
+    if (!r2.ok) throw new Error(data2.error || "Finish signup failed");
 
-    const code = otpEl.value.trim();
-
-    try {
-      setMsg("Verifying code...");
-
-      const r = await fetch(`${API_BASE}/api/auth/verify-email`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: savedEmail, code })
-      });
-
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.error || "Verification failed");
-
-      setMsg("✅ Email verified! You can now log in.");
-
-      // Optional: redirect to login page
-      // window.location.href = "./login-form.html";
-    } catch (err) {
-      setMsg("❌ " + err.message, true);
-    }
-  });
-
+    setMsg("✅ Account created! You can now log in.");
+    // window.location.href = "./login-form.html";
+  } catch (err) {
+    setMsg("❌ " + err.message, true);
+  }
+});
