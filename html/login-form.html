@@ -1,13 +1,70 @@
-<form id="loginForm">
-  <h2>Login</h2>
+<link rel="stylesheet" href="../css/bootstrap.min.css">
+<link rel="stylesheet" href="../css/font-awesome.min.css">
+<link rel="stylesheet" href="../css/templatemo-style.css">
+<link rel="stylesheet" href="../css/login.css">
 
-  <input id="email" type="email" name="email" class="form-control" placeholder="Your email address" required>
 
-  <input id="password" type="password" name="password" class="form-control" placeholder="Your password" required>
+<body>
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h2>Log in</h2>
+        <p>เข้าสู่ระบบเพื่อใช้งาน</p>
+      </div>
 
-  <button type="submit" class="submit-btn form-control" id="form-submit">Log in</button>
-</form>
+      <div class="auth-body">
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="email" class="small text-muted">Email</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+              <input id="email" type="email" name="email" class="form-control"
+                     placeholder="your@email.com" required>
+            </div>
+          </div>
 
-<p id="msg" style="margin-top:10px;"></p>
+          <div class="form-group" style="margin-top:12px;">
+            <label for="password" class="small text-muted">Password</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+              <input id="password" type="password" name="password" class="form-control"
+                     placeholder="Your password" required>
+              <span class="input-group-addon toggle-pass" id="togglePass" title="Show/Hide">
+                <i class="fa fa-eye"></i>
+              </span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary-auth" id="form-submit" style="margin-top:14px;">
+            Log in
+          </button>
+
+          <div class="auth-links">
+            <a href="signup-form.html"><i class="fa fa-user-plus"></i> Create account</a>
+            <a href="#" onclick="alert('TODO: forgot password'); return false;">
+              <i class="fa fa-question-circle"></i> Forgot password
+            </a>
+          </div>
+        </form>
+
+        <p id="msg"></p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- password show/hide (optional) -->
+  <script>
+    const toggle = document.getElementById("togglePass");
+    const pass = document.getElementById("password");
+    if (toggle && pass) {
+      toggle.addEventListener("click", () => {
+        const isHidden = pass.type === "password";
+        pass.type = isHidden ? "text" : "password";
+        toggle.querySelector("i").className = isHidden ? "fa fa-eye-slash" : "fa fa-eye";
+      });
+    }
+  </script>
 
 <script src="../js/loginForm.js"></script>
+
