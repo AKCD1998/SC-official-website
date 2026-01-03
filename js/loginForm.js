@@ -36,7 +36,10 @@ form.addEventListener("submit", async (e) => {
     setMsg("Login success ✅", false);
 
     // ไปหน้า index หรือหน้า dashboard ที่คุณอยากให้เข้า
-    window.location.href = "index.html";
+    
+    const BASE_WEB = window.location.origin + "/SC-official-website/";
+    window.location.href = BASE_WEB + "#";
+
   } catch (err) {
     setMsg("Network error / server error");
     console.error(err);
