@@ -36,9 +36,10 @@ form.addEventListener("submit", async (e) => {
     setMsg("Login success ✅", false);
 
     // ไปหน้า index หรือหน้า dashboard ที่คุณอยากให้เข้า
-
-    window.location.href = "https://akcd1998.github.io/SC-official-website/#";
-
+    
+      // ✅ redirect กลับ root ของ repo บน GitHub Pages
+  const repo = location.pathname.split("/")[1]; // SC-official-website
+  window.location.href = `${location.origin}/${repo}/#`;
 
   } catch (err) {
     setMsg("Network error / server error");
