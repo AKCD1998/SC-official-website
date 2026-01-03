@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sgMail = require("@sendgrid/mail");
 const pool = require("../db");
+const requireAuth = require("../middleware/requireAuth");
 
 const router = express.Router();
 
@@ -142,9 +143,11 @@ router.post("/finish-signup", async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     await pool.query(
-      `insert into users (full_name, email, password_hash) values ($1,$2,$3)`,
+      `insert into users (full_name, email, password_hash, is_verified, verified_at)
+      values ($1,$2,$3,true,now())`,
       [fullName, email, password_hash]
     );
+
 
     return res.json({ ok: true });
   } catch (e) {
@@ -185,4 +188,16 @@ router.post("/login", async (req, res) => {
   }
 });
 
+
+// middleware/requireAuth.js
+// 5) who am i (test JWT)
+// GET /api/auth/me (needs Authorization: Bearer <token>)
+router.get("/me", requireAuth, async (req, res) => {
+  //req.user มาจาก JWT payload ที่ middleware requireAuth ใส่ไว้
+  return res.json({ ok: true, user: req.user });
+});
+
+
 module.exports = router;
+
+
