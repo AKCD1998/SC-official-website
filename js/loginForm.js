@@ -36,9 +36,9 @@ form.addEventListener("submit", async (e) => {
     setMsg("Login success ✅", false);
 
     // ไปหน้า index หรือหน้า dashboard ที่คุณอยากให้เข้า
-    
-    const BASE_WEB = window.location.origin + "/SC-official-website/";
-    window.location.href = BASE_WEB + "#";
+
+    window.location.href = "https://akcd1998.github.io/SC-official-website/#";
+
 
   } catch (err) {
     setMsg("Network error / server error");
