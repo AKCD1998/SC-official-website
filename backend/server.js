@@ -6,8 +6,6 @@ const authRoutes = require('./routes/auth');
 
 dotenv.config();
 
-//=============================
-app.use('/api/auth', authRoutes);
 
 // ==== ENV CHECK ====
 console.log("ENV CHECK:", {
@@ -45,6 +43,10 @@ app.use(
 );
 
 app.use(express.json());
+
+//=============AUTH SIGN UP================
+app.use('/api/auth', authRoutes);
+//==============================================
 
 // health checks
 app.get("/", (req, res) => res.send("Server is running"));
