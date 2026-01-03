@@ -245,7 +245,7 @@ https://templatemo.com/tm-516-known
   }
 
   /* Make team cards equal height */
-#team .col-md-3.col-sm-6 { display:flex; }
+#team .team-carousel .item { display:flex; padding: 15px; }
 
 #team .team-thumb {
   display:flex;
@@ -272,6 +272,7 @@ https://templatemo.com/tm-516-known
 
 #team .team-info { flex:1 0 auto; }
 #team .team-thumb .social-icon { margin-top:auto; }
+#team .team-carousel .owl-nav { margin-top: 20px; }
 
   
   #google-map iframe {

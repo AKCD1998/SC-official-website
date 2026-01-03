@@ -56,6 +56,32 @@
       }
     });
 
+    $('.team-carousel').owlCarousel({
+      loop: true,
+      margin: 30,
+      autoplayHoverPause: false,
+      autoplay: true,
+      smartSpeed: 1000,
+      dots: false,
+      nav:true,
+      navText: [
+          '<i class="fa fa-angle-left"></i>',
+          '<i class="fa fa-angle-right"></i>'
+      ],
+      responsiveClass: true,
+      responsive: {
+        0: {
+          items: 1,
+        },
+        600: {
+          items: 2,
+        },
+        1000: {
+          items: 4,
+        }
+      }
+    });
+
     $('.owl-client').owlCarousel({
       animateOut: 'fadeOut',
       loop: true,
