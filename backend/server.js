@@ -2,8 +2,12 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const sgMail = require("@sendgrid/mail");
+const authRoutes = require('./routes/auth');
 
 dotenv.config();
+
+//=============================
+app.use('/api/auth', authRoutes);
 
 // ==== ENV CHECK ====
 console.log("ENV CHECK:", {
