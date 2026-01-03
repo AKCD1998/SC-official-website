@@ -1,8 +1,8 @@
-const { pool } = require('pg');
+const { Pool } = require("pg");
 
-const pool = new pool({
+const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
 });
 
 module.exports = pool;
