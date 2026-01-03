@@ -46,6 +46,8 @@ app.use(express.json());
 
 //=============AUTH SIGN UP================
 app.use('/api/auth', authRoutes);
+app.get("/api/auth/ping", (req, res) => res.json({ ok: true }));
+
 //==============================================
 
 // health checks
