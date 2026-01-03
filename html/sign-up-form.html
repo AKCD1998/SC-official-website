@@ -1,0 +1,21 @@
+<form id="signupForm">
+  <h2>Signup today</h2>
+
+  <input id="fullName" type="text" name="fullName" class="form-control" placeholder="Full name" required>
+
+  <input id="email" type="email" name="email" class="form-control" placeholder="Your email address" required>
+
+  <input id="password" type="password" name="password" class="form-control" placeholder="Your password" required>
+
+  <button type="submit" class="submit-btn form-control" id="form-submit">Get started</button>
+</form>
+
+<!-- hidden OTP step -->
+<div id="otpBox" style="display:none; margin-top:12px;">
+  <input id="otp" type="text" class="form-control" placeholder="6-digit code" inputmode="numeric" maxlength="6">
+  <button id="verifyBtn" class="submit-btn form-control" type="button" style="margin-top:10px;">
+    Verify email
+  </button>
+</div>
+
+<p id="msg" style="margin-top:10px;"></p>

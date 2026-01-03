@@ -243,6 +243,36 @@ https://templatemo.com/tm-516-known
   #testimonial {
     text-align: center;
   }
+
+  /* Make team cards equal height */
+#team .col-md-3.col-sm-6 { display:flex; }
+
+#team .team-thumb {
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  height:100%;
+}
+
+#team .team-image {
+  flex:0 0 auto;
+  width:100%;
+  aspect-ratio:3/4;
+  max-width:100%;
+  margin:0 auto;
+  overflow:hidden;
+}
+
+#team .team-image img {
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover;
+  display:block;
+}
+
+#team .team-info { flex:1 0 auto; }
+#team .team-thumb .social-icon { margin-top:auto; }
+
   
   #google-map iframe {
     border: 0;
@@ -1084,4 +1114,48 @@ https://templatemo.com/tm-516-known
       height: inherit;
     }
   }
+
+  /* make section a positioning context */
+#courses.coming-soon-wrap,
+#testimonial.coming-soon-wrap {
+  position: relative;
+}
+
+/* black translucent panel */
+#courses .coming-soon-overlay,
+#testimonial .coming-soon-overlay {
+  position: absolute;
+  inset: 0;                 /* top:0; right:0; bottom:0; left:0 */
+  background: rgba(0,0,0,.55);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: auto;     /* blocks clicking stuff underneath */
+}
+
+/* text */
+#courses .coming-soon-text,
+#testimonial .coming-soon-text {
+  color: #fff;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  padding: 14px 22px;
+  border: 2px solid rgba(255,255,255,.7);
+  border-radius: 10px;
+  background: rgba(0,0,0,.25);  /* optional extra contrast */
+}
+
+/* smaller on mobile */
+@media (max-width: 767px){
+  #courses .coming-soon-text,
+  #testimonial .coming-soon-text {
+    font-size: 28px;
+    letter-spacing: 2px;
+  }
+}
+
   
