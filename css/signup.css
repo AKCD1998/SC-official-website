@@ -1,6 +1,6 @@
    /* ====== page bg ====== */
     body{
-      min-height:100vh;
+      min-height:50vh;
       background: linear-gradient(135deg, #f5fbff 0%, #eef7ff 45%, #f8f8ff 100%);
       display:block;          /* not flex */
       padding:24px 12px;
@@ -207,6 +207,11 @@
       border:1px dashed rgba(0,0,0,.18);
       border-radius:14px;
       background: #fbfdff;
+      width:100%;           /* match auth-wrap width */
+      max-width:520px;      /* align to container max */
+      margin-left:auto;
+      margin-right:auto;
+      margin-top: 10%;
     }
     .otp-title{
       font-weight:800;

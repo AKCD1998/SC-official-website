@@ -5,14 +5,14 @@
 
 
 <body>
-  <div class="auth-wrap">
+  <div class="auth-wrap"style="display:none;">
     <div class="auth-card">
       <div class="auth-head">
         <h2>Log in</h2>
         <p>เข้าสู่ระบบเพื่อใช้งาน</p>
       </div>
 
-      <div class="auth-body">
+      <div class="auth-body" >
         <form id="loginForm">
           <div class="form-group">
             <label for="email" class="small text-muted">Email</label>
@@ -51,6 +51,32 @@
       </div>
     </div>
   </div>
+
+     <!-- hidden OTP step -->
+      <div id="otpForgotPass" class="otp-wrap" style="">
+        <div class="otp-title"><i class="fa fa-shield"></i> ยืนยันอีเมล์ (OTP)</div>
+
+        <div class="input-head">
+          <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+          <label class="label" for="fpEmail">อีเมล์</label>
+        </div>
+        <input id="fpEmail" type="email" name="email" class="form-control"
+              placeholder="your@email.com" required>
+
+        <div class="input-head">
+          <span class="input-group-addon"><i class="fa fa-key"></i></span>
+          <label class="label" for="fpOtp">OTP</label>
+        </div>
+        <input id="fpOtp" type="text" class="form-control" placeholder="6-digit code"
+              inputmode="numeric" maxlength="6">
+
+        <button id="fpVerifyBtn" class="submit-btn form-control" type="button" style="margin-top:10px;">
+          ยืนยันอีเมล์
+        </button>
+
+        <div class="help">ระบบจะส่งรหัสไปที่อีเมล์ของคุณ</div>
+      </div>
+
 
 
   <!-- password show/hide (optional) -->

@@ -7,7 +7,7 @@
 
 
 <body>
-  <div class="auth-wrap">
+  <div class="auth-wrap" style="display:none;">
     <div class="auth-card">
       <div class="auth-head">
         <h2>ลงทะเบียน</h2>
@@ -15,7 +15,7 @@
       </div>
 
       <div class="auth-body">
-        <form id="signupForm">
+        <form id="signupForm" >
 
           <div class="input-head">
             <span class="input-group-addon"><i class="fa fa-user"></i></span>
@@ -70,12 +70,15 @@
             <a href="../index.html#"><i class="fa fa-home"></i> กลับหน้าแรก</a>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
 
-        <!-- hidden OTP step -->
-        <div id="otpBox" class="otp-wrap" style="display:none;">
+  <!-- hidden OTP step -->
+        <div id="otpBox" class="otp-wrap" style="">
           <div class="otp-title"><i class="fa fa-shield"></i> ยืนยันอีเมล์ (OTP)</div>
 
-          <div class="input-group">
+          <div class="input-head ">
             <span class="input-group-addon"><i class="fa fa-key"></i></span>
             <input id="otp" type="text" class="form-control" placeholder="6-digit code"
                    inputmode="numeric" maxlength="6">
@@ -88,9 +91,6 @@
         </div>
 
         <p id="msg"></p>
-      </div>
-    </div>
-  </div>
 
   <script>
     // toggle show/hide password fields (works even if your signupForm.js doesn't handle it)
