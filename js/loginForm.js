@@ -41,8 +41,9 @@ function setResetMsg(text, isError = true) {
   fpResetMsgEl.style.color = isError ? "crimson" : "green";
 }
 
-function show(el) { if (el) el.style.display = "block"; }
-function hide(el) { if (el) el.style.display = "none"; }
+function show(el){ el.style.display = "flex"; }
+function hide(el){ el.style.display = "none"; }
+
 
 function baseRepoUrl() {
   const repo = location.pathname.split("/")[1];
