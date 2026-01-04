@@ -74,9 +74,11 @@
       localStorage.removeItem("token");
       hideMenu();
 
-      // send the user back to the current directory root (works on GH Pages or local files)
-      const dir = location.href.replace(/#.*$/, "").replace(/[^/]*$/, "");
-      window.location.href = `${dir}#top`;
+      // send the user back to the site root and force a fresh load
+      const target = new URL("./", window.location.href);
+      target.hash = "top";
+      target.searchParams.set("_logout", Date.now()); // cache-bust to guarantee reload
+      window.location.replace(target.toString());
     });
 
     // Click outside -> close menu
