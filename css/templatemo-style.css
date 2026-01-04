@@ -1207,5 +1207,10 @@ https://templatemo.com/tm-516-known
   text-overflow: ellipsis;  /* show … if too long */
   vertical-align: middle;
 }
+.navbar .navbar-nav.navbar-right #authText{ font-size: 13px; }
+
+@media (max-width: 768px){
+  .navbar .navbar-nav.navbar-right #authText{ font-size: 11px; max-width: 120px; }
+}
 
   
