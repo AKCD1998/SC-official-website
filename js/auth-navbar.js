@@ -74,8 +74,9 @@
       localStorage.removeItem("token");
       hideMenu();
 
-      // back to home root of GitHub Pages
-      window.location.href = `${getRepoBase()}/#top`;
+      // send the user back to the current directory root (works on GH Pages or local files)
+      const dir = location.href.replace(/#.*$/, "").replace(/[^/]*$/, "");
+      window.location.href = `${dir}#top`;
     });
 
     // Click outside -> close menu
