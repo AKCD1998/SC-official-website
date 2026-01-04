@@ -362,9 +362,10 @@ https://templatemo.com/tm-516-known
   /* keep the brand area the same height as your navbar */
   .navbar .navbar-brand{
     display: flex;
-    align-items: center;
+    align-items: flex-end; /* align bottom */
     height: 50px;              /* matches your screenshot */
     padding: 0;                /* optional: tighter */
+    margin-right: 30px;        /* optional: space to right */
   }
 
   /* the actual logo image size */
@@ -1213,23 +1214,20 @@ https://templatemo.com/tm-516-known
   .navbar .navbar-nav.navbar-right #authText{ font-size: 11px; max-width: 120px; }
 }
 
-/* keep both nav lists in one row on desktop */
-@media (min-width: 768px) {
-  .custom-navbar .navbar-collapse {
-    display: flex !important;
-    align-items: center;
-    justify-content: space-between;
+@media (min-width: 768px){
+  .custom-navbar .navbar-collapse{
+    display:flex !important;
+    align-items:center;
+    justify-content:space-between;
   }
-  .custom-navbar .navbar-nav {
-    float: none;
-    display: flex;
-    flex: 0 1 auto;
+  .custom-navbar .navbar-nav.navbar-nav-first{
+    margin-left: 0 !important;
   }
-  .custom-navbar .navbar-nav.navbar-nav-first {
-    margin-left: 0; /* remove 8em gap that causes wrapping */
+  .custom-navbar .navbar-nav.navbar-right{
+    float:none !important;
   }
-  .custom-navbar .navbar-nav.navbar-right {
-    margin-left: auto; /* push auth menu to the far right */
+  .custom-navbar .navbar-nav{
+    float:none !important;
   }
 }
 
