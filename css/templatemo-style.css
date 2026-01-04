@@ -1197,4 +1197,15 @@ https://templatemo.com/tm-516-known
   }
 }
 
+.navbar .navbar-nav.navbar-right #authText{
+  font-size: 12px;          /* adjust */
+  line-height: 1.2;
+  max-width: 180px;         /* prevent pushing layout */
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;  /* show … if too long */
+  vertical-align: middle;
+}
+
   
