@@ -8,6 +8,7 @@ const msgEl = document.getElementById("msg");
 const signUp = document.getElementById("goSignup");
 
 // ===== Forgot/Reset UI =====
+const loginWrap = document.getElementById("loginWrap");
 const goForgot = document.getElementById("goForgot");
 const forgotWrap = document.getElementById("otpForgotPass");
 const resetWrap = document.getElementById("otpResetPass");
@@ -92,6 +93,7 @@ if (goForgot) {
     e.preventDefault();
     setFpMsg("");
     hide(resetWrap);
+    hide(loginWrap);
     show(forgotWrap);
     fpEmailEl.value = emailEl.value.trim(); // prefill from login email if typed
     fpEmailEl.focus();
@@ -149,6 +151,7 @@ if (fpVerifyBtn) {
 
       resetToken = data.resetToken;
       hide(forgotWrap);
+      
       show(resetWrap);
       setResetMsg("OTP ถูกต้อง ✅ ตั้งรหัสผ่านใหม่ได้เลย", false);
       fpNewPassEl.focus();

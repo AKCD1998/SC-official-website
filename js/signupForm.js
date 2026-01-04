@@ -12,9 +12,14 @@ const phoneEl = document.getElementById("phoneNumber");
 const confirmPasswordEl = document.getElementById("confirmPassword");
 const otpEl = document.getElementById("otp");
 const submitBtn = document.getElementById("form-submit");
+const signupWrap = document.getElementById("signupWrap");
+const otpWrap = document.getElementById("otpBox");
 
 let savedEmail = "";
 let savedPhone = "";
+
+function show(el) { if (el) el.style.display = "block"; }
+function hide(el) { if (el) el.style.display = "none"; }
 
 function setMsg(text, isError = false) {
   msg.textContent = text;
@@ -160,14 +165,16 @@ form.addEventListener("submit", async (e) => {
     });
 
     const data = await r.json();
-    if (!r.ok) throw new Error(data.error || "Failed to send code");
+      if (!r.ok) throw new Error(data.error || "Failed to send code");
 
-    savedEmail = email;
-    savedPhone = validation.cleanedPhone;
-    otpBox.style.display = "block";
-    setMsg("✅ Code sent. Check your email and enter the 6-digit code.");
-    alert("เราได้ส่งรหัสยืนยัน 6 หลัก ไปที่อีเมล์ของคุณแล้ว กรุณานำรหัสมาใส่และกดยืนยัน");
-    otpEl.focus();
+      savedEmail = email;
+      savedPhone = validation.cleanedPhone;
+
+      hide(signupWrap);
+      show(otpWrap);
+
+      setMsg("✅ Code sent. Check your email and enter the 6-digit code.");
+      otpEl.focus();
   } catch (err) {
     setMsg("❌ " + err.message, true);
   } finally {
