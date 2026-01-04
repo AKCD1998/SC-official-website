@@ -1150,6 +1150,44 @@ https://templatemo.com/tm-516-known
   background: rgba(0,0,0,.25);  /* optional extra contrast */
 }
 
+/* auth dropdown wrapper */
+.sc-auth { position: relative; }
+
+/* dropdown menu box */
+.sc-auth-menu{
+  position:absolute;
+  right:0;
+  top:100%;
+  margin-top:8px;
+  min-width:220px;
+  background:#fff;
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:12px;
+  box-shadow:0 12px 28px rgba(0,0,0,.12);
+  padding:8px;
+  z-index:9999;
+}
+
+.sc-auth-menu a{
+  display:block;
+  padding:10px 12px;
+  border-radius:10px;
+  color:#333;
+  text-decoration:none;
+  font-size:14px;
+}
+
+.sc-auth-menu a:hover{
+  background:rgba(0,0,0,.06);
+}
+
+.sc-auth-divider{
+  height:1px;
+  background:rgba(0,0,0,.10);
+  margin:6px 6px;
+}
+
+
 /* smaller on mobile */
 @media (max-width: 767px){
   #courses .coming-soon-text,

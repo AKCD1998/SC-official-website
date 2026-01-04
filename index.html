@@ -90,8 +90,22 @@ https://templatemo.com/tm-516-known
                     </ul>
 
                     <ul class="nav navbar-nav navbar-right">
-                         <li><a href="html/login-form.html"><i class="fa fa-user"></i> Log in / sign up</a></li>
-                    </ul>
+                         <li id="navAuth" class="sc-auth">
+                         <a href="html/login-form.html" id="authLink">
+                              <i class="fa fa-user"></i>
+                              <span id="authText">Log in / sign up</span>
+                              <i class="fa fa-caret-down" id="authCaret" style="display:none; margin-left:6px;"></i>
+                         </a>
+
+                         <!-- mini menu -->
+                         <div id="authMenu" class="sc-auth-menu" style="display:none;">
+                              <a href="#" id="menuEditProfile">Edit profile (coming soon)</a>
+                              <a href="#" id="menuLinkAccount">เชื่อมต่อบัญชี (coming soon)</a>
+                              <div class="sc-auth-divider"></div>
+                              <a href="#" id="menuLogout"><i class="fa fa-sign-out"></i> Log out</a>
+                         </div>
+                         </li>
+                         </ul>
 
                </div>
 
@@ -826,6 +840,7 @@ https://templatemo.com/tm-516-known
      <script src="js/custom.js"></script>
      <script src="js/contact.js"></script>
      <script src="js/map.js"></script>
+     <script src="js/auth-navbar.js?v=1"></script>
 
 </body>
 </html>
