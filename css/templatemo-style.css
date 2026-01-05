@@ -1231,5 +1231,10 @@ https://templatemo.com/tm-516-known
   }
 }
 
-
+.promo-img{
+  display: block;        /* makes margin auto work */
+  margin: 0 auto;        /* center */
+  max-width: 100%;       /* responsive */
+  height: auto;
+}
   
