@@ -1296,3 +1296,27 @@ https://templatemo.com/tm-516-known
   display: block;
   transform: translateY(2px);
 }
+
+
+.loading-overlay{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.25);
+  z-index: 9999;
+}
+
+.loading-overlay.is-on{ display: flex; }
+
+.spinner{
+  width: 42px;
+  height: 42px;
+  border: 4px solid rgba(255,255,255,.35);
+  border-top-color: rgba(255,255,255,1);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }               

@@ -24,6 +24,14 @@ const fpNewPassEl = document.getElementById("fpNewPassword");
 const fpConfirmPassEl = document.getElementById("fpConfirmPassword");
 const fpResetMsgEl = document.getElementById("fpResetMsg");
 
+const overlay = document.getElementById("loadingOverlay");
+
+function setLoading(on) {
+  if (!overlay) return;
+  overlay.classList.toggle("is-on", on);
+  overlay.setAttribute("aria-hidden", on ? "false" : "true");
+}
+
 let resetToken = null;
 
 function setLoginMsg(text, isError = true) {
@@ -68,6 +76,7 @@ if (loginForm) {
     const password = passEl.value;
 
     try {
+      setLoading(true);
       const res = await fetch(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -84,6 +93,8 @@ if (loginForm) {
     } catch (err) {
       console.error(err);
       setLoginMsg("Network error / server error");
+    } finally {
+      setLoading(false);
     }
   });
 }
@@ -110,6 +121,7 @@ if (fpSendBtn) {
     if (!email) return setFpMsg("กรุณากรอกอีเมล์", true);
 
     try {
+      setLoading(true);
       setFpMsg("กำลังส่ง OTP...", false);
       const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
         method: "POST",
@@ -125,6 +137,8 @@ if (fpSendBtn) {
     } catch (err) {
       console.error(err);
       setFpMsg("Network error / server error", true);
+    } finally {
+      setLoading(false);
     }
   });
 }
@@ -140,6 +154,7 @@ if (fpVerifyBtn) {
     if (!otp) return setFpMsg("กรุณากรอก OTP", true);
 
     try {
+      setLoading(true);
       setFpMsg("กำลังตรวจสอบ OTP...", false);
       const res = await fetch(`${API_BASE}/api/auth/verify-reset-otp`, {
         method: "POST",
@@ -159,6 +174,8 @@ if (fpVerifyBtn) {
     } catch (err) {
       console.error(err);
       setFpMsg("Network error / server error", true);
+    } finally {
+      setLoading(false);
     }
   });
 }
@@ -178,6 +195,7 @@ if (resetForm) {
     if (newPassword !== confirm) return setResetMsg("รหัสผ่านไม่ตรงกัน", true);
 
     try {
+      setLoading(true);
       setResetMsg("กำลังรีเซ็ตรหัสผ่าน...", false);
       const res = await fetch(`${API_BASE}/api/auth/reset-password`, {
         method: "POST",
@@ -195,6 +213,9 @@ if (resetForm) {
     } catch (err) {
       console.error(err);
       setResetMsg("Network error / server error", true);
+    }
+    finally {
+      setLoading(false);
     }
   });
 }
