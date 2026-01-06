@@ -1245,3 +1245,54 @@ https://templatemo.com/tm-516-known
   height: auto;
 }
   
+/* Your icon button (applies to ALL icons) */
+.social-icon li a{
+  width:35px;
+  height:35px;
+  line-height:35px;
+  text-align:center;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Keep FontAwesome icons as-is */
+.social-icon li a.fa{
+  font-size:15px;
+}
+
+/* LINE svg size */
+.social-icon li a.icon-line .svg-icon{
+  width:15px;
+  height:15px;
+  display:block;
+}
+
+/* Make svg follow the same color as your icons */
+.social-icon li a.icon-line{
+  color: inherit;
+}
+.social-icon li a.icon-line .svg-icon path{
+  fill: currentColor;
+}
+/* make LINE icon inherit link color */
+.social-icon li a.icon-line { color: #0000fc; }  /* same blue you use now */
+
+/* force svg fill to follow currentColor */
+.social-icon li a.icon-line svg,
+.social-icon li a.icon-line svg path{
+  fill: currentColor !important;
+}
+.social-icon li a.icon-line{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* tiny nudge down (adjust 1px–3px as you like) */
+.social-icon li a.icon-line svg{
+  width: 15px;
+  height: 15px;
+  display: block;
+  transform: translateY(2px);
+}
