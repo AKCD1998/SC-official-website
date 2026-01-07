@@ -756,12 +756,24 @@ https://templatemo.com/tm-516-known
       TESTIMONIAL             
   -----------------------------------------*/
 
-  #testimonial .item {
-    background: #ffffff;
-    margin: 20px 0;
-    padding: 4em 3em;
-    text-align: left;
-  }
+#testimonial .item {
+  background: #ffffff;
+  margin: 20px 0;
+  padding: 4em 3em;
+  text-align: left;
+}
+
+#promoCarousel .promo-item {
+  background: transparent;
+  margin: 0 10px;
+  padding: 0;
+}
+
+#promoCarousel .promo-img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
 
   #courses .col-md-4,
   #testimonial .col-md-4 {
