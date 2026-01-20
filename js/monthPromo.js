@@ -42,23 +42,150 @@ const promoImages = [
 
 const el = document.getElementById("promoCarousel");
 
-// 1) build html
-el.innerHTML = promoImages.map(p => `
-  <div class="item promo-item">
-    <img src="${p.src}" class="img-responsive promo-img" alt="${p.title}">
-  </div>
-`).join("");
+if (el) {
+  // 1) build html
+  el.innerHTML = promoImages.map(p => `
+    <div class="item promo-item">
+      <img src="${p.src}" class="img-responsive promo-img" alt="${p.title}">
+    </div>
+  `).join("");
 
-// 2) init owl AFTER adding items (jQuery required)
-$(el).owlCarousel({
-  items: 3,
-  loop: true,
-  margin: 20,
-  autoplay: true,
-  autoplayTimeout: 3500,
-  responsive: {
-    0: { items: 1 },
-    768: { items: 2 },
-    992: { items: 3 }
-  }
-});
+  // 2) init owl AFTER adding items (jQuery required)
+  $(el).owlCarousel({
+    items: 3,
+    loop: true,
+    margin: 20,
+    autoplay: true,
+    autoplayTimeout: 3500,
+    responsive: {
+      0: { items: 1 },
+      768: { items: 2 },
+      992: { items: 3 }
+    }
+  });
+}
+
+const modal = document.getElementById("promoModal");
+const modalImg = document.getElementById("promoModalImg");
+const modalStage = modal ? modal.querySelector(".promo-modal-stage") : null;
+
+if (el && modal && modalImg && modalStage) {
+  modalImg.setAttribute("draggable", "false");
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 4;
+  let scale = 1;
+  let translateX = 0;
+  let translateY = 0;
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+
+  const applyTransform = () => {
+    modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+  };
+
+  const setScale = next => {
+    scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, next));
+    if (scale === MIN_SCALE) {
+      translateX = 0;
+      translateY = 0;
+    }
+    applyTransform();
+  };
+
+  const openModal = (src, alt) => {
+    modalImg.src = src;
+    modalImg.alt = alt || "";
+    scale = 1;
+    translateX = 0;
+    translateY = 0;
+    applyTransform();
+    modal.classList.add("is-open");
+    modal.setAttribute("aria-hidden", "false");
+    document.body.classList.add("promo-modal-open");
+  };
+
+  const closeModal = () => {
+    modal.classList.remove("is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("promo-modal-open");
+  };
+
+  el.addEventListener("click", e => {
+    const img = e.target.closest(".promo-img");
+    if (!img) return;
+    openModal(img.getAttribute("src"), img.getAttribute("alt"));
+  });
+
+  modal.addEventListener("click", e => {
+    if (e.target.matches("[data-action='close']")) {
+      closeModal();
+    }
+  });
+
+  modal.addEventListener("wheel", e => {
+    if (!modal.classList.contains("is-open")) return;
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.2 : -0.2;
+    setScale(scale + delta);
+  }, { passive: false });
+
+  modal.addEventListener("click", e => {
+    const action = e.target.getAttribute("data-action");
+    if (!action) return;
+    if (action === "zoom-in") setScale(scale + 0.2);
+    if (action === "zoom-out") setScale(scale - 0.2);
+    if (action === "zoom-reset") setScale(1);
+  });
+
+  const startDrag = (clientX, clientY) => {
+    if (scale <= 1) return;
+    isDragging = true;
+    dragStartX = clientX - translateX;
+    dragStartY = clientY - translateY;
+    modalStage.classList.add("is-dragging");
+  };
+
+  const moveDrag = (clientX, clientY) => {
+    if (!isDragging) return;
+    translateX = clientX - dragStartX;
+    translateY = clientY - dragStartY;
+    applyTransform();
+  };
+
+  const endDrag = () => {
+    isDragging = false;
+    modalStage.classList.remove("is-dragging");
+  };
+
+  modalImg.addEventListener("mousedown", e => {
+    e.preventDefault();
+    startDrag(e.clientX, e.clientY);
+  });
+
+  document.addEventListener("mousemove", e => {
+    moveDrag(e.clientX, e.clientY);
+  });
+
+  document.addEventListener("mouseup", endDrag);
+
+  modalImg.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1) return;
+    const t = e.touches[0];
+    startDrag(t.clientX, t.clientY);
+  }, { passive: true });
+
+  document.addEventListener("touchmove", e => {
+    if (!isDragging || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    moveDrag(t.clientX, t.clientY);
+  }, { passive: true });
+
+  document.addEventListener("touchend", endDrag);
+
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && modal.classList.contains("is-open")) {
+      closeModal();
+    }
+  });
+}

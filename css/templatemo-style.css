@@ -775,6 +775,93 @@ https://templatemo.com/tm-516-known
   height: auto;
 }
 
+.promo-modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+}
+
+.promo-modal.is-open {
+  display: block;
+}
+
+.promo-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.promo-modal-dialog {
+  position: relative;
+  width: min(92vw, 1200px);
+  height: min(90vh, 900px);
+  margin: 4vh auto;
+  background: #0b0b0b;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.promo-modal-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  justify-content: center;
+  background: #111111;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.promo-modal-btn {
+  background: #1f1f1f;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 6px 12px;
+  border-radius: 4px;
+}
+
+.promo-modal-btn:hover {
+  background: #2b2b2b;
+}
+
+.promo-modal-close {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  font-size: 28px;
+  line-height: 1;
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+}
+
+.promo-modal-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+
+.promo-modal-stage.is-dragging {
+  cursor: grabbing;
+}
+
+.promo-modal-img {
+  max-width: 100%;
+  max-height: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+  transform-origin: center center;
+}
+
+body.promo-modal-open {
+  overflow: hidden;
+}
+
   #courses .col-md-4,
   #testimonial .col-md-4 {
     display: block;

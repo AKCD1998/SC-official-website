@@ -82,10 +82,10 @@ https://templatemo.com/tm-516-known
                <div class="collapse navbar-collapse">
                     <ul class="nav navbar-nav navbar-nav-first">
                          <li><a href="#top" class="smoothScroll">หน้าแรก</a></li>
-                         <li><a href="#about" class="smoothScroll">โปรโมชั่น</a></li>
+                         <li><a href="#about" class="smoothScroll">ประกาศ</a></li>
                          <li><a href="#team" class="smoothScroll">ทีมงานของเรา</a></li>
                          <li><a href="#courses" class="smoothScroll">PENDING</a></li>
-                         <li><a href="#testimonial" class="smoothScroll">PENDING</a></li>
+                         <li><a href="#testimonial" class="smoothScroll">โปรโมชั่น</a></li>
                          <li><a href="#branches" class="smoothScroll">สาขาของเรา</a></li>
                          <li><a href="#contact" class="smoothScroll">ติดต่อเรา</a></li>
                     </ul>
@@ -728,6 +728,21 @@ https://templatemo.com/tm-516-known
           </div>
      </footer>
 
+
+     <div id="promoModal" class="promo-modal" aria-hidden="true">
+          <div class="promo-modal-backdrop" data-action="close"></div>
+          <div class="promo-modal-dialog" role="dialog" aria-modal="true" aria-label="Promotion image">
+               <button type="button" class="promo-modal-close" data-action="close" aria-label="Close">&times;</button>
+               <div class="promo-modal-toolbar">
+                    <button type="button" class="promo-modal-btn" data-action="zoom-out" aria-label="Zoom out">-</button>
+                    <button type="button" class="promo-modal-btn" data-action="zoom-reset" aria-label="Reset zoom">100%</button>
+                    <button type="button" class="promo-modal-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
+               </div>
+               <div class="promo-modal-stage">
+                    <img id="promoModalImg" class="promo-modal-img" src="" alt="">
+               </div>
+          </div>
+     </div>
 
      <!-- SCRIPTS -->
      <script src="js/jquery.js"></script>
