@@ -1,9 +1,14 @@
-<link rel="stylesheet" href="../css/bootstrap.min.css">
-<link rel="stylesheet" href="../css/font-awesome.min.css">
-<link rel="stylesheet" href="../css/templatemo-style.css">
-<link rel="stylesheet" href="../css/login.css">
-
-
+﻿<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in</title>
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/font-awesome.min.css">
+  <link rel="stylesheet" href="../css/templatemo-style.css">
+  <link rel="stylesheet" href="../css/login.css">
+</head>
 <body>
   <div class="auth-wrap" id="loginWrap" style="display: flex;">
     <div class="auth-card">
@@ -41,8 +46,7 @@
 
           <div class="auth-links">
             <a id="goSignup" href="./sign-up-form.html"><i class="fa fa-user-plus"></i> Create account</a>
-            <a href="#" onclick="alert('TODO: forgot password'); return false;">
-              <a href="#" id="goForgot"><i class="fa fa-question-circle"></i> Forgot password</a>
+            <a href="#" id="goForgot"><i class="fa fa-question-circle"></i> Forgot password</a>
           </div>
         </form>
 
@@ -52,7 +56,7 @@
   </div>
 
      <!-- hidden OTP step -->
-      <div id="otpForgotPass" class="otp-wrap" style="display:none;">
+      <div id="otpForgotPass" class="otp-wrap" style="display:none; flex-direction: column;">
         <div class="otp-title"><i class="fa fa-shield"></i> ยืนยันอีเมล์ (OTP)</div>
 
         <div class="input-head">
@@ -81,7 +85,7 @@
       </div>
 
       <!-- hidden reset password step -->
-      <div id="otpResetPass" class="resetPass otp-wrap" style="display:none;">
+      <div id="otpResetPass" class="resetPass otp-wrap" style="display:none; flex-direction: column;">
         <form id="resetForm">
 
           <div class="otp-title"><i class="fa fa-key"></i> ตั้งรหัสผ่านใหม่</div>
@@ -120,4 +124,7 @@
 
 
 <script src="../js/loginForm.js"></script>
+</body>
+</html>
+
 
