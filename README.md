@@ -1,12 +1,23 @@
 # templatemo_516_known
 
-## Run (frontend)
+## Run (legacy frontend)
 1) Serve the repo root on port 5500 (matches default CORS):
    python -m http.server 5500
 2) Open http://localhost:5500/index.html
 3) If you want local backend, set API_BASE to http://localhost:3000 in:
    - js/loginForm.js
    - js/signupForm.js
+
+## Run (React frontend)
+1) cd frontend-react
+2) npm install
+3) npm run dev
+4) Open http://localhost:5173/index.html
+
+Notes:
+- Vite proxy: /api -> http://localhost:3000
+- Legacy pages (login/signup) are embedded via iframe pointing to http://localhost:5500
+  - Override with env var: VITE_LEGACY_BASE_URL=http://localhost:5500
 
 ## Run (backend)
 1) cd backend
@@ -29,8 +40,10 @@ PostgreSQL tables/columns used by the backend:
 - email_verifications: id, email, code_hash, created_at, expires_at, used_at, attempt_count
 - password_resets: email, otp_hash, expires_at, attempts, reset_token_hash, reset_token_expires_at
 
-## Smoke test checklist
-- Login with a valid user; navbar shows email and token saved in localStorage.
-- List/Create/Edit: not implemented in current backend; skip or define once endpoints exist.
-- Logout from navbar; token removed and UI resets.
-- Permissions: call GET /api/auth/me without token (should fail) and with token (should pass).
+## API contract and parity
+- `api-contract.md` documents all backend endpoints and payloads.
+- `behavior-parity.md` is the golden test checklist for login/signup/forgot/logout/contact/auth.
+
+## Assumptions used
+- Legacy frontend keeps running on port 5500 during migration.
+- React routes mirror legacy URLs; login/signup remain legacy until migrated.

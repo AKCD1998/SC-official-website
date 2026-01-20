@@ -1,0 +1,31 @@
+/* TEAM: force all images same size */
+#team .team-image{
+  width: 212.5px;
+  height: 225.09px;
+  overflow: hidden;
+  margin: 0 auto;          /* จัดให้อยู่กลาง */
+  border-radius: 4px;       /* ปรับได้ ถ้าอยากให้มุมมน */
+}
+
+#team .team-image img{
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;        /* crop ให้เต็มกรอบ */
+  display: block;
+}
+
+#team .team-image{
+  width: min(212.5px, 100%);
+  aspect-ratio: 212.5 / 225.09;  /* คุมสัดส่วน */
+  height: auto;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+#team .team-image img{
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 212.5 / 225.09;
+  object-fit: cover;
+  display: block;
+}
