@@ -1,5 +1,5 @@
  /* ====== Quick modern login style ====== */
-    body{
+    body.page-login{
       min-height:50vh;
       background: linear-gradient(135deg, #f5f7ff 0%, #eef7ff 40%, #f8f8ff 100%);
     }

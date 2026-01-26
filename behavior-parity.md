@@ -1,17 +1,17 @@
 # Behavior Parity Checklist (Golden Tests)
 
 ## Auth: login
-- Legacy login page: /html/login-form.html
+- React login page: /login
 - Submit valid email/password -> token saved in localStorage key `token`
 - Invalid credentials -> error message shown and no token saved
 
 ## Auth: signup + OTP
-- Legacy signup page: /html/sign-up-form.html
+- React signup page: /signup
 - Start signup -> OTP email sent
 - Verify OTP -> account created -> redirected to login
 
 ## Auth: forgot + reset
-- Legacy login page: click "Forgot password"
+- Login page: click "Forgot password"
 - Request OTP -> email received
 - Verify OTP -> get reset token
 - Reset password -> can log in with new password

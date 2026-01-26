@@ -120,6 +120,12 @@ Response:
 { "ok": true }
 ```
 
+### GET /api/health
+Response:
+```json
+{ "ok": true }
+```
+
 ### GET /api/auth/ping
 Response:
 ```json

@@ -1,5 +1,5 @@
    /* ====== page bg ====== */
-    body{
+    body.page-signup{
       min-height:50vh;
       background: linear-gradient(135deg, #f5fbff 0%, #eef7ff 45%, #f8f8ff 100%);
       display:block;          /* not flex */
