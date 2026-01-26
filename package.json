@@ -1,4 +1,11 @@
 {
+  "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend-react run dev",
+    "build:frontend": "npm --prefix frontend-react run build",
+    "preview:frontend": "npm --prefix frontend-react run preview",
+    "start:backend": "npm --prefix backend run start"
+  },
   "dependencies": {
     "@sendgrid/mail": "^8.1.6"
   }

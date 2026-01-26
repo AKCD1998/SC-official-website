@@ -1,10 +1,10 @@
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const sgMail = require("@sendgrid/mail");
-const authRoutes = require('./routes/auth');
-
 dotenv.config();
+const sgMail = require("@sendgrid/mail");
+const authRoutes = require("./routes/auth");
 
 
 // ==== ENV CHECK ====
@@ -26,32 +26,38 @@ console.log("SendGrid configured:", !!process.env.SENDGRID_API_KEY);
 
 // ==== App ====
 const app = express();
+const port = process.env.PORT || 3000;
+const clientBuildPath = process.env.CLIENT_BUILD_DIR
+  ? path.resolve(process.env.CLIENT_BUILD_DIR)
+  : path.join(__dirname, "..", "frontend-react", "dist");
 
 const allowed = (process.env.CORS_ORIGIN || "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+const localOrigins = [`http://localhost:${port}`, `http://127.0.0.1:${port}`];
+const allowedSet = new Set([...allowed, ...localOrigins].filter(Boolean));
+const allowAll = allowedSet.size === 0;
 
-app.use(
-  cors({
-    origin: (origin, callBack) => {
-      if (!origin) return callBack(null, true);
-      if (allowed.includes(origin)) return callBack(null, true);
-      return callBack(new Error("Not allowed by CORS"), false);
-    },
-  })
-);
+app.use('/api', cors({
+  origin: (origin, callBack) => {
+    if (!origin || allowAll) return callBack(null, true);
+    if (allowedSet.has(origin)) return callBack(null, true);
+    return callBack(new Error("Not allowed by CORS"), false);
+  },
+  credentials: true,
+}));
 
 app.use(express.json());
 
 //=============AUTH SIGN UP================
 app.use('/api/auth', authRoutes);
 app.get("/api/auth/ping", (req, res) => res.json({ ok: true }));
+app.get("/api/health", (req, res) => res.json({ ok: true }));
 
 //==============================================
 
 // health checks
-app.get("/", (req, res) => res.send("Server is running"));
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 // contact endpoint
@@ -105,5 +111,15 @@ app.post("/api/contact", async (req, res) => {
   }
 });
 
-const port = process.env.PORT || 3000;
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(clientBuildPath));
+
+  app.get(/.*/, (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(clientBuildPath, "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => res.send("Server is running"));
+}
+
 app.listen(port, () => console.log(`Server is running on port ${port}`));
