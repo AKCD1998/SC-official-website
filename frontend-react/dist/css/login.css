@@ -40,7 +40,20 @@
 
     .auth-body{ padding:20px 22px 22px; }
 
+    body.page-login .input-group{
+      display:flex;
+      align-items:stretch;
+      gap:0;
+      width:100%;
+    }
+
     .input-group .input-group-addon{
+      height:46px;
+      min-width:44px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-right:0;
       border-radius:12px 0 0 12px;
       border:1px solid #e6e6e6;
       background:#f7f7f7;
@@ -68,6 +81,12 @@
       border-radius:0 12px 12px 0;
       border:1px solid #e6e6e6;
       box-shadow: none;
+    }
+    body.page-login .input-group .form-control{
+      flex:1 1 auto;
+      min-width:0;
+      width:1%;
+      border-left:0;
     }
     .form-control:focus{
       border-color:#10cdd7;

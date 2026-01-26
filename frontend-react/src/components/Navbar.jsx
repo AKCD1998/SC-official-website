@@ -77,8 +77,8 @@ export default function Navbar() {
               { href: '#top', label: 'หน้าแรก' },
               { href: '#about', label: 'ประกาศ' },
               { href: '#team', label: 'ทีมงานของเรา' },
-              { href: '#courses', label: 'PENDING' },
-              { href: '#testimonial', label: 'โปรโมชั่น' },
+              { href: '#JoinUs', label: 'ร่วมงานกับเรา' },
+              { href: '#promotions', label: 'โปรโมชั่น' },
               { href: '#branches', label: 'สาขาของเรา' },
               { href: '#contact', label: 'ติดต่อเรา' },
             ].map((item) => (

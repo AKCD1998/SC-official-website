@@ -235,12 +235,12 @@ https://templatemo.com/tm-516-known
   }
 
   #team,
-  #testimonial {
+  #promotions {
     background: #f9f9f9;
   }
 
   #team, 
-  #testimonial {
+  #promotions {
     text-align: center;
   }
 
@@ -624,15 +624,15 @@ https://templatemo.com/tm-516-known
       COURSES             
   -----------------------------------------*/
 
-  #courses .section-title {
+  #JoinUs .section-title {
     text-align: center;
   }
 
-  #courses .owl-theme .owl-nav {
+  #JoinUs .owl-theme .owl-nav {
     margin-top: 30px;
   }
 
-  #courses .owl-theme .owl-nav [class*=owl-] {
+  #JoinUs .owl-theme .owl-nav [class*=owl-] {
     border-radius: 2px;
     font-size: 16px;
     width: 30px;
@@ -756,7 +756,7 @@ https://templatemo.com/tm-516-known
       TESTIMONIAL             
   -----------------------------------------*/
 
-#testimonial .item {
+#promotions .item {
   background: #ffffff;
   margin: 20px 0;
   padding: 4em 3em;
@@ -862,13 +862,13 @@ body.promo-modal-open {
   overflow: hidden;
 }
 
-  #courses .col-md-4,
-  #testimonial .col-md-4 {
+  #JoinUs .col-md-4,
+  #promotions .col-md-4 {
     display: block;
     width: 100%;
   }
 
-  #testimonial .item > p {
+  #promotions .item > p {
     font-size: 16px;
     line-height: 26px;
   }
@@ -1195,7 +1195,7 @@ body.promo-modal-open {
       font-size: 1.8em;
     }
 
-    #testimonial .item {
+    #promotions .item {
       padding: 2em;
     }
 
@@ -1224,14 +1224,14 @@ body.promo-modal-open {
   }
 
   /* make section a positioning context */
-#courses.coming-soon-wrap,
-#testimonial.coming-soon-wrap {
+#JoinUs.coming-soon-wrap,
+#promotions.coming-soon-wrap {
   position: relative;
 }
 
 /* black translucent panel */
-#courses .coming-soon-overlay,
-#testimonial .coming-soon-overlay {
+#JoinUs .coming-soon-overlay,
+#promotions .coming-soon-overlay {
   position: absolute;
   inset: 0;                 /* top:0; right:0; bottom:0; left:0 */
   background: rgba(0,0,0);
@@ -1244,8 +1244,8 @@ body.promo-modal-open {
 }
 
 /* text */
-#courses .coming-soon-text,
-#testimonial .coming-soon-text {
+#JoinUs .coming-soon-text,
+#promotions .coming-soon-text {
   color: #fff;
   font-size: 48px;
   font-weight: 800;
@@ -1297,8 +1297,8 @@ body.promo-modal-open {
 
 /* smaller on mobile */
 @media (max-width: 767px){
-  #courses .coming-soon-text,
-  #testimonial .coming-soon-text {
+  #JoinUs .coming-soon-text,
+  #promotions .coming-soon-text {
     font-size: 28px;
     letter-spacing: 2px;
   }

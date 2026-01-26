@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import PromoModal from '../components/PromoModal.jsx'
 import { apiFetch } from '../lib/api.js'
+import 'swiper/css'
+import 'swiper/css/navigation'
+import 'swiper/css/pagination'
 
 const BASE_URL = import.meta.env.BASE_URL || '/'
 const assetUrl = (path) => `${BASE_URL}${path.replace(/^\/+/, '')}`
@@ -35,40 +40,18 @@ const teamMembers = [
   { name: 'ภญ. มณีรัตน์ มาลัยมาลย์', image: assetUrl('images/JaaRx.jpg') },
 ]
 
-const courses = [
-  {
-    image: assetUrl('images/courses-image1.jpg'),
-    date: '12 / 7 / 2018',
-    duration: '7 Hours',
-    title: 'ร้านยาศิริชัยเภสัช รับบริการสิทธิ์บัตรทอง',
-    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    authorImage: assetUrl('images/author-image1.jpg'),
-  },
-  {
-    image: assetUrl('images/courses-image2.jpg'),
-    date: '20 / 7 / 2018',
-    duration: '4.5 Hours',
-    title: 'ศิริชัยเภสัช เข้าร่วมโครงการสาธารณสุข',
-    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    authorImage: assetUrl('images/author-image2.jpg'),
-  },
-  {
-    image: assetUrl('images/courses-image4.jpg'),
-    date: '10 / 8 / 2018',
-    duration: '8 Hours',
-    title: 'Summer Kids',
-    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    authorImage: assetUrl('images/author-image1.jpg'),
-  },
-  {
-    image: assetUrl('images/courses-image5.jpg'),
-    date: '5 / 10 / 2018',
-    duration: '10 Hours',
-    title: 'Business & Management',
-    desc: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-    authorImage: assetUrl('images/author-image2.jpg'),
-  },
-]
+const newsSlideFilenames = ['SC-can-do-it-finished.png', 'SC-need-you-finished.png']
+const formatAltText = (filename) =>
+  filename
+    .replace(/\.[^/.]+$/, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+const newsSlides = newsSlideFilenames.map((filename) => ({
+  src: assetUrl(`images/News/${filename}`),
+  alt: formatAltText(filename),
+}))
+const newsLink = 'https://akcd1998.github.io/ReactNJobApplicWeb/'
 
 const branches = [
   {
@@ -317,81 +300,118 @@ export default function Home() {
             </div>
 
             <div className="col-md-12">
-              <div className="team-carousel">
+              <Swiper
+                className="team-carousel"
+                modules={[Autoplay, Navigation, Pagination]}
+                slidesPerView={1}
+                spaceBetween={16}
+                loop
+                autoplay={{ delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true }}
+                navigation
+                pagination={{ clickable: true }}
+                breakpoints={{
+                  640: { slidesPerView: 1, spaceBetween: 16 },
+                  768: { slidesPerView: 2, spaceBetween: 20 },
+                  1024: { slidesPerView: 3, spaceBetween: 24 },
+                }}
+              >
                 {teamMembers.map((member) => (
-                  <div className="item" key={member.name}>
-                    <div className="team-thumb">
-                      <div className="team-image">
-                        <img src={member.image} className="img-responsive" alt={member.name} />
+                  <SwiperSlide key={member.name}>
+                    <div className="item">
+                      <div className="team-thumb">
+                        <div className="team-image">
+                          <img src={member.image} className="img-responsive" alt={member.name} />
+                        </div>
+                        <div className="team-info">
+                          <h4>{member.name}</h4>
+                          <span />
+                        </div>
+                        <ul className="social-icon" />
                       </div>
-                      <div className="team-info">
-                        <h2>{member.name}</h2>
-                        <span />
-                      </div>
-                      <ul className="social-icon" />
                     </div>
-                  </div>
+                  </SwiperSlide>
                 ))}
-              </div>
+              </Swiper>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="courses" className="coming-soon-wrap">
-        <div className="coming-soon-overlay">
-          <div className="coming-soon-text">COMING SOON</div>
-        </div>
-
+      <section id="JoinUs">
+        <span
+          id="courses"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 1,
+            height: 1,
+            pointerEvents: 'none',
+          }}
+        />
         <div className="container">
           <div className="row">
             <div className="col-md-12 col-sm-12">
               <div className="section-title">
-                <h2>ข่าวสารและกิจกรรม</h2>
+                <h2>ร่วมงานกับเรา</h2>
               </div>
 
-              <div className="owl-courses">
-                {courses.map((course) => (
-                  <div className="col-md-4 col-sm-4" key={course.title}>
-                    <div className="item">
-                      <div className="courses-thumb">
-                        <div className="courses-top">
-                          <div className="courses-image">
-                            <img src={course.image} className="img-responsive" alt={course.title} />
-                          </div>
-                          <div className="courses-date">
-                            <span>
-                              <i className="fa fa-calendar" /> {course.date}
-                            </span>
-                            <span>
-                              <i className="fa fa-clock-o" /> {course.duration}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="courses-detail">
-                          <h3>
-                            <a href="#">{course.title}</a>
-                          </h3>
-                          <p>{course.desc}</p>
-                        </div>
-
-                        <div className="courses-info">
-                          <div className="courses-author">
-                            <img src={course.authorImage} className="img-responsive" alt="" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              <Swiper
+                className="news-carousel"
+                modules={[Autoplay, Navigation, Pagination]}
+                slidesPerView={1}
+                spaceBetween={16}
+                loop={newsSlides.length > 1}
+                autoplay={{ delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true }}
+                navigation
+                pagination={{ clickable: true }}
+                breakpoints={{
+                  768: { slidesPerView: 2, spaceBetween: 24 },
+                }}
+              >
+                {newsSlides.map((slide) => (
+                  <SwiperSlide key={slide.src}>
+                    <a
+                      href={newsLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="news-slide-link"
+                      style={{
+                        display: 'block',
+                        borderRadius: 12,
+                        overflow: 'hidden',
+                        boxShadow: '0 10px 24px rgba(0, 0, 0, 0.12)',
+                      }}
+                    >
+                      <img
+                        src={slide.src}
+                        className="img-responsive"
+                        alt={slide.alt}
+                        style={{ display: 'block', width: '100%', height: 'auto' }}
+                      />
+                    </a>
+                  </SwiperSlide>
                 ))}
-              </div>
+              </Swiper>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="testimonial" className="coming-soon-wrap">
+      <section id="promotions" className="coming-soon-wrap">
+        <span
+          id="testimonial"
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 1,
+            height: 1,
+            pointerEvents: 'none',
+          }}
+        />
         <div className="container">
           <div className="row">
             <div className="col-md-12 col-sm-12">
@@ -399,19 +419,35 @@ export default function Home() {
                 <h2>สินค้าโปรโมชั่นประจำเดือน</h2>
               </div>
 
-              <div id="promoCarousel" className="promo-carousel-grid">
+              <Swiper
+                id="promoCarousel"
+                className="promo-carousel-grid"
+                modules={[Autoplay, Navigation, Pagination]}
+                slidesPerView={1}
+                spaceBetween={16}
+                loop
+                autoplay={{ delay: 3500, disableOnInteraction: false, pauseOnMouseEnter: true }}
+                navigation
+                pagination={{ clickable: true }}
+                breakpoints={{
+                  640: { slidesPerView: 1, spaceBetween: 16 },
+                  768: { slidesPerView: 2, spaceBetween: 20 },
+                  1024: { slidesPerView: 3, spaceBetween: 24 },
+                }}
+              >
                 {promoImages.map((promo) => (
-                  <div
-                    key={promo.src}
-                    className="item promo-item"
-                    onClick={() =>
-                      setPromoModal({ open: true, image: { src: promo.src, alt: promo.title } })
-                    }
-                  >
-                    <img src={promo.src} className="img-responsive promo-img" alt={promo.title} />
-                  </div>
+                  <SwiperSlide key={promo.src}>
+                    <div
+                      className="item promo-item"
+                      onClick={() =>
+                        setPromoModal({ open: true, image: { src: promo.src, alt: promo.title } })
+                      }
+                    >
+                      <img src={promo.src} className="img-responsive promo-img" alt={promo.title} />
+                    </div>
+                  </SwiperSlide>
                 ))}
-              </div>
+              </Swiper>
             </div>
           </div>
         </div>

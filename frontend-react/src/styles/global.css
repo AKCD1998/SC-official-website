@@ -19,7 +19,6 @@ body {
   display: block;
 }
 
-.team-carousel,
 .owl-courses,
 .owl-client {
   display: grid;
@@ -27,10 +26,20 @@ body {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.team-carousel {
+  position: relative;
+}
+
+.team-carousel .swiper-slide {
+  height: auto;
+}
+
 .promo-carousel-grid {
-  display: grid;
-  gap: 16px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  position: relative;
+}
+
+.promo-carousel-grid .swiper-slide {
+  height: auto;
 }
 
 .promo-carousel-grid .promo-item {
@@ -38,7 +47,8 @@ body {
 }
 
 @media (min-width: 992px) {
-  .team-carousel {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .owl-courses,
+  .owl-client {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
 }
