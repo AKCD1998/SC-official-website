@@ -1,0 +1,130 @@
+﻿<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in</title>
+  <link rel="stylesheet" href="../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../css/font-awesome.min.css">
+  <link rel="stylesheet" href="../css/templatemo-style.css">
+  <link rel="stylesheet" href="../css/login.css">
+</head>
+<body>
+  <div class="auth-wrap" id="loginWrap" style="display: flex;">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h2>Log in</h2>
+        <p>เข้าสู่ระบบเพื่อใช้งาน</p>
+      </div>
+
+      <div class="auth-body" >
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="email" class="small text-muted">Email</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+              <input id="email" type="email" name="email" class="form-control"
+                     placeholder="your@email.com" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label for="password" class="small text-muted">Password</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+              <input id="password" type="password" name="password" class="form-control"
+                     placeholder="Your password" required>
+              <span class="input-group-addon toggle-pass" id="togglePass" title="Show/Hide">
+                <i class="fa fa-eye"></i>
+              </span>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary-auth" id="form-submit" style="margin-top:14px;">
+            Log in
+          </button>
+
+          <div class="auth-links">
+            <a id="goSignup" href="./sign-up-form.html"><i class="fa fa-user-plus"></i> Create account</a>
+            <a href="#" id="goForgot"><i class="fa fa-question-circle"></i> Forgot password</a>
+          </div>
+        </form>
+
+        <p id="msg"></p>
+      </div>
+    </div>
+  </div>
+
+     <!-- hidden OTP step -->
+      <div id="otpForgotPass" class="otp-wrap" style="display:none; flex-direction: column;">
+        <div class="otp-title"><i class="fa fa-shield"></i> ยืนยันอีเมล์ (OTP)</div>
+
+        <div class="input-head">
+          <span class="input-group-addon"><i class="fa fa-envelope"></i></span>
+          <label id="resetPass"class="label" for="fpEmail">อีเมล์</label>
+        </div>
+          <input id="fpEmail" type="email" name="email" class="form-control"
+              placeholder="your@email.com" required>
+          <button id="fpSendBtn" class="submit-btn form-control" type="button" style="margin-top:10px;">
+          ส่งรหัส OTP
+        </button>
+
+
+        <div class="input-head">
+          <span class="input-group-addon"><i class="fa fa-key"></i></span>
+          <label id="resetPass" class="label" for="fpOtp">OTP ระบบจะส่งรหัสไปที่อีเมล์ของคุณ <a class="resendOTP">ส่งอีกครั้ง</a></label>
+        </div>
+        <input id="fpOtp" type="text" class="form-control" placeholder="6-digit code"
+              inputmode="numeric" maxlength="6">
+
+        <button id="fpVerifyBtn" class="submit-btn form-control" type="button" style="margin-top:10px;">
+          ยืนยันอีเมล์
+        </button>
+        <p id="fpMsg"></p>
+
+      </div>
+
+      <!-- hidden reset password step -->
+      <div id="otpResetPass" class="resetPass otp-wrap" style="display:none; flex-direction: column;">
+        <form id="resetForm">
+
+          <div class="otp-title"><i class="fa fa-key"></i> ตั้งรหัสผ่านใหม่</div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label for="fpNewPassword" class="small text-muted">ตั้งรหัสผ่านใหม่</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+              <input id="fpNewPassword" type="password" class="form-control"
+                    placeholder="New password" required>
+              <span class="input-group-addon toggle-pass" id="fpToggleNew" title="Show/Hide">
+                <i class="fa fa-eye"></i>
+              </span>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:12px;">
+            <label for="fpConfirmPassword" class="small text-muted">ยืนยันรหัสผ่านใหม่</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+              <input id="fpConfirmPassword" type="password" class="form-control"
+                    placeholder="Confirm new password" required>
+              <span class="input-group-addon toggle-pass" id="fpToggleConfirm" title="Show/Hide">
+                <i class="fa fa-eye"></i>
+              </span>
+            </div>
+          </div>
+
+          <button type="submit" class="submit-btn form-control" id="fpResetBtn">
+            รีเซ็ตรหัสผ่าน
+          </button>
+
+          <p id="fpResetMsg"></p>
+        </form>
+      </div>
+
+
+<script src="../js/loginForm.js"></script>
+</body>
+</html>
+
+
