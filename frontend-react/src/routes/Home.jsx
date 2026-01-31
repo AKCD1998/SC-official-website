@@ -18,6 +18,10 @@ const heroSlides = [
     link: 'https://lin.ee/2QkD9Vn',
     linkClass: 'slide-link',
     label: 'Open LINE OA',
+    image: assetUrl('images/cover-Facebook-company-page.png'),
+    alt: 'SC Group cover',
+    width: 1920,
+    height: 1080,
   },
   {
     id: 'slide-2',
@@ -25,10 +29,16 @@ const heroSlides = [
     link: 'https://lin.ee/dWDmwRv',
     linkClass: 'slide-overlay-link',
     label: 'Open LINE link',
+    image: assetUrl('images/cover-Facebook-HrRx.png'),
+    alt: 'SC Group recruitment cover',
+    width: 742,
+    height: 315,
   },
   {
     id: 'slide-3',
     className: 'item item-third',
+    image: assetUrl('images/sirichai-bangnoi.webp'),
+    alt: 'Sirichai Bangnoi store',
   },
 ]
 
@@ -50,6 +60,8 @@ const formatAltText = (filename) =>
 const newsSlides = newsSlideFilenames.map((filename) => ({
   src: assetUrl(`images/News/${filename}`),
   alt: formatAltText(filename),
+  width: 4400,
+  height: 2475,
 }))
 const newsLink = 'https://akcd1998.github.io/ReactNJobApplicWeb/'
 
@@ -191,8 +203,19 @@ export default function Home() {
           <div className="home-slider">
             {heroSlides.map((slide, index) => {
               const isActive = index === slideIndex
+              const isPrimarySlide = index === 0
               const item = (
                 <div className={`${slide.className}${isActive ? ' is-active' : ''}`}>
+                  <img
+                    className="home-slide-image"
+                    src={slide.image}
+                    alt={slide.alt || ''}
+                    width={slide.width}
+                    height={slide.height}
+                    loading={isPrimarySlide ? 'eager' : 'lazy'}
+                    decoding="async"
+                    fetchPriority={isPrimarySlide ? 'high' : 'low'}
+                  />
                   <div className="caption">
                     <div className="container" />
                   </div>
@@ -283,6 +306,10 @@ export default function Home() {
               src={assetUrl('images/Promotion ads/2026/January/January-promotion-ad.png')}
               className="promo-img"
               alt="January promotion"
+              width={1536}
+              height={1024}
+              loading="lazy"
+              decoding="async"
             />
           </a>
         </div>
@@ -320,7 +347,13 @@ export default function Home() {
                     <div className="item">
                       <div className="team-thumb">
                         <div className="team-image">
-                          <img src={member.image} className="img-responsive" alt={member.name} />
+                          <img
+                            src={member.image}
+                            className="img-responsive"
+                            alt={member.name}
+                            loading="lazy"
+                            decoding="async"
+                          />
                         </div>
                         <div className="team-info">
                           <h4>{member.name}</h4>
@@ -388,6 +421,10 @@ export default function Home() {
                         src={slide.src}
                         className="img-responsive"
                         alt={slide.alt}
+                        width={slide.width}
+                        height={slide.height}
+                        loading="lazy"
+                        decoding="async"
                         style={{ display: 'block', width: '100%', height: 'auto' }}
                       />
                     </a>
@@ -443,7 +480,13 @@ export default function Home() {
                         setPromoModal({ open: true, image: { src: promo.src, alt: promo.title } })
                       }
                     >
-                      <img src={promo.src} className="img-responsive promo-img" alt={promo.title} />
+                      <img
+                        src={promo.src}
+                        className="img-responsive promo-img"
+                        alt={promo.title}
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </div>
                   </SwiperSlide>
                 ))}
@@ -602,6 +645,8 @@ export default function Home() {
                 <img
                   src="https://qr-official.line.me/gs/M_551jecmm_BW.png?oat_content=qr"
                   alt="LINE Official Account QR"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             </div>
