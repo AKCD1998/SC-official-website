@@ -105,14 +105,27 @@ const branches = [
   },
 ]
 
-const promoImages = Array.from({ length: 38 }).map((_, idx) => {
+const promoImageCount = 44
+const promoImages = Array.from({ length: promoImageCount }).map((_, idx) => {
   const num = idx + 1
-  const filename = num === 1 ? 'promo.jpg' : `promo (${num}).jpg`
+  const filename = num === 1 ? 'promo.PNG' : `promo (${num}).PNG`
   return {
-    src: assetUrl(`images/SC-promotion/Januaray 2026/${filename}`),
+    src: assetUrl(`images/SC-promotion/February 2026/${filename}`),
     title: `Promotion ${num}`,
   }
 })
+
+if (import.meta.env.DEV) {
+  console.debug(
+    '[promotions] promo src list',
+    promoImages.map((promo) => promo.src)
+  )
+  promoImages.forEach((promo, index) => {
+    if (!promo?.src || typeof promo.src !== 'string') {
+      console.warn(`[promotions] Missing promo src at index ${index}`, promo)
+    }
+  })
+}
 
 export default function Home() {
   const location = useLocation()
@@ -297,15 +310,15 @@ export default function Home() {
       <section id="about">
         <div className="container">
           <a
-            href="https://www.facebook.com/share/p/1Bh9fyYxCU/"
+            href="https://www.facebook.com/share/p/14Y9Vxiakoo/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Open Facebook promotion post"
           >
             <img
-              src={assetUrl('images/Promotion ads/2026/January/January-promotion-ad.png')}
+              src={assetUrl('images/Promotion ads/2026/February/February-promotion-ad-2026.png')}
               className="promo-img"
-              alt="January promotion"
+              alt="February promotion"
               width={1536}
               height={1024}
               loading="lazy"
