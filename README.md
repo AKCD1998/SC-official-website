@@ -1,4 +1,4 @@
-# templatemo_516_known
+# currentSC-official-website-project
 
 ## Overview
 - Frontend: React (Vite) in `frontend-react/`
