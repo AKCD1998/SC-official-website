@@ -105,17 +105,56 @@ const branches = [
   },
 ]
 
-const promoImageCount = 46
-const promoImages = Array.from({ length: promoImageCount }).map((_, idx) => {
-  const num = idx + 2
-  const filename = `promo(${num}).jpg`
-  return {
-    src: assetUrl(`images/SC-promotion/March 2026/${filename}`),
-    title: `Promotion ${num}`,
-  }
-})
+const PROMO_CONFIG = {
+  monthFolder: 'March 2026',
+  startIndex: 2,
+  endIndex: 47,
+  filenamePattern: (n) => `promo(${n}).jpg`,
+  basePath: 'images/SC-promotion',
+}
+
+const promoImageCount = PROMO_CONFIG.endIndex - PROMO_CONFIG.startIndex + 1
+const promoImages =
+  promoImageCount > 0
+    ? Array.from({ length: promoImageCount }).map((_, idx) => {
+        const num = PROMO_CONFIG.startIndex + idx
+        const filename = PROMO_CONFIG.filenamePattern(num)
+        return {
+          src: assetUrl(`${PROMO_CONFIG.basePath}/${PROMO_CONFIG.monthFolder}/${filename}`),
+          title: `Promotion ${num}`,
+        }
+      })
+    : []
 
 if (import.meta.env.DEV) {
+  const hasValidIndices =
+    Number.isInteger(PROMO_CONFIG.startIndex) &&
+    Number.isInteger(PROMO_CONFIG.endIndex) &&
+    PROMO_CONFIG.startIndex > 0 &&
+    PROMO_CONFIG.endIndex >= PROMO_CONFIG.startIndex
+  const expectedPromoCount = hasValidIndices
+    ? PROMO_CONFIG.endIndex - PROMO_CONFIG.startIndex + 1
+    : 0
+
+  if (!hasValidIndices) {
+    console.warn('[promotions] Invalid promo index range:', {
+      startIndex: PROMO_CONFIG.startIndex,
+      endIndex: PROMO_CONFIG.endIndex,
+    })
+  }
+  if (!PROMO_CONFIG.monthFolder?.trim()) {
+    console.warn('[promotions] monthFolder is empty in PROMO_CONFIG')
+  }
+  if (!promoImages.length) {
+    console.warn('[promotions] Promo image list is empty')
+  }
+  if (promoImages.length !== expectedPromoCount) {
+    console.warn('[promotions] Promo list size mismatch:', {
+      expectedPromoCount,
+      actualPromoCount: promoImages.length,
+    })
+  }
+
   console.debug(
     '[promotions] promo src list',
     promoImages.map((promo) => promo.src)
