@@ -105,12 +105,12 @@ const branches = [
   },
 ]
 
-const promoImageCount = 44
+const promoImageCount = 46
 const promoImages = Array.from({ length: promoImageCount }).map((_, idx) => {
-  const num = idx + 1
-  const filename = num === 1 ? 'promo.PNG' : `promo (${num}).PNG`
+  const num = idx + 2
+  const filename = `promo(${num}).jpg`
   return {
-    src: assetUrl(`images/SC-promotion/February 2026/${filename}`),
+    src: assetUrl(`images/SC-promotion/March 2026/${filename}`),
     title: `Promotion ${num}`,
   }
 })
@@ -316,9 +316,9 @@ export default function Home() {
             aria-label="Open Facebook promotion post"
           >
             <img
-              src={assetUrl('images/Promotion ads/2026/February/February-promotion-ad-2026.png')}
+              src={assetUrl('images/Promotion ads/2026/March/March-SC-promotion-2026.png')}
               className="promo-img"
-              alt="February promotion"
+              alt="March promotion"
               width={1536}
               height={1024}
               loading="lazy"
