@@ -5,6 +5,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 const sgMail = require("@sendgrid/mail");
 const authRoutes = require("./routes/auth");
+const rx1011Routes = require("./src/modules/rx1011/lazyRouter.cjs");
 
 
 // ==== ENV CHECK ====
@@ -52,6 +53,7 @@ app.use(express.json());
 
 //=============AUTH SIGN UP================
 app.use('/api/auth', authRoutes);
+app.use('/api/rx1011', rx1011Routes);
 app.get("/api/auth/ping", (req, res) => res.json({ ok: true }));
 app.get("/api/health", (req, res) => res.json({ ok: true }));
 

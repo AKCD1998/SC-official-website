@@ -31,7 +31,11 @@ Notes:
    SENDGRID_API_KEY=your_sendgrid_key
    MAIL_USER=verified_sender@example.com
    MAIL_TO=receiver@example.com
+   RX1011_DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/RX1011_DB
+   RX1011_JWT_SECRET=your_rx1011_jwt_secret
 4) npm start
+
+See `backend/.env.example` for the full shared-service env shape. The Rx1011 module is mounted at `/api/rx1011` and should use the namespaced `RX1011_*` variables in shared deployments.
 
 ## Build + serve (production)
 1) Build frontend:
@@ -91,12 +95,20 @@ The build includes a `404.html` entry so refresh on `/login`, `/signup`, etc. wo
 
 ## Health check
 - Backend: `GET /api/health` -> `{ "ok": true }`
+- Rx1011 module: `GET /api/rx1011/health`
 
 ## Convenience scripts (repo root)
 - `npm run dev:frontend`
 - `npm run build:frontend`
 - `npm run preview:frontend`
 - `npm run start:backend`
+
+## Shared backend modules
+- Rx1011 backend routes are integrated under `backend/src/modules/rx1011`.
+- Original Rx1011 paths are namespaced under `/api/rx1011`.
+  - Example: old `/api/products` is now `/api/rx1011/products`.
+  - Example: old `/api/dispense/history` is now `/api/rx1011/dispense/history`.
+- Rx1011 database migrations are copied into `backend/src/modules/rx1011/migrations` for manual review only. They are not run automatically.
 
 ## DB
 PostgreSQL tables/columns used by the backend:
