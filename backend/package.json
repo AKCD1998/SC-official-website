@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/AKCD1998/SC-official-website#readme",
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "@sendgrid/mail": "^8.1.6",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -29,6 +30,7 @@
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "nodemailer": "^7.0.12",
+    "pdf-lib": "^1.17.1",
     "pg": "^8.16.3"
   },
   "devDependencies": {

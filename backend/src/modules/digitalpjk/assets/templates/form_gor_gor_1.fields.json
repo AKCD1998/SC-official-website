@@ -1,0 +1,178 @@
+{
+  "page": 0,
+  "fields": {
+    "ceoNameTh": { "x": 205, "y": 625, "size": 16 },
+    "companyNameFixed": {
+      "page": 0,
+      "x": 395,
+      "y": 670,
+      "size": 16,
+      "value": "บริษัท เอสซีกรุ๊ป (1989) จำกัด"
+    },
+    "pharmacyDisplayName": { "x": 320, "y": 600, "size": 16, "branchSizes": { "005": 12 } },
+    "soi": { "x": 140, "y": 580, "size": 16 },
+    "addressNo": { "x": 495, "y": 600, "size": 16 },
+    "district": { "x": 300, "y": 580, "size": 16 },
+    "province": { "x": 440, "y": 580, "size": 16 },
+    "postcode": { "x": 150, "y": 555, "size": 16 },
+    "phone": { "x": 230, "y": 555, "size": 16 },
+    "licenseNo": { "x": 155, "y": 600, "size": 16 },
+    "operatorTitle": { "x": 410, "y": 555, "size": 16 },
+    "operatorWorkHours": { "x": 270, "y": 535, "size": 16 },
+    "docDateDay": { "page": 0, "x": 355, "y": 645, "size": 16, "source": "currentDocumentDate.thai.day" },
+    "docDateMonth": {
+      "page": 0,
+      "x": 420,
+      "y": 645,
+      "size": 16,
+      "source": "currentDocumentDate.thai.monthNameTh"
+    },
+    "docDateYearBE": {
+      "page": 0,
+      "x": 502,
+      "y": 645,
+      "size": 16,
+      "source": "currentDocumentDate.thai.yearBE"
+    },
+    "slot1_pharmacistName": {
+      "page": 0,
+      "x": 130,
+      "y": 445,
+      "size": 16,
+      "source": "subPharmacistSlots.0.pharmacistName"
+    },
+    "slot1_pharmacistLicense": {
+      "page": 0,
+      "x": 500,
+      "y": 445,
+      "size": 16,
+      "source": "subPharmacistSlots.0.pharmacistLicense"
+    },
+    "slot1_dateStart": {
+      "page": 0,
+      "x": 170,
+      "y": 425,
+      "size": 16,
+      "source": "subPharmacistSlots.0.dateStart",
+      "format": "thaiDateShort"
+    },
+    "slot1_dateEnd": {
+      "page": 0,
+      "x": 370,
+      "y": 425,
+      "size": 16,
+      "source": "subPharmacistSlots.0.dateEnd",
+      "format": "thaiDateShort"
+    },
+    "slot1_timeRange": {
+      "page": 0,
+      "x": 180,
+      "y": 400,
+      "size": 16,
+      "format": "timeRange",
+      "sources": [
+        "subPharmacistSlots.0.timeStart",
+        "subPharmacistSlots.0.timeEnd"
+      ]
+    },
+    "slot2_pharmacistName": {
+      "page": 0,
+      "x": 130,
+      "y": 378,
+      "size": 16,
+      "source": "subPharmacistSlots.1.pharmacistName"
+    },
+    "slot2_pharmacistLicense": {
+      "page": 0,
+      "x": 500,
+      "y": 378,
+      "size": 16,
+      "source": "subPharmacistSlots.1.pharmacistLicense"
+    },
+    "slot2_dateStart": {
+      "page": 0,
+      "x": 170,
+      "y": 358,
+      "size": 16,
+      "source": "subPharmacistSlots.1.dateStart",
+      "format": "thaiDateShort"
+    },
+    "slot2_dateEnd": {
+      "page": 0,
+      "x": 370,
+      "y": 358,
+      "size": 16,
+      "source": "subPharmacistSlots.1.dateEnd",
+      "format": "thaiDateShort"
+    },
+    "slot2_timeRange": {
+      "page": 0,
+      "x": 180,
+      "y": 336,
+      "size": 16,
+      "format": "timeRange",
+      "sources": [
+        "subPharmacistSlots.1.timeStart",
+        "subPharmacistSlots.1.timeEnd"
+      ]
+    },
+    "slot3_pharmacistName": {
+      "page": 0,
+      "x": 130,
+      "y": 312,
+      "size": 16,
+      "source": "subPharmacistSlots.2.pharmacistName"
+    },
+    "slot3_pharmacistLicense": {
+      "page": 0,
+      "x": 500,
+      "y": 312,
+      "size": 16,
+      "source": "subPharmacistSlots.2.pharmacistLicense"
+    },
+    "slot3_dateStart": {
+      "page": 0,
+      "x": 170,
+      "y": 290,
+      "size": 16,
+      "source": "subPharmacistSlots.2.dateStart",
+      "format": "thaiDateShort"
+    },
+    "slot3_dateEnd": {
+      "page": 0,
+      "x": 370,
+      "y": 290,
+      "size": 16,
+      "source": "subPharmacistSlots.2.dateEnd",
+      "format": "thaiDateShort"
+    },
+    "slot3_timeRange": {
+      "page": 0,
+      "x": 180,
+      "y": 268,
+      "size": 16,
+      "format": "timeRange",
+      "sources": [
+        "subPharmacistSlots.2.timeStart",
+        "subPharmacistSlots.2.timeEnd"
+      ]
+    },
+    "pharmacistAttachmentCount": {
+      "page": 0,
+      "x": 340,
+      "y": 200,
+      "size": 16
+    },
+    "licenseeNameTh": {
+      "page": 0,
+      "x": 350,
+      "y": 90,
+      "size": 16,
+      "maxWidth": 140,
+      "align": "center"
+    },
+    "dateDay": { "x": 96, "y": 281, "size": 20, "maxWidth": 40, "align": "center", "source": "" },
+    "dateMonthNameTh": { "x": 225, "y": 281, "size": 20, "maxWidth": 92, "align": "center", "source": "" },
+    "dateYearBE": { "x": 418, "y": 281, "size": 20, "maxWidth": 72, "align": "center", "source": "" }
+  }
+}

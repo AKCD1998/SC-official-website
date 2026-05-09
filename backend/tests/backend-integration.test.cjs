@@ -102,6 +102,14 @@ function testEnv(extra = {}) {
     LINE_NOTIFY_USER_IDS: "",
     RX1011_DATABASE_URL: "",
     RX1011_JWT_SECRET: "test-only-rx1011-secret",
+    DIGITALPJK_DATABASE_URL: "",
+    DIGITALPJK_JWT_SECRET: "test-only-digitalpjk-secret",
+    DIGITALPJK_JWT_EXPIRES_IN: "1h",
+    DIGITALPJK_CEO_NAME_TH: "",
+    DIGITALPJK_LOGIN_RATE_LIMIT_WINDOW_MS: "60000",
+    DIGITALPJK_LOGIN_RATE_LIMIT_MAX: "5",
+    DIGITALPJK_PDF_WRITE_SAMPLE: "false",
+    DIGITALPJK_PDF_SAMPLE_DIR: "",
     ...extra,
   };
 }
@@ -179,6 +187,72 @@ describe("ReactNJob module import baseline", () => {
         process.env.REACTNJOB_SENDGRID_API_KEY = previous.REACTNJOB_SENDGRID_API_KEY;
       }
     }
+  });
+});
+
+describe("DigitalPJK module import baseline", () => {
+  test("database layer, route entrypoint, controllers, and middleware import safely", () => {
+    const script = `
+      process.env.NODE_ENV = "test";
+      process.env.DATABASE_URL = "";
+      process.env.JWT_SECRET = "shared-test-secret";
+      process.env.DIGITALPJK_DATABASE_URL = "";
+      process.env.DIGITALPJK_JWT_SECRET = "test-only";
+      await import("./src/modules/digitalpjk/db/pool.js");
+      await import("./src/modules/digitalpjk/index.js");
+      await import("./src/modules/digitalpjk/controllers/auth.controller.js");
+      await import("./src/modules/digitalpjk/controllers/branches.controller.js");
+      await import("./src/modules/digitalpjk/controllers/documents.controller.js");
+      await import("./src/modules/digitalpjk/controllers/pharmacists.controller.js");
+      await import("./src/modules/digitalpjk/middleware/auth.middleware.js");
+      console.log("ok");
+    `;
+
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
+      cwd: backendRoot,
+      env: testEnv(),
+      encoding: "utf8",
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("ok");
+  });
+
+  test("DigitalPJK refuses generic shared database and JWT env fallbacks", () => {
+    const script = `
+      process.env.NODE_ENV = "test";
+      process.env.DATABASE_URL = "postgres://shared-db.invalid/example";
+      delete process.env.DIGITALPJK_DATABASE_URL;
+      process.env.JWT_SECRET = "shared-test-secret";
+      delete process.env.DIGITALPJK_JWT_SECRET;
+      const { healthCheck } = await import("./src/modules/digitalpjk/db/pool.js");
+      const auth = await import("./src/modules/digitalpjk/services/auth.service.js");
+      const health = await healthCheck();
+      if (health.message !== "DIGITALPJK_DATABASE_URL is not set") {
+        throw new Error("DigitalPJK DB layer used the generic DATABASE_URL fallback.");
+      }
+      try {
+        auth.signAccessToken({ userId: 1, role: "admin" });
+        throw new Error("DigitalPJK auth used the generic JWT_SECRET fallback.");
+      } catch (error) {
+        if (!String(error.message).includes("DIGITALPJK_JWT_SECRET")) {
+          throw error;
+        }
+      }
+      console.log("ok");
+    `;
+
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
+      cwd: backendRoot,
+      env: testEnv({
+        DATABASE_URL: "postgres://shared-db.invalid/example",
+        JWT_SECRET: "shared-test-secret",
+      }),
+      encoding: "utf8",
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("ok");
   });
 });
 
@@ -333,5 +407,30 @@ describe("target backend and Rx1011 namespace", () => {
     const resume = await api.post("/api/reactnjob/resume").send({});
     expect(resume.status).toBe(400);
     expect(resume.body).toEqual({ ok: false, error: "Missing resume attachment data" });
+  });
+
+  test("DigitalPJK routes are mounted under the new namespace", async () => {
+    await api.get("/api/digitalpjk/health").expect(200, { ok: true });
+
+    const unknown = await api.get("/api/digitalpjk/not-a-real-route");
+    expect(unknown.status).toBe(404);
+    expect(unknown.body).toEqual({ error: "Not found" });
+  });
+
+  test.each([
+    ["POST", "/api/digitalpjk/auth/login", {}, 400],
+    ["GET", "/api/digitalpjk/auth/me", null, 401],
+    ["GET", "/api/digitalpjk/me", null, 401],
+    ["GET", "/api/digitalpjk/branches", null, 401],
+    ["GET", "/api/digitalpjk/admin/settings", null, 401],
+    ["POST", "/api/digitalpjk/documents/generate", {}, 401],
+    ["GET", "/api/digitalpjk/documents/recent", null, 401],
+    ["GET", "/api/digitalpjk/pharmacists/part-time", null, 401],
+  ])("%s %s returns the current DigitalPJK baseline status", async (method, route, body, status) => {
+    const response =
+      method === "POST" ? await api.post(route).send(body || {}) : await api.get(route);
+
+    expect(response.status).toBe(status);
+    expect(response.type).toMatch(/json/);
   });
 });
