@@ -1,6 +1,7 @@
 const { spawn, spawnSync } = require("node:child_process");
 const net = require("node:net");
 const path = require("node:path");
+const express = require("express");
 const request = require("supertest");
 
 const backendRoot = path.resolve(__dirname, "..");
@@ -84,8 +85,21 @@ function testEnv(extra = {}) {
     JWT_SECRET: "test-only-main-secret",
     OTP_SECRET: "test-only-otp-secret",
     SENDGRID_API_KEY: "SG.test-only-placeholder",
+    REACTNJOB_SENDGRID_API_KEY: "SG.test-only-reactnjob-placeholder",
     MAIL_USER: "sender@example.com",
     MAIL_TO: "receiver@example.com",
+    REACTNJOB_SUBMIT_URL: "",
+    REACTNJOB_QUICK_CV_SUBMIT_URL: "",
+    REACTNJOB_HR_EMAIL: "",
+    REACTNJOB_FROM_EMAIL: "",
+    REACTNJOB_LINE_CHANNEL_SECRET: "test-only-reactnjob-secret",
+    REACTNJOB_LINE_CHANNEL_ACCESS_TOKEN: "",
+    REACTNJOB_LINE_NOTIFY_MODE: "",
+    REACTNJOB_LINE_NOTIFY_USER_IDS: "",
+    LINE_CHANNEL_SECRET: "",
+    LINE_CHANNEL_ACCESS_TOKEN: "",
+    LINE_NOTIFY_MODE: "",
+    LINE_NOTIFY_USER_IDS: "",
     RX1011_DATABASE_URL: "",
     RX1011_JWT_SECRET: "test-only-rx1011-secret",
     ...extra,
@@ -122,6 +136,49 @@ describe("Rx1011 module import baseline", () => {
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("ok");
+  });
+});
+
+describe("ReactNJob module import baseline", () => {
+  test("route entrypoint imports and creates a router safely", () => {
+    const createReactNJobRouter = require("../src/modules/reactnjob");
+    const router = createReactNJobRouter();
+
+    expect(typeof createReactNJobRouter).toBe("function");
+    expect(typeof router).toBe("function");
+  });
+
+  test("ReactNJob SendGrid config ignores the shared SENDGRID_API_KEY", async () => {
+    const previous = {
+      SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+      REACTNJOB_SENDGRID_API_KEY: process.env.REACTNJOB_SENDGRID_API_KEY,
+    };
+
+    process.env.SENDGRID_API_KEY = "SG.shared-only-placeholder";
+    delete process.env.REACTNJOB_SENDGRID_API_KEY;
+
+    try {
+      const createReactNJobRouter = require("../src/modules/reactnjob");
+      const app = express();
+      app.use("/api/reactnjob", createReactNJobRouter());
+
+      const response = await request(app).post("/api/reactnjob/resume").send({});
+
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({
+        ok: false,
+        error: "Missing REACTNJOB_SENDGRID_API_KEY",
+      });
+    } finally {
+      if (previous.SENDGRID_API_KEY === undefined) delete process.env.SENDGRID_API_KEY;
+      else process.env.SENDGRID_API_KEY = previous.SENDGRID_API_KEY;
+
+      if (previous.REACTNJOB_SENDGRID_API_KEY === undefined) {
+        delete process.env.REACTNJOB_SENDGRID_API_KEY;
+      } else {
+        process.env.REACTNJOB_SENDGRID_API_KEY = previous.REACTNJOB_SENDGRID_API_KEY;
+      }
+    }
   });
 });
 
@@ -210,5 +267,71 @@ describe("target backend and Rx1011 namespace", () => {
 
     expect(response.status).toBe(status);
     expect(response.type).toMatch(/json/);
+  });
+
+  test("ReactNJob routes are mounted under the new namespace", async () => {
+    await api.get("/api/reactnjob/").expect(200, "OK");
+    await api.get("/api/reactnjob/health").expect(200, { ok: true });
+
+    const unknown = await api.get("/api/reactnjob/not-a-real-route");
+    expect(unknown.status).toBe(404);
+    expect(unknown.body).toEqual({ error: "Not found" });
+  });
+
+  test("ReactNJob LINE webhook preserves raw-body signature behavior", async () => {
+    const response = await api.post("/api/reactnjob/line/webhook").send({ events: [] });
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({
+      ok: false,
+      error: "Missing x-line-signature header",
+    });
+  });
+
+  test("ReactNJob LINE notification routes fail safely without external credentials", async () => {
+    const jobNotify = await api
+      .post("/api/reactnjob/notify/line/job-application")
+      .send({ fullName: "Test Applicant", positionApplied: "Test Role" });
+    expect(jobNotify.status).toBe(200);
+    expect(jobNotify.body).toEqual({
+      ok: false,
+      skipped: true,
+      error: "Missing REACTNJOB_LINE_CHANNEL_ACCESS_TOKEN or LINE_CHANNEL_ACCESS_TOKEN",
+    });
+
+    const cvNotify = await api
+      .post("/api/reactnjob/line/notify")
+      .send({ applicantName: "Test Applicant" });
+    expect(cvNotify.status).toBe(200);
+    expect(cvNotify.body).toEqual({
+      ok: false,
+      skipped: true,
+      error: "Missing REACTNJOB_LINE_CHANNEL_ACCESS_TOKEN or LINE_CHANNEL_ACCESS_TOKEN",
+    });
+  });
+
+  test("ReactNJob upload and application routes keep baseline validation behavior", async () => {
+    const missingCv = await api.post("/api/reactnjob/apply/cv").field("source", "test");
+    expect(missingCv.status).toBe(400);
+    expect(missingCv.body).toEqual({ ok: false, error: "Missing CV file" });
+
+    const wrongType = await api
+      .post("/api/reactnjob/apply/cv")
+      .attach("cv", Buffer.from("not a pdf"), {
+        filename: "resume.txt",
+        contentType: "text/plain",
+      });
+    expect(wrongType.status).toBe(400);
+    expect(wrongType.body).toEqual({ ok: false, error: "CV must be a PDF" });
+
+    const invalidPayload = await api
+      .post("/api/reactnjob/submit-application")
+      .field("payload", "{");
+    expect(invalidPayload.status).toBe(400);
+    expect(invalidPayload.body).toEqual({ ok: false, error: "Invalid payload JSON" });
+
+    const resume = await api.post("/api/reactnjob/resume").send({});
+    expect(resume.status).toBe(400);
+    expect(resume.body).toEqual({ ok: false, error: "Missing resume attachment data" });
   });
 });

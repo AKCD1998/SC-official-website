@@ -6,6 +6,7 @@ dotenv.config();
 const sgMail = require("@sendgrid/mail");
 const authRoutes = require("./routes/auth");
 const rx1011Routes = require("./src/modules/rx1011/lazyRouter.cjs");
+const reactNJobRoutes = require("./src/modules/reactnjob");
 
 
 // ==== ENV CHECK ====
@@ -49,6 +50,7 @@ app.use('/api', cors({
   credentials: true,
 }));
 
+app.use('/api/reactnjob', reactNJobRoutes());
 app.use(express.json());
 
 //=============AUTH SIGN UP================
