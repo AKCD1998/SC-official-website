@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import PromoModal from '../components/PromoModal.jsx'
 import { apiFetch } from '../lib/api.js'
+import { getStoredToken } from '../lib/auth.js'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -169,6 +170,10 @@ if (import.meta.env.DEV) {
 export default function Home() {
   const location = useLocation()
   const [slideIndex, setSlideIndex] = useState(0)
+  const [slides, setSlides] = useState(heroSlides)
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [uploadState, setUploadState] = useState({}) // { [slideId]: 'idle'|'uploading'|'done'|string(error) }
+  const fileInputRefs = useRef({})
   const [promoModal, setPromoModal] = useState({ open: false, image: null })
   const [branchQuery, setBranchQuery] = useState('')
   const [activeBranchId, setActiveBranchId] = useState(branches[0]?.id)
@@ -183,6 +188,55 @@ export default function Home() {
   useEffect(() => {
     document.title = 'SC Group 1989 Official Website'
   }, [])
+
+  // Load slider config from API; derive isAdmin and any custom image URLs.
+  // Falls back silently to hardcoded heroSlides if the request fails.
+  useEffect(() => {
+    const token = getStoredToken()
+    const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    apiFetch('/api/slider/config', { headers })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!data) return
+        setIsAdmin(!!data.isAdmin)
+        if (data.slides && typeof data.slides === 'object') {
+          setSlides((prev) =>
+            prev.map((s) => (data.slides[s.id] ? { ...s, image: data.slides[s.id] } : s))
+          )
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  async function handleImageChange(slideId, file) {
+    if (!file) return
+    const allowed = ['image/png', 'image/jpeg', 'image/webp']
+    if (!allowed.includes(file.type)) {
+      setUploadState((s) => ({ ...s, [slideId]: 'Invalid type. Use PNG, JPG, or WebP.' }))
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadState((s) => ({ ...s, [slideId]: 'File too large. Max 5 MB.' }))
+      return
+    }
+    setUploadState((s) => ({ ...s, [slideId]: 'uploading' }))
+    const form = new FormData()
+    form.append('image', file)
+    try {
+      const token = getStoredToken()
+      const res = await apiFetch(`/api/slider/upload/${slideId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form,
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Upload failed.')
+      setSlides((prev) => prev.map((s) => (s.id === slideId ? { ...s, image: data.imageUrl } : s)))
+      setUploadState((s) => ({ ...s, [slideId]: 'done' }))
+    } catch (err) {
+      setUploadState((s) => ({ ...s, [slideId]: `Error: ${err.message}` }))
+    }
+  }
 
   useEffect(() => {
     if (!location.hash) return
@@ -253,11 +307,62 @@ export default function Home() {
       <section id="home">
         <div className="row">
           <div className="home-slider">
-            {heroSlides.map((slide, index) => {
+            {slides.map((slide, index) => {
               const isActive = index === slideIndex
               const isPrimarySlide = index === 0
+              const uploadStatus = uploadState[slide.id]
+              const adminOverlay = isAdmin ? (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    zIndex: 20,
+                  }}
+                >
+                  <input
+                    ref={(el) => { fileInputRefs.current[slide.id] = el }}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,.webp"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      handleImageChange(slide.id, e.target.files?.[0])
+                      e.target.value = ''
+                    }}
+                  />
+                  <button
+                    onClick={() => fileInputRefs.current[slide.id]?.click()}
+                    disabled={uploadStatus === 'uploading'}
+                    style={{
+                      cursor: uploadStatus === 'uploading' ? 'wait' : 'pointer',
+                      background: 'rgba(0,0,0,0.65)',
+                      color: '#fff',
+                      border: '1px solid rgba(255,255,255,0.4)',
+                      padding: '5px 12px',
+                      borderRadius: 4,
+                      fontSize: 13,
+                      lineHeight: 1.4,
+                      maxWidth: 200,
+                      wordBreak: 'break-word',
+                      textAlign: 'center',
+                    }}
+                  >
+                    {uploadStatus === 'uploading'
+                      ? 'Uploading…'
+                      : uploadStatus === 'done'
+                      ? '✓ Done'
+                      : typeof uploadStatus === 'string'
+                      ? uploadStatus
+                      : 'Change image'}
+                  </button>
+                </div>
+              ) : null
+
               const item = (
-                <div className={`${slide.className}${isActive ? ' is-active' : ''}`}>
+                <div
+                  className={`${slide.className}${isActive ? ' is-active' : ''}`}
+                  style={{ position: 'relative' }}
+                >
                   <img
                     className="home-slide-image"
                     src={slide.image}
@@ -280,6 +385,7 @@ export default function Home() {
                       aria-label={slide.label}
                     />
                   ) : null}
+                  {adminOverlay}
                 </div>
               )
 

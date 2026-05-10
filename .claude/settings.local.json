@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\" -Recurse -Depth 2)",
+      "Bash(Select-Object FullName, PSIsContainer)",
+      "Bash(Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\" -Force | Select-Object Name, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'DIR'}else{'FILE'}}} | Format-Table -AutoSize)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\\\\frontend-react\" -Force | Select-Object Name, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'DIR'}else{'FILE'}}} | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\\\\backend\" -Force | Select-Object Name, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'DIR'}else{'FILE'}}} | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\\\\frontend-react\\\\src\" -Force | Select-Object Name, @{Name='Type';Expression={if\\($_.PSIsContainer\\){'DIR'}else{'FILE'}}} | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\\\\frontend-react\\\\public\" -Recurse -Force | Select-Object @{Name='Path';Expression={$_.FullName.Replace\\('c:\\\\Users\\\\scgro\\\\Desktop\\\\Webapp training project\\\\currentSC-official-website-project\\\\frontend-react\\\\public\\\\', ''\\)}} | Select-Object Path)"
+    ]
+  }
+}

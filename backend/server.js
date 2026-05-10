@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 dotenv.config();
 const sgMail = require("@sendgrid/mail");
 const authRoutes = require("./routes/auth");
+const sliderRoutes = require("./routes/slider");
+const { r2Configured } = require("./lib/r2Storage");
 const rx1011Routes = require("./src/modules/rx1011/lazyRouter.cjs");
 const reactNJobRoutes = require("./src/modules/reactnjob");
 const digitalPjkRoutes = require("./src/modules/digitalpjk/lazyRouter.cjs");
@@ -56,6 +58,13 @@ app.use('/api/reactnjob', reactNJobRoutes());
 app.use('/api/digitalpjk', digitalPjkRoutes);
 app.use('/api/scglamliff', scGlamLiffRoutes);
 app.use(express.json());
+
+// Slider image uploads — serve local disk fallback when R2 is not configured (dev)
+if (!r2Configured) {
+  app.use('/uploads/slider',
+    express.static(path.join(__dirname, 'uploads', 'slider')));
+}
+app.use('/api/slider', sliderRoutes);
 
 //=============AUTH SIGN UP================
 app.use('/api/auth', authRoutes);
