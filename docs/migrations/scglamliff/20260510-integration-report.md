@@ -37,7 +37,7 @@ env_required:
   - "SCGLAMLIFF_COOKIE_SECURE"
   - "SCGLAMLIFF_GAS_APPOINTMENTS_URL"
   - "SCGLAMLIFF_GAS_SECRET"
-  - "SCGLAMLIFF_LINE_LIFF_CHANNEL_ID"
+  - "SCGLAMLIFF_LINE_CHANNEL_ID"
   - "SCGLAMLIFF_DEFAULT_BRANCH_ID"
   - "SCGLAMLIFF_LEGACY_SHEET_MODE"
   - "SCGLAMLIFF_PIN_FINGERPRINT_SECRET"
@@ -103,7 +103,7 @@ Required or supported names:
 - `SCGLAMLIFF_COOKIE_DOMAIN`
 - `SCGLAMLIFF_GAS_APPOINTMENTS_URL`
 - `SCGLAMLIFF_GAS_SECRET`
-- `SCGLAMLIFF_LINE_LIFF_CHANNEL_ID`
+- `SCGLAMLIFF_LINE_CHANNEL_ID`
 - `SCGLAMLIFF_DEFAULT_BRANCH_ID`
 - `SCGLAMLIFF_LEGACY_SHEET_MODE`
 - `SCGLAMLIFF_PIN_FINGERPRINT_SECRET`
@@ -114,6 +114,16 @@ Frontend follow-up names:
 
 - `VITE_SCGLAMLIFF_API_BASE_URL`
 - `VITE_SCGLAMLIFF_API_PREFIX`
+
+Render names from the standalone app that are not read by the v1 shared module:
+
+- `SCGLAMLIFF_FRONTEND_ORIGINS`: CORS remains centralized in the shared backend. Add the scGlamLiff frontend origin to shared `CORS_ORIGIN` instead.
+- `SCGLAMLIFF_ADMIN_USERNAME`, `SCGLAMLIFF_ADMIN_PASSWORD`, `SCGLAMLIFF_ADMIN_DISPLAY_NAME`: seed/admin scripts were not copied or executed.
+- `SCGLAMLIFF_SEED_USERNAME`, `SCGLAMLIFF_SEED_PASSWORD`, `SCGLAMLIFF_SEED_DISPLAY_NAME`, `SCGLAMLIFF_SEED_ROLE`: seed scripts were not copied or executed.
+- `SCGLAMLIFF_BASE_URL`, `SCGLAMLIFF_PORT`, `SCGLAMLIFF_NODE_ENV`: the shared web service owns base URL, port, and process runtime mode globally.
+- `SCGLAMLIFF_LINE_CHANNEL_SECRET`: the copied LIFF verification path uses the channel ID only.
+- `SCGLAMLIFF_OMISE_SECRET_KEY`: no Omise payment path is mounted in this v1 module.
+- `SCGLAMLIFF_R2_ACCESS_KEY_ID`, `SCGLAMLIFF_R2_BUCKET`, `SCGLAMLIFF_R2_ENDPOINT`, `SCGLAMLIFF_R2_KEY_PREFIX`, `SCGLAMLIFF_R2_SECRET_ACCESS_KEY`, `SCGLAMLIFF_RECEIPT_UPLOAD_STORAGE_DIR`: receipt upload/OCR/storage routes are intentionally excluded from v1.
 
 ## Database And Migrations
 

@@ -97,7 +97,7 @@ async function verifyLineIdToken({
   const resolvedChannelId = resolveLineChannelId(channelId);
   if (!resolvedChannelId) {
     throw serverConfigError(
-      'SCGLAMLIFF_LINE_LIFF_CHANNEL_ID is required to verify LINE id_token'
+      'SCGLAMLIFF_LINE_CHANNEL_ID is required to verify LINE id_token'
     );
   }
 
@@ -146,7 +146,7 @@ async function verifyLineAccessToken({
   const resolvedChannelId = resolveLineChannelId(channelId);
   if (!resolvedChannelId) {
     throw serverConfigError(
-      'SCGLAMLIFF_LINE_LIFF_CHANNEL_ID is required to verify LINE access_token'
+      'SCGLAMLIFF_LINE_CHANNEL_ID is required to verify LINE access_token'
     );
   }
 

@@ -70,7 +70,10 @@ export function getGasSecret() {
 }
 
 export function getLineLiffChannelId() {
-  return readScGlamLiffEnv("SCGLAMLIFF_LINE_LIFF_CHANNEL_ID");
+  return (
+    readScGlamLiffEnv("SCGLAMLIFF_LINE_CHANNEL_ID") ||
+    readScGlamLiffEnv("SCGLAMLIFF_LINE_LIFF_CHANNEL_ID")
+  );
 }
 
 export { normalizeText };

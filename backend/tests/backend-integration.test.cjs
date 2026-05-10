@@ -117,7 +117,7 @@ function testEnv(extra = {}) {
     SCGLAMLIFF_COOKIE_DOMAIN: "",
     SCGLAMLIFF_GAS_APPOINTMENTS_URL: "",
     SCGLAMLIFF_GAS_SECRET: "",
-    SCGLAMLIFF_LINE_LIFF_CHANNEL_ID: "",
+    SCGLAMLIFF_LINE_CHANNEL_ID: "",
     SCGLAMLIFF_DEFAULT_BRANCH_ID: "branch-003",
     SCGLAMLIFF_LEGACY_SHEET_MODE: "false",
     SCGLAMLIFF_PIN_FINGERPRINT_SECRET: "",
@@ -277,7 +277,13 @@ describe("scGlamLiff module import baseline", () => {
       delete process.env.SCGLAMLIFF_DATABASE_URL;
       process.env.JWT_SECRET = "shared-test-secret";
       process.env.SCGLAMLIFF_JWT_SECRET = "test-only-scglamliff-secret";
+      process.env.SCGLAMLIFF_LINE_CHANNEL_ID = "test-line-channel";
+      delete process.env.SCGLAMLIFF_LINE_LIFF_CHANNEL_ID;
       await import("./src/modules/scglamliff/db.js");
+      const env = await import("./src/modules/scglamliff/config/env.js");
+      if (env.getLineLiffChannelId() !== "test-line-channel") {
+        throw new Error("scGlamLiff LINE channel ID env adapter did not use SCGLAMLIFF_LINE_CHANNEL_ID.");
+      }
       await import("./src/modules/scglamliff/index.js");
       await import("./src/modules/scglamliff/controllers/authController.js");
       await import("./src/modules/scglamliff/controllers/appointmentsController.js");
