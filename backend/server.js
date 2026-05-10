@@ -135,7 +135,16 @@ app.post("/api/contact", async (req, res) => {
 });
 
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(clientBuildPath));
+  // Serve hashed assets with default caching (content-hash names = safe to cache).
+  // index.html itself must NOT be cached — after a redeploy, hashes change and
+  // a stale cached index.html will request asset filenames that no longer exist.
+  app.use(express.static(clientBuildPath, {
+    setHeaders(res, filePath) {
+      if (filePath.endsWith("index.html")) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+      }
+    },
+  }));
 
   app.get(/\.[^/]+$/, (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
@@ -144,6 +153,7 @@ if (process.env.NODE_ENV === "production") {
 
   app.get(/.*/, (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 } else {
