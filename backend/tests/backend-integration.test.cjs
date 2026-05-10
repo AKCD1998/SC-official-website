@@ -110,6 +110,19 @@ function testEnv(extra = {}) {
     DIGITALPJK_LOGIN_RATE_LIMIT_MAX: "5",
     DIGITALPJK_PDF_WRITE_SAMPLE: "false",
     DIGITALPJK_PDF_SAMPLE_DIR: "",
+    SCGLAMLIFF_DATABASE_URL: "",
+    SCGLAMLIFF_JWT_SECRET: "test-only-scglamliff-secret",
+    SCGLAMLIFF_COOKIE_SAMESITE: "lax",
+    SCGLAMLIFF_COOKIE_SECURE: "false",
+    SCGLAMLIFF_COOKIE_DOMAIN: "",
+    SCGLAMLIFF_GAS_APPOINTMENTS_URL: "",
+    SCGLAMLIFF_GAS_SECRET: "",
+    SCGLAMLIFF_LINE_LIFF_CHANNEL_ID: "",
+    SCGLAMLIFF_DEFAULT_BRANCH_ID: "branch-003",
+    SCGLAMLIFF_LEGACY_SHEET_MODE: "false",
+    SCGLAMLIFF_PIN_FINGERPRINT_SECRET: "",
+    SCGLAMLIFF_DEBUG_QUEUE_PHONE_FRAGMENT: "",
+    SCGLAMLIFF_DEBUG_TREATMENT_CATALOG_PREVIEW: "false",
     ...extra,
   };
 }
@@ -221,7 +234,7 @@ describe("DigitalPJK module import baseline", () => {
   test("DigitalPJK refuses generic shared database and JWT env fallbacks", () => {
     const script = `
       process.env.NODE_ENV = "test";
-      process.env.DATABASE_URL = "postgres://shared-db.invalid/example";
+      process.env.DATABASE_URL = "shared-db-not-used";
       delete process.env.DIGITALPJK_DATABASE_URL;
       process.env.JWT_SECRET = "shared-test-secret";
       delete process.env.DIGITALPJK_JWT_SECRET;
@@ -245,7 +258,75 @@ describe("DigitalPJK module import baseline", () => {
     const result = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
       cwd: backendRoot,
       env: testEnv({
-        DATABASE_URL: "postgres://shared-db.invalid/example",
+        DATABASE_URL: "shared-db-not-used",
+        JWT_SECRET: "shared-test-secret",
+      }),
+      encoding: "utf8",
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("ok");
+  });
+});
+
+describe("scGlamLiff module import baseline", () => {
+  test("database layer and route entrypoint import safely without a database URL", () => {
+    const script = `
+      process.env.NODE_ENV = "test";
+      process.env.DATABASE_URL = "shared-db-not-used";
+      delete process.env.SCGLAMLIFF_DATABASE_URL;
+      process.env.JWT_SECRET = "shared-test-secret";
+      process.env.SCGLAMLIFF_JWT_SECRET = "test-only-scglamliff-secret";
+      await import("./src/modules/scglamliff/db.js");
+      await import("./src/modules/scglamliff/index.js");
+      await import("./src/modules/scglamliff/controllers/authController.js");
+      await import("./src/modules/scglamliff/controllers/appointmentsController.js");
+      await import("./src/modules/scglamliff/controllers/appointmentServiceController.js");
+      await import("./src/modules/scglamliff/controllers/appointmentsQueueController.js");
+      await import("./src/modules/scglamliff/controllers/adminAppointmentsController.js");
+      await import("./src/modules/scglamliff/controllers/branchDeviceRegistrationsController.js");
+      await import("./src/modules/scglamliff/middlewares/requireAuth.js");
+      console.log("ok");
+    `;
+
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
+      cwd: backendRoot,
+      env: testEnv(),
+      encoding: "utf8",
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("ok");
+  });
+
+  test("scGlamLiff refuses generic shared database and JWT env fallbacks", () => {
+    const script = `
+      process.env.NODE_ENV = "test";
+      process.env.DATABASE_URL = "shared-db-not-used";
+      delete process.env.SCGLAMLIFF_DATABASE_URL;
+      process.env.JWT_SECRET = "shared-test-secret";
+      delete process.env.SCGLAMLIFF_JWT_SECRET;
+      const db = await import("./src/modules/scglamliff/db.js");
+      const env = await import("./src/modules/scglamliff/config/env.js");
+      const health = await db.healthCheck();
+      if (health.message !== "SCGLAMLIFF_DATABASE_URL is not set") {
+        throw new Error("scGlamLiff DB layer used the generic DATABASE_URL fallback.");
+      }
+      try {
+        env.getJwtSecret();
+        throw new Error("scGlamLiff auth used the generic JWT_SECRET fallback.");
+      } catch (error) {
+        if (!String(error.message).includes("SCGLAMLIFF_JWT_SECRET")) {
+          throw error;
+        }
+      }
+      console.log("ok");
+    `;
+
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
+      cwd: backendRoot,
+      env: testEnv({
+        DATABASE_URL: "shared-db-not-used",
         JWT_SECRET: "shared-test-secret",
       }),
       encoding: "utf8",
@@ -432,5 +513,39 @@ describe("target backend and Rx1011 namespace", () => {
 
     expect(response.status).toBe(status);
     expect(response.type).toMatch(/json/);
+  });
+
+  test("scGlamLiff routes are mounted under the new namespace", async () => {
+    await api.get("/api/scglamliff/health").expect(200, {
+      ok: true,
+      data: { status: "ok" },
+    });
+
+    const unknown = await api.get("/api/scglamliff/not-a-real-route");
+    expect(unknown.status).toBe(404);
+    expect(unknown.body).toEqual({ ok: false, error: "Not found" });
+  });
+
+  test.each([
+    ["GET", "/api/scglamliff/auth/me", null, 401],
+    ["GET", "/api/scglamliff/appointments/queue", null, 401],
+    ["GET", "/api/scglamliff/reporting/kpi-dashboard", null, 401],
+    ["POST", "/api/scglamliff/appointments/delete-hard", {}, 401],
+    ["DELETE", "/api/scglamliff/appointments/00000000-0000-4000-8000-000000000000", null, 401],
+  ])("%s %s returns the current scGlamLiff unauthenticated baseline status", async (method, route, body, status) => {
+    let response;
+    if (method === "POST") response = await api.post(route).send(body || {});
+    else if (method === "DELETE") response = await api.delete(route);
+    else response = await api.get(route);
+
+    expect(response.status).toBe(status);
+    expect(response.type).toMatch(/json/);
+  });
+
+  test("scGlamLiff OCR routes are intentionally not mounted in v1", async () => {
+    const response = await api.get("/api/scglamliff/ocr/health");
+
+    expect(response.status).toBe(404);
+    expect(response.body).toEqual({ ok: false, error: "Not found" });
   });
 });
