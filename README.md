@@ -54,6 +54,13 @@ See `backend/.env.example` for the full shared-service env shape. The Rx1011 mod
   - `https://<your-gh-username>.github.io,https://<custom-domain>`
 - Verify health: `GET https://<your-api-domain>/api/health` -> `{ "ok": true }`
 
+## Deploy (Render full-stack)
+- Use the repo root as the Render root directory.
+- Build Command: `npm ci && npm run build`
+- Start Command: `npm start`
+- Set `NODE_ENV=production` and `VITE_BASE=/`.
+- The included `render.yaml` encodes these defaults.
+
 ### Alternative deploy (frontend separate from backend)
 - Frontend: deploy the Vite build to a static host (Netlify/Vercel/S3)
 - Backend: deploy API separately

@@ -122,6 +122,11 @@ app.post("/api/contact", async (req, res) => {
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(clientBuildPath));
 
+  app.get(/\.[^/]+$/, (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.status(404).send("Not found");
+  });
+
   app.get(/.*/, (req, res, next) => {
     if (req.path.startsWith("/api")) return next();
     res.sendFile(path.join(clientBuildPath, "index.html"));
