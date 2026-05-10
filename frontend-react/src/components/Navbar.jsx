@@ -67,7 +67,8 @@ export default function Navbar() {
             <span className="icon icon-bar" />
           </button>
           <Link to="/" className="navbar-brand">
-            SC Group 1989
+            <span className="sc-brand-mark" aria-hidden="true">SC</span>
+            <span>SC Group 1989</span>
           </Link>
         </div>
 

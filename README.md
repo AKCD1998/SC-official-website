@@ -61,6 +61,24 @@ See `backend/.env.example` for the full shared-service env shape. The Rx1011 mod
 - Set `NODE_ENV=production` and `VITE_BASE=/`.
 - The included `render.yaml` encodes these defaults.
 
+## Deploy (Render static frontend + existing shared backend)
+- Keep the existing shared backend/web service in place.
+- Create a separate Render Static Site for the React frontend.
+- Recommended Static Site settings:
+  - Root Directory: `frontend-react`
+  - Build Command: `npm ci && npm run build`
+  - Publish Directory: `dist`
+- Static Site env vars:
+  - `VITE_BASE=/`
+  - `VITE_API_BASE_URL=https://sc-official-website.onrender.com`
+- Existing shared backend/web service env vars:
+  - Add the static site URL to `CORS_ORIGIN`, comma-separated with any existing origins.
+  - Example: `CORS_ORIGIN=https://sc-official-website-2.onrender.com`
+- Add a static rewrite rule so React routes work on refresh:
+  - Source: `/*`
+  - Destination: `/index.html`
+  - Action: `Rewrite`
+
 ### Alternative deploy (frontend separate from backend)
 - Frontend: deploy the Vite build to a static host (Netlify/Vercel/S3)
 - Backend: deploy API separately

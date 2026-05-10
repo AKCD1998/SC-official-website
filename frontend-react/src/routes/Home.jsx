@@ -336,8 +336,20 @@ export default function Home() {
   }
 
   return (
-    <div id="top">
+    <div id="top" className="sc-home-page">
       <section id="home">
+        <div className="sc-hero-copy">
+          <div className="sc-kicker">Official Company Website</div>
+          <h1>Trusted pharmacy care for Samut Songkhram and nearby communities.</h1>
+          <p>
+            SC Group 1989 brings branch pharmacy service, pharmacist training, health products,
+            careers, and monthly promotions into one official home.
+          </p>
+          <div className="sc-hero-actions">
+            <a className="sc-button sc-button-primary" href="#branches">Find a branch</a>
+            <a className="sc-button sc-button-secondary" href="#JoinUs">Join our team</a>
+          </div>
+        </div>
         <div className="row">
           <div className="home-slider">
             {isAdmin ? (
@@ -462,10 +474,28 @@ export default function Home() {
             })}
           </div>
         </div>
+        <div className="sc-hero-metrics" aria-label="SC Group summary">
+          <div>
+            <strong>{branches.length}+</strong>
+            <span>Branch touchpoints</span>
+          </div>
+          <div>
+            <strong>1989</strong>
+            <span>Company heritage</span>
+          </div>
+          <div>
+            <strong>Rx</strong>
+            <span>Pharmacist care</span>
+          </div>
+        </div>
       </section>
 
       <section id="feature">
         <div className="container">
+          <div className="section-title sc-section-intro">
+            <span className="sc-kicker">About SC Group</span>
+            <h2>ร้านยาคุณภาพที่ออกแบบมาเพื่อความมั่นใจของลูกค้า</h2>
+          </div>
           <div className="row">
             <div className="col-md-4 col-sm-4">
               <div className="feature-thumb">
@@ -502,23 +532,39 @@ export default function Home() {
       </section>
 
       <section id="about">
-        <div className="container">
-          <a
-            href="https://www.facebook.com/share/p/14Y9Vxiakoo/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Open Facebook promotion post"
-          >
-            <img
-              src={assetUrl('images/Promotion ads/2026/March/March-SC-promotion-2026.png')}
-              className="promo-img"
-              alt="March promotion"
-              width={1536}
-              height={1024}
-              loading="lazy"
-              decoding="async"
-            />
-          </a>
+        <div className="container sc-showcase">
+          <div className="sc-showcase-media">
+            <a
+              href="https://www.facebook.com/share/p/14Y9Vxiakoo/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open Facebook promotion post"
+            >
+              <img
+                src={assetUrl('images/Promotion ads/2026/March/March-SC-promotion-2026.png')}
+                className="promo-img"
+                alt="March promotion"
+                width={1536}
+                height={1024}
+                loading="lazy"
+                decoding="async"
+              />
+            </a>
+          </div>
+          <div className="sc-showcase-copy">
+            <span className="sc-kicker">Product Showcase</span>
+            <h2>Promotions with a cleaner retail presentation.</h2>
+            <p>
+              Monthly promotion content stays familiar, but now sits in a stronger official layout
+              with clearer hierarchy for customers browsing products and branch updates.
+            </p>
+            <div className="sc-pill-row">
+              <span>Health products</span>
+              <span>Monthly promotion</span>
+              <span>Branch availability</span>
+              <span>Official updates</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -527,6 +573,7 @@ export default function Home() {
           <div className="row">
             <div className="col-md-12 col-sm-12">
               <div className="section-title">
+                <span className="sc-kicker">Pharmacist Team</span>
                 <h2>
                   เภสัชกร <small>พบกับเภสัชกรที่พร้อมให้บริการทุกท่าน</small>
                 </h2>
@@ -539,7 +586,7 @@ export default function Home() {
                 modules={[Autoplay, Navigation, Pagination]}
                 slidesPerView={1}
                 spaceBetween={16}
-                loop
+                loop={teamMembers.length > 3}
                 autoplay={{ delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true }}
                 navigation
                 pagination={{ clickable: true }}
@@ -593,8 +640,13 @@ export default function Home() {
         <div className="container">
           <div className="row">
             <div className="col-md-12 col-sm-12">
-              <div className="section-title">
+              <div className="section-title sc-recruit-title">
+                <span className="sc-kicker">Recruitment / HR</span>
                 <h2>ร่วมงานกับเรา</h2>
+                <p>
+                  Follow current hiring updates and career opportunities through the official SC
+                  recruitment channel.
+                </p>
               </div>
 
               <Swiper
@@ -602,7 +654,7 @@ export default function Home() {
                 modules={[Autoplay, Navigation, Pagination]}
                 slidesPerView={1}
                 spaceBetween={16}
-                loop={newsSlides.length > 1}
+                loop={false}
                 autoplay={{ delay: 4000, disableOnInteraction: false, pauseOnMouseEnter: true }}
                 navigation
                 pagination={{ clickable: true }}
@@ -660,6 +712,7 @@ export default function Home() {
           <div className="row">
             <div className="col-md-12 col-sm-12">
               <div className="section-title">
+                <span className="sc-kicker">Monthly Promotion</span>
                 <h2>สินค้าโปรโมชั่นประจำเดือน</h2>
               </div>
 
@@ -669,7 +722,7 @@ export default function Home() {
                 modules={[Autoplay, Navigation, Pagination]}
                 slidesPerView={1}
                 spaceBetween={16}
-                loop
+                loop={promoImages.length > 3}
                 autoplay={{ delay: 3500, disableOnInteraction: false, pauseOnMouseEnter: true }}
                 navigation
                 pagination={{ clickable: true }}
@@ -708,6 +761,7 @@ export default function Home() {
           <div className="row">
             <div className="col-md-12 col-sm-12">
               <div className="section-title">
+                <span className="sc-kicker">Branch Finder</span>
                 <h2>
                   สาขาของเรา <small>Find a branch near you</small>
                 </h2>
@@ -792,6 +846,7 @@ export default function Home() {
                   {contactStatus}
                 </p>
                 <div className="section-title">
+                  <span className="sc-kicker">Contact SC Group</span>
                   <h2>
                     ติดต่อเรา{' '}
                     <small>ฝากข้อมูลอีเมล์และข้อความที่ต้องการติดต่อไว้ที่นี่</small>
