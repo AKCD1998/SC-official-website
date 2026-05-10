@@ -3,8 +3,8 @@ import { useLocation } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Navigation, Pagination } from 'swiper/modules'
 import PromoModal from '../components/PromoModal.jsx'
+import { useAuth } from '../context/AuthContext.jsx'
 import { apiFetch } from '../lib/api.js'
-import { getStoredToken } from '../lib/auth.js'
 import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
@@ -20,6 +20,7 @@ const heroSlides = [
     linkClass: 'slide-link',
     label: 'Open LINE OA',
     image: assetUrl('images/cover-Facebook-company-page.png'),
+    fallbackImage: assetUrl('images/cover-Facebook-company-page.png'),
     alt: 'SC Group cover',
     width: 1920,
     height: 1080,
@@ -31,6 +32,7 @@ const heroSlides = [
     linkClass: 'slide-overlay-link',
     label: 'Open LINE link',
     image: assetUrl('images/cover-Facebook-HrRx.png'),
+    fallbackImage: assetUrl('images/cover-Facebook-HrRx.png'),
     alt: 'SC Group recruitment cover',
     width: 742,
     height: 315,
@@ -39,9 +41,14 @@ const heroSlides = [
     id: 'slide-3',
     className: 'item item-third',
     image: assetUrl('images/sirichai-bangnoi.webp'),
+    fallbackImage: assetUrl('images/sirichai-bangnoi.webp'),
     alt: 'Sirichai Bangnoi store',
   },
 ]
+
+const SLIDER_UPLOAD_MAX_BYTES = 5 * 1024 * 1024
+const SLIDER_UPLOAD_ALLOWED_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
+const SLIDER_UPLOAD_ALLOWED_EXT = /\.(png|jpe?g|webp)$/i
 
 const teamMembers = [
   { name: 'ภก.ทรงพล ลิ้มพิสูจน์', image: assetUrl('images/BenzRx.png') },
@@ -169,9 +176,11 @@ if (import.meta.env.DEV) {
 
 export default function Home() {
   const location = useLocation()
+  const { token } = useAuth()
   const [slideIndex, setSlideIndex] = useState(0)
   const [slides, setSlides] = useState(heroSlides)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [sliderEditMode, setSliderEditMode] = useState(false)
   const [uploadState, setUploadState] = useState({}) // { [slideId]: 'idle'|'uploading'|'done'|string(error) }
   const fileInputRefs = useRef({})
   const [promoModal, setPromoModal] = useState({ open: false, image: null })
@@ -192,38 +201,57 @@ export default function Home() {
   // Load slider config from API; derive isAdmin and any custom image URLs.
   // Falls back silently to hardcoded heroSlides if the request fails.
   useEffect(() => {
-    const token = getStoredToken()
+    let cancelled = false
     const headers = token ? { Authorization: `Bearer ${token}` } : {}
+    setIsAdmin(false)
+
     apiFetch('/api/slider/config', { headers })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
+        if (cancelled) return
         if (!data) return
         setIsAdmin(!!data.isAdmin)
         if (data.slides && typeof data.slides === 'object') {
           setSlides((prev) =>
-            prev.map((s) => (data.slides[s.id] ? { ...s, image: data.slides[s.id] } : s))
+            prev.map((s) => ({
+              ...s,
+              image: data.slides[s.id] || s.fallbackImage || s.image,
+            }))
           )
         }
       })
-      .catch(() => {})
-  }, [])
+      .catch(() => {
+        if (!cancelled) setIsAdmin(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [token])
+
+  useEffect(() => {
+    if (!isAdmin) setSliderEditMode(false)
+  }, [isAdmin])
 
   async function handleImageChange(slideId, file) {
     if (!file) return
-    const allowed = ['image/png', 'image/jpeg', 'image/webp']
-    if (!allowed.includes(file.type)) {
+    if (!SLIDER_UPLOAD_ALLOWED_TYPES.has(file.type) || !SLIDER_UPLOAD_ALLOWED_EXT.test(file.name)) {
       setUploadState((s) => ({ ...s, [slideId]: 'Invalid type. Use PNG, JPG, or WebP.' }))
       return
     }
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > SLIDER_UPLOAD_MAX_BYTES) {
       setUploadState((s) => ({ ...s, [slideId]: 'File too large. Max 5 MB.' }))
       return
     }
+    if (!token) {
+      setUploadState((s) => ({ ...s, [slideId]: 'Login required.' }))
+      return
+    }
+
     setUploadState((s) => ({ ...s, [slideId]: 'uploading' }))
     const form = new FormData()
     form.append('image', file)
     try {
-      const token = getStoredToken()
       const res = await apiFetch(`/api/slider/upload/${slideId}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
@@ -236,6 +264,11 @@ export default function Home() {
     } catch (err) {
       setUploadState((s) => ({ ...s, [slideId]: `Error: ${err.message}` }))
     }
+  }
+
+  function stopAdminControlEvent(event) {
+    event.preventDefault()
+    event.stopPropagation()
   }
 
   useEffect(() => {
@@ -307,19 +340,32 @@ export default function Home() {
       <section id="home">
         <div className="row">
           <div className="home-slider">
+            {isAdmin ? (
+              <div className="home-slider-edit-toggle">
+                <button
+                  type="button"
+                  className={`home-slider-edit-mode-button${sliderEditMode ? ' is-active' : ''}`}
+                  aria-pressed={sliderEditMode}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                    setSliderEditMode((enabled) => !enabled)
+                  }}
+                >
+                  {sliderEditMode ? 'Slider edit mode on' : 'Edit slider images'}
+                </button>
+              </div>
+            ) : null}
             {slides.map((slide, index) => {
               const isActive = index === slideIndex
               const isPrimarySlide = index === 0
               const uploadStatus = uploadState[slide.id]
-              const adminOverlay = isAdmin ? (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: 8,
-                    right: 8,
-                    zIndex: 20,
-                  }}
-                >
+              const uploadMessage =
+                uploadStatus && uploadStatus !== 'uploading' && uploadStatus !== 'done'
+                  ? uploadStatus
+                  : ''
+              const adminOverlay = isAdmin && sliderEditMode ? (
+                <div className="home-slider-admin-control" onClick={stopAdminControlEvent}>
                   <input
                     ref={(el) => { fileInputRefs.current[slide.id] = el }}
                     type="file"
@@ -331,30 +377,25 @@ export default function Home() {
                     }}
                   />
                   <button
-                    onClick={() => fileInputRefs.current[slide.id]?.click()}
-                    disabled={uploadStatus === 'uploading'}
-                    style={{
-                      cursor: uploadStatus === 'uploading' ? 'wait' : 'pointer',
-                      background: 'rgba(0,0,0,0.65)',
-                      color: '#fff',
-                      border: '1px solid rgba(255,255,255,0.4)',
-                      padding: '5px 12px',
-                      borderRadius: 4,
-                      fontSize: 13,
-                      lineHeight: 1.4,
-                      maxWidth: 200,
-                      wordBreak: 'break-word',
-                      textAlign: 'center',
+                    type="button"
+                    className="home-slider-admin-button"
+                    onClick={(event) => {
+                      stopAdminControlEvent(event)
+                      fileInputRefs.current[slide.id]?.click()
                     }}
+                    disabled={uploadStatus === 'uploading'}
                   >
                     {uploadStatus === 'uploading'
-                      ? 'Uploading…'
+                      ? 'Uploading...'
                       : uploadStatus === 'done'
-                      ? '✓ Done'
-                      : typeof uploadStatus === 'string'
-                      ? uploadStatus
+                      ? 'Done'
                       : 'Change image'}
                   </button>
+                  {uploadMessage ? (
+                    <span className="home-slider-upload-status" role="status">
+                      {uploadMessage}
+                    </span>
+                  ) : null}
                 </div>
               ) : null
 
@@ -372,6 +413,14 @@ export default function Home() {
                     loading={isPrimarySlide ? 'eager' : 'lazy'}
                     decoding="async"
                     fetchPriority={isPrimarySlide ? 'high' : 'low'}
+                    onError={(event) => {
+                      if (!slide.fallbackImage) return
+                      const fallbackUrl = new URL(slide.fallbackImage, window.location.href).href
+                      const currentUrl = event.currentTarget.currentSrc || event.currentTarget.src
+                      if (currentUrl !== fallbackUrl) {
+                        event.currentTarget.src = slide.fallbackImage
+                      }
+                    }}
                   />
                   <div className="caption">
                     <div className="container" />

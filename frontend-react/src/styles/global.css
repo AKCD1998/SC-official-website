@@ -11,12 +11,89 @@ body {
 }
 
 /* Simple React replacements for legacy carousels */
+.home-slider {
+  position: relative;
+}
+
 .home-slider .item {
   display: none;
 }
 
 .home-slider .item.is-active {
   display: block;
+}
+
+.home-slider-edit-toggle {
+  left: 12px;
+  position: absolute;
+  top: 12px;
+  z-index: 30;
+}
+
+.home-slider-admin-control {
+  align-items: flex-end;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: min(240px, calc(100% - 24px));
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 30;
+}
+
+.home-slider-edit-mode-button,
+.home-slider-admin-button {
+  background: rgba(18, 24, 32, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 6px;
+  color: #fff;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.35;
+  padding: 7px 12px;
+}
+
+.home-slider-edit-mode-button.is-active {
+  background: rgba(15, 118, 110, 0.9);
+}
+
+.home-slider-admin-button:disabled {
+  cursor: wait;
+  opacity: 0.8;
+}
+
+.home-slider-upload-status {
+  background: rgba(18, 24, 32, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.35;
+  max-width: 100%;
+  padding: 6px 8px;
+  word-break: break-word;
+}
+
+@media (max-width: 480px) {
+  .home-slider-edit-toggle,
+  .home-slider-admin-control {
+    top: 8px;
+  }
+
+  .home-slider-edit-toggle {
+    left: 8px;
+  }
+
+  .home-slider-admin-control {
+    right: 8px;
+  }
+
+  .home-slider-edit-mode-button,
+  .home-slider-admin-button {
+    font-size: 12px;
+    padding: 6px 9px;
+  }
 }
 
 .owl-courses,

@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+const crypto = require('crypto')
 const express = require('express')
 const multer = require('multer')
 const jwt = require('jsonwebtoken')
@@ -27,6 +28,38 @@ const ALLOWED_SLIDE_IDS = new Set(['slide-1', 'slide-2', 'slide-3'])
 // ── File type whitelist ──────────────────────────────────────────────────────
 const ALLOWED_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 const MIME_TO_EXT = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp' }
+
+function detectImageMime(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length < 4) return null
+
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return 'image/png'
+  }
+
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return 'image/jpeg'
+  }
+
+  if (
+    buffer.length >= 12 &&
+    buffer.toString('ascii', 0, 4) === 'RIFF' &&
+    buffer.toString('ascii', 8, 12) === 'WEBP'
+  ) {
+    return 'image/webp'
+  }
+
+  return null
+}
 
 // ── Multer — memory storage so files go straight to R2 (no temp disk writes) ─
 const upload = multer({
@@ -114,10 +147,15 @@ router.post('/upload/:slideId', requireAdmin, (req, res, next) => {
     return res.status(400).json({ error: 'Invalid file type. Allowed: PNG, JPG, WebP.' })
   }
 
+  const detectedMime = detectImageMime(req.file.buffer)
+  if (!detectedMime || detectedMime !== req.file.mimetype) {
+    return res.status(400).json({ error: 'Invalid image content. Allowed: PNG, JPG, WebP.' })
+  }
+
   try {
-    const ext = MIME_TO_EXT[req.file.mimetype]
-    const key = `slider/slider-${slideId}-${Date.now()}.${ext}`
-    const imageUrl = await uploadFile(key, req.file.buffer, req.file.mimetype)
+    const ext = MIME_TO_EXT[detectedMime]
+    const key = `slider/${slideId}-${Date.now()}-${crypto.randomUUID()}.${ext}`
+    const imageUrl = await uploadFile(key, req.file.buffer, detectedMime)
 
     await pool.query(
       `INSERT INTO slider_config (slide_id, image_url, updated_at)
@@ -134,3 +172,8 @@ router.post('/upload/:slideId', requireAdmin, (req, res, next) => {
 })
 
 module.exports = router
+module.exports._test = {
+  ALLOWED_MIMES,
+  detectImageMime,
+  isAdminEmail,
+}

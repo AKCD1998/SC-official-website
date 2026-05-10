@@ -4,6 +4,9 @@ node_modules/
 # Secrets
 backend/.env
 
+# Local upload fallback files
+backend/uploads/
+
 # Optional: OS / editor junk
 .DS_Store
 Thumbs.db
