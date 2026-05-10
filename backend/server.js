@@ -45,14 +45,20 @@ const localOrigins = [`http://localhost:${port}`, `http://127.0.0.1:${port}`];
 const allowedSet = new Set([...allowed, ...localOrigins].filter(Boolean));
 const allowAll = allowedSet.size === 0;
 
-app.use('/api', cors({
+const corsOptions = {
   origin: (origin, callBack) => {
     if (!origin || allowAll) return callBack(null, true);
     if (allowedSet.has(origin)) return callBack(null, true);
     return callBack(new Error("Not allowed by CORS"), false);
   },
   credentials: true,
-}));
+};
+
+// Explicitly respond to OPTIONS preflight for all /api routes.
+// Express 5 returns 405 for any method not defined on a matched route,
+// so preflight must be caught before it reaches individual routers.
+app.options('/api/*path', cors(corsOptions));
+app.use('/api', cors(corsOptions));
 
 app.use('/api/reactnjob', reactNJobRoutes());
 app.use('/api/digitalpjk', digitalPjkRoutes);
