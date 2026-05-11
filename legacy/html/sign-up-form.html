@@ -52,7 +52,7 @@
     
           <div class="input-group">
             <input id="password" type="password" name="password" class="form-control" placeholder="Your password" required>
-            <span class="toggle-pass" id="togglePass" title="Show/Hide"><i class="fa fa-eye"></i></span>
+            <button class="toggle-pass" id="togglePass" type="button" title="Show/Hide" aria-label="Show password" aria-pressed="false"><i class="fa fa-eye"></i></button>
           </div>
 
           <div class="input-head">
@@ -62,7 +62,7 @@
 
           <div class="input-group">
             <input id="confirmPassword" type="password" name="confirmPassword" class="form-control" placeholder="Confirm your password" required>
-            <span class="toggle-pass" id="toggleConfirmPass" title="Show/Hide"><i class="fa fa-eye"></i></span>
+            <button class="toggle-pass" id="toggleConfirmPass" type="button" title="Show/Hide" aria-label="Show confirm password" aria-pressed="false"><i class="fa fa-eye"></i></button>
           </div>
 
           <button type="submit" class="submit-btn form-control" id="form-submit">
@@ -111,6 +111,8 @@
           icon.classList.toggle("fa-eye", !isPass);
           icon.classList.toggle("fa-eye-slash", isPass);
         }
+        wrap.setAttribute("aria-pressed", isPass ? "true" : "false");
+        wrap.setAttribute("aria-label", isPass ? "Hide password" : "Show password");
       });
     }
     toggleInputType("password", "togglePass");

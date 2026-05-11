@@ -231,6 +231,8 @@ function bindToggle(toggleId, inputId) {
     inp.type = isHidden ? "text" : "password";
     const icon = t.querySelector("i");
     if (icon) icon.className = isHidden ? "fa fa-eye-slash" : "fa fa-eye";
+    t.setAttribute("aria-pressed", isHidden ? "true" : "false");
+    t.setAttribute("aria-label", isHidden ? "Hide password" : "Show password");
   });
 }
 bindToggle("togglePass", "password");

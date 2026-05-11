@@ -267,9 +267,17 @@ export default function Signup() {
                   value={form.password}
                   onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
                 />
-                <span className="toggle-pass" id="togglePass" title="Show/Hide" onClick={() => setShowPassword((prev) => !prev)}>
+                <button
+                  type="button"
+                  className="toggle-pass"
+                  id="togglePass"
+                  title="Show/Hide"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPassword}
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
                   <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
-                </span>
+                </button>
               </div>
 
               <div className="input-head">
@@ -290,14 +298,17 @@ export default function Signup() {
                   value={form.confirmPassword}
                   onChange={(event) => setForm((prev) => ({ ...prev, confirmPassword: event.target.value }))}
                 />
-                <span
+                <button
+                  type="button"
                   className="toggle-pass"
                   id="toggleConfirmPass"
                   title="Show/Hide"
+                  aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+                  aria-pressed={showConfirm}
                   onClick={() => setShowConfirm((prev) => !prev)}
                 >
                   <i className={`fa ${showConfirm ? 'fa-eye-slash' : 'fa-eye'}`} />
-                </span>
+                </button>
               </div>
 
               <button type="submit" className="submit-btn form-control" id="form-submit" disabled={loading}>

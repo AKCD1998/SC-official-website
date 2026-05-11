@@ -62,7 +62,7 @@ export default function Login({ initialMode = 'login' }) {
       setLoginMsg({ text: 'Login success ✅', type: 'success' })
       navigate('/')
       window.location.hash = 'top'
-    } catch (error) {
+    } catch {
       setLoginMsg({ text: 'Network error / server error', type: 'error' })
     } finally {
       setLoading(false)
@@ -100,7 +100,7 @@ export default function Login({ initialMode = 'login' }) {
         return
       }
       setFpMsg({ text: 'ส่ง OTP แล้ว ✅ กรุณาเช็คอีเมล์', isError: false })
-    } catch (error) {
+    } catch {
       setFpMsg({ text: 'Network error / server error', isError: true })
     } finally {
       setLoading(false)
@@ -129,7 +129,7 @@ export default function Login({ initialMode = 'login' }) {
       setResetToken(data.resetToken)
       setMode('reset')
       setResetMsg({ text: 'OTP ถูกต้อง ✅ ตั้งรหัสผ่านใหม่ได้เลย', isError: false })
-    } catch (error) {
+    } catch {
       setFpMsg({ text: 'Network error / server error', isError: true })
     } finally {
       setLoading(false)
@@ -173,7 +173,7 @@ export default function Login({ initialMode = 'login' }) {
 
       setResetMsg({ text: 'รีเซ็ตรหัสผ่านเรียบร้อย ✅ ไปล็อกอินได้เลย', isError: false })
       setMode('login')
-    } catch (error) {
+    } catch {
       setResetMsg({ text: 'Network error / server error', isError: true })
     } finally {
       setLoading(false)
@@ -230,14 +230,17 @@ export default function Login({ initialMode = 'login' }) {
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                   />
-                  <span
+                  <button
+                    type="button"
                     className="input-group-addon toggle-pass"
                     id="togglePass"
                     title="Show/Hide"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
                     onClick={() => setShowPassword((prev) => !prev)}
                   >
                     <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
-                  </span>
+                  </button>
                 </div>
               </div>
 
@@ -362,14 +365,17 @@ export default function Login({ initialMode = 'login' }) {
                 value={newPassword}
                 onChange={(event) => setNewPassword(event.target.value)}
               />
-              <span
+              <button
+                type="button"
                 className="input-group-addon toggle-pass"
                 id="fpToggleNew"
                 title="Show/Hide"
+                aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                aria-pressed={showNewPassword}
                 onClick={() => setShowNewPassword((prev) => !prev)}
               >
                 <i className={`fa ${showNewPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
-              </span>
+              </button>
             </div>
           </div>
 
@@ -390,14 +396,17 @@ export default function Login({ initialMode = 'login' }) {
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
               />
-              <span
+              <button
+                type="button"
                 className="input-group-addon toggle-pass"
                 id="fpToggleConfirm"
                 title="Show/Hide"
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                aria-pressed={showConfirmPassword}
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
               >
                 <i className={`fa ${showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
-              </span>
+              </button>
             </div>
           </div>
 

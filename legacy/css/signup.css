@@ -145,7 +145,11 @@
 
     /* eye button on right */
     .toggle-pass{
+      appearance:none;
+      color:#3a3a3a;
       cursor:pointer;
+      font:inherit;
+      padding:0;
       user-select:none;
       border:1px solid #e6e6e6;
       border-left:0;
@@ -155,6 +159,10 @@
       align-items:center;
       justify-content:center;
       border-radius:0 14px 14px 0;
+    }
+    .toggle-pass:focus-visible{
+      outline:4px solid rgba(30,165,255,.16);
+      outline-offset:2px;
     }
     /* prevent wrong rounding if your global addon rule exists */
     .input-group .toggle-pass{ border-radius:0 14px 14px 0 !important; }
