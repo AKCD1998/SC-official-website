@@ -138,8 +138,17 @@
     }
 
     .toggle-pass{
+      appearance:none;
+      color:#3a3a3a;
       cursor:pointer;
+      font:inherit;
+      padding:0 14px;
       user-select:none;
+    }
+
+    .toggle-pass:focus-visible{
+      outline:3px solid rgba(16,205,215,.28);
+      outline-offset:2px;
     }
 
      /* default (your current) */
