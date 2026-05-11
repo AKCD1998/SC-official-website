@@ -24,7 +24,7 @@ Notes:
 3) Create `backend/.env` with at least:
    PORT=3000
    CORS_ORIGIN=http://localhost:5173,https://<your-gh-username>.github.io,https://<custom-domain>
-   DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME
+   SC_OFFICIAL_DATABASE_URL=postgresql://USER:PASSWORD@HOST:PORT/DBNAME
    JWT_SECRET=your_jwt_secret
    OTP_SECRET=your_otp_secret
    OTP_TTL_MINUTES=10
@@ -49,7 +49,7 @@ See `backend/.env.example` for the full shared-service env shape. The Rx1011 mod
    - npm start
 
 ## Deploy (Backend API)
-- Set env vars: `PORT`, `DATABASE_URL`, `JWT_SECRET`, `OTP_SECRET`, `OTP_TTL_MINUTES`, `SENDGRID_API_KEY`, `MAIL_USER`, `MAIL_TO`
+- Set env vars: `PORT`, `SC_OFFICIAL_DATABASE_URL`, `JWT_SECRET`, `OTP_SECRET`, `OTP_TTL_MINUTES`, `SENDGRID_API_KEY`, `MAIL_USER`, `MAIL_TO`
 - Set `CORS_ORIGIN` to include all frontend origins (example):
   - `https://<your-gh-username>.github.io,https://<custom-domain>`
 - Verify health: `GET https://<your-api-domain>/api/health` -> `{ "ok": true }`
@@ -74,6 +74,7 @@ See `backend/.env.example` for the full shared-service env shape. The Rx1011 mod
 - Existing shared backend/web service env vars:
   - Add the static site URL to `CORS_ORIGIN`, comma-separated with any existing origins.
   - Example: `CORS_ORIGIN=https://sc-official-website-2.onrender.com`
+  - Use `SC_OFFICIAL_DATABASE_URL` for the SC official website account database.
 - Add a static rewrite rule so React routes work on refresh:
   - Source: `/*`
   - Destination: `/index.html`
@@ -137,6 +138,8 @@ The build includes a `404.html` entry so refresh on `/login`, `/signup`, etc. wo
 
 ## DB
 PostgreSQL tables/columns used by the backend:
+- Main SC official website auth, contact, and slider routes use `SC_OFFICIAL_DATABASE_URL`.
+- `DATABASE_URL` remains a legacy fallback only; avoid it in shared backend deployments.
 - users: id, email, password_hash, full_name, is_verified, verified_at
 - email_verifications: id, email, code_hash, created_at, expires_at, used_at, attempt_count
 - password_resets: email, otp_hash, expires_at, attempts, reset_token_hash, reset_token_expires_at
