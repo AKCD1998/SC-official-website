@@ -1,5 +1,6 @@
 import { httpError } from "../utils/httpError.js";
 import { parseDateOnlyInput } from "../utils/dateOnly.js";
+import { correctDispenseMovementLotInternal } from "./adminDispenseCorrectionsController.js";
 import {
   applyStockDelta,
   assertLotBelongsToProduct,
@@ -18,6 +19,7 @@ const INCIDENT_RESOLUTION_ACTION_TYPES = new Set([
   "STOCK_IN",
   "STOCK_OUT",
   "RETROSPECTIVE_DISPENSE",
+  "CORRECT_DISPENSE_LOT",
 ]);
 
 const INCIDENT_SOURCE_REF_TYPE = "INCIDENT_REPORT";
@@ -111,6 +113,8 @@ export function normalizeIncidentResolutionPatientInput(payload = {}, { allowEmp
 export function normalizeIncidentResolutionActionInput(action, index) {
   const rowLabel = `resolutionActions[${index}]`;
   const actionType = toCleanText(action?.actionType ?? action?.action_type).toUpperCase();
+  const movementId = toCleanText(action?.movementId ?? action?.movement_id);
+  const newLotId = toCleanText(action?.newLotId ?? action?.new_lot_id);
   const productId = toCleanText(action?.productId ?? action?.product_id);
   const lotId = toCleanText(action?.lotId ?? action?.lot_id);
   const unitLevelId = toCleanText(action?.unitLevelId ?? action?.unit_level_id);
@@ -133,6 +137,27 @@ export function normalizeIncidentResolutionActionInput(action, index) {
 
   if (!INCIDENT_RESOLUTION_ACTION_TYPES.has(actionType)) {
     throw httpError(400, `${rowLabel}.actionType is invalid`);
+  }
+  if (actionType === "CORRECT_DISPENSE_LOT") {
+    if (!movementId || !isUuid(movementId)) {
+      throw httpError(400, `${rowLabel}.movementId must be a valid UUID`);
+    }
+    if (!newLotId || !isUuid(newLotId)) {
+      throw httpError(400, `${rowLabel}.newLotId must be a valid UUID`);
+    }
+    return {
+      actionType,
+      movementId,
+      newLotId,
+      productId: null,
+      lotId: null,
+      unitLevelId: null,
+      qty: 1,
+      unitLabel: null,
+      lotNoSnapshot: null,
+      expDateSnapshot: null,
+      note,
+    };
   }
   if (!productId || !isUuid(productId)) {
     throw httpError(400, `${rowLabel}.productId must be a valid UUID`);
@@ -355,6 +380,12 @@ function buildRetrospectiveDispenseLineNote(incident, action) {
 
 function isDuplicateResolutionAction(existingActions, nextAction) {
   return existingActions.some((action) => {
+    if (toCleanText(nextAction?.actionType).toUpperCase() === "CORRECT_DISPENSE_LOT") {
+      return (
+        toCleanText(action?.actionType).toUpperCase() === "CORRECT_DISPENSE_LOT" &&
+        toCleanText(action?.appliedStockMovementId) === toCleanText(nextAction?.movementId)
+      );
+    }
     const sameQty = Math.abs(Number(action?.qty || 0) - Number(nextAction?.qty || 0)) < 0.0001;
     return (
       toCleanText(action?.actionType).toUpperCase() === toCleanText(nextAction?.actionType).toUpperCase() &&
@@ -500,6 +531,52 @@ export async function applyIncidentResolutionActions(
         409,
         `Duplicate incident resolution action detected for incident ${toCleanText(incident?.incidentCode) || "-"}`
       );
+    }
+
+    if (action.actionType === "CORRECT_DISPENSE_LOT") {
+      const correction = await correctDispenseMovementLotInternal(client, {
+        movementId: action.movementId,
+        newLotId: action.newLotId,
+        reason: action.note || `incident corrective action ${toCleanText(incident?.incidentCode) || "-"}`,
+        adminUserId: actorUserId,
+      });
+      const current = correction?.current || null;
+      const dispenseLine = current?.dispenseLine || null;
+      const linkedStockMovement = current?.linkedStockMovement || null;
+
+      createdActionIds.push(
+        await insertResolutionActionRow(client, {
+          incidentReportId: incident.id,
+          lineNo: nextActionLineNo,
+          actionType: action.actionType,
+          productId: toCleanText(dispenseLine?.productId) || null,
+          lotId: toCleanText(dispenseLine?.lotId) || null,
+          unitLevelId: toCleanText(dispenseLine?.unitLevelId) || null,
+          productCodeSnapshot: toCleanText(dispenseLine?.productCode) || null,
+          productNameSnapshot: toCleanText(dispenseLine?.tradeName) || "-",
+          lotNoSnapshot: toCleanText(dispenseLine?.lotNo) || null,
+          expDateSnapshot: toCleanText(dispenseLine?.lotExpDate) || null,
+          qty: Number(dispenseLine?.quantity || 0),
+          unitLabelSnapshot: toCleanText(dispenseLine?.unitLabel) || null,
+          noteText: action.note || correction?.reason || null,
+          patientPidSnapshot: null,
+          patientFullNameSnapshot: null,
+          patientEnglishNameSnapshot: null,
+          patientBirthDateSnapshot: null,
+          patientSexSnapshot: null,
+          patientCardIssuePlaceSnapshot: null,
+          patientCardIssuedDateSnapshot: null,
+          patientCardExpiryDateSnapshot: null,
+          patientAddressTextSnapshot: null,
+          appliedStockMovementId: toCleanText(linkedStockMovement?.id) || toCleanText(action.movementId) || null,
+          appliedDispenseHeaderId: toCleanText(dispenseLine?.headerId) || null,
+          appliedDispenseLineId: toCleanText(dispenseLine?.id) || null,
+          appliedByUserId: actorUserId,
+          appliedAt,
+        })
+      );
+      nextActionLineNo += 1;
+      continue;
     }
 
     await ensureProductExists(client, action.productId);

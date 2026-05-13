@@ -429,6 +429,217 @@ async function buildDispenseLineResponse(client, dispenseLineId, { forUpdate = f
   };
 }
 
+export async function correctDispenseMovementLotInternal(
+  client,
+  { movementId, newLotId, reason, adminUserId }
+) {
+  const normalizedMovementId = toCleanText(movementId);
+  const normalizedNewLotId = toCleanText(newLotId);
+  const normalizedReason = normalizeRequiredText(reason, 4000, "reason");
+  const normalizedAdminUserId = toCleanText(adminUserId);
+
+  if (!normalizedMovementId || !isUuid(normalizedMovementId)) {
+    throw httpError(400, "movement id must be a valid UUID");
+  }
+  if (!normalizedNewLotId || !isUuid(normalizedNewLotId)) {
+    throw httpError(400, "newLotId must be a valid UUID");
+  }
+  if (!normalizedAdminUserId || !isUuid(normalizedAdminUserId)) {
+    throw httpError(401, "Authentication required");
+  }
+
+  if (!(await hasDispenseLineLotCorrectionAuditsTable(client))) {
+    throw httpError(
+      503,
+      "dispense line lot correction audit table is not deployed yet; run migration 0026 first"
+    );
+  }
+
+  const correctedByUserId = await resolveActorUserId(client, normalizedAdminUserId);
+  const resolved = await resolveDispenseLineIdFromMovementId(client, normalizedMovementId, {
+    forUpdate: true,
+  });
+  const dispenseLineId = resolved.dispenseLineId;
+  const detail = await loadDispenseLineDetail(client, dispenseLineId, { forUpdate: true });
+  const movement = validateDispenseLineCorrectionState(detail);
+
+  if (toCleanText(detail.lotId) === normalizedNewLotId) {
+    throw httpError(400, "Old lot and new lot are the same");
+  }
+
+  await assertLotBelongsToProduct(client, detail.productId, normalizedNewLotId);
+  await assertUnitLevelAllowedForLot(client, {
+    productId: detail.productId,
+    lotId: normalizedNewLotId,
+    unitLevelId: detail.unitLevelId,
+  });
+
+  const oldLot = await getLotSnapshot(client, {
+    lotId: detail.lotId,
+    productId: detail.productId,
+  });
+  const newLot = await getLotSnapshot(client, {
+    lotId: normalizedNewLotId,
+    productId: detail.productId,
+  });
+
+  if (!oldLot) {
+    throw httpError(409, "Current dispense line lot no longer exists");
+  }
+  if (!newLot) {
+    throw httpError(404, "New lot was not found for this product");
+  }
+
+  const derivedQuantityBase = convertToBase(detail.quantity, {
+    id: detail.unitLevelId,
+    unit_key: detail.unitKey,
+    display_name: detail.unitDisplayName,
+    code: detail.unitCode,
+  });
+  const movementQuantityBase = Math.abs(Number(movement.quantityBase));
+  if (!Number.isFinite(movementQuantityBase) || movementQuantityBase <= 0) {
+    throw httpError(409, "Linked stock movement is missing a valid quantity_base value");
+  }
+  if (Math.abs(movementQuantityBase - derivedQuantityBase) > 0.0001) {
+    throw httpError(
+      409,
+      "Linked stock movement quantity does not match the dispense line unit conversion"
+    );
+  }
+
+  const baseUnitLevel = await resolveProductBaseUnitLevel(client, detail.productId);
+  const lockedTargetStock = await getLockedStockOnHandBase(client, {
+    branchId: detail.branchId,
+    productId: detail.productId,
+    baseUnitLevelId: baseUnitLevel.id,
+    lotId: normalizedNewLotId,
+  });
+  const availableTargetQtyBase = numericOrZero(lockedTargetStock?.quantity_on_hand);
+  if (availableTargetQtyBase < movementQuantityBase) {
+    throw httpError(
+      409,
+      `Insufficient stock on target lot ${newLot.lotNo || newLot.id} at branch ${detail.branchCode || detail.branchId}: available ${formatBaseQuantity(
+        availableTargetQtyBase
+      )} base units, requires ${formatBaseQuantity(movementQuantityBase)}`
+    );
+  }
+
+  const previousSnapshot = buildCorrectionPreview(detail, movement, movementQuantityBase);
+
+  await applyStockDelta(client, {
+    branchId: detail.branchId,
+    productId: detail.productId,
+    lotId: detail.lotId,
+    baseUnitLevelId: baseUnitLevel.id,
+    deltaQtyBase: movementQuantityBase,
+  });
+  await applyStockDelta(client, {
+    branchId: detail.branchId,
+    productId: detail.productId,
+    lotId: normalizedNewLotId,
+    baseUnitLevelId: baseUnitLevel.id,
+    deltaQtyBase: -movementQuantityBase,
+  });
+
+  await client.query(
+    `
+      UPDATE dispense_lines
+      SET lot_id = $2::uuid
+      WHERE id = $1::uuid
+    `,
+    [dispenseLineId, normalizedNewLotId]
+  );
+
+  await client.query(
+    `
+      UPDATE stock_movements
+      SET lot_id = $2::uuid
+      WHERE id = $1::uuid
+    `,
+    [movement.id, normalizedNewLotId]
+  );
+
+  const nextSnapshot = {
+    ...previousSnapshot,
+    oldLotId: detail.lotId,
+    oldLotNo: oldLot.lotNo || null,
+    newLotId: normalizedNewLotId,
+    newLotNo: newLot.lotNo || null,
+    newLotExpDate: newLot.expDate || null,
+  };
+
+  const auditResult = await client.query(
+    `
+      INSERT INTO dispense_line_lot_correction_audits (
+        dispense_line_id,
+        dispense_header_id,
+        stock_movement_id,
+        product_id,
+        branch_id,
+        old_lot_id,
+        new_lot_id,
+        old_lot_no,
+        new_lot_no,
+        quantity,
+        quantity_base,
+        unit_level_id,
+        reason_text,
+        previous_snapshot,
+        next_snapshot,
+        corrected_by,
+        corrected_at
+      )
+      VALUES (
+        $1::uuid,
+        $2::uuid,
+        $3::uuid,
+        $4::uuid,
+        $5::uuid,
+        $6::uuid,
+        $7::uuid,
+        $8,
+        $9,
+        $10,
+        $11,
+        $12::uuid,
+        $13,
+        $14::jsonb,
+        $15::jsonb,
+        $16::uuid,
+        now()
+      )
+      RETURNING id, corrected_at AS "correctedAt"
+    `,
+    [
+      dispenseLineId,
+      detail.headerId,
+      movement.id,
+      detail.productId,
+      detail.branchId,
+      detail.lotId,
+      normalizedNewLotId,
+      oldLot.lotNo || null,
+      newLot.lotNo || null,
+      detail.quantity,
+      movementQuantityBase,
+      detail.unitLevelId,
+      normalizedReason,
+      JSON.stringify(previousSnapshot),
+      JSON.stringify(nextSnapshot),
+      correctedByUserId,
+    ]
+  );
+
+  const response = await buildDispenseLineResponse(client, dispenseLineId, { forUpdate: true });
+  return {
+    auditId: auditResult.rows[0]?.id || null,
+    correctedAt: auditResult.rows[0]?.correctedAt || null,
+    reason: normalizedReason,
+    previous: previousSnapshot,
+    current: response,
+  };
+}
+
 export async function getDispenseMovementLotCorrectionDetail(req, res) {
   const movementId = toCleanText(req.params.id);
   if (!movementId || !isUuid(movementId)) {
@@ -464,196 +675,14 @@ export async function correctDispenseMovementLot(req, res) {
     throw httpError(401, "Authentication required");
   }
 
-  const result = await withTransaction(async (client) => {
-    if (!(await hasDispenseLineLotCorrectionAuditsTable(client))) {
-      throw httpError(
-        503,
-        "dispense line lot correction audit table is not deployed yet; run migration 0026 first"
-      );
-    }
-
-    const correctedByUserId = await resolveActorUserId(client, adminUserId);
-    const resolved = await resolveDispenseLineIdFromMovementId(client, movementId, { forUpdate: true });
-    const dispenseLineId = resolved.dispenseLineId;
-    const detail = await loadDispenseLineDetail(client, dispenseLineId, { forUpdate: true });
-    const movement = validateDispenseLineCorrectionState(detail);
-
-    if (toCleanText(detail.lotId) === newLotId) {
-      throw httpError(400, "Old lot and new lot are the same");
-    }
-
-    await assertLotBelongsToProduct(client, detail.productId, newLotId);
-    await assertUnitLevelAllowedForLot(client, {
-      productId: detail.productId,
-      lotId: newLotId,
-      unitLevelId: detail.unitLevelId,
-    });
-
-    const oldLot = await getLotSnapshot(client, {
-      lotId: detail.lotId,
-      productId: detail.productId,
-    });
-    const newLot = await getLotSnapshot(client, {
-      lotId: newLotId,
-      productId: detail.productId,
-    });
-
-    if (!oldLot) {
-      throw httpError(409, "Current dispense line lot no longer exists");
-    }
-    if (!newLot) {
-      throw httpError(404, "New lot was not found for this product");
-    }
-
-    const derivedQuantityBase = convertToBase(detail.quantity, {
-      id: detail.unitLevelId,
-      unit_key: detail.unitKey,
-      display_name: detail.unitDisplayName,
-      code: detail.unitCode,
-    });
-    const movementQuantityBase = Math.abs(Number(movement.quantityBase));
-    if (!Number.isFinite(movementQuantityBase) || movementQuantityBase <= 0) {
-      throw httpError(409, "Linked stock movement is missing a valid quantity_base value");
-    }
-    if (Math.abs(movementQuantityBase - derivedQuantityBase) > 0.0001) {
-      throw httpError(
-        409,
-        "Linked stock movement quantity does not match the dispense line unit conversion"
-      );
-    }
-
-    const baseUnitLevel = await resolveProductBaseUnitLevel(client, detail.productId);
-    const lockedTargetStock = await getLockedStockOnHandBase(client, {
-      branchId: detail.branchId,
-      productId: detail.productId,
-      baseUnitLevelId: baseUnitLevel.id,
-      lotId: newLotId,
-    });
-    const availableTargetQtyBase = numericOrZero(lockedTargetStock?.quantity_on_hand);
-    if (availableTargetQtyBase < movementQuantityBase) {
-      throw httpError(
-        409,
-        `Insufficient stock on target lot ${newLot.lotNo || newLot.id} at branch ${detail.branchCode || detail.branchId}: available ${formatBaseQuantity(
-          availableTargetQtyBase
-        )} base units, requires ${formatBaseQuantity(movementQuantityBase)}`
-      );
-    }
-
-    const previousSnapshot = buildCorrectionPreview(detail, movement, movementQuantityBase);
-
-    await applyStockDelta(client, {
-      branchId: detail.branchId,
-      productId: detail.productId,
-      lotId: detail.lotId,
-      baseUnitLevelId: baseUnitLevel.id,
-      deltaQtyBase: movementQuantityBase,
-    });
-    await applyStockDelta(client, {
-      branchId: detail.branchId,
-      productId: detail.productId,
-      lotId: newLotId,
-      baseUnitLevelId: baseUnitLevel.id,
-      deltaQtyBase: -movementQuantityBase,
-    });
-
-    await client.query(
-      `
-        UPDATE dispense_lines
-        SET lot_id = $2::uuid
-        WHERE id = $1::uuid
-      `,
-      [dispenseLineId, newLotId]
-    );
-
-    await client.query(
-      `
-        UPDATE stock_movements
-        SET lot_id = $2::uuid
-        WHERE id = $1::uuid
-      `,
-      [movement.id, newLotId]
-    );
-
-    const nextSnapshot = {
-      ...previousSnapshot,
-      oldLotId: detail.lotId,
-      oldLotNo: oldLot.lotNo || null,
+  const result = await withTransaction((client) =>
+    correctDispenseMovementLotInternal(client, {
+      movementId,
       newLotId,
-      newLotNo: newLot.lotNo || null,
-      newLotExpDate: newLot.expDate || null,
-    };
-
-    const auditResult = await client.query(
-      `
-        INSERT INTO dispense_line_lot_correction_audits (
-          dispense_line_id,
-          dispense_header_id,
-          stock_movement_id,
-          product_id,
-          branch_id,
-          old_lot_id,
-          new_lot_id,
-          old_lot_no,
-          new_lot_no,
-          quantity,
-          quantity_base,
-          unit_level_id,
-          reason_text,
-          previous_snapshot,
-          next_snapshot,
-          corrected_by,
-          corrected_at
-        )
-        VALUES (
-          $1::uuid,
-          $2::uuid,
-          $3::uuid,
-          $4::uuid,
-          $5::uuid,
-          $6::uuid,
-          $7::uuid,
-          $8,
-          $9,
-          $10,
-          $11,
-          $12::uuid,
-          $13,
-          $14::jsonb,
-          $15::jsonb,
-          $16::uuid,
-          now()
-        )
-        RETURNING id, corrected_at AS "correctedAt"
-      `,
-      [
-        dispenseLineId,
-        detail.headerId,
-        movement.id,
-        detail.productId,
-        detail.branchId,
-        detail.lotId,
-        newLotId,
-        oldLot.lotNo || null,
-        newLot.lotNo || null,
-        detail.quantity,
-        movementQuantityBase,
-        detail.unitLevelId,
-        reason,
-        JSON.stringify(previousSnapshot),
-        JSON.stringify(nextSnapshot),
-        correctedByUserId,
-      ]
-    );
-
-    const response = await buildDispenseLineResponse(client, dispenseLineId, { forUpdate: true });
-    return {
-      auditId: auditResult.rows[0]?.id || null,
-      correctedAt: auditResult.rows[0]?.correctedAt || null,
       reason,
-      previous: previousSnapshot,
-      current: response,
-    };
-  });
+      adminUserId,
+    })
+  );
 
   return res.json({
     ok: true,
