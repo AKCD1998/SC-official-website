@@ -290,6 +290,37 @@ async function sendVerificationEmail(email, otp) {
   });
 }
 
+async function sendPasswordResetEmail(email, otp) {
+  if (!process.env.SENDGRID_API_KEY || !process.env.MAIL_USER) {
+    throw new Error("SendGrid is not configured.");
+  }
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  await sgMail.send({
+    to: email,
+    from: { email: process.env.MAIL_USER, name: "SCCRM" },
+    subject: "รหัสรีเซ็ตรหัสผ่าน SCCRM",
+    text: `รหัส OTP สำหรับรีเซ็ตรหัสผ่าน SCCRM ของคุณ: ${otp}\n\nรหัสนี้หมดอายุใน 15 นาที\n\nหากไม่ได้ขอรีเซ็ตรหัสผ่าน กรุณาเพิกเฉยต่ออีเมลนี้`,
+  });
+}
+
+// Uses OTP_SECRET (same key as /api/auth/forgot-password) so both platforms
+// share the password_resets table without hash collisions.
+function hashResetOtp(email, otp) {
+  if (!process.env.OTP_SECRET) throw new Error("OTP_SECRET missing");
+  return crypto
+    .createHmac("sha256", process.env.OTP_SECRET)
+    .update(`RESET:${email}:${otp}`)
+    .digest("hex");
+}
+
+function hashResetToken(token) {
+  if (!process.env.OTP_SECRET) throw new Error("OTP_SECRET missing");
+  return crypto
+    .createHmac("sha256", process.env.OTP_SECRET)
+    .update(`RT:${token}`)
+    .digest("hex");
+}
+
 // ─── Middleware ───────────────────────────────────────────────────────────────
 
 async function requireCustomer(req, res, next) {
@@ -653,6 +684,128 @@ router.post("/auth/refresh", async (req, res) => {
     });
   } catch (error) {
     return jsonError(res, 500, error.message || "Refresh failed.");
+  }
+});
+
+// ─── Routes: password reset ───────────────────────────────────────────────────
+
+// POST /api/sccrm/auth/forgot-password  { email }
+// Generates a 6-digit OTP, stores its hash in password_resets, and emails it.
+// Returns 404 if email is not an SCCRM member (not a generic response — this
+// is a closed pharmacy CRM, not a public consumer product).
+router.post("/auth/forgot-password", async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email) return jsonError(res, 400, "Email is required.");
+    if (!isEmail(email)) return jsonError(res, 400, "Invalid email format.");
+
+    // Must be an SCCRM member (has a member_profile row).
+    const user = await queryOne(
+      `SELECT u.id, u.password_hash
+       FROM   users u
+       JOIN   member_profiles m ON m.user_id = u.id
+       WHERE  lower(u.email) = $1`,
+      [email]
+    );
+    if (!user) return jsonError(res, 404, "ไม่พบอีเมลนี้ในระบบ SCCRM");
+
+    if (!user.password_hash) {
+      return jsonError(res, 400, "บัญชีนี้เข้าสู่ระบบด้วย LINE หรือ Google ไม่สามารถรีเซ็ตรหัสผ่านได้");
+    }
+
+    const otp = generateOtp();
+    await pool.query(
+      `INSERT INTO password_resets
+         (email, otp_hash, expires_at, attempts, reset_token_hash, reset_token_expires_at)
+       VALUES ($1, $2, now() + interval '15 minutes', 0, null, null)
+       ON CONFLICT (email) DO UPDATE
+         SET otp_hash               = excluded.otp_hash,
+             expires_at             = excluded.expires_at,
+             attempts               = 0,
+             reset_token_hash       = null,
+             reset_token_expires_at = null`,
+      [email, hashResetOtp(email, otp)]
+    );
+
+    await sendPasswordResetEmail(email, otp);
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("sccrm forgot-password error:", e);
+    return jsonError(res, 500, e.message || "ไม่สามารถดำเนินการได้ กรุณาลองใหม่");
+  }
+});
+
+// POST /api/sccrm/auth/verify-reset-otp  { email, otp }
+// Verifies the OTP and issues a short-lived resetToken (not stored raw).
+router.post("/auth/verify-reset-otp", async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const otp   = String(req.body?.otp   || "").trim();
+    if (!email || !otp) return jsonError(res, 400, "Email and OTP are required.");
+    if (!isEmail(email)) return jsonError(res, 400, "Invalid email format.");
+
+    const pr = await queryOne(
+      `SELECT otp_hash, expires_at, attempts FROM password_resets WHERE email = $1`,
+      [email]
+    );
+    if (!pr) return jsonError(res, 400, "ยังไม่ได้ขอรหัส OTP กรุณาขอใหม่");
+    if (new Date(pr.expires_at).getTime() < Date.now()) return jsonError(res, 400, "OTP หมดอายุแล้ว กรุณาขอใหม่");
+    if (pr.attempts >= 5) return jsonError(res, 429, "ลองผิดเกินกำหนด กรุณาขอ OTP ใหม่");
+
+    if (hashResetOtp(email, otp) !== pr.otp_hash) {
+      await pool.query("UPDATE password_resets SET attempts = attempts + 1 WHERE email = $1", [email]);
+      return jsonError(res, 400, "OTP ไม่ถูกต้อง");
+    }
+
+    const resetToken = crypto.randomBytes(24).toString("hex");
+    await pool.query(
+      `UPDATE password_resets
+       SET reset_token_hash = $2, reset_token_expires_at = now() + interval '20 minutes'
+       WHERE email = $1`,
+      [email, hashResetToken(resetToken)]
+    );
+    return res.json({ ok: true, resetToken });
+  } catch (e) {
+    console.error("sccrm verify-reset-otp error:", e);
+    return jsonError(res, 500, e.message || "ไม่สามารถดำเนินการได้ กรุณาลองใหม่");
+  }
+});
+
+// POST /api/sccrm/auth/reset-password  { email, resetToken, newPassword }
+// Validates the resetToken, hashes the new password, and updates users.
+router.post("/auth/reset-password", async (req, res) => {
+  try {
+    const email       = String(req.body?.email       || "").trim().toLowerCase();
+    const resetToken  = String(req.body?.resetToken  || "").trim();
+    const newPassword = String(req.body?.newPassword || "");
+
+    if (!email || !resetToken || !newPassword) {
+      return jsonError(res, 400, "email, resetToken, and newPassword are required.");
+    }
+    if (!isEmail(email)) return jsonError(res, 400, "Invalid email format.");
+    if (newPassword.length < 8) return jsonError(res, 400, "รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร");
+    if (!/[A-Z]/.test(newPassword)) return jsonError(res, 400, "รหัสผ่านต้องมีตัวพิมพ์ใหญ่อย่างน้อย 1 ตัว");
+
+    const pr = await queryOne(
+      `SELECT reset_token_hash, reset_token_expires_at FROM password_resets WHERE email = $1`,
+      [email]
+    );
+    if (!pr)                  return jsonError(res, 400, "ไม่มีคำขอรีเซ็ตรหัสผ่าน");
+    if (!pr.reset_token_hash) return jsonError(res, 400, "ยังไม่ผ่านการยืนยัน OTP");
+    if (!pr.reset_token_expires_at || new Date(pr.reset_token_expires_at).getTime() < Date.now()) {
+      return jsonError(res, 400, "Reset token หมดอายุ กรุณาทำใหม่");
+    }
+    if (hashResetToken(resetToken) !== pr.reset_token_hash) {
+      return jsonError(res, 400, "Reset token ไม่ถูกต้อง");
+    }
+
+    const password_hash = await hashPassword(newPassword);
+    await pool.query("UPDATE users SET password_hash = $2 WHERE lower(email) = $1", [email, password_hash]);
+    await pool.query("DELETE FROM password_resets WHERE email = $1", [email]);
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("sccrm reset-password error:", e);
+    return jsonError(res, 500, e.message || "ไม่สามารถดำเนินการได้ กรุณาลองใหม่");
   }
 });
 
