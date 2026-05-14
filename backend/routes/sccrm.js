@@ -309,9 +309,11 @@ async function requireStaff(req, res, next) {
     if (!token) return jsonError(res, 401, "Missing token.");
     const tokenHash = hashOpaqueToken(token);
     const device = await queryOne(
-      `SELECT id, device_id, device_name
-       FROM   staff_devices
-       WHERE  token_hash = $1 AND revoked_at IS NULL`,
+      `SELECT sd.id, sd.device_id, sd.device_name, sd.branch_id,
+              b.name AS branch_name, b.code AS branch_code
+       FROM   staff_devices sd
+       LEFT   JOIN branches b ON b.id = sd.branch_id
+       WHERE  sd.token_hash = $1 AND sd.revoked_at IS NULL`,
       [tokenHash]
     );
     if (!device) return jsonError(res, 401, "Invalid or revoked staff device token.");
@@ -661,6 +663,8 @@ router.post("/auth/staff-device", async (req, res) => {
     const deviceId   = String(req.body?.deviceId   || "").trim();
     const deviceName = String(req.body?.deviceName || "").trim();
     const pin        = String(req.body?.pin        || "");
+    const branchId   = req.body?.branchId ? String(req.body.branchId).trim() : null;
+
     if (!deviceId || !deviceName || !pin) {
       return jsonError(res, 400, "deviceId, deviceName, and pin are required.");
     }
@@ -673,24 +677,42 @@ router.post("/auth/staff-device", async (req, res) => {
       return jsonError(res, 403, "Device name is not allowed.");
     }
 
+    // Validate branchId if supplied
+    let branch = null;
+    if (branchId) {
+      branch = await queryOne(
+        `SELECT id, name, code FROM branches WHERE id = $1 AND is_active = TRUE`,
+        [branchId]
+      );
+      if (!branch) return jsonError(res, 400, "Branch not found or inactive.");
+    }
+
     const staffToken = createOpaqueToken();
     const tokenHash  = hashOpaqueToken(staffToken);
     const existing   = await queryOne(`SELECT id FROM staff_devices WHERE device_id = $1`, [deviceId]);
+
     if (existing) {
       await pool.query(
         `UPDATE staff_devices
-         SET    device_name = $2, token_hash = $3, revoked_at = NULL, last_seen_at = NOW()
+         SET    device_name = $2, token_hash = $3, revoked_at = NULL,
+                last_seen_at = NOW(),
+                branch_id = COALESCE($4, branch_id)
          WHERE  id = $1`,
-        [existing.id, deviceName, tokenHash]
+        [existing.id, deviceName, tokenHash, branchId]
       );
     } else {
       await pool.query(
-        `INSERT INTO staff_devices (id, device_id, device_name, token_hash, last_seen_at, revoked_at, created_at)
-         VALUES ($1, $2, $3, $4, NOW(), NULL, NOW())`,
-        [createId(), deviceId, deviceName, tokenHash]
+        `INSERT INTO staff_devices (id, device_id, device_name, token_hash, branch_id, last_seen_at, revoked_at, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW(), NULL, NOW())`,
+        [createId(), deviceId, deviceName, tokenHash, branchId]
       );
     }
-    return res.json({ ok: true, staffToken });
+
+    return res.json({
+      ok: true,
+      staffToken,
+      branch: branch ? { id: branch.id, name: branch.name, code: branch.code } : null,
+    });
   } catch (error) {
     return jsonError(res, 500, error.message || "Failed to register staff device.");
   }
@@ -843,9 +865,9 @@ router.post("/points/earn", requireStaff, async (req, res) => {
 
     await withTransaction(async (client) => {
       await client.query(
-        `INSERT INTO transactions (id, user_id, total_amount, point_earned, source, pos_ref_id, created_at)
-         VALUES ($1, $2, $3, $4, 'manual', $5, NOW())`,
-        [transactionId, userId, amountThb, points, referenceId]
+        `INSERT INTO transactions (id, user_id, total_amount, point_earned, source, pos_ref_id, branch_id, staff_device_id, created_at)
+         VALUES ($1, $2, $3, $4, 'manual', $5, $6, $7, NOW())`,
+        [transactionId, userId, amountThb, points, referenceId, req.staffDevice.branch_id || null, req.staffDevice.id]
       );
       await client.query(
         `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
@@ -1017,9 +1039,10 @@ router.get("/points/:customer_id/recent-earn", requireStaffOrSameCustomer, async
 
     const row = await queryOne(
       `SELECT pl.id, pl.amount, pl.reference_id, pl.created_at,
-              t.total_amount, t.pos_ref_id
+              t.total_amount, t.pos_ref_id, b.name AS branch_name
        FROM   point_ledger pl
        LEFT   JOIN transactions t ON t.id = pl.reference_id
+       LEFT   JOIN branches b    ON b.id  = t.branch_id
        WHERE  pl.user_id   = $1
          AND  pl.type      = 'purchase'
          AND  pl.created_at > $2
@@ -1036,11 +1059,50 @@ router.get("/points/:customer_id/recent-earn", requireStaffOrSameCustomer, async
       earnedPoints:  row.amount,
       totalAmount:   row.total_amount,
       receiptNumber: row.pos_ref_id,
+      branchName:    row.branch_name || null,
       createdAt:     row.created_at,
       balance:       await getCustomerBalance(req.params.customer_id),
     });
   } catch (error) {
     return jsonError(res, 500, error.message || "Failed to check recent earn.");
+  }
+});
+
+// ─── Routes: branches ────────────────────────────────────────────────────────
+
+router.get("/branches", requireStaff, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, code, address, phone, is_active, created_at
+       FROM   branches
+       ORDER  BY name ASC`
+    );
+    return res.json({ ok: true, branches: result.rows });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to load branches.");
+  }
+});
+
+router.post("/branches", requireStaff, async (req, res) => {
+  try {
+    const name    = String(req.body?.name    || "").trim();
+    const code    = String(req.body?.code    || "").trim().toUpperCase();
+    const address = req.body?.address ? String(req.body.address).trim() : null;
+    const phone   = req.body?.phone   ? String(req.body.phone).trim()   : null;
+    if (!name || !code) return jsonError(res, 400, "name and code are required.");
+
+    const id = createId();
+    await pool.query(
+      `INSERT INTO branches (id, name, code, address, phone, is_active, created_at)
+       VALUES ($1, $2, $3, $4, $5, TRUE, NOW())`,
+      [id, name, code, address, phone]
+    );
+    return res.status(201).json({ ok: true, branchId: id });
+  } catch (error) {
+    if (/unique/i.test(String(error.message))) {
+      return jsonError(res, 409, "Branch code already exists.");
+    }
+    return jsonError(res, 500, error.message || "Failed to create branch.");
   }
 });
 
