@@ -170,6 +170,11 @@ router.post("/login", async (req, res) => {
     if (q.rowCount === 0) return res.status(400).json({ error: "Invalid email or password." });
 
     const user = q.rows[0];
+    // OAuth-only accounts have no password hash — reject with a clear message
+    // rather than crashing bcrypt with a null argument.
+    if (!user.password_hash) {
+      return res.status(400).json({ error: "This account uses social login. Please sign in with LINE or Google." });
+    }
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) return res.status(400).json({ error: "Invalid email or password." });
 

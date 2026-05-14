@@ -170,6 +170,15 @@ async function comparePassword(password, hash) {
   return bcrypt.compare(password, hash);
 }
 
+// Derives the public member code from a users.id UUID.
+// Format: 'SCM-' + first 8 hex characters of the UUID (hyphens stripped, uppercase).
+// Example: 'a1b2c3d4-...' → 'SCM-A1B2C3D4'
+// This value is stable for the lifetime of the account and is safe to show on
+// member cards and barcodes — it is not the internal UUID.
+function generateMemberCode(userId) {
+  return "SCM-" + userId.replace(/-/g, "").substring(0, 8).toUpperCase();
+}
+
 module.exports = {
   CUSTOMER_ACCESS_TTL_SECONDS,
   CUSTOMER_REFRESH_TTL_DAYS,
@@ -179,6 +188,7 @@ module.exports = {
   calculateTier,
   comparePassword,
   createId,
+  generateMemberCode,
   createOpaqueToken,
   emailOtpExpiryDate,
   generateOtp,
