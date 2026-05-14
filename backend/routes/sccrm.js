@@ -824,6 +824,19 @@ router.post("/points/earn", requireStaff, async (req, res) => {
     const customer = await getCustomerViewById(userId);
     if (!customer) return jsonError(res, 404, "Customer not found.");
 
+    if (referenceId) {
+      const dup = await queryOne(
+        `SELECT id FROM transactions WHERE pos_ref_id = $1`,
+        [referenceId]
+      );
+      if (dup) {
+        return res.status(409).json({
+          error:   "DUPLICATE_RECEIPT",
+          message: "This receipt number has already been used.",
+        });
+      }
+    }
+
     const promotions    = await getActivePromotions();
     const points        = resolvePointsWithPromotions(amountThb, promotions);
     const transactionId = createId();
