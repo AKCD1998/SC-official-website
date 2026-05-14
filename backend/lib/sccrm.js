@@ -204,6 +204,7 @@ module.exports = {
   parseBearerToken,
   parseImportCsv,
   refreshExpiryDate,
+  requireEnv,
   resolvePointsWithPromotions,
   verifyAccessToken,
 };

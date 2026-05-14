@@ -37,6 +37,7 @@ const {
   parseBearerToken,
   parseImportCsv,
   refreshExpiryDate,
+  requireEnv,
   resolvePointsWithPromotions,
   verifyAccessToken,
   calculateTier,
@@ -919,6 +920,114 @@ router.get("/points/:customer_id/history", requireStaffOrSameCustomer, async (re
     return res.json({ ok: true, items: result.rows });
   } catch (error) {
     return jsonError(res, 500, error.message || "Failed to load history.");
+  }
+});
+
+// ─── Routes: scan tokens (POS earn flow) ─────────────────────────────────────
+// Signed scan tokens let the mobile app expose a barcode that the POS can verify
+// without storing anything in the database.  Token format (URL-safe ASCII):
+//   {userId_nodashes}.{expiryUnixHex}.{hmac12hex}
+// The POS prefix "SCM-POINT-v1-" is prepended by the mobile app in the barcode.
+
+const SCAN_TOKEN_TTL_SECONDS = 15 * 60; // 15 minutes
+
+function issueScanToken(userId) {
+  const secret = requireEnv("SCCRM_REFRESH_TOKEN_SECRET");
+  const expiry  = Math.floor(Date.now() / 1000) + SCAN_TOKEN_TTL_SECONDS;
+  const body    = `${userId.replace(/-/g, "")}.${expiry.toString(16)}`;
+  const hmac    = crypto.createHmac("sha256", secret).update(body).digest("hex").slice(0, 12);
+  return `${body}.${hmac}`;
+}
+
+function verifyScanToken(token) {
+  const secret = requireEnv("SCCRM_REFRESH_TOKEN_SECRET");
+  const parts  = token.split(".");
+  if (parts.length !== 3) throw new Error("Malformed scan token.");
+  const [rawId, expiryHex, hmacGiven] = parts;
+  const expiry = parseInt(expiryHex, 16);
+  if (!expiry || Math.floor(Date.now() / 1000) > expiry) throw new Error("Scan token expired.");
+  const body     = `${rawId}.${expiryHex}`;
+  const hmacCalc = crypto.createHmac("sha256", secret).update(body).digest("hex").slice(0, 12);
+  if (hmacCalc !== hmacGiven) throw new Error("Invalid scan token signature.");
+  // Reformat raw 32-char hex into UUID
+  const h = rawId.toLowerCase();
+  if (h.length !== 32) throw new Error("Malformed token ID.");
+  return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+}
+
+// GET /api/sccrm/customers/me/scan-token
+// Customer calls this when opening the member card QR screen.
+// Returns a 15-min signed token to embed in the barcode.
+router.get("/customers/me/scan-token", requireCustomer, async (req, res) => {
+  try {
+    const userId    = req.customerAuth.customerId;
+    const token     = issueScanToken(userId);
+    const expiresAt = new Date((Math.floor(Date.now() / 1000) + SCAN_TOKEN_TTL_SECONDS) * 1000);
+    return res.json({ ok: true, token, expiresAt });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to issue scan token.");
+  }
+});
+
+// POST /api/sccrm/customers/resolve-scan-token
+// POS calls this after scanning "SCM-POINT-v1-{token}" from the customer's phone.
+// Returns member info + current balance so POS can show the customer lookup card.
+router.post("/customers/resolve-scan-token", requireStaff, async (req, res) => {
+  try {
+    const rawToken = String(req.body?.token || "").trim();
+    if (!rawToken) return jsonError(res, 400, "token is required.");
+
+    let userId;
+    try {
+      userId = verifyScanToken(rawToken);
+    } catch (e) {
+      return jsonError(res, 401, e.message);
+    }
+
+    const customer = await getCustomerViewById(userId);
+    if (!customer) return jsonError(res, 404, "Member not found.");
+    const balance = await getCustomerBalance(userId);
+    return res.json({ ok: true, customer: { ...customer, balance } });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to resolve scan token.");
+  }
+});
+
+// GET /api/sccrm/points/:customer_id/recent-earn
+// Mobile app polls this (every 3s while QR is displayed) to detect when the POS
+// has awarded points.  Returns the most recent earn transaction if it occurred
+// after the ?since= ISO timestamp supplied by the caller.
+router.get("/points/:customer_id/recent-earn", requireStaffOrSameCustomer, async (req, res) => {
+  try {
+    const since = req.query.since ? new Date(req.query.since) : null;
+    if (!since || isNaN(since.getTime())) return jsonError(res, 400, "since (ISO timestamp) is required.");
+
+    const row = await queryOne(
+      `SELECT pl.id, pl.amount, pl.reference_id, pl.created_at,
+              t.total_amount, t.pos_ref_id
+       FROM   point_ledger pl
+       LEFT   JOIN transactions t ON t.id = pl.reference_id
+       WHERE  pl.user_id   = $1
+         AND  pl.type      = 'purchase'
+         AND  pl.created_at > $2
+       ORDER  BY pl.created_at DESC
+       LIMIT  1`,
+      [req.params.customer_id, since]
+    );
+
+    if (!row) return res.json({ ok: true, found: false });
+
+    return res.json({
+      ok:            true,
+      found:         true,
+      earnedPoints:  row.amount,
+      totalAmount:   row.total_amount,
+      receiptNumber: row.pos_ref_id,
+      createdAt:     row.created_at,
+      balance:       await getCustomerBalance(req.params.customer_id),
+    });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to check recent earn.");
   }
 });
 
