@@ -86,11 +86,11 @@ async function withTransaction(work) {
 async function getCustomerView(whereClause, params) {
   return queryOne(
     `SELECT u.id,
-            u.phone_number   AS phone,
+            u.phone_number        AS phone,
             u.full_name,
             u.email,
             u.created_at,
-            u.updated_at,
+            m.updated_at,
             m.tier,
             m.is_active,
             m.member_code
@@ -576,12 +576,12 @@ router.post("/auth/login", async (req, res) => {
     // Fetch user + member_profile together
     const row = await queryOne(
       `SELECT u.id,
-              u.phone_number AS phone,
+              u.phone_number  AS phone,
               u.full_name,
               u.email,
               u.password_hash,
               u.created_at,
-              u.updated_at,
+              m.updated_at,
               m.tier,
               m.is_active,
               m.member_code
