@@ -488,6 +488,90 @@ router.post("/auth/google-callback", async (req, res) => {
   }
 });
 
+// ─── Routes: social auth (browser redirect — for standalone mobile app) ───────
+//
+// These GET routes are the redirect target for LINE / Google OAuth in the
+// standalone APK. The provider sends the authorization code here, the backend
+// exchanges it for tokens, issues a session, and redirects to the app deep link
+// sccrm://oauth?accessToken=X&refreshToken=Y  (or ?onboardingRequired=true&…)
+//
+// Env vars required:
+//   SCCRM_APP_SCHEME            — deep-link base (default: sccrm://oauth)
+//   SCCRM_LINE_REDIRECT_URI     — must match this route's full URL
+//   SCCRM_GOOGLE_REDIRECT_URI   — must match this route's full URL
+
+function socialRedirect(res, params) {
+  const base = process.env.SCCRM_APP_SCHEME || "sccrm://oauth";
+  const qs = new URLSearchParams(params).toString();
+  return res.redirect(`${base}?${qs}`);
+}
+
+router.get("/auth/google/callback", async (req, res) => {
+  try {
+    ensureProviderEnv("google");
+    const { code, error } = req.query;
+    if (error) return socialRedirect(res, { error: String(error) });
+    if (!code) return socialRedirect(res, { error: "no_code" });
+
+    const identity = await exchangeGoogleCode(String(code));
+    const customer = await findCustomerByIdentity(identity);
+    if (customer) {
+      const session = await issueCustomerSession(customer, "google-browser");
+      return socialRedirect(res, {
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+      });
+    }
+    const onboardingToken = issueOnboardingToken({
+      provider: "google",
+      googleUid: identity.googleUid,
+      fullName: identity.fullName,
+      email: identity.email,
+    });
+    return socialRedirect(res, {
+      onboardingRequired: "true",
+      onboardingToken,
+      fullName: identity.fullName || "",
+      email: identity.email || "",
+    });
+  } catch (err) {
+    return socialRedirect(res, { error: err.message || "google_failed" });
+  }
+});
+
+router.get("/auth/line/callback", async (req, res) => {
+  try {
+    ensureProviderEnv("line");
+    const { code, error } = req.query;
+    if (error) return socialRedirect(res, { error: String(error) });
+    if (!code) return socialRedirect(res, { error: "no_code" });
+
+    const identity = await exchangeLineCode(String(code));
+    const customer = await findCustomerByIdentity(identity);
+    if (customer) {
+      const session = await issueCustomerSession(customer, "line-browser");
+      return socialRedirect(res, {
+        accessToken: session.accessToken,
+        refreshToken: session.refreshToken,
+      });
+    }
+    const onboardingToken = issueOnboardingToken({
+      provider: "line",
+      lineUid: identity.lineUid,
+      fullName: identity.fullName,
+      email: null,
+    });
+    return socialRedirect(res, {
+      onboardingRequired: "true",
+      onboardingToken,
+      fullName: identity.fullName || "",
+      email: "",
+    });
+  } catch (err) {
+    return socialRedirect(res, { error: err.message || "line_failed" });
+  }
+});
+
 // ─── Routes: email auth ───────────────────────────────────────────────────────
 
 router.post("/auth/register", async (req, res) => {
