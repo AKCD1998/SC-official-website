@@ -516,6 +516,9 @@ router.get("/auth/google/callback", async (req, res) => {
     const identity = await exchangeGoogleCode(String(code));
     const customer = await findCustomerByIdentity(identity);
     if (customer) {
+      // TODO (Profile Settings — future): if customer was found by email (not by
+      // googleUid), formally link the Google provider here by inserting into
+      // user_auth_providers. For MVP, email-match is sufficient.
       const session = await issueCustomerSession(customer, "google-browser");
       return socialRedirect(res, {
         accessToken: session.accessToken,
@@ -549,6 +552,9 @@ router.get("/auth/line/callback", async (req, res) => {
     const identity = await exchangeLineCode(String(code));
     const customer = await findCustomerByIdentity(identity);
     if (customer) {
+      // TODO (Profile Settings — future): if customer was found by email (not by
+      // lineUid), formally link the LINE provider here by inserting into
+      // user_auth_providers. For MVP, email-match is sufficient.
       const session = await issueCustomerSession(customer, "line-browser");
       return socialRedirect(res, {
         accessToken: session.accessToken,
