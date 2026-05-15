@@ -697,7 +697,9 @@ router.post("/auth/login", async (req, res) => {
     const password = String(req.body?.password || "");
     if (!isEmail(email) || !password) return jsonError(res, 400, "email and password are required.");
 
-    // Fetch user + member_profile together
+    // Fetch user + member_profile together.
+    // LEFT JOIN so that legacy users (created before SCCRM migration) are still
+    // found even if they have no member_profiles row yet.
     const row = await queryOne(
       `SELECT u.id,
               u.phone_number  AS phone,
@@ -710,7 +712,7 @@ router.post("/auth/login", async (req, res) => {
               m.is_active,
               m.member_code
        FROM   users u
-       JOIN   member_profiles m ON m.user_id = u.id
+       LEFT JOIN member_profiles m ON m.user_id = u.id
        WHERE  lower(u.email) = lower($1)`,
       [email]
     );
@@ -723,6 +725,20 @@ router.post("/auth/login", async (req, res) => {
 
     const ok = await comparePassword(password, row.password_hash);
     if (!ok) return jsonError(res, 400, "Invalid email or password.");
+
+    // Auto-provision member_profile for legacy users who pre-date the SCCRM migration
+    if (!row.member_code) {
+      const memberCode = generateMemberCode(row.id);
+      await pool.query(
+        `INSERT INTO member_profiles (id, user_id, member_code, tier, is_active, created_at, updated_at)
+         VALUES (gen_random_uuid(), $1, $2, 'bronze', TRUE, NOW(), NOW())
+         ON CONFLICT (user_id) DO NOTHING`,
+        [row.id, memberCode]
+      );
+      row.tier        = "bronze";
+      row.is_active   = true;
+      row.member_code = memberCode;
+    }
 
     // Strip password_hash before building the customer object
     const { password_hash, ...customer } = row;
