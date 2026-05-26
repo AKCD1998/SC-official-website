@@ -402,6 +402,13 @@ export async function getPatientDispenseHistory(req, res) {
         p.product_code AS "productCode",
         p.trade_name AS "tradeName",
         dl.quantity,
+        COALESCE(dr.returned_quantity, 0) AS "returnedQuantity",
+        GREATEST(dl.quantity - COALESCE(dr.returned_quantity, 0), 0) AS "remainingQuantity",
+        CASE
+          WHEN COALESCE(dr.returned_quantity, 0) <= 0 THEN 'ACTIVE'
+          WHEN COALESCE(dr.returned_quantity, 0) >= dl.quantity THEN 'RETURNED'
+          ELSE 'PARTIALLY_RETURNED'
+        END AS "returnStatus",
         pul.display_name AS "unitLabel",
         pl.lot_no AS "lotNo",
         dl.note_text AS "lineNote",
@@ -413,6 +420,12 @@ export async function getPatientDispenseHistory(req, res) {
       JOIN products p ON p.id = dl.product_id
       JOIN product_unit_levels pul ON pul.id = dl.unit_level_id
       LEFT JOIN product_lots pl ON pl.id = dl.lot_id
+      LEFT JOIN LATERAL (
+        SELECT
+          COALESCE(SUM(dr.returned_quantity), 0) AS returned_quantity
+        FROM dispense_returns dr
+        WHERE dr.dispense_line_id = dl.id
+      ) dr ON true
       WHERE ${where.join(" AND ")}
       ORDER BY dh.dispensed_at DESC, dl.line_no
       LIMIT 1000
@@ -525,6 +538,12 @@ export async function listDispenseHistory(req, res) {
     JOIN products p ON p.id = dl.product_id
     JOIN product_unit_levels pul ON pul.id = dl.unit_level_id
     LEFT JOIN product_lots pl ON pl.id = dl.lot_id
+    LEFT JOIN LATERAL (
+      SELECT
+        COALESCE(SUM(dr.returned_quantity), 0) AS returned_quantity
+      FROM dispense_returns dr
+      WHERE dr.dispense_line_id = dl.id
+    ) dr ON true
   `;
   const whereSql = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
@@ -565,6 +584,13 @@ export async function listDispenseHistory(req, res) {
         p.product_code AS "productCode",
         p.trade_name AS "tradeName",
         dl.quantity,
+        COALESCE(dr.returned_quantity, 0) AS "returnedQuantity",
+        GREATEST(dl.quantity - COALESCE(dr.returned_quantity, 0), 0) AS "remainingQuantity",
+        CASE
+          WHEN COALESCE(dr.returned_quantity, 0) <= 0 THEN 'ACTIVE'
+          WHEN COALESCE(dr.returned_quantity, 0) >= dl.quantity THEN 'RETURNED'
+          ELSE 'PARTIALLY_RETURNED'
+        END AS "returnStatus",
         pul.display_name AS "unitLabel",
         pl.lot_no AS "lotNo",
         dl.note_text AS "lineNote",

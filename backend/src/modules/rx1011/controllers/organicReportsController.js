@@ -368,6 +368,11 @@ export async function getOrganicDispenseLedgerActivityProducts(req, res) {
       JOIN dispense_lines dl ON dl.header_id = dh.id
       JOIN products p ON p.id = dl.product_id
       LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(dr.returned_quantity), 0) AS returned_quantity
+        FROM dispense_returns dr
+        WHERE dr.dispense_line_id = dl.id
+      ) dr ON true
+      LEFT JOIN LATERAL (
         SELECT
           pul.display_name,
           pul.code
@@ -385,6 +390,7 @@ export async function getOrganicDispenseLedgerActivityProducts(req, res) {
         LIMIT 1
       ) sellable_pul ON true
       WHERE ${where.join(" AND ")}
+        AND GREATEST(dl.quantity - COALESCE(dr.returned_quantity, 0), 0) > 0
       GROUP BY
         p.id,
         p.product_code,
@@ -458,7 +464,7 @@ export async function getOrganicDispenseLedgerReport(req, res) {
         pa.pid,
         pa.full_name AS "patientName",
         COALESCE(ph.full_name, ph.username, '') AS "pharmacistName",
-        dl.quantity,
+        GREATEST(dl.quantity - COALESCE(dr.returned_quantity, 0), 0) AS quantity,
         COALESCE(NULLIF(trim(pul.display_name), ''), pul.code, 'unit') AS "unitLabel",
         pl.id AS "lotId",
         pl.lot_no AS "lotNo",
@@ -470,7 +476,13 @@ export async function getOrganicDispenseLedgerReport(req, res) {
       JOIN dispense_lines dl ON dl.header_id = dh.id
       JOIN product_unit_levels pul ON pul.id = dl.unit_level_id
       LEFT JOIN product_lots pl ON pl.id = dl.lot_id
+      LEFT JOIN LATERAL (
+        SELECT COALESCE(SUM(dr.returned_quantity), 0) AS returned_quantity
+        FROM dispense_returns dr
+        WHERE dr.dispense_line_id = dl.id
+      ) dr ON true
       WHERE ${where.join(" AND ")}
+        AND GREATEST(dl.quantity - COALESCE(dr.returned_quantity, 0), 0) > 0
       ORDER BY COALESCE(pl.lot_no, '') ASC, dh.dispensed_at ASC, dh.id ASC, dl.line_no ASC
     `,
     params
