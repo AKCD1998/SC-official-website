@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
-    "migrate": "knex migrate:latest"
+    "migrate": "knex migrate:latest",
+    "digitalpjk:migrate": "node ./src/modules/digitalpjk/db/migrate.js",
+    "digitalpjk:seed": "node ./src/modules/digitalpjk/db/seed.js",
+    "digitalpjk:setup": "node ./src/modules/digitalpjk/db/setup.js"
   },
   "repository": {
     "type": "git",

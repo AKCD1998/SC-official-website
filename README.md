@@ -36,6 +36,10 @@ Notes:
 4) npm start
 
 See `backend/.env.example` for the full shared-service env shape. The Rx1011 module is mounted at `/api/rx1011` and should use the namespaced `RX1011_*` variables in shared deployments.
+The DigitalPJK module is mounted at `/api/digitalpjk`, uses only `DIGITALPJK_*` env vars, and has local setup helpers:
+- `npm --prefix backend run digitalpjk:migrate`
+- `npm --prefix backend run digitalpjk:seed`
+- `npm --prefix backend run digitalpjk:setup`
 
 ## Build + serve (production)
 1) Build frontend:
@@ -135,6 +139,35 @@ The build includes a `404.html` entry so refresh on `/login`, `/signup`, etc. wo
   - Example: old `/api/products` is now `/api/rx1011/products`.
   - Example: old `/api/dispense/history` is now `/api/rx1011/dispense/history`.
 - Rx1011 database migrations are copied into `backend/src/modules/rx1011/migrations` for manual review only. They are not run automatically.
+- DigitalPJK backend routes are integrated under `backend/src/modules/digitalpjk`.
+- Original DigitalPJK paths are namespaced under `/api/digitalpjk`.
+  - Example: old `/api/auth/login` is now `/api/digitalpjk/auth/login`.
+  - Example: old `/api/documents/generate` is now `/api/digitalpjk/documents/generate`.
+- SC Shift can use `POST /api/digitalpjk/integrations/sc-shift/document-preview` with `X-Integration-Key`.
+- DigitalPJK requires `DIGITALPJK_DATABASE_URL`; it does not use the shared website `DATABASE_URL`.
+
+## DigitalPJK setup
+- Required Render env vars:
+  - `DIGITALPJK_DATABASE_URL`
+  - `DIGITALPJK_JWT_SECRET`
+  - `DIGITALPJK_JWT_EXPIRES_IN`
+  - `DIGITALPJK_CEO_NAME_TH`
+  - `DIGITALPJK_LOGIN_RATE_LIMIT_WINDOW_MS`
+  - `DIGITALPJK_LOGIN_RATE_LIMIT_MAX`
+  - `DIGITALPJK_PDF_WRITE_SAMPLE`
+  - `DIGITALPJK_PDF_SAMPLE_DIR`
+  - `DIGITALPJK_SC_SHIFT_INTEGRATION_KEY`
+- Database setup:
+  - `npm --prefix backend run digitalpjk:migrate`
+  - `npm --prefix backend run digitalpjk:seed`
+  - or `npm --prefix backend run digitalpjk:setup`
+- Seeded auth users created by the current seed script:
+  - `admin000`
+  - `user001`
+  - `user003`
+  - `user004`
+  - `user005`
+- Branch and pharmacist seed data live under `backend/src/modules/digitalpjk/data/branches` and `backend/src/modules/digitalpjk/db/syncPartTimePharmacists.js`.
 
 ## DB
 PostgreSQL tables/columns used by the backend:

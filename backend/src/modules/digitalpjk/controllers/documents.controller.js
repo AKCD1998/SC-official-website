@@ -11,7 +11,7 @@ import {
   generateTemplateDebugGridPdf,
   stampTemplatePdf,
 } from "../services/pdfStampService.js";
-import { findBranchById } from "../services/branches.service.js";
+import { findBranchByCode, findBranchById } from "../services/branches.service.js";
 import { findUserWithBranchById } from "../services/user-profile.service.js";
 
 const KNOWN_FORM_KEYS = new Set([
@@ -81,6 +81,26 @@ function normalizeSubPharmacistSlots(input) {
   return input
     .filter((slot) => slot && typeof slot === "object" && !Array.isArray(slot))
     .slice(0, 10);
+}
+
+function normalizeSourcePayload(input) {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return null;
+  }
+
+  const spreadsheetId = toNonEmptyString(input.spreadsheetId);
+  const sheetName = toNonEmptyString(input.sheetName);
+  const generatedAt = toNonEmptyString(input.generatedAt);
+
+  if (!spreadsheetId && !sheetName && !generatedAt) {
+    return null;
+  }
+
+  return {
+    spreadsheetId: spreadsheetId || "",
+    sheetName: sheetName || "",
+    generatedAt: generatedAt || "",
+  };
 }
 
 function mapPayloadFromUserData(userRow, documentDate, formData, templateKey, subPharmacistSlots) {
@@ -180,6 +200,32 @@ function buildBranchAwareUserRow(userRow, branchRow) {
     license_no: branchRow.license_no,
     location_text: branchRow.location_text,
     operator_display_name_th: branchRow.operator_display_name_th,
+    operator_title: branchRow.operator_title,
+    operator_work_hours: branchRow.operator_work_hours,
+  };
+}
+
+function buildBranchBackedUserRow(branchRow, operatorDisplayNameTh = "") {
+  return {
+    user_id: null,
+    username: "sc-shift-integration",
+    password_hash: null,
+    role: "integration",
+    user_branch_id: branchRow.id,
+    display_name_th: operatorDisplayNameTh || branchRow.operator_display_name_th || null,
+    branch_id: branchRow.id,
+    branch_code: branchRow.branch_code,
+    pharmacy_name_th: branchRow.pharmacy_name_th,
+    branch_name_th: branchRow.branch_name_th,
+    address_no: branchRow.address_no,
+    soi: branchRow.soi,
+    district: branchRow.district,
+    province: branchRow.province,
+    postcode: branchRow.postcode,
+    phone: branchRow.phone,
+    license_no: branchRow.license_no,
+    location_text: branchRow.location_text,
+    operator_display_name_th: operatorDisplayNameTh || branchRow.operator_display_name_th,
     operator_title: branchRow.operator_title,
     operator_work_hours: branchRow.operator_work_hours,
   };
@@ -437,6 +483,70 @@ export async function generateMergedDocumentPdf(req, res, next) {
     const fileName = buildMergedDownloadFileName(pdfPayloads, documentDate.dateISO);
 
     return sendPdfResponse(res, mergedPdfBytes, fileName, documentId);
+  } catch (error) {
+    return handlePdfError(error, res, next);
+  }
+}
+
+export async function generateScShiftDocumentPreview(req, res, next) {
+  try {
+    const branchCode = toNonEmptyString(req.body?.branchCode);
+    const templateKey = toNonEmptyString(req.body?.templateKey) || DEFAULT_TEMPLATE_KEY;
+    const operatorDisplayNameTh = pickValue(
+      req.body?.operator?.displayNameTh,
+      req.body?.operator?.display_name_th
+    );
+    const subPharmacistSlots = normalizeSubPharmacistSlots(req.body?.subPharmacistSlots);
+    const source = normalizeSourcePayload(req.body?.source);
+    const formData = normalizeFormData(req.body?.formData);
+
+    if (!branchCode) {
+      return res.status(400).json({ error: "branchCode is required." });
+    }
+
+    if (subPharmacistSlots.length === 0) {
+      return res.status(400).json({ error: "subPharmacistSlots must contain at least one slot." });
+    }
+
+    const branchRow = await findBranchByCode(branchCode);
+    if (!branchRow) {
+      return res.status(404).json({ error: "Branch not found." });
+    }
+
+    const documentDate = await getCurrentDocumentDate();
+    const payloadUserRow = buildBranchBackedUserRow(branchRow, operatorDisplayNameTh);
+    const mergedFormData = {
+      ...formData,
+      branchCode,
+      source,
+      displayNameTh: pickValue(
+        formData.displayNameTh,
+        formData.display_name_th,
+        operatorDisplayNameTh
+      ),
+      operatorTitle: pickValue(
+        formData.operatorTitle,
+        formData.operator_title,
+        operatorDisplayNameTh
+      ),
+    };
+    const pdfPayload = mapPayloadFromUserData(
+      payloadUserRow,
+      documentDate,
+      mergedFormData,
+      templateKey,
+      subPharmacistSlots
+    );
+    const { pdfBytes, templateKey: resolvedTemplateKey } = await stampTemplatePdf({
+      templateKey,
+      payload: pdfPayload,
+    });
+
+    pdfPayload.templateKey = resolvedTemplateKey;
+
+    const dateIso = pdfPayload?.documentDate?.dateISO || documentDate.dateISO;
+    const fileName = `sc-shift-preview-${branchCode}-${dateIso}.pdf`;
+    return sendPdfResponse(res, pdfBytes, fileName, null, "inline");
   } catch (error) {
     return handlePdfError(error, res, next);
   }

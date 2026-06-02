@@ -110,6 +110,7 @@ function testEnv(extra = {}) {
     DIGITALPJK_LOGIN_RATE_LIMIT_MAX: "5",
     DIGITALPJK_PDF_WRITE_SAMPLE: "false",
     DIGITALPJK_PDF_SAMPLE_DIR: "",
+    DIGITALPJK_SC_SHIFT_INTEGRATION_KEY: "test-only-sc-shift-key",
     SCGLAMLIFF_DATABASE_URL: "",
     SCGLAMLIFF_JWT_SECRET: "test-only-scglamliff-secret",
     SCGLAMLIFF_COOKIE_SAMESITE: "lax",
@@ -218,6 +219,7 @@ describe("DigitalPJK module import baseline", () => {
       await import("./src/modules/digitalpjk/controllers/documents.controller.js");
       await import("./src/modules/digitalpjk/controllers/pharmacists.controller.js");
       await import("./src/modules/digitalpjk/middleware/auth.middleware.js");
+      await import("./src/modules/digitalpjk/middleware/sc-shift-integration.middleware.js");
       console.log("ok");
     `;
 
@@ -519,6 +521,28 @@ describe("target backend and Rx1011 namespace", () => {
 
     expect(response.status).toBe(status);
     expect(response.type).toMatch(/json/);
+  });
+
+  test("DigitalPJK SC Shift integration route rejects missing integration key before DB access", async () => {
+    const response = await api
+      .post("/api/digitalpjk/integrations/sc-shift/document-preview")
+      .send({
+        branchCode: "003",
+        subPharmacistSlots: [{ pharmacistName: "Test", pharmacistLicense: "1" }],
+      });
+
+    expect(response.status).toBe(401);
+    expect(response.body).toEqual({ error: "Invalid integration key." });
+  });
+
+  test("DigitalPJK SC Shift integration route keeps input validation behind the integration key gate", async () => {
+    const response = await api
+      .post("/api/digitalpjk/integrations/sc-shift/document-preview")
+      .set("X-Integration-Key", "test-only-sc-shift-key")
+      .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body).toEqual({ error: "branchCode is required." });
   });
 
   test("scGlamLiff routes are mounted under the new namespace", async () => {

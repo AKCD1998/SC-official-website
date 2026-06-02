@@ -91,6 +91,7 @@ ENV_VAR_COLLISION_AUDIT.md
 | `GET /api/documents/recent` | `GET /api/digitalpjk/documents/recent` |
 | `GET /api/documents/:id` | `GET /api/digitalpjk/documents/:id` |
 | `GET /api/pharmacists/part-time` | `GET /api/digitalpjk/pharmacists/part-time` |
+| `POST /api/integrations/sc-shift/document-preview` | `POST /api/digitalpjk/integrations/sc-shift/document-preview` |
 
 ## Env Variables
 
@@ -105,6 +106,7 @@ DIGITALPJK_LOGIN_RATE_LIMIT_WINDOW_MS
 DIGITALPJK_LOGIN_RATE_LIMIT_MAX
 DIGITALPJK_PDF_WRITE_SAMPLE
 DIGITALPJK_PDF_SAMPLE_DIR
+DIGITALPJK_SC_SHIFT_INTEGRATION_KEY
 ```
 
 Required frontend build names for DigitalPJK:
