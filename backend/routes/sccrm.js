@@ -43,6 +43,9 @@ const {
   calculateTier,
   EMAIL_OTP_ATTEMPT_LIMIT,
 } = require("../lib/sccrm");
+const {
+  hashClaimToken,
+} = require("../lib/sccrmCrm");
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
@@ -126,6 +129,61 @@ async function getCustomerLifetimeEarned(userId) {
     [userId]
   );
   return Number(row?.earned || 0);
+}
+
+async function getSaleClaimByToken(token) {
+  return queryOne(
+    `SELECT t.id AS claim_token_id,
+            t.branch_code,
+            t.doc_no,
+            t.expires_at,
+            t.used_at,
+            s.id AS sale_event_id,
+            s.sale_at,
+            s.branch_code AS sale_branch_code,
+            s.pos_code,
+            s.doc_no AS sale_doc_no,
+            s.doc_type,
+            s.cashier_code,
+            s.gross_total,
+            s.net_total,
+            s.paid_total,
+            s.claim_status,
+            s.source_event_key,
+            c.id AS claim_id,
+            c.customer_account_id
+     FROM crm_sale_claim_tokens t
+     JOIN crm_pos_sale_events s
+       ON s.branch_code = t.branch_code
+      AND s.doc_no = t.doc_no
+     LEFT JOIN crm_sale_claims c
+       ON c.sale_event_id = s.id
+     WHERE t.token_hash = $1
+     ORDER BY t.issued_at DESC
+     LIMIT 1`,
+    [hashClaimToken(token)]
+  );
+}
+
+async function getClaimStatusRow(claimId, userId) {
+  return queryOne(
+    `SELECT c.id AS claim_id,
+            c.claimed_at,
+            c.claim_channel,
+            s.id AS sale_event_id,
+            s.doc_no,
+            s.branch_code,
+            s.sale_at,
+            a.points_awarded,
+            r.id AS reversal_id,
+            r.points_reversed
+     FROM crm_sale_claims c
+     JOIN crm_pos_sale_events s ON s.id = c.sale_event_id
+     LEFT JOIN crm_loyalty_awards a ON a.sale_event_id = s.id
+     LEFT JOIN crm_loyalty_reversals r ON r.original_award_id = a.id
+     WHERE c.id = $1 AND c.customer_account_id = $2`,
+    [claimId, userId]
+  );
 }
 
 async function recalculateTier(userId) {
@@ -1214,6 +1272,217 @@ router.get("/points/:customer_id/history", requireStaffOrSameCustomer, async (re
     return res.json({ ok: true, items: result.rows });
   } catch (error) {
     return jsonError(res, 500, error.message || "Failed to load history.");
+  }
+});
+
+// ─── Routes: post-sale claims ────────────────────────────────────────────────
+
+router.post("/claims/resolve", async (req, res) => {
+  try {
+    const token = String(req.body?.claim_token || "").trim();
+    if (!token) return jsonError(res, 400, "claim_token is required.");
+
+    const claim = await getSaleClaimByToken(token);
+    if (!claim) return jsonError(res, 404, "Claim token not found.");
+    if (claim.used_at || claim.claim_id) {
+      return res.json({
+        ok: true,
+        status: "claimed",
+        sale: {
+          sale_event_id: claim.sale_event_id,
+          branch_code: claim.sale_branch_code,
+          doc_no: claim.sale_doc_no,
+          sale_at: claim.sale_at,
+          paid_total: Number(claim.paid_total || 0),
+        },
+      });
+    }
+
+    if (new Date(claim.expires_at).getTime() < Date.now()) {
+      return res.json({ ok: true, status: "expired" });
+    }
+
+    return res.json({
+      ok: true,
+      status: "ready",
+      sale: {
+        sale_event_id: claim.sale_event_id,
+        branch_code: claim.sale_branch_code,
+        pos_code: claim.pos_code,
+        doc_no: claim.sale_doc_no,
+        doc_type: claim.doc_type,
+        sale_at: claim.sale_at,
+        cashier_code: claim.cashier_code,
+        gross_total: Number(claim.gross_total || 0),
+        net_total: Number(claim.net_total || 0),
+        paid_total: Number(claim.paid_total || 0),
+      },
+    });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to resolve claim.");
+  }
+});
+
+router.post("/claims/confirm", requireCustomer, async (req, res) => {
+  try {
+    const token = String(req.body?.claim_token || "").trim();
+    if (!token) return jsonError(res, 400, "claim_token is required.");
+
+    const claim = await getSaleClaimByToken(token);
+    if (!claim) return jsonError(res, 404, "Claim token not found.");
+    if (claim.used_at || claim.claim_id) return jsonError(res, 409, "Sale already claimed.");
+    if (new Date(claim.expires_at).getTime() < Date.now()) return jsonError(res, 410, "Claim token expired.");
+
+    const userId = req.customerAuth.customerId;
+    const transactionResult = await withTransaction(async (client) => {
+      const claimId = createId();
+      const claimTokenId = claim.claim_token_id;
+      const saleEventId = claim.sale_event_id;
+      const saleAmount = Number(claim.paid_total || 0);
+      const promotions = await getActivePromotions();
+      const points = resolvePointsWithPromotions(saleAmount, promotions);
+      const ledgerId = createId();
+      const awardId = createId();
+
+      await client.query(
+        `UPDATE crm_sale_claim_tokens
+         SET used_at = NOW()
+         WHERE id = $1 AND used_at IS NULL`,
+        [claimTokenId]
+      );
+
+      await client.query(
+        `INSERT INTO crm_sale_claims
+           (id, sale_event_id, customer_account_id, claim_token_id, claim_channel, claimed_at)
+         VALUES ($1, $2, $3, $4, 'mobile', NOW())`,
+        [claimId, saleEventId, userId, claimTokenId]
+      );
+
+      await client.query(
+        `UPDATE crm_pos_sale_events
+         SET claim_status = 'claimed', updated_at = NOW()
+         WHERE id = $1`,
+        [saleEventId]
+      );
+
+      await client.query(
+        `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
+         VALUES ($1, $2, $3, 'purchase', $4, 'Post-sale claim', 'system', NOW())`,
+        [ledgerId, userId, points, saleEventId]
+      );
+
+      await client.query(
+        `INSERT INTO crm_loyalty_awards
+           (id, sale_event_id, customer_account_id, points_awarded, promotion_snapshot, ledger_entry_id, created_at)
+         VALUES ($1, $2, $3, $4, $5::jsonb, $6, NOW())`,
+        [awardId, saleEventId, userId, points, JSON.stringify(promotions), ledgerId]
+      );
+
+      return { claimId, points };
+    });
+
+    const tier = await recalculateTier(userId);
+    return res.status(201).json({
+      ok: true,
+      claimId: transactionResult.claimId,
+      pointsAwarded: transactionResult.points,
+      balance: await getCustomerBalance(userId),
+      tier,
+    });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to confirm claim.");
+  }
+});
+
+router.get("/claims/:id/status", requireCustomer, async (req, res) => {
+  try {
+    const row = await getClaimStatusRow(req.params.id, req.customerAuth.customerId);
+    if (!row) return jsonError(res, 404, "Claim not found.");
+    return res.json({
+      ok: true,
+      claim: {
+        id: row.claim_id,
+        status: row.reversal_id ? "reversed" : "claimed",
+        claimedAt: row.claimed_at,
+        claimChannel: row.claim_channel,
+        saleEventId: row.sale_event_id,
+        docNo: row.doc_no,
+        branchCode: row.branch_code,
+        saleAt: row.sale_at,
+        pointsAwarded: Number(row.points_awarded || 0),
+        pointsReversed: Number(row.points_reversed || 0),
+      },
+    });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to load claim status.");
+  }
+});
+
+router.get("/transactions/:id", requireCustomer, async (req, res) => {
+  try {
+    const row = await queryOne(
+      `SELECT c.id AS claim_id,
+              c.claimed_at,
+              s.id AS sale_event_id,
+              s.branch_code,
+              s.pos_code,
+              s.doc_no,
+              s.sale_at,
+              s.paid_total,
+              s.tender_rows,
+              a.points_awarded
+       FROM crm_sale_claims c
+       JOIN crm_pos_sale_events s ON s.id = c.sale_event_id
+       LEFT JOIN crm_loyalty_awards a ON a.sale_event_id = s.id
+       WHERE s.id = $1
+         AND c.customer_account_id = $2`,
+      [req.params.id, req.customerAuth.customerId]
+    );
+    if (!row) return jsonError(res, 404, "Transaction not found.");
+
+    const refunds = await pool.query(
+      `SELECT refund_doc_no, refund_at, refund_total
+       FROM crm_pos_refund_events
+       WHERE branch_code = $1 AND original_doc_no = $2
+       ORDER BY refund_at DESC`,
+      [row.branch_code, row.doc_no]
+    );
+    const lines = await pool.query(
+      `SELECT line_no, product_code, barcode, qty, unit_code, unit_name, net_amount, discount_amount, lot_no, expiry_date
+       FROM crm_pos_sale_line_events
+       WHERE sale_event_id = $1
+       ORDER BY line_no ASC`,
+      [row.sale_event_id]
+    );
+
+    return res.json({
+      ok: true,
+      transaction: {
+        saleEventId: row.sale_event_id,
+        claimId: row.claim_id,
+        claimedAt: row.claimed_at,
+        branchCode: row.branch_code,
+        posCode: row.pos_code,
+        docNo: row.doc_no,
+        saleAt: row.sale_at,
+        paidTotal: Number(row.paid_total || 0),
+        pointsAwarded: Number(row.points_awarded || 0),
+        tenderRows: row.tender_rows || [],
+        refunds: refunds.rows.map((item) => ({
+          refundDocNo: item.refund_doc_no,
+          refundAt: item.refund_at,
+          refundTotal: Number(item.refund_total || 0),
+        })),
+        lines: lines.rows.map((item) => ({
+          ...item,
+          qty: Number(item.qty || 0),
+          net_amount: Number(item.net_amount || 0),
+          discount_amount: Number(item.discount_amount || 0),
+        })),
+      },
+    });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to load transaction.");
   }
 });
 

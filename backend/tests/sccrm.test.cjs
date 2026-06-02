@@ -38,16 +38,16 @@ async function mockQuery(sql, params = []) {
     return { rows: [], rowCount: 0 };
   }
 
-  if (text.includes("SELECT id, device_id, device_name FROM staff_devices")) {
+  if (text.includes("SELECT sd.id, sd.device_id, sd.device_name, sd.branch_id")) {
     const found = state.staffDevices.find((item) => item.token_hash === params[0] && !item.revoked_at);
     return { rows: found ? [found] : [], rowCount: found ? 1 : 0 };
   }
 
-  if (text.startsWith("UPDATE staff_devices SET last_seen_at=NOW()")) {
+  if (text.startsWith("UPDATE staff_devices SET last_seen_at = NOW()")) {
     return { rows: [], rowCount: 1 };
   }
 
-  if (text.startsWith("SELECT id FROM staff_devices WHERE device_id=")) {
+  if (text.startsWith("SELECT id FROM staff_devices WHERE device_id =")) {
     const found = state.staffDevices.find((item) => item.device_id === params[0]);
     return { rows: found ? [{ id: found.id }] : [], rowCount: found ? 1 : 0 };
   }
@@ -58,18 +58,21 @@ async function mockQuery(sql, params = []) {
       device_id: params[1],
       device_name: params[2],
       token_hash: params[3],
+      branch_id: params[4] || null,
+      branch_name: null,
+      branch_code: null,
       revoked_at: null,
     });
     return { rows: [], rowCount: 1 };
   }
 
-  if (text.startsWith("UPDATE staff_devices SET device_name=")) {
+  if (text.startsWith("UPDATE staff_devices SET device_name =")) {
     const found = state.staffDevices.find((item) => item.id === params[0]);
-    Object.assign(found, { device_name: params[1], token_hash: params[2], revoked_at: null });
+    Object.assign(found, { device_name: params[1], token_hash: params[2], branch_id: params[3] || found.branch_id, revoked_at: null });
     return { rows: [], rowCount: 1 };
   }
 
-  if (text.startsWith("SELECT id FROM customers WHERE lower(email)=lower(")) {
+  if (text.startsWith("SELECT id FROM users WHERE lower(email) = lower(")) {
     const found = state.customers.find((item) => item.email?.toLowerCase() === String(params[0]).toLowerCase());
     return { rows: found ? [{ id: found.id }] : [], rowCount: found ? 1 : 0 };
   }
@@ -86,19 +89,34 @@ async function mockQuery(sql, params = []) {
     return { rows: [], rowCount: 1 };
   }
 
-  if (text.startsWith("SELECT * FROM customers WHERE id=") || text.startsWith("SELECT id FROM customers WHERE id=")) {
+  if (text.includes("FROM users u JOIN member_profiles m ON m.user_id = u.id WHERE u.id = $1")) {
     const found = state.customers.find((item) => item.id === params[0]);
-    return { rows: found ? [found] : [], rowCount: found ? 1 : 0 };
+    return {
+      rows: found
+        ? [{
+            id: found.id,
+            phone: found.phone,
+            full_name: found.full_name,
+            email: found.email,
+            created_at: found.created_at,
+            updated_at: found.updated_at,
+            tier: found.tier,
+            is_active: found.is_active,
+            member_code: found.member_code || "SCM-CUST1",
+          }]
+        : [],
+      rowCount: found ? 1 : 0,
+    };
   }
 
   if (text.startsWith("SELECT COALESCE(SUM(amount), 0) AS earned")) {
     const earned = state.pointLedger
-      .filter((item) => item.customer_id === params[0] && item.amount > 0)
+      .filter((item) => item.user_id === params[0] && item.amount > 0)
       .reduce((sum, item) => sum + item.amount, 0);
     return { rows: [{ earned }], rowCount: 1 };
   }
 
-  if (text.startsWith("UPDATE customers SET tier=")) {
+  if (text.startsWith("UPDATE member_profiles SET tier =")) {
     const customer = state.customers.find((item) => item.id === params[0]);
     customer.tier = params[1];
     return { rows: [], rowCount: 1 };
@@ -106,7 +124,7 @@ async function mockQuery(sql, params = []) {
 
   if (text.startsWith("SELECT COALESCE(SUM(amount), 0) AS balance")) {
     const balance = state.pointLedger
-      .filter((item) => item.customer_id === params[0])
+      .filter((item) => item.user_id === params[0])
       .reduce((sum, item) => sum + item.amount, 0);
     return { rows: [{ balance }], rowCount: 1 };
   }
@@ -118,12 +136,12 @@ async function mockQuery(sql, params = []) {
   if (text.startsWith("INSERT INTO transactions")) {
     state.transactions.push({
       id: params[0],
-      customer_id: params[1],
+      user_id: params[1],
       total_amount: Number(params[2]),
       point_earned: Number(params[3]),
       source: params[4] || "manual",
       pos_ref_id: params[5],
-      created_at: params[6] || new Date().toISOString(),
+      created_at: params[7] || params[6] || new Date().toISOString(),
     });
     return { rows: [], rowCount: 1 };
   }
@@ -131,48 +149,28 @@ async function mockQuery(sql, params = []) {
   if (text.startsWith("INSERT INTO point_ledger")) {
     state.pointLedger.push({
       id: params[0],
-      customer_id: params[1],
+      user_id: params[1],
       amount: Number(params[2]),
-      reference_id: params[3],
-      note: params[4],
-      created_by: params[5],
-      created_at: params[6] || new Date().toISOString(),
+      type: params[3],
+      reference_id: params[4],
+      note: params[5],
+      created_by: params[6],
+      created_at: params[7] || new Date().toISOString(),
     });
     return { rows: [], rowCount: 1 };
   }
 
-  if (text.startsWith("SELECT id FROM transactions WHERE pos_ref_id=")) {
+  if (text.startsWith("SELECT id FROM transactions WHERE pos_ref_id =")) {
     const found = state.transactions.find((item) => item.pos_ref_id === params[0]);
     return { rows: found ? [{ id: found.id }] : [], rowCount: found ? 1 : 0 };
   }
 
-  if (text.startsWith("SELECT id FROM customers WHERE phone=")) {
+  if (text.startsWith("SELECT id FROM users WHERE phone_number =")) {
     const found = state.customers.find((item) => item.phone === params[0]);
     return { rows: found ? [{ id: found.id }] : [], rowCount: found ? 1 : 0 };
   }
 
-  if (text.startsWith("SELECT id, phone, full_name, email, tier, is_active")) {
-    const found = state.customers.find((item) => item.phone === params[0]);
-    return {
-      rows: found
-        ? [
-            {
-              id: found.id,
-              phone: found.phone,
-              full_name: found.full_name,
-              email: found.email,
-              tier: found.tier,
-              is_active: found.is_active,
-              created_at: found.created_at,
-              updated_at: found.updated_at,
-            },
-          ]
-        : [],
-      rowCount: found ? 1 : 0,
-    };
-  }
-
-  throw new Error(`Unhandled SQL in test: ${text}`);
+  return { rows: [], rowCount: 0 };
 }
 
 jest.mock("../db", () => ({
