@@ -36,6 +36,11 @@ async function queryOne(sql, params) {
   return result.rows[0] || null;
 }
 
+async function queryOneOn(executor, sql, params) {
+  const result = await executor.query(sql, params);
+  return result.rows[0] || null;
+}
+
 async function withTransaction(work) {
   const client = await pool.connect();
   try {
@@ -135,7 +140,8 @@ async function upsertSaleEvent(client, sale) {
 }
 
 async function maybeCreateReversal(client, refundEventId) {
-  const refund = await queryOne(
+  const refund = await queryOneOn(
+    client,
     `SELECT r.id, r.refund_total, r.branch_code, r.original_doc_no,
             s.id AS sale_event_id, a.id AS award_id, a.customer_account_id, a.points_awarded
      FROM crm_pos_refund_events r
@@ -148,13 +154,15 @@ async function maybeCreateReversal(client, refundEventId) {
   );
   if (!refund) return null;
 
-  const existing = await queryOne(
+  const existing = await queryOneOn(
+    client,
     `SELECT id FROM crm_loyalty_reversals WHERE refund_event_id = $1`,
     [refundEventId]
   );
   if (existing) return existing.id;
 
-  const sale = await queryOne(
+  const sale = await queryOneOn(
+    client,
     `SELECT paid_total FROM crm_pos_sale_events WHERE id = $1`,
     [refund.sale_event_id]
   );
