@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS loyalty_claims (
   total_amount       NUMERIC(14, 2) NOT NULL,
   preview_points     INTEGER,
   awarded_points     INTEGER NOT NULL DEFAULT 0,
-  user_id            TEXT NOT NULL REFERENCES users(id),
+  user_id            UUID NOT NULL REFERENCES users(id),
   created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT loyalty_claims_branch_receipt_unique UNIQUE (branch_code, receipt_no)
 );

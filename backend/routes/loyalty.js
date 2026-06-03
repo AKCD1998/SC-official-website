@@ -60,7 +60,7 @@ router.get("/search", requireStaff, async (req, res) => {
               COALESCE((
                 SELECT SUM(pl.amount)
                 FROM   point_ledger pl
-                WHERE  pl.user_id = u.id
+                WHERE  pl.user_id = u.id::uuid
               ), 0) AS current_points
        FROM   users u
        JOIN   member_profiles m ON m.user_id = u.id AND m.is_active = TRUE
@@ -134,10 +134,10 @@ router.post("/claims", requireStaff, async (req, res) => {
       const memberRow = await client.query(
         `SELECT u.id, u.full_name,
                 m.member_code,
-                COALESCE((SELECT SUM(pl.amount) FROM point_ledger pl WHERE pl.user_id = u.id), 0) AS current_points
+                COALESCE((SELECT SUM(pl.amount) FROM point_ledger pl WHERE pl.user_id = u.id::uuid), 0) AS current_points
          FROM   users u
          JOIN   member_profiles m ON m.user_id = u.id AND m.is_active = TRUE
-         WHERE  u.id = $1`,
+         WHERE  u.id = $1::uuid`,
         [memberId],
       );
       if (!memberRow.rowCount) {
@@ -180,7 +180,7 @@ router.post("/claims", requireStaff, async (req, res) => {
       if (awardedPoints > 0) {
         await client.query(
           `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
-           VALUES ($1, $2, $3, 'earn', $4, $5, 'cashier', NOW())`,
+           VALUES ($1, $2::uuid, $3, 'earn', $4, $5, 'cashier', NOW())`,
           [createId(), memberId, awardedPoints, claimId, `Earned from receipt ${receiptNo}`],
         );
       }
