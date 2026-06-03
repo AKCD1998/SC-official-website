@@ -4,6 +4,7 @@ const { createId, hashOpaqueToken, requireEnv } = require("../lib/sccrm");
 const {
   buildSaleEventRecord,
   buildRefundEventRecord,
+  buildLiveSaleEventRecord,
   buildSourceEventKey,
   claimTokenExpiryDate,
   createClaimToken,
@@ -295,6 +296,37 @@ router.post("/crm/pos/refunds", async (req, res) => {
     return res.json({ ok: true, accepted: records.length });
   } catch (error) {
     return jsonError(res, 500, error.message || "Failed to mirror refund events.");
+  }
+});
+
+router.post("/crm/pos/sale-event", async (req, res) => {
+  try {
+    const branchCode = normalizeText(req.body?.branch_code).toUpperCase();
+    const docNo = normalizeText(req.body?.doc_no).toUpperCase();
+    if (!branchCode || !docNo) {
+      return jsonError(res, 400, "branch_code and doc_no are required.");
+    }
+    if (typeof req.body?.grand_total !== "number") {
+      return jsonError(res, 400, "grand_total must be a number.");
+    }
+    if (!Array.isArray(req.body?.items) || req.body.items.length === 0) {
+      return jsonError(res, 400, "items must be a non-empty array.");
+    }
+
+    const sale = buildLiveSaleEventRecord(req.body);
+
+    await withTransaction(async (client) => {
+      await upsertSaleEvent(client, sale);
+    });
+
+    return res.json({
+      ok: true,
+      branch_code: branchCode,
+      doc_no: docNo,
+      source_event_key: sale.source_event_key,
+    });
+  } catch (error) {
+    return jsonError(res, 500, error.message || "Failed to register sale event.");
   }
 });
 

@@ -125,11 +125,60 @@ function buildRefundEventRecord(record) {
   };
 }
 
+function buildLiveSaleEventRecord(payload) {
+  const branchCode = normalizeText(payload.branch_code).toUpperCase();
+  const docNo = normalizeText(payload.doc_no).toUpperCase();
+  const grandTotal = toNumber(payload.grand_total, 0);
+
+  const tenderRows = [];
+  if (payload.tender_code) {
+    tenderRows.push({
+      tender_code: normalizeText(payload.tender_code),
+      tender_ref: toNullableText(payload.tender_ref),
+    });
+  }
+
+  const lineRows = (Array.isArray(payload.items) ? payload.items : []).map((item, index) => ({
+    line_no: index + 1,
+    product_code: toNullableText(item.product_code),
+    barcode: null,
+    qty: toNumber(item.qty, 0),
+    unit_code: null,
+    unit_name: null,
+    net_amount: toNumber(item.net_amt ?? item.net_amount, 0),
+    discount_amount: 0,
+    lot_no: null,
+    expiry_date: null,
+    raw_payload: item,
+  }));
+
+  return {
+    id: createId(),
+    branch_code: branchCode,
+    pos_code: toNullableText(payload.pos_code),
+    doc_no: docNo,
+    doc_type: "1",
+    sale_at: toNullableText(payload.inserted_at) || new Date().toISOString(),
+    cashier_code: null,
+    gross_total: grandTotal,
+    net_total: grandTotal,
+    paid_total: grandTotal,
+    ada_customer_code: null,
+    source_system: "SCCRMonPOS",
+    source_event_key: buildSourceEventKey("sale", branchCode, docNo),
+    source_synced_at: new Date().toISOString(),
+    tender_rows: tenderRows,
+    raw_payload: payload,
+    line_rows: lineRows,
+  };
+}
+
 module.exports = {
   CLAIM_TOKEN_TTL_SECONDS,
   buildSourceEventKey,
   buildSaleEventRecord,
   buildRefundEventRecord,
+  buildLiveSaleEventRecord,
   claimTokenExpiryDate,
   createClaimToken,
   hashClaimToken,
