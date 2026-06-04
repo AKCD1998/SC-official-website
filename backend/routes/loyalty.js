@@ -10,7 +10,7 @@ async function requireStaff(req, res, next) {
     try {
           const token = parseBearerToken(req.headers.authorization);
           if (!token) return res.status(401).json({ error: "Missing token." });
-          const tokenHash = hashOpaqueToken(token);
+          const tokenHash = hashOpaqueToken(token);h
           const { rows } = await pool.query(
                   `SELECT sd.id, sd.device_id, sd.device_name, sd.branch_id,
                                 b.name AS branch_name, b.code AS branch_code
@@ -198,7 +198,7 @@ router.put("/:id", requirePosApiKey, async (req, res) => {
           if (email !== undefined) { setClauses.push(`email = $${idx++}`);         params.push(email); }
 
       if (setClauses.length > 0) {
-              setClauses.push(`updated_at = NOW()`);
+              
               params.push(memberId);
               await pool.query(
                         `UPDATE users SET ${setClauses.join(", ")} WHERE id = $${idx}::uuid`,
