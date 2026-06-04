@@ -10,7 +10,7 @@ async function requireStaff(req, res, next) {
     try {
           const token = parseBearerToken(req.headers.authorization);
           if (!token) return res.status(401).json({ error: "Missing token." });
-          const tokenHash = hashOpaqueToken(token);h
+          const tokenHash = hashOpaqueToken(token);
           const { rows } = await pool.query(
                   `SELECT sd.id, sd.device_id, sd.device_name, sd.branch_id,
                                 b.name AS branch_name, b.code AS branch_code
