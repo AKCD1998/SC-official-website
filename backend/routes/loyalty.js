@@ -332,7 +332,7 @@ router.post("/claims", requireStaff, async (req, res) => {
               if (awardedPoints > 0) {
                         await client.query(
                                     `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
-                                               VALUES ($1, $2::uuid, $3, 'earn', $4, $5, 'cashier', NOW())`,
+                                               VALUES ($1, $2::uuid, $3, 'purchase', $4, $5, 'cashier', NOW())`,
                                     [createId(), memberId, awardedPoints, claimId, `Earned from receipt ${receiptNo}`],
                                   );
               }
