@@ -77,7 +77,351 @@ function normalizeMemberDob(value) {
     return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
 }
 
-function mapMemberRow(row) {
+function normalizeNullableText(value) {
+    const raw = String(value || "").trim();
+    return raw || null;
+}
+
+function normalizeUppercaseText(value) {
+    const raw = normalizeNullableText(value);
+    return raw ? raw.toUpperCase() : null;
+}
+
+function parseOptionalDecimal(value, fieldName) {
+    if (value === undefined || value === null || value === "") return null;
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) throw new Error(`${fieldName} must be a valid number.`);
+    return parsed;
+}
+
+function parseOptionalInteger(value, fieldName) {
+    if (value === undefined || value === null || value === "") return null;
+    const parsed = Number(value);
+    if (!Number.isInteger(parsed)) throw new Error(`${fieldName} must be an integer.`);
+    return parsed;
+}
+
+function parseBooleanFlag(value) {
+    if (value === undefined || value === null || value === "") return false;
+    if (typeof value === "boolean") return value;
+    const raw = String(value).trim().toLowerCase();
+    if (["true", "1", "yes", "y"].includes(raw)) return true;
+    if (["false", "0", "no", "n"].includes(raw)) return false;
+    return Boolean(value);
+}
+
+function getNestedValue(source, camelKey, snakeKey) {
+    if (!source || typeof source !== "object") return undefined;
+    if (Object.prototype.hasOwnProperty.call(source, camelKey)) return source[camelKey];
+    if (snakeKey && Object.prototype.hasOwnProperty.call(source, snakeKey)) return source[snakeKey];
+    return undefined;
+}
+
+function normalizePidDocumentType(value) {
+    const raw = normalizeNullableText(value);
+    if (!raw) return null;
+
+    const upper = raw.toUpperCase();
+    const aliases = {
+        THAI_ID: "THAI_ID",
+        "สัญชาติไทย": "THAI_ID",
+        ALIEN_ID: "ALIEN_ID",
+        "ไม่มีสัญชาติไทย": "ALIEN_ID",
+        PASSPORT: "PASSPORT",
+        "พาสปอร์ต": "PASSPORT",
+        OTHER: "OTHER",
+        "อื่น ๆ": "OTHER",
+        "อื่นๆ": "OTHER",
+    };
+
+    return aliases[upper] || aliases[raw] || null;
+}
+
+function isValidThaiNationalId(value) {
+    if (!/^\d{13}$/.test(value)) return false;
+    let sum = 0;
+    for (let i = 0; i < 12; i += 1) {
+        sum += Number(value[i]) * (13 - i);
+    }
+    return ((11 - (sum % 11)) % 10) === Number(value[12]);
+}
+
+function normalizePidDocument(documentType, rawValue) {
+    const raw = rawValue == null ? null : String(rawValue);
+    if (!documentType && !normalizeNullableText(raw)) {
+        return { documentType: null, rawValue: null, normalizedValue: null };
+    }
+
+    if (!documentType) {
+        throw new Error("pharmacy_med_record.pidDocumentType is required when pid document data is provided.");
+    }
+
+    const trimmedRaw = raw == null ? null : raw.trim();
+    if (!trimmedRaw) {
+        return { documentType, rawValue: null, normalizedValue: null };
+    }
+
+    if (documentType === "THAI_ID" || documentType === "ALIEN_ID") {
+        const normalized = trimmedRaw.replace(/\s+/g, "");
+        if (!/^\d{13}$/.test(normalized)) {
+            throw new Error(`pharmacy_med_record.${documentType === "THAI_ID" ? "pidDocumentNumberRaw" : "pidDocumentNumberRaw"} must contain exactly 13 digits.`);
+        }
+        if (documentType === "THAI_ID" && !isValidThaiNationalId(normalized)) {
+            throw new Error("pharmacy_med_record.pidDocumentNumberRaw failed Thai national ID checksum validation.");
+        }
+        return { documentType, rawValue: trimmedRaw, normalizedValue: normalized };
+    }
+
+    if (documentType === "PASSPORT") {
+        const normalized = trimmedRaw.replace(/\s+/g, "").toUpperCase();
+        if (!/^[A-Z0-9]+$/.test(normalized)) {
+            throw new Error("pharmacy_med_record.pidDocumentNumberRaw must contain uppercase letters and numbers only for PASSPORT.");
+        }
+        return { documentType, rawValue: trimmedRaw, normalizedValue: normalized };
+    }
+
+    if (documentType === "OTHER") {
+        return { documentType, rawValue: trimmedRaw, normalizedValue: trimmedRaw };
+    }
+
+    throw new Error("pharmacy_med_record.pidDocumentType is invalid.");
+}
+
+function normalizePharmacyMedRecord(input) {
+    if (input === undefined) return undefined;
+    if (input === null) {
+        return {
+            pidDocumentType: null,
+            pidDocumentNumberRaw: null,
+            pidDocumentNumberNormalized: null,
+            weightKg: null,
+            heightCm: null,
+            bpSystolic: null,
+            bpDiastolic: null,
+            bloodType: null,
+            bloodRh: null,
+            hasDiabetes: false,
+            hasHypertension: false,
+            hasHyperlipidemia: false,
+            hasHeartDisease: false,
+            hasKidneyDisease: false,
+            hasLiverDisease: false,
+            hasThyroidDisease: false,
+            otherConditions: null,
+            drugAllergies: null,
+            foodAllergies: null,
+            currentMedications: null,
+            medicalHistory: null,
+            isSmoker: false,
+            drinksAlcohol: false,
+            isPregnant: false,
+            isBreastfeeding: false,
+        };
+    }
+
+    if (typeof input !== "object" || Array.isArray(input)) {
+        throw new Error("pharmacy_med_record must be an object.");
+    }
+
+    const documentType = normalizePidDocumentType(
+        getNestedValue(input, "pidDocumentType", "pid_document_type"),
+    );
+    const documentRaw = getNestedValue(input, "pidDocumentNumberRaw", "pid_document_number_raw");
+    const normalizedDocument = normalizePidDocument(documentType, documentRaw);
+
+    return {
+        pidDocumentType: normalizedDocument.documentType,
+        pidDocumentNumberRaw: normalizedDocument.rawValue,
+        pidDocumentNumberNormalized: normalizedDocument.normalizedValue,
+        weightKg: parseOptionalDecimal(getNestedValue(input, "weightKg", "weight_kg"), "pharmacy_med_record.weightKg"),
+        heightCm: parseOptionalDecimal(getNestedValue(input, "heightCm", "height_cm"), "pharmacy_med_record.heightCm"),
+        bpSystolic: parseOptionalInteger(getNestedValue(input, "bpSystolic", "bp_systolic"), "pharmacy_med_record.bpSystolic"),
+        bpDiastolic: parseOptionalInteger(getNestedValue(input, "bpDiastolic", "bp_diastolic"), "pharmacy_med_record.bpDiastolic"),
+        bloodType: normalizeUppercaseText(getNestedValue(input, "bloodType", "blood_type")),
+        bloodRh: normalizeNullableText(getNestedValue(input, "bloodRh", "blood_rh")),
+        hasDiabetes: parseBooleanFlag(getNestedValue(input, "hasDiabetes", "has_diabetes")),
+        hasHypertension: parseBooleanFlag(getNestedValue(input, "hasHypertension", "has_hypertension")),
+        hasHyperlipidemia: parseBooleanFlag(getNestedValue(input, "hasHyperlipidemia", "has_hyperlipidemia")),
+        hasHeartDisease: parseBooleanFlag(getNestedValue(input, "hasHeartDisease", "has_heart_disease")),
+        hasKidneyDisease: parseBooleanFlag(getNestedValue(input, "hasKidneyDisease", "has_kidney_disease")),
+        hasLiverDisease: parseBooleanFlag(getNestedValue(input, "hasLiverDisease", "has_liver_disease")),
+        hasThyroidDisease: parseBooleanFlag(getNestedValue(input, "hasThyroidDisease", "has_thyroid_disease")),
+        otherConditions: normalizeNullableText(getNestedValue(input, "otherConditions", "other_conditions")),
+        drugAllergies: normalizeNullableText(getNestedValue(input, "drugAllergies", "drug_allergies")),
+        foodAllergies: normalizeNullableText(getNestedValue(input, "foodAllergies", "food_allergies")),
+        currentMedications: normalizeNullableText(getNestedValue(input, "currentMedications", "current_medications")),
+        medicalHistory: normalizeNullableText(getNestedValue(input, "medicalHistory", "medical_history")),
+        isSmoker: parseBooleanFlag(getNestedValue(input, "isSmoker", "is_smoker")),
+        drinksAlcohol: parseBooleanFlag(getNestedValue(input, "drinksAlcohol", "drinks_alcohol")),
+        isPregnant: parseBooleanFlag(getNestedValue(input, "isPregnant", "is_pregnant")),
+        isBreastfeeding: parseBooleanFlag(getNestedValue(input, "isBreastfeeding", "is_breastfeeding")),
+    };
+}
+
+function mapPharmacyMedRecordRow(row) {
+    if (!row) return null;
+    return {
+        pidDocumentType: row.pid_document_type || null,
+        pidDocumentNumberRaw: row.pid_document_number_raw || null,
+        pidDocumentNumberNormalized: row.pid_document_number_normalized || null,
+        weightKg: row.weight_kg != null ? Number(row.weight_kg) : null,
+        heightCm: row.height_cm != null ? Number(row.height_cm) : null,
+        bpSystolic: row.bp_systolic != null ? Number(row.bp_systolic) : null,
+        bpDiastolic: row.bp_diastolic != null ? Number(row.bp_diastolic) : null,
+        bloodType: row.blood_type || null,
+        bloodRh: row.blood_rh || null,
+        hasDiabetes: Boolean(row.has_diabetes),
+        hasHypertension: Boolean(row.has_hypertension),
+        hasHyperlipidemia: Boolean(row.has_hyperlipidemia),
+        hasHeartDisease: Boolean(row.has_heart_disease),
+        hasKidneyDisease: Boolean(row.has_kidney_disease),
+        hasLiverDisease: Boolean(row.has_liver_disease),
+        hasThyroidDisease: Boolean(row.has_thyroid_disease),
+        otherConditions: row.other_conditions || null,
+        drugAllergies: row.drug_allergies || null,
+        foodAllergies: row.food_allergies || null,
+        currentMedications: row.current_medications || null,
+        medicalHistory: row.medical_history || null,
+        isSmoker: Boolean(row.is_smoker),
+        drinksAlcohol: Boolean(row.drinks_alcohol),
+        isPregnant: Boolean(row.is_pregnant),
+        isBreastfeeding: Boolean(row.is_breastfeeding),
+    };
+}
+
+async function getPharmacyMedRecord(memberId) {
+    return queryOne(
+        `SELECT member_id,
+                pid_document_type,
+                pid_document_number_raw,
+                pid_document_number_normalized,
+                weight_kg,
+                height_cm,
+                bp_systolic,
+                bp_diastolic,
+                blood_type,
+                blood_rh,
+                has_diabetes,
+                has_hypertension,
+                has_hyperlipidemia,
+                has_heart_disease,
+                has_kidney_disease,
+                has_liver_disease,
+                has_thyroid_disease,
+                other_conditions,
+                drug_allergies,
+                food_allergies,
+                current_medications,
+                medical_history,
+                is_smoker,
+                drinks_alcohol,
+                is_pregnant,
+                is_breastfeeding,
+                created_at,
+                updated_at
+           FROM member_pharmacy_med_records
+          WHERE member_id = $1`,
+        [String(memberId)],
+    );
+}
+
+async function upsertPharmacyMedRecord(client, memberId, normalizedRecord) {
+    if (normalizedRecord === undefined) return;
+
+    await client.query(
+        `INSERT INTO member_pharmacy_med_records (
+              member_id,
+              pid_document_type,
+              pid_document_number_raw,
+              pid_document_number_normalized,
+              weight_kg,
+              height_cm,
+              bp_systolic,
+              bp_diastolic,
+              blood_type,
+              blood_rh,
+              has_diabetes,
+              has_hypertension,
+              has_hyperlipidemia,
+              has_heart_disease,
+              has_kidney_disease,
+              has_liver_disease,
+              has_thyroid_disease,
+              other_conditions,
+              drug_allergies,
+              food_allergies,
+              current_medications,
+              medical_history,
+              is_smoker,
+              drinks_alcohol,
+              is_pregnant,
+              is_breastfeeding,
+              created_at,
+              updated_at
+          ) VALUES (
+              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+              $11, $12, $13, $14, $15, $16, $17, $18, $19, $20,
+              $21, $22, $23, $24, $25, $26, NOW(), NOW()
+          )
+          ON CONFLICT (member_id) DO UPDATE SET
+              pid_document_type = EXCLUDED.pid_document_type,
+              pid_document_number_raw = EXCLUDED.pid_document_number_raw,
+              pid_document_number_normalized = EXCLUDED.pid_document_number_normalized,
+              weight_kg = EXCLUDED.weight_kg,
+              height_cm = EXCLUDED.height_cm,
+              bp_systolic = EXCLUDED.bp_systolic,
+              bp_diastolic = EXCLUDED.bp_diastolic,
+              blood_type = EXCLUDED.blood_type,
+              blood_rh = EXCLUDED.blood_rh,
+              has_diabetes = EXCLUDED.has_diabetes,
+              has_hypertension = EXCLUDED.has_hypertension,
+              has_hyperlipidemia = EXCLUDED.has_hyperlipidemia,
+              has_heart_disease = EXCLUDED.has_heart_disease,
+              has_kidney_disease = EXCLUDED.has_kidney_disease,
+              has_liver_disease = EXCLUDED.has_liver_disease,
+              has_thyroid_disease = EXCLUDED.has_thyroid_disease,
+              other_conditions = EXCLUDED.other_conditions,
+              drug_allergies = EXCLUDED.drug_allergies,
+              food_allergies = EXCLUDED.food_allergies,
+              current_medications = EXCLUDED.current_medications,
+              medical_history = EXCLUDED.medical_history,
+              is_smoker = EXCLUDED.is_smoker,
+              drinks_alcohol = EXCLUDED.drinks_alcohol,
+              is_pregnant = EXCLUDED.is_pregnant,
+              is_breastfeeding = EXCLUDED.is_breastfeeding,
+              updated_at = NOW()`,
+        [
+            String(memberId),
+            normalizedRecord.pidDocumentType,
+            normalizedRecord.pidDocumentNumberRaw,
+            normalizedRecord.pidDocumentNumberNormalized,
+            normalizedRecord.weightKg,
+            normalizedRecord.heightCm,
+            normalizedRecord.bpSystolic,
+            normalizedRecord.bpDiastolic,
+            normalizedRecord.bloodType,
+            normalizedRecord.bloodRh,
+            normalizedRecord.hasDiabetes,
+            normalizedRecord.hasHypertension,
+            normalizedRecord.hasHyperlipidemia,
+            normalizedRecord.hasHeartDisease,
+            normalizedRecord.hasKidneyDisease,
+            normalizedRecord.hasLiverDisease,
+            normalizedRecord.hasThyroidDisease,
+            normalizedRecord.otherConditions,
+            normalizedRecord.drugAllergies,
+            normalizedRecord.foodAllergies,
+            normalizedRecord.currentMedications,
+            normalizedRecord.medicalHistory,
+            normalizedRecord.isSmoker,
+            normalizedRecord.drinksAlcohol,
+            normalizedRecord.isPregnant,
+            normalizedRecord.isBreastfeeding,
+        ],
+    );
+}
+
+function buildMemberResponse(row, pharmacyMedRecordRow) {
     return {
         id: row.id,
         name: row.full_name || "",
@@ -93,6 +437,7 @@ function mapMemberRow(row) {
         currentPoints: Number(row.current_points || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at,
+        pharmacy_med_record: mapPharmacyMedRecordRow(pharmacyMedRecordRow),
     };
 }
 
@@ -184,7 +529,8 @@ router.get("/:id", requirePosApiKey, async (req, res) => {
 
       if (!row) return res.status(404).json({ error: "Member not found." });
 
-      return res.json(mapMemberRow(row));
+      const pharmacyMedRecordRow = await getPharmacyMedRecord(memberId);
+      return res.json(buildMemberResponse(row, pharmacyMedRecordRow));
     } catch (error) {
           return res.status(500).json({ error: error.message || "Failed to fetch member." });
     }
@@ -198,6 +544,7 @@ router.get("/:id", requirePosApiKey, async (req, res) => {
 router.put("/:id", requirePosApiKey, async (req, res) => {
     try {
           const memberId = req.params.id;
+          const pharmacyMedRecord = normalizePharmacyMedRecord(req.body.pharmacy_med_record);
 
       // Check member exists
       const existing = await queryOne(
@@ -226,12 +573,27 @@ router.put("/:id", requirePosApiKey, async (req, res) => {
           if (remark !== undefined) { setClauses.push(`remark = $${idx++}`);       params.push(remark); }
 
       if (setClauses.length > 0) {
-              
               params.push(memberId);
-              await pool.query(
-                        `UPDATE users SET ${setClauses.join(", ")} WHERE id = $${idx}::uuid`,
-                        params,
-                      );
+      }
+
+      const client = await pool.connect();
+      try {
+              await client.query("BEGIN");
+
+              if (setClauses.length > 0) {
+                        await client.query(
+                                    `UPDATE users SET ${setClauses.join(", ")} WHERE id = $${idx}::uuid`,
+                                    params,
+                                  );
+              }
+
+              await upsertPharmacyMedRecord(client, memberId, pharmacyMedRecord);
+              await client.query("COMMIT");
+      } catch (error) {
+              await client.query("ROLLBACK");
+              throw error;
+      } finally {
+              client.release();
       }
 
       // Fetch and return the updated record
@@ -259,12 +621,14 @@ router.put("/:id", requirePosApiKey, async (req, res) => {
               [memberId],
             );
 
+      const pharmacyMedRecordRow = await getPharmacyMedRecord(memberId);
       return res.json({
               ok: true,
-              ...mapMemberRow(row),
+              ...buildMemberResponse(row, pharmacyMedRecordRow),
       });
     } catch (error) {
-          return res.status(500).json({ error: error.message || "Failed to update member." });
+          const status = /pharmacy_med_record/.test(error.message || "") ? 400 : 500;
+          return res.status(status).json({ error: error.message || "Failed to update member." });
     }
 });
 
@@ -397,6 +761,7 @@ router.post("/", requireStaff, async (req, res) => {
     const sex        = normalizeMemberSex(req.body?.sex);
     const dob        = normalizeMemberDob(req.body?.dob);
     const remark     = String(req.body?.remark || "").trim() || null;
+    const pharmacyMedRecord = normalizePharmacyMedRecord(req.body?.pharmacy_med_record);
 
     if (!fullName) return res.status(400).json({ message: "fullName is required." });
     if (!phone)    return res.status(400).json({ message: "phone is required." });
@@ -422,6 +787,8 @@ router.post("/", requireStaff, async (req, res) => {
         [createId(), userId, memberCode],
       );
 
+      await upsertPharmacyMedRecord(client, userId, pharmacyMedRecord);
+
       await client.query("COMMIT");
 
       return res.status(201).json({
@@ -436,6 +803,7 @@ router.post("/", requireStaff, async (req, res) => {
         remark,
         memberCode,
         currentPoints: 0,
+        pharmacy_med_record: pharmacyMedRecord === undefined ? null : pharmacyMedRecord,
       });
     } catch (error) {
       await client.query("ROLLBACK");
@@ -444,7 +812,8 @@ router.post("/", requireStaff, async (req, res) => {
       client.release();
     }
   } catch (error) {
-    return res.status(500).json({ error: error.message || "Failed to create member." });
+    const status = /pharmacy_med_record/.test(error.message || "") ? 400 : 500;
+    return res.status(status).json({ error: error.message || "Failed to create member." });
   }
 });
 

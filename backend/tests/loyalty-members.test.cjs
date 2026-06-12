@@ -23,6 +23,36 @@ function resetState() {
       updated_at: "2026-06-01T00:00:00.000Z",
     },
   ];
+  state.medRecords = {
+    "11111111-1111-1111-1111-111111111111": {
+      member_id: "11111111-1111-1111-1111-111111111111",
+      pid_document_type: "THAI_ID",
+      pid_document_number_raw: "1101700203450",
+      pid_document_number_normalized: "1101700203450",
+      weight_kg: 55.5,
+      height_cm: 163,
+      bp_systolic: 120,
+      bp_diastolic: 80,
+      blood_type: "A",
+      blood_rh: "+",
+      has_diabetes: false,
+      has_hypertension: true,
+      has_hyperlipidemia: false,
+      has_heart_disease: false,
+      has_kidney_disease: false,
+      has_liver_disease: false,
+      has_thyroid_disease: false,
+      other_conditions: "seasonal migraine",
+      drug_allergies: "penicillin",
+      food_allergies: "shrimp",
+      current_medications: "vitamin c",
+      medical_history: "none",
+      is_smoker: false,
+      drinks_alcohol: true,
+      is_pregnant: false,
+      is_breastfeeding: false,
+    },
+  };
   state.staffDevices = [
     {
       id: "staff-device-1",
@@ -94,6 +124,38 @@ async function mockQuery(sql, params = []) {
     return { rows: [], rowCount: 1 };
   }
 
+  if (text.startsWith("INSERT INTO member_pharmacy_med_records")) {
+    state.medRecords[String(params[0])] = {
+      member_id: String(params[0]),
+      pid_document_type: params[1],
+      pid_document_number_raw: params[2],
+      pid_document_number_normalized: params[3],
+      weight_kg: params[4],
+      height_cm: params[5],
+      bp_systolic: params[6],
+      bp_diastolic: params[7],
+      blood_type: params[8],
+      blood_rh: params[9],
+      has_diabetes: params[10],
+      has_hypertension: params[11],
+      has_hyperlipidemia: params[12],
+      has_heart_disease: params[13],
+      has_kidney_disease: params[14],
+      has_liver_disease: params[15],
+      has_thyroid_disease: params[16],
+      other_conditions: params[17],
+      drug_allergies: params[18],
+      food_allergies: params[19],
+      current_medications: params[20],
+      medical_history: params[21],
+      is_smoker: params[22],
+      drinks_alcohol: params[23],
+      is_pregnant: params[24],
+      is_breastfeeding: params[25],
+    };
+    return { rows: [], rowCount: 1 };
+  }
+
   if (text.startsWith("SELECT u.id FROM users u JOIN member_profiles m ON m.user_id = u.id WHERE u.id = $1::uuid")) {
     const found = state.members.find((item) => item.id === params[0] && item.member_code);
     return { rows: found ? [{ id: found.id }] : [], rowCount: found ? 1 : 0 };
@@ -144,6 +206,11 @@ async function mockQuery(sql, params = []) {
         : [],
       rowCount: found ? 1 : 0,
     };
+  }
+
+  if (text.startsWith("SELECT member_id, pid_document_type, pid_document_number_raw")) {
+    const found = state.medRecords[String(params[0])];
+    return { rows: found ? [found] : [], rowCount: found ? 1 : 0 };
   }
 
   return { rows: [], rowCount: 0 };
@@ -199,6 +266,12 @@ describe("loyalty member demographics", () => {
     expect(response.body.sex).toBe("female");
     expect(response.body.dob).toBe("1990-04-12");
     expect(response.body.remark).toBe("existing member");
+    expect(response.body.pharmacy_med_record).toEqual(expect.objectContaining({
+      pidDocumentType: "THAI_ID",
+      weightKg: 55.5,
+      hasHypertension: true,
+      drinksAlcohol: true,
+    }));
   });
 
   test("PUT /api/members/:id persists normalized sex and dob", async () => {
@@ -210,6 +283,12 @@ describe("loyalty member demographics", () => {
         sex: "2",
         dob: "1991-05-20",
         remark: "updated from POS",
+        pharmacy_med_record: {
+          pidDocumentType: "PASSPORT",
+          pidDocumentNumberRaw: " ab 12345 ",
+          weightKg: 62.25,
+          hasDiabetes: true,
+        },
       });
 
     expect(response.status).toBe(200);
@@ -217,6 +296,13 @@ describe("loyalty member demographics", () => {
     expect(response.body.sex).toBe("female");
     expect(response.body.dob).toBe("1991-05-20");
     expect(response.body.remark).toBe("updated from POS");
+    expect(response.body.pharmacy_med_record).toEqual(expect.objectContaining({
+      pidDocumentType: "PASSPORT",
+      pidDocumentNumberRaw: "ab 12345",
+      pidDocumentNumberNormalized: "AB12345",
+      hasDiabetes: true,
+      weightKg: 62.25,
+    }));
   });
 
   test("POST /api/members stores demographics from WinForms payload", async () => {
@@ -230,6 +316,15 @@ describe("loyalty member demographics", () => {
         sex: "male",
         dob: "1988-09-15",
         remark: "created in POS",
+        pharmacy_med_record: {
+          pidDocumentType: "THAI_ID",
+          pidDocumentNumberRaw: "1101700203450",
+          weightKg: 70,
+          heightCm: 175,
+          hasDiabetes: false,
+          hasHypertension: false,
+          isSmoker: false,
+        },
       });
 
     expect(response.status).toBe(201);
@@ -237,5 +332,27 @@ describe("loyalty member demographics", () => {
     expect(response.body.sex).toBe("male");
     expect(response.body.dob).toBe("1988-09-15");
     expect(response.body.remark).toBe("created in POS");
+    expect(response.body.pharmacy_med_record).toEqual(expect.objectContaining({
+      pidDocumentType: "THAI_ID",
+      pidDocumentNumberNormalized: "1101700203450",
+      weightKg: 70,
+      heightCm: 175,
+    }));
+  });
+
+  test("PUT /api/members/:id keeps existing medical record when pharmacy_med_record is omitted", async () => {
+    const response = await request(createApp())
+      .put("/api/members/11111111-1111-1111-1111-111111111111")
+      .set("x-pos-api-key", "pos-key")
+      .send({
+        remark: "no medical overwrite",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.pharmacy_med_record).toEqual(expect.objectContaining({
+      pidDocumentType: "THAI_ID",
+      pidDocumentNumberNormalized: "1101700203450",
+      otherConditions: "seasonal migraine",
+    }));
   });
 });
