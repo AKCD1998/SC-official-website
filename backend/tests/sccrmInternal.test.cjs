@@ -189,7 +189,20 @@ describe("SCCRM internal routes", () => {
       });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ ok: true, accepted: 1 });
+    expect(response.body).toEqual(expect.objectContaining({
+      ok: true,
+      accepted: 1,
+      results: [
+        expect.objectContaining({
+          refundDocNo: "RF-1",
+          originalDocNo: "SALE-1",
+          reversal: expect.objectContaining({
+            status: "reversed",
+            pointsReversed: 12,
+          }),
+        }),
+      ],
+    }));
     expect(state.reversals).toHaveLength(1);
     expect(state.reversals[0]).toMatchObject({
       refund_event_id: state.refunds[0].id,

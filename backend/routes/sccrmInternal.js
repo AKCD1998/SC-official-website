@@ -42,6 +42,11 @@ async function queryOneOn(executor, sql, params) {
   return result.rows[0] || null;
 }
 
+async function queryValueOn(executor, sql, params, key) {
+  const row = await queryOneOn(executor, sql, params);
+  return row ? row[key] : null;
+}
+
 async function withTransaction(work) {
   const client = await pool.connect();
   try {
@@ -140,27 +145,148 @@ async function upsertSaleEvent(client, sale) {
   return saleEventId;
 }
 
-async function maybeCreateReversal(client, refundEventId) {
+async function ensureAwardMirrorForLoyaltyClaim(client, refundEventId) {
   const refund = await queryOneOn(
     client,
-    `SELECT r.id, r.refund_total, r.branch_code, r.original_doc_no,
-            s.id AS sale_event_id, a.id AS award_id, a.customer_account_id, a.points_awarded
-     FROM crm_pos_refund_events r
-     JOIN crm_pos_sale_events s
-       ON s.branch_code = r.branch_code AND s.doc_no = r.original_doc_no
-     JOIN crm_loyalty_awards a
-       ON a.sale_event_id = s.id
-     WHERE r.id = $1`,
+    `SELECT id, branch_code, original_doc_no
+       FROM crm_pos_refund_events
+      WHERE id = $1`,
     [refundEventId]
   );
   if (!refund) return null;
 
+  const loyaltyClaim = await queryOneOn(
+    client,
+    `SELECT lc.id,
+            lc.receipt_no,
+            lc.branch_code,
+            lc.cashier_staff_code,
+            lc.sold_at,
+            lc.total_amount,
+            lc.user_id AS customer_account_id,
+            lc.awarded_points,
+            pl.id AS ledger_entry_id
+       FROM loyalty_claims lc
+       LEFT JOIN point_ledger pl
+         ON pl.reference_id = lc.id
+        AND pl.user_id = lc.user_id::uuid
+        AND pl.type = 'purchase'
+      WHERE UPPER(BTRIM(lc.branch_code)) = $1
+        AND UPPER(BTRIM(lc.receipt_no)) = $2
+      ORDER BY lc.created_at DESC
+      LIMIT 1`,
+    [refund.branch_code, refund.original_doc_no]
+  );
+  if (!loyaltyClaim || Number(loyaltyClaim.awarded_points || 0) <= 0 || !loyaltyClaim.ledger_entry_id) {
+    return null;
+  }
+
+  const sourceEventKey = buildSourceEventKey("sale", loyaltyClaim.branch_code, loyaltyClaim.receipt_no);
+  const itemRows = await client.query(
+    `SELECT product_code, product_name, qty, unit_price, line_total
+       FROM loyalty_claim_items
+      WHERE claim_id = $1
+      ORDER BY created_at ASC, id ASC`,
+    [loyaltyClaim.id]
+  );
+
+  const saleEventId = await upsertSaleEvent(client, {
+    id: createId(),
+    branch_code: normalizeText(loyaltyClaim.branch_code).toUpperCase(),
+    pos_code: null,
+    doc_no: normalizeText(loyaltyClaim.receipt_no).toUpperCase(),
+    doc_type: "1",
+    sale_at: loyaltyClaim.sold_at || new Date().toISOString(),
+    cashier_code: normalizeText(loyaltyClaim.cashier_staff_code) || null,
+    gross_total: toNumber(loyaltyClaim.total_amount, 0),
+    net_total: toNumber(loyaltyClaim.total_amount, 0),
+    paid_total: toNumber(loyaltyClaim.total_amount, 0),
+    ada_customer_code: null,
+    source_system: "SCCRMonPOS",
+    source_event_key: sourceEventKey,
+    source_synced_at: new Date().toISOString(),
+    tender_rows: [],
+    raw_payload: {
+      mirrored_from: "loyalty_claims",
+      loyalty_claim_id: loyaltyClaim.id,
+    },
+    line_rows: itemRows.rows.map((item, index) => ({
+      line_no: index + 1,
+      product_code: normalizeText(item.product_code) || null,
+      barcode: null,
+      qty: toNumber(item.qty, 0),
+      unit_code: null,
+      unit_name: null,
+      net_amount: toNumber(item.line_total, 0),
+      discount_amount: 0,
+      lot_no: null,
+      expiry_date: null,
+      raw_payload: item,
+    })),
+  });
+
+  const existingAward = await queryOneOn(
+    client,
+    `SELECT id
+       FROM crm_loyalty_awards
+      WHERE sale_event_id = $1`,
+    [saleEventId]
+  );
+  if (!existingAward) {
+    await client.query(
+      `INSERT INTO crm_loyalty_awards
+         (id, sale_event_id, customer_account_id, points_awarded, promotion_snapshot, ledger_entry_id, created_at)
+       VALUES ($1, $2, $3, $4, '[]'::jsonb, $5, NOW())`,
+      [createId(), saleEventId, loyaltyClaim.customer_account_id, Number(loyaltyClaim.awarded_points || 0), loyaltyClaim.ledger_entry_id]
+    );
+  }
+
+  return saleEventId;
+}
+
+async function maybeCreateReversal(client, refundEventId) {
   const existing = await queryOneOn(
     client,
-    `SELECT id FROM crm_loyalty_reversals WHERE refund_event_id = $1`,
+    `SELECT id, points_reversed
+       FROM crm_loyalty_reversals
+      WHERE refund_event_id = $1`,
     [refundEventId]
   );
-  if (existing) return existing.id;
+  if (existing) {
+    return {
+      status: "already_reversed",
+      reversalId: existing.id,
+      pointsReversed: Number(existing.points_reversed || 0),
+      reason: "refund already reversed",
+    };
+  }
+
+  const loadRefundContext = async () => queryOneOn(
+    client,
+    `SELECT r.id, r.refund_total, r.branch_code, r.original_doc_no, r.refund_doc_no,
+            s.id AS sale_event_id, s.paid_total,
+            a.id AS award_id, a.customer_account_id, a.points_awarded
+       FROM crm_pos_refund_events r
+       JOIN crm_pos_sale_events s
+         ON s.branch_code = r.branch_code AND s.doc_no = r.original_doc_no
+       JOIN crm_loyalty_awards a
+         ON a.sale_event_id = s.id
+      WHERE r.id = $1`,
+    [refundEventId]
+  );
+
+  let refund = await loadRefundContext();
+  if (!refund) {
+    await ensureAwardMirrorForLoyaltyClaim(client, refundEventId);
+    refund = await loadRefundContext();
+  }
+  if (!refund) {
+    return {
+      status: "skipped",
+      pointsReversed: 0,
+      reason: "original sale was not claimed",
+    };
+  }
 
   const sale = await queryOneOn(
     client,
@@ -170,13 +296,32 @@ async function maybeCreateReversal(client, refundEventId) {
   const saleTotal = Math.max(0, toNumber(sale?.paid_total, 0));
   const refundTotal = Math.max(0, toNumber(refund.refund_total, 0));
   const ratio = saleTotal > 0 ? Math.min(1, refundTotal / saleTotal) : 0;
-  const pointsReversed = Math.max(1, Math.min(refund.points_awarded, Math.floor(refund.points_awarded * ratio || 0)));
+  const requestedPoints = Math.min(Number(refund.points_awarded || 0), Math.floor(Number(refund.points_awarded || 0) * ratio || 0));
+  const alreadyReversed = Number(
+    await queryValueOn(
+      client,
+      `SELECT COALESCE(SUM(points_reversed), 0) AS total
+         FROM crm_loyalty_reversals
+        WHERE original_award_id = $1`,
+      [refund.award_id],
+      "total"
+    ) || 0
+  );
+  const availablePoints = Math.max(0, Number(refund.points_awarded || 0) - alreadyReversed);
+  const pointsReversed = Math.min(availablePoints, requestedPoints);
+  if (pointsReversed <= 0) {
+    return {
+      status: "skipped",
+      pointsReversed: 0,
+      reason: availablePoints <= 0 ? "all claim points already reversed" : "refund amount does not reach 1 point threshold",
+    };
+  }
 
   const ledgerId = createId();
   await client.query(
     `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
      VALUES ($1, $2, $3, 'adjustment', $4, $5, 'system', NOW())`,
-    [ledgerId, refund.customer_account_id, -pointsReversed, refundEventId, `Refund reversal for ${refund.original_doc_no}`]
+    [ledgerId, refund.customer_account_id, -pointsReversed, refundEventId, `Refund reversal for ${refund.refund_doc_no || refund.original_doc_no}`]
   );
 
   const reversalId = createId();
@@ -186,7 +331,12 @@ async function maybeCreateReversal(client, refundEventId) {
      VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
     [reversalId, refundEventId, refund.customer_account_id, pointsReversed, refund.award_id, ledgerId]
   );
-  return reversalId;
+  return {
+    status: "reversed",
+    reversalId,
+    pointsReversed,
+    reason: null,
+  };
 }
 
 async function upsertRefundEvent(client, refund) {
@@ -255,8 +405,13 @@ async function upsertRefundEvent(client, refund) {
     );
   }
 
-  await maybeCreateReversal(client, refundEventId);
-  return refundEventId;
+  const reversal = await maybeCreateReversal(client, refundEventId);
+  return {
+    refundEventId,
+    refundDocNo: refund.refund_doc_no,
+    originalDocNo: refund.original_doc_no,
+    reversal,
+  };
 }
 
 router.use(requireInternalToken);
@@ -286,14 +441,15 @@ router.post("/crm/pos/refunds", async (req, res) => {
     const records = rawRecords.filter((item) => item && Object.keys(item).length > 0).map(buildRefundEventRecord);
     if (records.length === 0) return jsonError(res, 400, "records are required.");
 
+    const results = [];
     await withTransaction(async (client) => {
       for (const refund of records) {
         // eslint-disable-next-line no-await-in-loop
-        await upsertRefundEvent(client, refund);
+        results.push(await upsertRefundEvent(client, refund));
       }
     });
 
-    return res.json({ ok: true, accepted: records.length });
+    return res.json({ ok: true, accepted: records.length, results });
   } catch (error) {
     return jsonError(res, 500, error.message || "Failed to mirror refund events.");
   }

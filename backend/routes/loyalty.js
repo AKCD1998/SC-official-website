@@ -1,6 +1,7 @@
 const express = require("express");
 const pool    = require("../db");
 const { createId, generateMemberCode, hashOpaqueToken, normalizePhone, parseBearerToken } = require("../lib/sccrm");
+const { buildSourceEventKey } = require("../lib/sccrmCrm");
 
 const router = express.Router();
 
@@ -61,6 +62,10 @@ async function queryOne(sql, params) {
 
 function computeAwardedPoints(totalAmount) {
     return Math.max(0, Math.floor(Number(totalAmount) / 100));
+}
+
+function normalizeDocRef(value) {
+    return String(value || "").trim().toUpperCase();
 }
 
 function normalizeMemberSex(value) {
@@ -421,6 +426,106 @@ async function upsertPharmacyMedRecord(client, memberId, normalizedRecord) {
     );
 }
 
+async function mirrorPosSaleClaim(client, payload) {
+    const branchCode = normalizeDocRef(payload.branchCode);
+    const receiptNo = normalizeDocRef(payload.receiptNo);
+    if (!branchCode || !receiptNo) return null;
+
+    const sourceEventKey = buildSourceEventKey("sale", branchCode, receiptNo);
+    const existingSaleResult = await client.query(
+        `SELECT id
+           FROM crm_pos_sale_events
+          WHERE source_event_key = $1`,
+        [sourceEventKey],
+    );
+    const saleEventId = existingSaleResult.rows[0]?.id || createId();
+
+    await client.query(
+        `INSERT INTO crm_pos_sale_events
+              (id, branch_code, pos_code, doc_no, doc_type, sale_at, cashier_code,
+               gross_total, net_total, paid_total, ada_customer_code, claim_status,
+               source_system, source_event_key, source_synced_at, tender_rows, raw_payload, created_at, updated_at)
+         VALUES
+              ($1, $2, NULL, $3, '1', $4, $5,
+               $6, $7, $8, NULL, 'claimed',
+               'SCCRMonPOS', $9, NOW(), '[]'::jsonb, $10::jsonb, NOW(), NOW())
+         ON CONFLICT (source_event_key) DO UPDATE SET
+               branch_code = EXCLUDED.branch_code,
+               doc_no = EXCLUDED.doc_no,
+               sale_at = EXCLUDED.sale_at,
+               cashier_code = EXCLUDED.cashier_code,
+               gross_total = EXCLUDED.gross_total,
+               net_total = EXCLUDED.net_total,
+               paid_total = EXCLUDED.paid_total,
+               claim_status = 'claimed',
+               source_synced_at = NOW(),
+               raw_payload = EXCLUDED.raw_payload,
+               updated_at = NOW()`,
+        [
+            saleEventId,
+            branchCode,
+            receiptNo,
+            payload.soldAt || new Date().toISOString(),
+            payload.cashierStaffCode,
+            Number(payload.totalAmount || 0),
+            Number(payload.totalAmount || 0),
+            Number(payload.totalAmount || 0),
+            sourceEventKey,
+            JSON.stringify({
+                mirrored_from: "loyalty_claims",
+                loyalty_claim_id: payload.claimId,
+                preview_points: payload.previewPoints,
+            }),
+        ],
+    );
+
+    await client.query(`DELETE FROM crm_pos_sale_line_events WHERE sale_event_id = $1`, [saleEventId]);
+    for (let index = 0; index < payload.items.length; index += 1) {
+        const item = payload.items[index];
+        // eslint-disable-next-line no-await-in-loop
+        await client.query(
+            `INSERT INTO crm_pos_sale_line_events
+                  (id, sale_event_id, line_no, product_code, barcode, qty, unit_code, unit_name, net_amount, discount_amount, lot_no, expiry_date, raw_payload, created_at)
+             VALUES
+                  ($1, $2, $3, $4, NULL, $5, NULL, NULL, $6, 0, NULL, NULL, $7::jsonb, NOW())`,
+            [
+                createId(),
+                saleEventId,
+                index + 1,
+                String(item.productCode || "").trim() || null,
+                Number(item.qty || 0),
+                Number(item.lineTotal || 0),
+                JSON.stringify(item),
+            ],
+        );
+    }
+
+    return saleEventId;
+}
+
+async function mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId) {
+    if (!saleEventId || !ledgerEntryId || !Number.isFinite(Number(awardedPoints)) || Number(awardedPoints) <= 0)
+        return null;
+
+    const existingAwardResult = await client.query(
+        `SELECT id
+           FROM crm_loyalty_awards
+          WHERE sale_event_id = $1`,
+        [saleEventId],
+    );
+    if (existingAwardResult.rows[0]) return existingAwardResult.rows[0].id;
+
+    const awardId = createId();
+    await client.query(
+        `INSERT INTO crm_loyalty_awards
+              (id, sale_event_id, customer_account_id, points_awarded, promotion_snapshot, ledger_entry_id, created_at)
+         VALUES
+              ($1, $2, $3, $4, '[]'::jsonb, $5, NOW())`,
+        [awardId, saleEventId, memberId, Number(awardedPoints), ledgerEntryId],
+    );
+    return awardId;
+}
+
 function buildMemberResponse(row, pharmacyMedRecordRow) {
     return {
         id: row.id,
@@ -716,13 +821,27 @@ router.post("/claims", requireStaff, async (req, res) => {
 
             // Write to point_ledger (source of truth)
             const newBalance = Number(member.current_points) + awardedPoints;
+            let ledgerEntryId = null;
               if (awardedPoints > 0) {
+                        ledgerEntryId = createId();
                         await client.query(
                                     `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
                                                VALUES ($1, $2::uuid, $3, 'purchase', $4, $5, 'cashier', NOW())`,
-                                    [createId(), memberId, awardedPoints, claimId, `Earned from receipt ${receiptNo}`],
+                                    [ledgerEntryId, memberId, awardedPoints, claimId, `Earned from receipt ${receiptNo}`],
                                   );
               }
+
+            const saleEventId = await mirrorPosSaleClaim(client, {
+                        branchCode,
+                        receiptNo,
+                        soldAt,
+                        cashierStaffCode,
+                        totalAmount,
+                        previewPoints,
+                        claimId,
+                        items,
+            });
+            await mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId);
 
             await client.query("COMMIT");
 
