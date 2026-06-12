@@ -1,6 +1,6 @@
 const express = require("express");
-const pool = require("../db");
-const { createId, hashOpaqueToken, parseBearerToken } = require("../lib/sccrm");
+const pool    = require("../db");
+const { createId, generateMemberCode, hashOpaqueToken, normalizePhone, parseBearerToken } = require("../lib/sccrm");
 
 const router = express.Router();
 
@@ -61,6 +61,39 @@ async function queryOne(sql, params) {
 
 function computeAwardedPoints(totalAmount) {
     return Math.max(0, Math.floor(Number(totalAmount) / 100));
+}
+
+function normalizeMemberSex(value) {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return null;
+    if (["1", "male", "m"].includes(raw)) return "male";
+    if (["2", "female", "f"].includes(raw)) return "female";
+    return null;
+}
+
+function normalizeMemberDob(value) {
+    const raw = String(value || "").trim();
+    if (!raw) return null;
+    return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : null;
+}
+
+function mapMemberRow(row) {
+    return {
+        id: row.id,
+        name: row.full_name || "",
+        displayName: row.full_name || "",
+        phone: row.phone || null,
+        email: row.email || null,
+        sex: row.sex || null,
+        dob: row.dob || null,
+        remark: row.remark || null,
+        memberCode: row.member_code || null,
+        tier: row.tier || null,
+        isActive: row.is_active,
+        currentPoints: Number(row.current_points || 0),
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+    };
 }
 
 // ── GET /api/members/search?q=... ─────────────────────────────────────────────
@@ -130,11 +163,14 @@ router.get("/:id", requirePosApiKey, async (req, res) => {
                             u.full_name,
                                           u.phone_number AS phone,
                                                         u.email,
-                                                                      u.created_at,
-                                                                                    m.member_code,
-                                                                                                  m.tier,
-                                                                                                                m.is_active,
-                                                                                                                              m.updated_at,
+                                                                      u.sex,
+                                                                                    u.dob::text AS dob,
+                                                                                                  u.remark,
+                                                                                                                u.created_at,
+                                                                                                                              m.member_code,
+                                                                                                                                            m.tier,
+                                                                                                                                                          m.is_active,
+                                                                                                                                                                        m.updated_at,
                                                                                                                                             COALESCE((
                                                                                                                                                             SELECT SUM(pl.amount)
                                                                                                                                                                             FROM point_ledger pl
@@ -148,21 +184,7 @@ router.get("/:id", requirePosApiKey, async (req, res) => {
 
       if (!row) return res.status(404).json({ error: "Member not found." });
 
-      return res.json({
-              id: row.id,
-              name: row.full_name || "",
-              phone: row.phone || null,
-              email: row.email || null,
-              sex: null,
-              dob: null,
-              remark: null,
-              memberCode: row.member_code || null,
-              tier: row.tier || null,
-              isActive: row.is_active,
-              currentPoints: Number(row.current_points || 0),
-              createdAt: row.created_at,
-              updatedAt: row.updated_at,
-      });
+      return res.json(mapMemberRow(row));
     } catch (error) {
           return res.status(500).json({ error: error.message || "Failed to fetch member." });
     }
@@ -187,6 +209,9 @@ router.put("/:id", requirePosApiKey, async (req, res) => {
       const name = req.body.name !== undefined ? String(req.body.name || "").trim() || null : undefined;
           const phone = req.body.phone !== undefined ? String(req.body.phone || "").trim() || null : undefined;
           const email = req.body.email !== undefined ? String(req.body.email || "").trim().toLowerCase() || null : undefined;
+          const sex = req.body.sex !== undefined ? normalizeMemberSex(req.body.sex) : undefined;
+          const dob = req.body.dob !== undefined ? normalizeMemberDob(req.body.dob) : undefined;
+          const remark = req.body.remark !== undefined ? String(req.body.remark || "").trim() || null : undefined;
 
       // Build dynamic SET clause — only update provided fields
       const setClauses = [];
@@ -196,6 +221,9 @@ router.put("/:id", requirePosApiKey, async (req, res) => {
       if (name !== undefined)  { setClauses.push(`full_name = $${idx++}`);     params.push(name); }
           if (phone !== undefined) { setClauses.push(`phone_number = $${idx++}`);  params.push(phone); }
           if (email !== undefined) { setClauses.push(`email = $${idx++}`);         params.push(email); }
+          if (sex !== undefined) { setClauses.push(`sex = $${idx++}`);             params.push(sex); }
+          if (dob !== undefined) { setClauses.push(`dob = $${idx++}`);             params.push(dob); }
+          if (remark !== undefined) { setClauses.push(`remark = $${idx++}`);       params.push(remark); }
 
       if (setClauses.length > 0) {
               
@@ -212,11 +240,14 @@ router.put("/:id", requirePosApiKey, async (req, res) => {
                             u.full_name,
                                           u.phone_number AS phone,
                                                         u.email,
-                                                                      u.created_at,
-                                                                                    m.member_code,
-                                                                                                  m.tier,
-                                                                                                                m.is_active,
-                                                                                                                              m.updated_at,
+                                                                      u.sex,
+                                                                                    u.dob::text AS dob,
+                                                                                                  u.remark,
+                                                                                                                u.created_at,
+                                                                                                                              m.member_code,
+                                                                                                                                            m.tier,
+                                                                                                                                                          m.is_active,
+                                                                                                                                                                        m.updated_at,
                                                                                                                                             COALESCE((
                                                                                                                                                             SELECT SUM(pl.amount)
                                                                                                                                                                             FROM point_ledger pl
@@ -230,15 +261,7 @@ router.put("/:id", requirePosApiKey, async (req, res) => {
 
       return res.json({
               ok: true,
-              id: row.id,
-              name: row.full_name || "",
-              phone: row.phone || null,
-              email: row.email || null,
-              memberCode: row.member_code || null,
-              tier: row.tier || null,
-              isActive: row.is_active,
-              currentPoints: Number(row.current_points || 0),
-              updatedAt: row.updated_at,
+              ...mapMemberRow(row),
       });
     } catch (error) {
           return res.status(500).json({ error: error.message || "Failed to update member." });
@@ -360,6 +383,69 @@ router.post("/claims", requireStaff, async (req, res) => {
     } catch (error) {
           return res.status(500).json({ error: error.message || "Failed to create loyalty claim." });
     }
+});
+
+// ── POST /api/members ─────────────────────────────────────────────────────────
+// Cashier registers a new loyalty member at the POS.
+// Creates a users + member_profiles row. Never writes to AdaAcc.
+
+router.post("/", requireStaff, async (req, res) => {
+  try {
+    const fullName   = String(req.body?.fullName ?? req.body?.name ?? "").trim();
+    const phone      = normalizePhone(req.body?.phone || "");
+    const email      = String(req.body?.email     || "").trim() || null;
+    const sex        = normalizeMemberSex(req.body?.sex);
+    const dob        = normalizeMemberDob(req.body?.dob);
+    const remark     = String(req.body?.remark || "").trim() || null;
+
+    if (!fullName) return res.status(400).json({ message: "fullName is required." });
+    if (!phone)    return res.status(400).json({ message: "phone is required." });
+
+    const existing = await queryOne(`SELECT id FROM users WHERE phone_number = $1`, [phone]);
+    if (existing) return res.status(409).json({ message: "เบอร์โทรนี้มีในระบบแล้ว" });
+
+    const client = await pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const userId = createId();
+      await client.query(
+        `INSERT INTO users (id, phone_number, full_name, email, sex, dob, remark, password_hash, is_verified, verified_at, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, '', TRUE, NOW(), NOW())`,
+        [userId, phone, fullName, email, sex, dob, remark],
+      );
+
+      const memberCode = generateMemberCode(userId);
+      await client.query(
+        `INSERT INTO member_profiles (id, user_id, member_code, tier, is_active, created_at, updated_at)
+         VALUES ($1, $2, $3, 'general', TRUE, NOW(), NOW())`,
+        [createId(), userId, memberCode],
+      );
+
+      await client.query("COMMIT");
+
+      return res.status(201).json({
+        ok:            true,
+        id:            userId,
+        name:          fullName,
+        displayName:   fullName,
+        phone,
+        email,
+        sex,
+        dob,
+        remark,
+        memberCode,
+        currentPoints: 0,
+      });
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    return res.status(500).json({ error: error.message || "Failed to create member." });
+  }
 });
 
 module.exports = router;
