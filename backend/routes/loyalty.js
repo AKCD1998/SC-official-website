@@ -60,8 +60,13 @@ async function queryOne(sql, params) {
     return rows[0] || null;
 }
 
+// Business rule: 1 point per 25 THB of eligible spend (drug lines are excluded
+// client-side before totalAmount is sent). Must match BahtPerPoint in the POS
+// App.config. Refund reversals scale automatically from the stored award.
+const BAHT_PER_POINT = 25;
+
 function computeAwardedPoints(totalAmount) {
-    return Math.max(0, Math.floor(Number(totalAmount) / 100));
+    return Math.max(0, Math.floor(Number(totalAmount) / BAHT_PER_POINT));
 }
 
 function normalizeDocRef(value) {
