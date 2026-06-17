@@ -9,6 +9,7 @@ const sliderRoutes = require("./routes/slider");
 const sccrmRoutes = require("./routes/sccrm");
 const sccrmInternalRoutes = require("./routes/sccrmInternal");
 const loyaltyRoutes       = require("./routes/loyalty");
+const crmMembersRoutes    = require("./routes/crmMembers");
 const { r2Configured } = require("./lib/r2Storage");
 const rx1011Routes = require("./src/modules/rx1011/lazyRouter.cjs");
 const reactNJobRoutes = require("./src/modules/reactnjob");
@@ -71,6 +72,7 @@ app.use('/api/sccrm', sccrmRoutes);
 app.use('/internal', sccrmInternalRoutes);
 app.use('/api/members', loyaltyRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
+app.use('/api/crm', crmMembersRoutes);
 
 // Slider image uploads — serve local disk fallback when R2 is not configured (dev)
 if (!r2Configured) {

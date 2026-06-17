@@ -11,9 +11,13 @@ if (!connectionString) {
   console.log(`Main website database env: ${connectionEnvName}`);
 }
 
+const isRemoteDb = connectionString &&
+  !connectionString.includes("localhost") &&
+  !connectionString.includes("127.0.0.1");
+
 const pool = new Pool({
   connectionString,
-  ssl: process.env.NODE_ENV === "production" ? { rejectUnauthorized: false } : false,
+  ssl: isRemoteDb ? { rejectUnauthorized: false } : false,
 });
 
 module.exports = pool;
