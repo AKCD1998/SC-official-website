@@ -23,6 +23,34 @@ function resetState() {
       updated_at: "2026-06-01T00:00:00.000Z",
     },
   ];
+  state.claims = [
+    {
+      id: "claim-1",
+      receipt_no: "S2606005001-0000876",
+      branch_code: "005",
+      sold_at: "2026-06-15T10:29:43.000Z",
+      total_amount: 350,
+      awarded_points: 3,
+      user_id: "11111111-1111-1111-1111-111111111111",
+      created_at: "2026-06-15T10:29:43.000Z",
+    },
+  ];
+  state.claimItems = [
+    { claim_id: "claim-1", product_code: "IC-005598", product_name: "ไวต้าซี", qty: 1, unit_price: 15, line_total: 15 },
+    { claim_id: "claim-1", product_code: "IC-004777", product_name: "สวิสเซ วิตามินซี", qty: 1, unit_price: 335, line_total: 335 },
+  ];
+  state.refunds = [
+    {
+      id: "refund-1",
+      branch_code: "005",
+      original_doc_no: "S2606005001-0000876",
+      refund_doc_no: "R2606005001-0000006",
+      refund_at: "2026-06-15T10:37:00.000Z",
+      refund_total: 335,
+      returned_qty: 1,
+      points_reversed: 2,
+    },
+  ];
   state.medRecords = {
     "11111111-1111-1111-1111-111111111111": {
       member_id: "11111111-1111-1111-1111-111111111111",
@@ -213,6 +241,23 @@ async function mockQuery(sql, params = []) {
     return { rows: found ? [found] : [], rowCount: found ? 1 : 0 };
   }
 
+  if (text.startsWith("SELECT id, receipt_no, branch_code, sold_at, total_amount, awarded_points, created_at FROM loyalty_claims WHERE user_id =")) {
+    const rows = (state.claims || []).filter((c) => c.user_id === params[0]);
+    return { rows, rowCount: rows.length };
+  }
+
+  if (text.startsWith("SELECT claim_id, product_code, product_name, qty, unit_price, line_total FROM loyalty_claim_items WHERE claim_id = ANY(")) {
+    const ids = params[0] || [];
+    const rows = (state.claimItems || []).filter((it) => ids.includes(it.claim_id));
+    return { rows, rowCount: rows.length };
+  }
+
+  if (text.includes("FROM crm_pos_refund_events r") && text.includes("UPPER(BTRIM(r.original_doc_no)) = ANY(")) {
+    const keys = params[0] || [];
+    const rows = (state.refunds || []).filter((r) => keys.includes(String(r.original_doc_no).trim().toUpperCase()));
+    return { rows, rowCount: rows.length };
+  }
+
   return { rows: [], rowCount: 0 };
 }
 
@@ -272,6 +317,37 @@ describe("loyalty member demographics", () => {
       hasHypertension: true,
       drinksAlcohol: true,
     }));
+  });
+
+  test("GET /api/members/:id/purchase-history returns claims with items and returns", async () => {
+    const response = await request(createApp())
+      .get("/api/members/11111111-1111-1111-1111-111111111111/purchase-history")
+      .set("x-pos-api-key", "pos-key");
+
+    expect(response.status).toBe(200);
+    expect(response.body.ok).toBe(true);
+    expect(response.body.purchases).toHaveLength(1);
+
+    const purchase = response.body.purchases[0];
+    expect(purchase.receiptNo).toBe("S2606005001-0000876");
+    expect(purchase.totalAmount).toBe(350);
+    expect(purchase.awardedPoints).toBe(3);
+    expect(purchase.items).toHaveLength(2);
+    expect(purchase.items[1]).toEqual(expect.objectContaining({ productCode: "IC-004777", lineTotal: 335 }));
+    expect(purchase.returns).toHaveLength(1);
+    expect(purchase.returns[0]).toEqual(expect.objectContaining({
+      refundDocNo: "R2606005001-0000006",
+      refundTotal: 335,
+      returnedQty: 1,
+      pointsReversed: 2,
+    }));
+  });
+
+  test("GET /api/members/:id/purchase-history returns 404 for unknown member", async () => {
+    const response = await request(createApp())
+      .get("/api/members/99999999-9999-9999-9999-999999999999/purchase-history")
+      .set("x-pos-api-key", "pos-key");
+    expect(response.status).toBe(404);
   });
 
   test("PUT /api/members/:id persists normalized sex and dob", async () => {
