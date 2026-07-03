@@ -1,5 +1,5 @@
 -- Migration: CRM member registration fields
--- Run once against SC_OFFICIAL_DATABASE_URL (Render PostgreSQL)
+-- Run once against SC_OFFICIAL_SUPABASE_DATABASE_URL (Render PostgreSQL)
 
 -- 1. Add dob and sex to the shared users table
 ALTER TABLE users

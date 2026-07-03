@@ -1,6 +1,9 @@
 require("dotenv").config();
 
-const connectionString = process.env.SC_OFFICIAL_DATABASE_URL || process.env.DATABASE_URL;
+const connectionString =
+  process.env.SC_OFFICIAL_SUPABASE_DATABASE_URL ||
+  process.env.SC_OFFICIAL_DATABASE_URL ||
+  process.env.DATABASE_URL;
 
 module.exports = {
   development: {
