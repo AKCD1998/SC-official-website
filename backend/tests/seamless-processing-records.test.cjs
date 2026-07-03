@@ -48,6 +48,30 @@ function mapRowById(id) {
 async function mockQuery(sql, params = []) {
   const text = normalizeSql(sql);
 
+  if (
+    text ===
+    "SELECT current_database() AS current_database, current_schema() AS current_schema"
+  ) {
+    return {
+      rows: [{ current_database: "postgres", current_schema: "public" }],
+      rowCount: 1,
+    };
+  }
+
+  if (text === "SHOW search_path") {
+    return {
+      rows: [{ search_path: "\"$user\", public" }],
+      rowCount: 1,
+    };
+  }
+
+  if (text === "SELECT to_regclass($1) AS relation_name") {
+    return {
+      rows: [{ relation_name: params[0] === "clasp_scx_seamless.processing_records" ? null : null }],
+      rowCount: 1,
+    };
+  }
+
   if (text.startsWith("SELECT * FROM \"clasp_scx_seamless\".\"processing_records\"")) {
     let rows = state.records.slice();
 
@@ -219,5 +243,23 @@ describe("seamless processing records routes", () => {
         uploadedBy: "gas-user",
       }),
     );
+  });
+
+  test("reports database context for seamless route debugging", async () => {
+    const response = await request(createApp())
+      .get("/api/processing-records/debug-db")
+      .set("Authorization", "Bearer seamless-token");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      ok: true,
+      context: {
+        currentDatabase: "postgres",
+        currentSchema: "public",
+        searchPath: "\"$user\", public",
+        targetRelation: "clasp_scx_seamless.processing_records",
+        relationExistsAs: null,
+      },
+    });
   });
 });

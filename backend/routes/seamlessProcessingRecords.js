@@ -2,6 +2,7 @@ const express = require("express");
 const {
   createProcessingRecord,
   createRouteHandler,
+  inspectDatabaseContext,
   listProcessingRecords,
   markPrinted,
   markUnprinted,
@@ -27,6 +28,14 @@ router.get(
   createRouteHandler(async (req, res) => {
     const records = await listProcessingRecords(req.query || {});
     res.json({ records });
+  }),
+);
+
+router.get(
+  "/debug-db",
+  createRouteHandler(async (req, res) => {
+    const context = await inspectDatabaseContext();
+    res.json({ ok: true, context });
   }),
 );
 

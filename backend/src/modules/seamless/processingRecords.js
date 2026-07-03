@@ -478,6 +478,30 @@ async function markUnprinted(id, client = null) {
   };
 }
 
+async function inspectDatabaseContext(client = null) {
+  const db = executor(client);
+  const schemaName = readSchemaName();
+  const relationName = `${schemaName}.processing_records`;
+
+  const currentResult = await db.query(
+    `
+      SELECT
+        current_database() AS current_database,
+        current_schema() AS current_schema
+    `,
+  );
+  const searchPathResult = await db.query("SHOW search_path");
+  const relationResult = await db.query("SELECT to_regclass($1) AS relation_name", [relationName]);
+
+  return {
+    currentDatabase: currentResult.rows[0]?.current_database || null,
+    currentSchema: currentResult.rows[0]?.current_schema || null,
+    searchPath: searchPathResult.rows[0]?.search_path || null,
+    targetRelation: relationName,
+    relationExistsAs: relationResult.rows[0]?.relation_name || null,
+  };
+}
+
 function parseBearerToken(headerValue) {
   const text = String(headerValue || "").trim();
   const match = text.match(/^Bearer\s+(.+)$/i);
@@ -529,6 +553,7 @@ function createRouteHandler(handler) {
 module.exports = {
   createProcessingRecord,
   createRouteHandler,
+  inspectDatabaseContext,
   listProcessingRecords,
   markPrinted,
   markUnprinted,
