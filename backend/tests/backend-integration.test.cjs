@@ -159,6 +159,93 @@ describe("Rx1011 module import baseline", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("ok");
   });
+
+  test("organic report helper splits the same lot into separate monthly reports", () => {
+    const script = `
+      const baseMeta = {
+        reportTitle: "Test report",
+        reportGroupCode: "KY11",
+        branchCode: "003",
+        branchNameOnly: "Branch 003",
+        branchLabel: "003 : Branch 003",
+        productId: "product-1",
+        productCode: "SKU-1",
+        product: "Test Product",
+        packSize: "1 x 10",
+        reportReceiveUnitLabel: "แผง",
+        maker: "Maker",
+      };
+      const { buildOrganicLedgerReports } = await import("./src/modules/rx1011/controllers/organicReportsController.js");
+      const result = buildOrganicLedgerReports({
+        baseMeta,
+        receiveSummaryByLotId: new Map([
+          ["lot-1", { receivedAt: "2026-06-01T00:00:00.000Z", sourceName: "สำนักงานใหญ่", receivedQuantityText: "10 กล่อง" }],
+        ]),
+        dispenseRows: [
+          {
+            dispensedMonth: "2026-07",
+            lotId: "lot-1",
+            lotNo: "LOT-001",
+            dispensedAt: "2026-07-10T08:00:00.000Z",
+            quantity: 1,
+            unitLabel: "แผง",
+            patientName: "July Buyer",
+            pid: "1111111111111",
+            pharmacistName: "เภสัช ก",
+            lineNote: "กรกฎาคม",
+            headerNote: "",
+          },
+          {
+            dispensedMonth: "2026-08",
+            lotId: "lot-1",
+            lotNo: "LOT-001",
+            dispensedAt: "2026-08-11T08:00:00.000Z",
+            quantity: 1,
+            unitLabel: "แผง",
+            patientName: "August Buyer",
+            pid: "2222222222222",
+            pharmacistName: "เภสัช ข",
+            lineNote: "สิงหาคม",
+            headerNote: "",
+          },
+        ],
+      });
+      if (!Array.isArray(result.reports) || result.reports.length !== 2) {
+        throw new Error("Expected 2 monthly report objects.");
+      }
+      if (result.reports[0].monthKey !== "2026-07" || result.reports[1].monthKey !== "2026-08") {
+        throw new Error("Month keys were not preserved in sorted order.");
+      }
+      if (result.reports[0].pages.length !== 1 || result.reports[1].pages.length !== 1) {
+        throw new Error("Expected one lot page per month.");
+      }
+      if (result.reports[0].pages[0].rows.length !== 1 || result.reports[1].pages[0].rows.length !== 1) {
+        throw new Error("Expected one dispense row in each monthly report.");
+      }
+      if (result.reports[0].pages[0].rows[0].name !== "July Buyer") {
+        throw new Error("July row ended up in the wrong report.");
+      }
+      if (result.reports[1].pages[0].rows[0].name !== "August Buyer") {
+        throw new Error("August row ended up in the wrong report.");
+      }
+      if (!Array.isArray(result.pages) || result.pages.length !== 2) {
+        throw new Error("Compatibility flattened pages are missing.");
+      }
+      if (!result.meta || result.meta.reportMonthKey !== "2026-07") {
+        throw new Error("Compatibility meta should still point at the first report.");
+      }
+      console.log("ok");
+    `;
+
+    const result = spawnSync(process.execPath, ["--input-type=module", "-e", script], {
+      cwd: backendRoot,
+      env: testEnv(),
+      encoding: "utf8",
+    });
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain("ok");
+  });
 });
 
 describe("ReactNJob module import baseline", () => {

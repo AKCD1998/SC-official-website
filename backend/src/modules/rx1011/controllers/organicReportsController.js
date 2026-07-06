@@ -295,6 +295,114 @@ async function getProductMeta(productId) {
   return product;
 }
 
+function buildOrganicReportBaseMeta({ branch, product, reportGroupCode }) {
+  return {
+    reportTitle: buildReportTitle(reportGroupCode),
+    reportGroupCode: reportGroupCode || null,
+    branchCode: toCleanText(branch?.code),
+    branchNameOnly: toCleanText(branch?.name) || "-",
+    branchLabel: `${toCleanText(branch?.code) || "-"} : ${toCleanText(branch?.name) || "-"}`,
+    productId: toCleanText(product?.productId),
+    productCode: toCleanText(product?.productCode),
+    product: toCleanText(product?.tradeName) || "-",
+    packSize: toCleanText(product?.packageSize) || "-",
+    reportReceiveUnitLabel:
+      extractPackagingContainerLabel(product?.reportReceiveUnitLabel) ||
+      toCleanText(product?.reportReceiveUnitLabel) ||
+      "-",
+    maker: toCleanText(product?.manufacturerName) || "-",
+  };
+}
+
+function sortOrganicPages(left, right) {
+  const leftTime = left?.lot?.date ? new Date(left.lot.date).getTime() : Number.MAX_SAFE_INTEGER;
+  const rightTime = right?.lot?.date ? new Date(right.lot.date).getTime() : Number.MAX_SAFE_INTEGER;
+  if (leftTime !== rightTime) return leftTime - rightTime;
+  return String(left?.lot?.batch || "").localeCompare(String(right?.lot?.batch || ""), "th");
+}
+
+export function buildOrganicLedgerReports({ dispenseRows, receiveSummaryByLotId, baseMeta }) {
+  const pagesByMonthKey = new Map();
+
+  for (const row of Array.isArray(dispenseRows) ? dispenseRows : []) {
+    const normalizedMonthKey = toCleanText(row?.dispensedMonth) || "__UNSPECIFIED_MONTH__";
+    const normalizedLotId = toCleanText(row?.lotId);
+    const lotKey = normalizedLotId || "__UNSPECIFIED_LOT__";
+    const lotSummary = receiveSummaryByLotId instanceof Map ? receiveSummaryByLotId.get(normalizedLotId) || null : null;
+
+    if (!pagesByMonthKey.has(normalizedMonthKey)) {
+      pagesByMonthKey.set(normalizedMonthKey, new Map());
+    }
+    const pagesByLotKey = pagesByMonthKey.get(normalizedMonthKey);
+    const existingPage = pagesByLotKey.get(lotKey);
+
+    if (!existingPage) {
+      pagesByLotKey.set(lotKey, {
+        lot: {
+          id: normalizedLotId,
+          batch: toCleanText(row?.lotNo) || "ไม่ระบุ lot",
+          date: lotSummary?.receivedAt || null,
+          receivedQuantityText: lotSummary?.receivedQuantityText || "-",
+          sourceName: lotSummary?.sourceName || "-",
+        },
+        rows: [],
+      });
+    }
+
+    const unitLabel = toCleanText(row?.unitLabel) || "unit";
+    const reportQuantities = splitDispenseReportQuantities(row?.quantity, unitLabel);
+    const note = combineNotes(row?.lineNote, row?.headerNote);
+
+    for (const reportQuantity of reportQuantities) {
+      pagesByLotKey.get(lotKey).rows.push({
+        date: row?.dispensedAt,
+        qty: reportQuantity,
+        qtyText: formatQuantityText(reportQuantity, unitLabel),
+        unitLabel,
+        name: toCleanText(row?.patientName) || "-",
+        pid: toCleanText(row?.pid) || "-",
+        pharmacistName: toCleanText(row?.pharmacistName) || "",
+        note,
+      });
+    }
+  }
+
+  const sortedMonthKeys = [...pagesByMonthKey.keys()].sort((left, right) =>
+    String(left || "").localeCompare(String(right || ""), "th")
+  );
+
+  const reports = sortedMonthKeys.map((monthKey, reportIndex) => {
+    const pages = [...pagesByMonthKey.get(monthKey).values()].sort(sortOrganicPages);
+    return {
+      monthKey,
+      monthLabel: monthKey === "__UNSPECIFIED_MONTH__" ? "" : monthKey,
+      meta: {
+        ...baseMeta,
+        reportMonthKey: monthKey === "__UNSPECIFIED_MONTH__" ? null : monthKey,
+        reportMonthLabel: monthKey === "__UNSPECIFIED_MONTH__" ? "" : monthKey,
+        reportIndex: reportIndex + 1,
+        reportCount: sortedMonthKeys.length,
+      },
+      pages,
+    };
+  });
+
+  const pages = reports.flatMap((report) => report.pages);
+  const compatibilityMeta = reports[0]?.meta || {
+    ...baseMeta,
+    reportMonthKey: null,
+    reportMonthLabel: "",
+    reportIndex: 1,
+    reportCount: 0,
+  };
+
+  return {
+    meta: compatibilityMeta,
+    pages,
+    reports,
+  };
+}
+
 export async function getOrganicDispenseLedgerActivityProducts(req, res) {
   const branchCode = toCleanText(req.query.branchCode || req.query.branch_code);
   const reportGroupCode = toCleanText(req.query.reportGroupCode || req.query.report_group_code).toUpperCase();
@@ -461,6 +569,7 @@ export async function getOrganicDispenseLedgerReport(req, res) {
     `
       SELECT
         dh.dispensed_at AS "dispensedAt",
+        to_char(dh.dispensed_at::date, 'YYYY-MM') AS "dispensedMonth",
         pa.pid,
         pa.full_name AS "patientName",
         COALESCE(ph.full_name, ph.username, '') AS "pharmacistName",
@@ -582,69 +691,6 @@ export async function getOrganicDispenseLedgerReport(req, res) {
     }
   }
 
-  const pagesByLotKey = new Map();
-
-  for (const row of dispenseRows) {
-    const normalizedLotId = toCleanText(row.lotId);
-    const lotKey = normalizedLotId || "__UNSPECIFIED_LOT__";
-    const lotSummary = receiveSummaryByLotId.get(normalizedLotId) || null;
-    const existingPage = pagesByLotKey.get(lotKey);
-
-    if (!existingPage) {
-      pagesByLotKey.set(lotKey, {
-        lot: {
-          id: normalizedLotId,
-          batch: toCleanText(row.lotNo) || "ไม่ระบุ lot",
-          date: lotSummary?.receivedAt || null,
-          receivedQuantityText: lotSummary?.receivedQuantityText || "-",
-          sourceName: lotSummary?.sourceName || "-",
-        },
-        rows: [],
-      });
-    }
-
-    const unitLabel = toCleanText(row.unitLabel) || "unit";
-    const reportQuantities = splitDispenseReportQuantities(row.quantity, unitLabel);
-    const note = combineNotes(row.lineNote, row.headerNote);
-
-    for (const reportQuantity of reportQuantities) {
-      pagesByLotKey.get(lotKey).rows.push({
-        date: row.dispensedAt,
-        qty: reportQuantity,
-        qtyText: formatQuantityText(reportQuantity, unitLabel),
-        unitLabel,
-        name: toCleanText(row.patientName) || "-",
-        pid: toCleanText(row.pid) || "-",
-        pharmacistName: toCleanText(row.pharmacistName) || "",
-        note,
-      });
-    }
-  }
-
-  const pages = [...pagesByLotKey.values()].sort((left, right) => {
-    const leftTime = left?.lot?.date ? new Date(left.lot.date).getTime() : Number.MAX_SAFE_INTEGER;
-    const rightTime = right?.lot?.date ? new Date(right.lot.date).getTime() : Number.MAX_SAFE_INTEGER;
-    if (leftTime !== rightTime) return leftTime - rightTime;
-    return String(left?.lot?.batch || "").localeCompare(String(right?.lot?.batch || ""), "th");
-  });
-
-  return res.json({
-    meta: {
-      reportTitle: buildReportTitle(reportGroupCode),
-      reportGroupCode: reportGroupCode || null,
-      branchCode: toCleanText(branch.code),
-      branchNameOnly: toCleanText(branch.name) || "-",
-      branchLabel: `${toCleanText(branch.code) || "-"} : ${toCleanText(branch.name) || "-"}`,
-      productId: toCleanText(product.productId),
-      productCode: toCleanText(product.productCode),
-      product: toCleanText(product.tradeName) || "-",
-      packSize: toCleanText(product.packageSize) || "-",
-      reportReceiveUnitLabel:
-        extractPackagingContainerLabel(product.reportReceiveUnitLabel) ||
-        toCleanText(product.reportReceiveUnitLabel) ||
-        "-",
-      maker: toCleanText(product.manufacturerName) || "-",
-    },
-    pages,
-  });
+  const baseMeta = buildOrganicReportBaseMeta({ branch, product, reportGroupCode });
+  return res.json(buildOrganicLedgerReports({ dispenseRows, receiveSummaryByLotId, baseMeta }));
 }
