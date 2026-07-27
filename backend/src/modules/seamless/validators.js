@@ -161,9 +161,14 @@ function isUuid(value) {
   );
 }
 
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeString(value));
+}
+
 module.exports = {
   coerceReportDateKey,
   isUuid,
+  isValidEmail,
   normalizeBoolean,
   normalizeBranchCodes,
   normalizeLimit,

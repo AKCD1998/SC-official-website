@@ -11,6 +11,7 @@ const sccrmInternalRoutes = require("./routes/sccrmInternal");
 const loyaltyRoutes       = require("./routes/loyalty");
 const crmMembersRoutes    = require("./routes/crmMembers");
 const seamlessProcessingRecordRoutes = require("./routes/seamlessProcessingRecords");
+const seamlessAppRoutes = require("./src/modules/seamless/routes");
 const { r2Configured } = require("./lib/r2Storage");
 const rx1011Routes = require("./src/modules/rx1011/lazyRouter.cjs");
 const reactNJobRoutes = require("./src/modules/reactnjob");
@@ -68,13 +69,28 @@ app.use('/api', cors(corsOptions));
 app.use('/api/reactnjob', reactNJobRoutes());
 app.use('/api/digitalpjk', digitalPjkRoutes);
 app.use('/api/scglamliff', scGlamLiffRoutes);
-app.use(express.json());
+// verify hook captures the raw request body for every route so the seamless module's LINE
+// webhook can HMAC-verify x-line-signature — express.json() otherwise only exposes the
+// already-parsed object, and the raw bytes can't be reconstructed identically afterwards.
+app.use(express.json({
+  verify(req, res, buf) {
+    req.rawBody = buf;
+  },
+}));
 app.use('/api/sccrm', sccrmRoutes);
 app.use('/internal', sccrmInternalRoutes);
 app.use('/api/members', loyaltyRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/crm', crmMembersRoutes);
 app.use('/api/processing-records', seamlessProcessingRecordRoutes);
+// Seamless auto-print agent + workbook processing (docs/09-auto-print-agent-design.md and
+// docs/10-print-agent-tasks.md in the ClaspSCxSeamless repo) — ported here so it runs on this
+// already-paid Render service instead of a separate one. Mounts /api/agent/*, /api/app/*,
+// /api/files/*, /api/line/webhook, /api/workbooks/*, /api/bootstrap. Only /api/app/*,
+// /api/files/*, /api/workbooks/*, and /api/bootstrap sit behind appAuth (Basic or Bearer) —
+// scoped per-router inside seamlessAppRoutes itself, never applied globally, so the rest of
+// this backend's public routes are unaffected.
+app.use('/api', seamlessAppRoutes);
 
 // Slider image uploads — serve local disk fallback when R2 is not configured (dev)
 if (!r2Configured) {
