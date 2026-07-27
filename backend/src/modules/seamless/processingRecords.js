@@ -553,8 +553,11 @@ function createRouteHandler(handler) {
 module.exports = {
   createProcessingRecord,
   createRouteHandler,
+  findProcessingRecordByFilename,
+  getProcessingRecordById,
   inspectDatabaseContext,
   listProcessingRecords,
+  mapRecord,
   markPrinted,
   markUnprinted,
   requireInternalApiToken,
