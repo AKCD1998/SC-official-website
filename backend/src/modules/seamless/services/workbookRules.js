@@ -77,14 +77,29 @@ function compactHeaderText(value) {
   return normalizeHeaderText(value).replace(/\s+/g, "");
 }
 
+// ExcelJS's `cell.text` getter throws (rather than returning something falsy) for a merged
+// cell whose merge-master reference is broken/dangling — real branch workbooks that have been
+// hand-edited over the years hit this. `cell.text || cell.value` can't guard against that since
+// the getter itself throws before the `||` ever runs, so the access has to be wrapped.
+function safeCellText(cell) {
+  try {
+    if (cell.text) {
+      return cell.text;
+    }
+  } catch (error) {
+    // fall through to cell.value below
+  }
+  return cell.value;
+}
+
 function getCellText(worksheet, rowNumber, columnNumber) {
   const cell = worksheet.getRow(rowNumber).getCell(columnNumber);
-  return normalizeDisplayText(cell.text || cell.value);
+  return normalizeDisplayText(safeCellText(cell));
 }
 
 function getA1Text(worksheet, address) {
   const cell = worksheet.getCell(address);
-  return normalizeDisplayText(cell.text || cell.value);
+  return normalizeDisplayText(safeCellText(cell));
 }
 
 function findColumnByHeaderText(worksheet, headerText, options = {}) {
