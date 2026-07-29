@@ -39,12 +39,23 @@ function readLineConfig() {
   };
 }
 
+// Prefers the dedicated SEAMLESS_R2_* vars, but falls back to this Render service's existing
+// bare R2_* vars (already configured for the slider-image feature) so a working R2 setup
+// doesn't require adding brand-new env vars. SEAMLESS_R2_KEY_PREFIX still applies on top
+// regardless of which credential set is used, so Seamless's objects stay isolated by key path
+// even when sharing a bucket with slider images.
 function readR2Config() {
   return {
-    endpoint: String(process.env.SEAMLESS_R2_ENDPOINT || "").trim(),
-    accessKeyId: String(process.env.SEAMLESS_R2_ACCESS_KEY_ID || "").trim(),
-    secretAccessKey: String(process.env.SEAMLESS_R2_SECRET_ACCESS_KEY || "").trim(),
-    bucket: String(process.env.SEAMLESS_R2_BUCKET || "").trim(),
+    endpoint: String(process.env.SEAMLESS_R2_ENDPOINT || process.env.R2_ENDPOINT || "").trim(),
+    accessKeyId: String(
+      process.env.SEAMLESS_R2_ACCESS_KEY_ID || process.env.R2_ACCESS_KEY_ID || "",
+    ).trim(),
+    secretAccessKey: String(
+      process.env.SEAMLESS_R2_SECRET_ACCESS_KEY || process.env.R2_SECRET_ACCESS_KEY || "",
+    ).trim(),
+    bucket: String(
+      process.env.SEAMLESS_R2_BUCKET || process.env.R2_BUCKET || process.env.R2_BUCKET_NAME || "",
+    ).trim(),
     keyPrefix: String(process.env.SEAMLESS_R2_KEY_PREFIX || "clasp-scx-seamless").trim(),
     forcePathStyle: ["1", "true", "yes", "on"].includes(
       String(process.env.SEAMLESS_R2_FORCE_PATH_STYLE || "").trim().toLowerCase(),
