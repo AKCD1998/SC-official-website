@@ -95,6 +95,14 @@ async function getGeneratedFileById(id, client = null) {
 // had metadata.outputFileId populated — that field is only set by the real upload->process
 // pipeline. Falls back to the processing_record_id FK, preferring processed_xlsx (the intended
 // final print artifact) but accepting preview_workbook when that's all a legacy import has.
+//
+// storage_provider = 'google_drive' with a null storage_path is a real, separate case: some
+// legacy imports never had their file actually regenerated in this system at all — the
+// "generated file" row is just a placeholder carrying the original legacy Google Sheets edit
+// URL forward, not a real stored xlsx. Handing that URL to the print-agent would make it try to
+// download an HTML edit page instead of a spreadsheet, so those rows must be excluded here —
+// for those records there genuinely is no printable file, and callers must treat that as "no
+// output file" rather than attempting a bogus download.
 async function findLatestPrintableFileByProcessingRecordId(processingRecordId, client = null) {
   const db = executor(client);
   const tables = getTables();
@@ -103,6 +111,8 @@ async function findLatestPrintableFileByProcessingRecordId(processingRecordId, c
       SELECT * FROM ${tables.generatedFiles}
       WHERE processing_record_id = $1
         AND file_kind IN ('processed_xlsx', 'preview_workbook')
+        AND storage_provider IN ('r2', 'local')
+        AND storage_path IS NOT NULL
       ORDER BY (file_kind = 'processed_xlsx') DESC, created_at DESC
       LIMIT 1
     `,
