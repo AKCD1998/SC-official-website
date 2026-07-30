@@ -91,6 +91,31 @@ async function getGeneratedFileById(id, client = null) {
   return mapGeneratedFile(result.rows[0]);
 }
 
+// Records imported from the legacy ProcessingRegistry (most of the historical data set) never
+// had metadata.outputFileId populated — that field is only set by the real upload->process
+// pipeline. Falls back to the processing_record_id FK, preferring processed_xlsx (the intended
+// final print artifact) but accepting preview_workbook when that's all a legacy import has.
+async function findLatestPrintableFileByProcessingRecordId(processingRecordId, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `
+      SELECT * FROM ${tables.generatedFiles}
+      WHERE processing_record_id = $1
+        AND file_kind IN ('processed_xlsx', 'preview_workbook')
+      ORDER BY (file_kind = 'processed_xlsx') DESC, created_at DESC
+      LIMIT 1
+    `,
+    [processingRecordId],
+  );
+
+  if (!result.rows.length) {
+    return null;
+  }
+
+  return mapGeneratedFile(result.rows[0]);
+}
+
 async function findSourceUploadByChecksum(checksumSha256, client = null) {
   const db = executor(client);
   const tables = getTables();
@@ -179,6 +204,7 @@ async function updateGeneratedFile(id, patch, client = null) {
 
 module.exports = {
   createGeneratedFile,
+  findLatestPrintableFileByProcessingRecordId,
   findSourceUploadByChecksum,
   getGeneratedFileById,
   mapGeneratedFile,

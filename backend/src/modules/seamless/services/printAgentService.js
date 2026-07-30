@@ -9,17 +9,29 @@ const { readAutoPrintSince, readEmailConfig } = require("../config");
 const { conflict } = require("../errors");
 const { requireString } = require("../validators");
 
-async function resolveDownloadUrl(outputFileId) {
-  if (!outputFileId) {
-    return "";
+// metadata.outputFileId is only ever set by the real upload->process pipeline — records
+// imported from the legacy ProcessingRegistry never had it populated, so this falls back to
+// generated_files.processing_record_id (see findLatestPrintableFileByProcessingRecordId) rather
+// than sending an empty downloadUrl to the print-agent, which fails with "Failed to parse URL
+// from" when it tries to fetch it.
+async function resolveOutputFile(record) {
+  const metadataOutputFileId = (record.metadata && record.metadata.outputFileId) || "";
+
+  if (metadataOutputFileId) {
+    try {
+      const generatedFile = await generatedFileRepository.getGeneratedFileById(metadataOutputFileId);
+      return { outputFileId: generatedFile.id, downloadUrl: generatedFile.downloadUrl || "" };
+    } catch (error) {
+      // fall through to the processing_record_id lookup below
+    }
   }
 
-  try {
-    const generatedFile = await generatedFileRepository.getGeneratedFileById(outputFileId);
-    return generatedFile.downloadUrl || "";
-  } catch (error) {
-    return "";
+  const fallback = await generatedFileRepository.findLatestPrintableFileByProcessingRecordId(record.id);
+  if (!fallback) {
+    return { outputFileId: "", downloadUrl: "" };
   }
+
+  return { outputFileId: fallback.id, downloadUrl: fallback.downloadUrl || "" };
 }
 
 async function getPrintQueue() {
@@ -29,8 +41,7 @@ async function getPrintQueue() {
 
   for (const row of rows) {
     const record = processingRecords.mapRecord(row);
-    const outputFileId = (record.metadata && record.metadata.outputFileId) || "";
-    const downloadUrl = await resolveDownloadUrl(outputFileId);
+    const { outputFileId, downloadUrl } = await resolveOutputFile(record);
     const preview = await printJobRepository.getAttemptPreview(record.id);
 
     queue.push({
@@ -98,10 +109,21 @@ async function createAgentPrintJob(body = {}) {
       });
     }
 
+    let generatedFileId = body.generatedFileId || (record.metadata && record.metadata.outputFileId) || null;
+    if (!generatedFileId) {
+      // Legacy ProcessingRegistry imports never had metadata.outputFileId set — fall back to the
+      // processing_record_id FK so these records can still be printed (see resolveOutputFile).
+      const fallback = await generatedFileRepository.findLatestPrintableFileByProcessingRecordId(
+        processingRecordId,
+        client,
+      );
+      generatedFileId = fallback ? fallback.id : null;
+    }
+
     const job = await printJobRepository.createPrintJob(
       {
         processingRecordId,
-        generatedFileId: body.generatedFileId || (record.metadata && record.metadata.outputFileId) || null,
+        generatedFileId,
         agentHost: body.agentHost,
         printerName: body.printerName,
         documentUploadedAt: record.uploadedAt,
@@ -133,7 +155,14 @@ async function sendPrintEmailNotification(job, record) {
     };
   }
 
-  const outputFileId = job.generatedFileId || (record.metadata && record.metadata.outputFileId);
+  let outputFileId = job.generatedFileId || (record.metadata && record.metadata.outputFileId);
+
+  if (!outputFileId) {
+    // Print jobs created before this fallback existed may still have a null generated_file_id
+    // for legacy ProcessingRegistry imports — same fallback as resolveOutputFile/createAgentPrintJob.
+    const fallback = await generatedFileRepository.findLatestPrintableFileByProcessingRecordId(record.id);
+    outputFileId = fallback ? fallback.id : "";
+  }
 
   if (!outputFileId) {
     return { skipped: true, reason: "No output file recorded on this print job." };
