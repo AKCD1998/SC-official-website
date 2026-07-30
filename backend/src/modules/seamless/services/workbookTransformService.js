@@ -364,6 +364,15 @@ function copyWorksheet(sourceWorksheet, targetWorkbook, sheetName) {
     targetWorksheet.getColumn(index + 1).width = sourceColumn.width;
   });
 
+  // Copying cell values/styles above does not carry merged ranges — a merged header cell's
+  // "echoed" value read from its non-master cells gets copied as an independent literal value
+  // into every cell of the range, which then renders as a real, un-merged, visually duplicated
+  // header in the preview workbook (the actual multi-row header collapses into one merged cell
+  // in every other output, since only the preview workbook goes through copyWorksheet).
+  (sourceWorksheet.model.merges || []).forEach((range) => {
+    targetWorksheet.mergeCells(range);
+  });
+
   return targetWorksheet;
 }
 
