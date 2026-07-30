@@ -76,6 +76,8 @@ function mapRecord(row) {
     lineNotifyError: row.latest_line_notify_error || "",
     emailNotifiedAt: toIso(row.latest_email_notified_at),
     emailNotifyError: row.latest_email_notify_error || "",
+    printJobStatus: row.latest_print_status || "",
+    printScheduledFor: toIso(row.latest_print_scheduled_for),
   };
 }
 
@@ -159,10 +161,12 @@ async function listProcessingRecords(filters = {}, client = null) {
         latest_job.line_notified_at AS latest_line_notified_at,
         latest_job.line_notify_error AS latest_line_notify_error,
         latest_job.email_notified_at AS latest_email_notified_at,
-        latest_job.email_notify_error AS latest_email_notify_error
+        latest_job.email_notify_error AS latest_email_notify_error,
+        latest_job.status AS latest_print_status,
+        latest_job.scheduled_for AS latest_print_scheduled_for
       FROM ${tables.processingRecords} pr
       LEFT JOIN LATERAL (
-        SELECT line_notified_at, line_notify_error, email_notified_at, email_notify_error
+        SELECT line_notified_at, line_notify_error, email_notified_at, email_notify_error, status, scheduled_for
         FROM ${tables.printJobs}
         WHERE processing_record_id = pr.id
         ORDER BY created_at DESC

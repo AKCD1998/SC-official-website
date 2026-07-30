@@ -7,6 +7,14 @@ const ACTIVE_STATUSES = ["queued", "downloading", "sent_to_spooler", "printing"]
 const STALE_STATUSES = ["downloading", "sent_to_spooler", "printing"];
 const STALE_AFTER_MINUTES = 30;
 
+// Sequential per-document processing (see print-agent's runOnce) prevents two jobs from ever
+// running concurrently, but it does NOT guarantee any minimum real-world gap between when each
+// job actually reaches the printer — if several documents are already queued/ready when the
+// agent polls, it processes them back-to-back within the same run, seconds apart. That's what
+// caused physically confusing near-simultaneous print output. This constant is the minimum gap
+// enforced between any two jobs' scheduled_for times, globally, regardless of who created them.
+const PRINT_STAGGER_MINUTES = 3;
+
 function executor(client) {
   return client || pool;
 }
@@ -41,6 +49,7 @@ function mapPrintJob(row) {
     lineNotifyError: row.line_notify_error || "",
     emailNotifiedAt: toIso(row.email_notified_at),
     emailNotifyError: row.email_notify_error || "",
+    scheduledFor: toIso(row.scheduled_for),
     metadata: row.metadata || {},
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at),
@@ -99,7 +108,7 @@ async function listPrintQueueCandidates(autoPrintSince = null, client = null) {
         ($1::timestamptz IS NOT NULL AND pr.printed = false AND pr.uploaded_at >= $1::timestamptz)
         OR EXISTS (
           SELECT 1 FROM ${tables.printJobs} pj
-          WHERE pj.processing_record_id = pr.id AND pj.status = 'queued'
+          WHERE pj.processing_record_id = pr.id AND pj.status = 'queued' AND pj.scheduled_for <= now()
         )
       )
       AND NOT EXISTS (
@@ -168,12 +177,36 @@ async function claimQueuedJob(processingRecordId, claim, client = null) {
   return mapPrintJob(result.rows[0]);
 }
 
+// Computes this new job's fire time so it's always at least PRINT_STAGGER_MINUTES after
+// whichever not-yet-finished job is currently scheduled last — chaining rapid-fire requests into
+// an evenly spaced sequence instead of letting them all become immediately eligible at once.
+// Guarded by a global advisory lock (not scoped to a single processing record like the one in
+// createAgentPrintJob) so two concurrent requests for DIFFERENT documents can't both read the
+// same "last scheduled slot" and collide on the same fire time.
+async function computeScheduledFor(client) {
+  const db = executor(client);
+  const tables = getTables();
+  await db.query("SELECT pg_advisory_xact_lock(hashtext('seamless_print_schedule'))");
+  const result = await db.query(
+    `SELECT MAX(scheduled_for) AS last_scheduled_for FROM ${tables.printJobs} WHERE status = ANY($1)`,
+    [ACTIVE_STATUSES],
+  );
+  const lastScheduledFor = result.rows[0].last_scheduled_for;
+  const now = Date.now();
+  const earliestAfterLast = lastScheduledFor
+    ? new Date(lastScheduledFor).getTime() + PRINT_STAGGER_MINUTES * 60 * 1000
+    : now;
+
+  return new Date(Math.max(now, earliestAfterLast));
+}
+
 async function createPrintJob(job, client = null) {
   const db = executor(client);
   const tables = getTables();
   const processingRecordId = job.processingRecordId;
   const attemptNo = (await countPrintJobsForRecord(processingRecordId, client)) + 1;
   const isReprint = await hasCompletedPrintJob(processingRecordId, client);
+  const scheduledFor = await computeScheduledFor(client);
 
   const result = await db.query(
     `
@@ -188,9 +221,10 @@ async function createPrintJob(job, client = null) {
         agent_host,
         printer_name,
         document_uploaded_at,
+        scheduled_for,
         metadata
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb)
       RETURNING *
     `,
     [
@@ -204,6 +238,7 @@ async function createPrintJob(job, client = null) {
       normalizeString(job.agentHost) || null,
       normalizeString(job.printerName) || null,
       job.documentUploadedAt || null,
+      scheduledFor,
       JSON.stringify(job.metadata || {}),
     ],
   );
