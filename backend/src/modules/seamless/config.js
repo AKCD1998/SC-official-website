@@ -27,6 +27,22 @@ function readAppBasicCredentials() {
   };
 }
 
+// No dedicated SEAMLESS_SESSION_SECRET needs to be provisioned on Render for this to work —
+// it falls back to secrets that are already configured for this module, so login sessions work
+// immediately. Set SEAMLESS_SESSION_SECRET explicitly for a cleaner secret-separation story.
+function readSessionSecret() {
+  const { password } = readAppBasicCredentials();
+  return String(
+    process.env.SEAMLESS_SESSION_SECRET || readInternalApiToken() || password || "",
+  ).trim();
+}
+
+function readSessionCookieMaxAgeMs() {
+  const days = Number(process.env.SEAMLESS_SESSION_DAYS || 7);
+  const safeDays = Number.isFinite(days) && days > 0 ? days : 7;
+  return safeDays * 24 * 60 * 60 * 1000;
+}
+
 function readAutoPrintSince() {
   return String(process.env.SEAMLESS_AUTO_PRINT_SINCE || "").trim();
 }
@@ -88,5 +104,7 @@ module.exports = {
   readPublicBaseUrl,
   readR2Config,
   readSchemaName,
+  readSessionCookieMaxAgeMs,
+  readSessionSecret,
   readStorageDir,
 };

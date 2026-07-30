@@ -1,6 +1,7 @@
 const path = require("path");
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 dotenv.config();
 const sgMail = require("@sendgrid/mail");
@@ -65,6 +66,9 @@ const corsOptions = {
 // so preflight must be caught before it reaches individual routers.
 app.options('/api/*path', cors(corsOptions));
 app.use('/api', cors(corsOptions));
+// Only the seamless module's session-cookie login reads req.cookies today; parsing cookies
+// globally here is inert for every other route that doesn't use them.
+app.use(cookieParser());
 
 app.use('/api/reactnjob', reactNJobRoutes());
 app.use('/api/digitalpjk', digitalPjkRoutes);

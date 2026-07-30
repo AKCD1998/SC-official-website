@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 const { readAppBasicCredentials, readInternalApiToken } = require("../config");
 const { unauthorized } = require("../errors");
+const { hasValidSessionCookie } = require("./session");
 
 // Unlike ClaspSCxSeamless's own appAuth (which wraps the ENTIRE standalone app), this shared
 // backend serves many public, unrelated features. This middleware must only be mounted on the
@@ -57,6 +58,11 @@ function appAuth(req, res, next) {
   const { user: appBasicUser, password: appBasicPassword } = readAppBasicCredentials();
 
   if (!appBasicUser || !appBasicPassword) {
+    next();
+    return;
+  }
+
+  if (hasValidSessionCookie(req)) {
     next();
     return;
   }
