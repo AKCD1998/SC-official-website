@@ -83,8 +83,14 @@ function readStorageDir() {
   return String(process.env.SEAMLESS_STORAGE_DIR || "storage/seamless").trim();
 }
 
+// Falls back to Render's own auto-injected RENDER_EXTERNAL_URL (e.g.
+// https://sc-official-website.onrender.com) so download/view URLs come out as absolute links
+// without needing a new Render env var — required now that the client is a separate Static Site
+// from this API: a relative "/api/files/:id/download" resolves against whatever origin the link
+// is clicked from (the client's own site), not this API, so the client's own SPA fallback route
+// silently served its homepage instead of the file.
 function readPublicBaseUrl() {
-  return String(process.env.SEAMLESS_PUBLIC_BASE_URL || "").trim();
+  return String(process.env.SEAMLESS_PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || "").trim();
 }
 
 function readEmailConfig() {
