@@ -201,23 +201,27 @@ function applyBorders(worksheet, tableRange) {
 }
 
 // The legacy GAS pipeline never set this in code — no `pageSetup`/`orientation`/`landscape`
-// call exists anywhere in that source. Real legacy reference output files (verified directly)
-// all have orientation: 'landscape', fitToPage: false, fitToWidth/fitToHeight: 1, scale: 100,
-// paperSize: 9 (A4), margins 0.7/0.7/0.75/0.75 with header/footer 0 — so this was almost
-// certainly baked into a manually pre-configured Google Sheets print-settings dialog on a
-// template, which Sheets' own xlsx exporter then serialized automatically. The worksheet here
-// is loaded from the raw uploaded file's own bytes, whose pageSetup is sparse (only
-// fitToPage/margins, no orientation/fitToWidth/fitToHeight/scale at all) — set every field
-// explicitly rather than relying on the OOXML spec's implicit defaults for the missing ones.
+// call exists anywhere in that source; this was almost certainly baked into a manually
+// pre-configured Google Sheets print-settings dialog on a template, which Sheets' own xlsx
+// exporter then serialized automatically. The worksheet here is loaded from the raw uploaded
+// file's own bytes, whose pageSetup is sparse (only fitToPage/margins, no orientation at all)
+// — set every field explicitly rather than relying on the OOXML spec's implicit defaults.
+//
+// fitToPage/fitToWidth: 1/fitToHeight: 0 (not fitToPage: false + scale: 100) — the manual
+// column-width squeeze in workbookFormatting targets a fixed 9.6in printable width, but that's
+// a pixel-math estimate, not an exact guarantee against the real renderer's metrics. Confirmed
+// via a real reprocessed individual report: at fitToPage:false/scale:100 the last column
+// protruded onto a second page even though the squeeze had already run. fitToHeight: 0 leaves
+// vertical pages unconstrained so reports with many rows still paginate normally instead of
+// being squished onto one page tall.
 function applyPageSetup(worksheet) {
   worksheet.pageSetup = {
     ...worksheet.pageSetup,
     orientation: 'landscape',
     paperSize: 9, // A4
-    fitToPage: false,
+    fitToPage: true,
     fitToWidth: 1,
-    fitToHeight: 1,
-    scale: 100,
+    fitToHeight: 0,
     margins: {
       ...worksheet.pageSetup.margins,
       left: 0.7,

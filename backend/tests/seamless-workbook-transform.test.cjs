@@ -77,13 +77,14 @@ describe("seamless workbookTransformService", () => {
       const buffer = await workbook.xlsx.writeBuffer();
       const result = await transformWorkbook(Buffer.from(buffer), { requestedVariant: variant });
 
-      // Verified directly against real legacy reference output files — the raw uploaded
-      // workbook's own pageSetup never has these fields at all (portrait by omission).
+      // Verified directly against a real reprocessed report: fitToPage:false/scale:100
+      // let the last column protrude onto a second page for wide (individual) tables, so
+      // fitToPage/fitToWidth is used instead to guarantee the print engine always fits the
+      // page to one page wide, regardless of the manual column-width squeeze's estimate.
       expect(result.worksheet.pageSetup.orientation).toBe("landscape");
-      expect(result.worksheet.pageSetup.fitToPage).toBe(false);
+      expect(result.worksheet.pageSetup.fitToPage).toBe(true);
       expect(result.worksheet.pageSetup.fitToWidth).toBe(1);
-      expect(result.worksheet.pageSetup.fitToHeight).toBe(1);
-      expect(result.worksheet.pageSetup.scale).toBe(100);
+      expect(result.worksheet.pageSetup.fitToHeight).toBe(0);
       expect(result.worksheet.pageSetup.paperSize).toBe(9);
       expect(result.worksheet.pageSetup.margins).toEqual({
         left: 0.7,
