@@ -39,6 +39,8 @@ function mapPrintJob(row) {
     completedAt: toIso(row.completed_at),
     lineNotifiedAt: toIso(row.line_notified_at),
     lineNotifyError: row.line_notify_error || "",
+    emailNotifiedAt: toIso(row.email_notified_at),
+    emailNotifyError: row.email_notify_error || "",
     metadata: row.metadata || {},
     createdAt: toIso(row.created_at),
     updatedAt: toIso(row.updated_at),
@@ -251,6 +253,14 @@ async function updatePrintJob(id, patch, client = null) {
 
   if (Object.prototype.hasOwnProperty.call(patch, "lineNotifyError")) {
     set("line_notify_error", normalizeString(patch.lineNotifyError) || null);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch, "emailNotifiedAt")) {
+    set("email_notified_at", normalizeString(patch.emailNotifiedAt) || null);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(patch, "emailNotifyError")) {
+    set("email_notify_error", normalizeString(patch.emailNotifyError) || null);
   }
 
   if (Object.prototype.hasOwnProperty.call(patch, "metadata")) {

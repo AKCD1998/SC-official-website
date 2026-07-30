@@ -4,7 +4,7 @@ const { sendGeneratedFileEmail } = require("../services/emailService");
 const { getGeneratedFileById } = require("../db/generatedFileRepository");
 const { badRequest, notFound } = require("../errors");
 const { readEmailConfig } = require("../config");
-const { isValidEmail, normalizeString } = require("../validators");
+const { isValidEmailList, normalizeString } = require("../validators");
 
 async function downloadGeneratedFile(req, res) {
   const file = await getGeneratedFileById(req.params.id);
@@ -39,7 +39,7 @@ async function sendGeneratedFileByEmail(req, res) {
   const requestedTo = normalizeString(req.body && req.body.to);
   const to = requestedTo || readEmailConfig().docsRecipientEmail;
 
-  if (!to || !isValidEmail(to)) {
+  if (!to || !isValidEmailList(to)) {
     throw badRequest("A valid recipient email address is required.");
   }
 

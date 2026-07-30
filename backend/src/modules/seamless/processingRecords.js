@@ -33,6 +33,7 @@ function getTables() {
     `${schemaSql}.${quoteIdentifier(tableName, "table")}`;
 
   return {
+    printJobs: qualifyTable("print_jobs"),
     processingRecordBranchCodes: qualifyTable("processing_record_branch_codes"),
     processingRecords: qualifyTable("processing_records"),
   };
@@ -71,6 +72,10 @@ function mapRecord(row) {
     lastAction: row.last_action || "",
     branchCodes: row.legacy_branch_codes || "",
     metadata: row.metadata || {},
+    lineNotifiedAt: toIso(row.latest_line_notified_at),
+    lineNotifyError: row.latest_line_notify_error || "",
+    emailNotifiedAt: toIso(row.latest_email_notified_at),
+    emailNotifyError: row.latest_email_notify_error || "",
   };
 }
 
@@ -149,10 +154,22 @@ async function listProcessingRecords(filters = {}, client = null) {
 
   const result = await db.query(
     `
-      SELECT *
-      FROM ${tables.processingRecords}
-      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY COALESCE(uploaded_at, updated_at, created_at) DESC
+      SELECT
+        pr.*,
+        latest_job.line_notified_at AS latest_line_notified_at,
+        latest_job.line_notify_error AS latest_line_notify_error,
+        latest_job.email_notified_at AS latest_email_notified_at,
+        latest_job.email_notify_error AS latest_email_notify_error
+      FROM ${tables.processingRecords} pr
+      LEFT JOIN LATERAL (
+        SELECT line_notified_at, line_notify_error, email_notified_at, email_notify_error
+        FROM ${tables.printJobs}
+        WHERE processing_record_id = pr.id
+        ORDER BY created_at DESC
+        LIMIT 1
+      ) latest_job ON true
+      ${where.length ? `WHERE ${where.map((clause) => `pr.${clause}`).join(" AND ")}` : ""}
+      ORDER BY COALESCE(pr.uploaded_at, pr.updated_at, pr.created_at) DESC
       LIMIT ${limitPlaceholder}
     `,
     params,

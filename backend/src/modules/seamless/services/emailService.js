@@ -1,6 +1,7 @@
 const sgMail = require("@sendgrid/mail");
 const { readEmailConfig } = require("../config");
 const { badRequest } = require("../errors");
+const { parseEmailList } = require("../validators");
 
 let configuredApiKey = "";
 
@@ -25,9 +26,14 @@ function ensureConfigured() {
 
 async function sendGeneratedFileEmail({ to, subject, text, filename, mimeType, buffer }) {
   const emailConfig = ensureConfigured();
+  const recipients = parseEmailList(to);
+
+  if (!recipients.length) {
+    throw badRequest("A valid recipient email address is required.");
+  }
 
   const msg = {
-    to,
+    to: recipients,
     from: {
       email: emailConfig.mailFrom,
       name: "ClaspSCxSeamless",

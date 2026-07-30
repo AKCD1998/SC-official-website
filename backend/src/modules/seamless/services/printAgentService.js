@@ -3,7 +3,9 @@ const printJobRepository = require("../db/printJobRepository");
 const processingRecords = require("../processingRecords");
 const generatedFileRepository = require("../db/generatedFileRepository");
 const { sendPrintNotification } = require("./lineNotifyService");
-const { readAutoPrintSince } = require("../config");
+const { sendGeneratedFileEmail } = require("./emailService");
+const { readStoredFile } = require("./fileStorageService");
+const { readAutoPrintSince, readEmailConfig } = require("../config");
 const { conflict } = require("../errors");
 const { requireString } = require("../validators");
 
@@ -121,26 +123,83 @@ async function updateAgentPrintJob(id, patch = {}) {
   return printJobRepository.updatePrintJob(id, patch);
 }
 
+async function sendPrintEmailNotification(job, record) {
+  const emailConfig = readEmailConfig();
+
+  if (!emailConfig.sendgridApiKey || !emailConfig.mailFrom || !emailConfig.docsRecipientEmail) {
+    return {
+      skipped: true,
+      reason: "SENDGRID_API_KEY, MAIL_USER, or SEAMLESS_DOCS_RECIPIENT_EMAIL is not configured.",
+    };
+  }
+
+  const outputFileId = job.generatedFileId || (record.metadata && record.metadata.outputFileId);
+
+  if (!outputFileId) {
+    return { skipped: true, reason: "No output file recorded on this print job." };
+  }
+
+  const generatedFile = await generatedFileRepository.getGeneratedFileById(outputFileId);
+  const buffer = await readStoredFile(generatedFile.storageProvider, generatedFile.storagePath);
+
+  await sendGeneratedFileEmail({
+    to: emailConfig.docsRecipientEmail,
+    subject: `[ClaspSCxSeamless] ปริ้นเอกสารส่งพี่เอแล้ว: ${record.filename}`,
+    text: `ไฟล์ ${record.filename} ปริ้นเสร็จแล้วที่เครื่อง ${job.agentHost || "-"} (${job.printerName || "-"})`,
+    filename: generatedFile.filename,
+    mimeType: generatedFile.mimeType,
+    buffer,
+  });
+
+  return { skipped: false };
+}
+
 async function completeAgentPrintJob(id) {
   const job = await printJobRepository.updatePrintJob(id, {
     status: "completed",
     completedAt: new Date().toISOString(),
   });
   const record = await processingRecords.markPrinted(job.processingRecordId, "auto-print-agent");
+  const notifyRecord = record.record || record;
 
   let lineResult;
   try {
-    lineResult = await sendPrintNotification(job, record.record || record);
+    lineResult = await sendPrintNotification(job, notifyRecord);
   } catch (error) {
     lineResult = { skipped: true, reason: error.message };
   }
 
-  const notifyPatch = lineResult && lineResult.skipped
-    ? { lineNotifyError: lineResult.reason || "skipped" }
-    : { lineNotifiedAt: new Date().toISOString() };
+  let emailResult;
+  try {
+    emailResult = await sendPrintEmailNotification(job, notifyRecord);
+  } catch (error) {
+    emailResult = { skipped: true, reason: error.message };
+  }
+
+  if (emailResult.skipped) {
+    // Surfaced through listProcessingRecords -> the history dashboard, per the accountant-facing
+    // requirement that a failed automatic email must be visible somewhere, not just a silent DB
+    // field nobody looks at (unlike the pre-existing LINE-only lineNotifyError column).
+    console.error(`[printAgentService] email notify for print job ${id} was skipped: ${emailResult.reason}`);
+  }
+
+  const notifyPatch = {
+    ...(lineResult && lineResult.skipped
+      ? { lineNotifyError: lineResult.reason || "skipped" }
+      : { lineNotifiedAt: new Date().toISOString() }),
+    ...(emailResult && emailResult.skipped
+      ? { emailNotifyError: emailResult.reason || "skipped" }
+      : { emailNotifiedAt: new Date().toISOString() }),
+  };
   const finalJob = await printJobRepository.updatePrintJob(id, notifyPatch);
 
-  return { ok: true, job: finalJob, record: record.record || record, lineNotify: lineResult };
+  return {
+    ok: true,
+    job: finalJob,
+    record: notifyRecord,
+    lineNotify: lineResult,
+    emailNotify: emailResult,
+  };
 }
 
 module.exports = {

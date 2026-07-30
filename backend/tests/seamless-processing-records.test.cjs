@@ -72,7 +72,10 @@ async function mockQuery(sql, params = []) {
     };
   }
 
-  if (text.startsWith("SELECT * FROM \"clasp_scx_seamless\".\"processing_records\"")) {
+  if (
+    text.startsWith("SELECT * FROM \"clasp_scx_seamless\".\"processing_records\"") ||
+    (text.startsWith("SELECT pr.*,") && text.includes("FROM \"clasp_scx_seamless\".\"processing_records\" pr"))
+  ) {
     let rows = state.records.slice();
 
     if (text.includes("legacy_registry_id = $1")) {
