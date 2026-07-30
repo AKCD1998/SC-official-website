@@ -2,6 +2,7 @@ const ExcelJS = require('exceljs');
 const {
   HIGHLIGHT_HEADERS,
   TARGET_HEADERS_TO_DELETE,
+  buildOutputFilename,
   findColumnByHeaderText,
   getCellText,
   normalizeHeaderText,
@@ -12,6 +13,7 @@ const {
   applyRowHeights: applyCalculatedRowHeights,
   buildSheetModel,
   calculateColumnWidths,
+  columnLetter,
   deleteColumnsPreservingMerges,
   findFirstHeaderRowInRange,
   findLastNonEmptyRowInRange,
@@ -198,6 +200,84 @@ function applyBorders(worksheet, tableRange) {
   }
 }
 
+// The legacy GAS pipeline never set this in code — no `pageSetup`/`orientation`/`landscape`
+// call exists anywhere in that source. Real legacy reference output files (verified directly)
+// all have orientation: 'landscape', fitToPage: false, fitToWidth/fitToHeight: 1, scale: 100,
+// paperSize: 9 (A4), margins 0.7/0.7/0.75/0.75 with header/footer 0 — so this was almost
+// certainly baked into a manually pre-configured Google Sheets print-settings dialog on a
+// template, which Sheets' own xlsx exporter then serialized automatically. The worksheet here
+// is loaded from the raw uploaded file's own bytes, whose pageSetup is sparse (only
+// fitToPage/margins, no orientation/fitToWidth/fitToHeight/scale at all) — set every field
+// explicitly rather than relying on the OOXML spec's implicit defaults for the missing ones.
+function applyPageSetup(worksheet) {
+  worksheet.pageSetup = {
+    ...worksheet.pageSetup,
+    orientation: 'landscape',
+    paperSize: 9, // A4
+    fitToPage: false,
+    fitToWidth: 1,
+    fitToHeight: 1,
+    scale: 100,
+    margins: {
+      ...worksheet.pageSetup.margins,
+      left: 0.7,
+      right: 0.7,
+      top: 0.75,
+      bottom: 0.75,
+      header: 0,
+      footer: 0,
+    },
+  };
+}
+
+// buildOutputFilename() already resolves branchCode/parsedDate per variant (HCODE-column scan
+// for individual, C3/C11 or fallback scan for summary) — reused here rather than re-deriving,
+// so the title always agrees with whatever the actual output filename says.
+function formatDisplayDate(isoDate) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate || '');
+  return match ? `${match[3]}/${match[2]}/${match[1]}` : '';
+}
+
+function buildReportTitleText(worksheet, variant) {
+  // originalFilename only affects buildOutputFilename's fallback *filename* string, which we
+  // never read here — only .branchCode/.parsedDate — so a fixed placeholder is fine.
+  const metadata = buildOutputFilename(worksheet, 'workbook.xlsx', variant);
+  const label = variant === 'summary' ? 'สรุป' : 'รายคน';
+  const branchPart = metadata.branchCode ? `สาขา ${metadata.branchCode}` : '';
+  const datePart = metadata.parsedDate ? `วันที่ ${formatDisplayDate(metadata.parsedDate)}` : '';
+
+  return [label, branchPart, datePart].filter(Boolean).join(' ');
+}
+
+// So the accountant can immediately tell what a document is without opening the row-8+ table.
+// Positioned to the right of the existing B2:C5-ish metadata block, rows 1-N — N stops one row
+// before each variant's real header table starts (row 8 for individual, row 5 for summary), so
+// it never overlaps real header content. Spans dynamically to the sheet's actual last column
+// rather than a hardcoded letter, since individual/summary end at different columns.
+function applyReportTitle(worksheet, variant, bounds, warnings) {
+  try {
+    const startColumn = 8; // column H — clear of the metadata labels/values in columns B-C
+    const endRow = variant === 'summary' ? 4 : 5;
+    const endColumn = Math.max(startColumn, bounds.right);
+    const titleText = buildReportTitleText(worksheet, variant);
+
+    if (!titleText) {
+      return;
+    }
+
+    const range = `${columnLetter(startColumn)}1:${columnLetter(endColumn)}${endRow}`;
+    worksheet.mergeCells(range);
+
+    const cell = worksheet.getCell(`${columnLetter(startColumn)}1`);
+    cell.value = titleText;
+    cell.font = { bold: true, size: 48, name: 'AngsanaUPC' };
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
+  } catch (error) {
+    // Cosmetic addition — never let it break the actual document processing.
+    warnings.push(`Could not add the report title banner: ${error.message}`);
+  }
+}
+
 function getHeaderRowsForVariant(variant) {
   return variant === 'summary' ? SUMMARY_HEADER_ROWS : INDIVIDUAL_HEADER_ROWS;
 }
@@ -330,6 +410,8 @@ async function transformWorkbook(buffer, options) {
   }
 
   worksheet.views = [{ state: 'frozen', ySplit: Math.max(...headerRows) }];
+  applyPageSetup(worksheet);
+  applyReportTitle(worksheet, effectiveVariant, bounds, warnings);
 
   workbook.worksheets
     .filter((sheet) => sheet.id !== worksheet.id)

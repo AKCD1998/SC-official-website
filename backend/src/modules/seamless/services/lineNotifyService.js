@@ -30,29 +30,120 @@ function formatTimestamp(isoString) {
   return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}`;
 }
 
-function buildMessageText(job, record) {
-  const dateLine = record.branchCodes
-    ? `วันที่รายงาน: ${formatReportDateKey(record.reportDate)} | สาขา ${record.branchCodes}`
-    : `วันที่รายงาน: ${formatReportDateKey(record.reportDate)}`;
+// LINE's plain `type: "text"` messages don't render Markdown — "**bold**" shows as literal
+// asterisks. Real bold/spacing needs a Flex Message (a JSON layout tree LINE renders natively).
+function buildFieldRow(emoji, label, value) {
+  return {
+    type: "box",
+    layout: "baseline",
+    spacing: "sm",
+    contents: [
+      { type: "text", text: `${emoji} ${label}:`, weight: "bold", size: "sm", flex: 4, wrap: true },
+      { type: "text", text: String(value || "-"), size: "sm", flex: 6, wrap: true },
+    ],
+  };
+}
 
-  const lines = [
-    "📄 ปริ้นเอกสารส่งพี่เอแล้ว",
-    `ไฟล์: ${record.filename}`,
-    dateLine,
-    `ปริ้นเมื่อ: ${formatTimestamp(job.completedAt)}`,
-    `เครื่องปริ้น: ${job.printerName || "-"} (${job.agentHost || "-"})`,
-    "สถานะ: สำเร็จ ✅",
-    "กรุณารับเอกสารที่เครื่องปริ้น หากหาไม่พบสามารถกดขอปริ้นใหม่ในเว็บได้",
-    "(การขอปริ้นใหม่จะถูกบันทึกเป็นสถิติการจัดการเอกสารของทีม)",
+function buildFlexContents(job, record) {
+  const bodyContents = [
+    {
+      type: "text",
+      text: "📄 ปริ้นเอกสารส่งพี่เอแล้ว",
+      weight: "bold",
+      size: "lg",
+      wrap: true,
+    },
+    { type: "separator", margin: "md" },
+    {
+      type: "box",
+      layout: "vertical",
+      margin: "md",
+      spacing: "sm",
+      contents: [
+        buildFieldRow("📁", "ไฟล์", record.filename),
+        buildFieldRow("📅", "วันที่รายงาน", formatReportDateKey(record.reportDate)),
+        ...(record.branchCodes ? [buildFieldRow("🏪", "สาขา", record.branchCodes)] : []),
+      ],
+    },
+    { type: "separator", margin: "md" },
+    {
+      type: "box",
+      layout: "vertical",
+      margin: "md",
+      spacing: "sm",
+      contents: [
+        buildFieldRow("🖨️", "ปริ้นเมื่อ", formatTimestamp(job.completedAt)),
+        buildFieldRow("🖨️", "เครื่องปริ้น", `${job.printerName || "-"} (${job.agentHost || "-"})`),
+      ],
+    },
+    { type: "separator", margin: "md" },
+    {
+      type: "text",
+      text: "✅ สถานะ: สำเร็จ",
+      weight: "bold",
+      color: "#0A7A3D",
+      margin: "md",
+      wrap: true,
+    },
+    {
+      type: "text",
+      text: 'กรุณารับเอกสารที่เครื่องปริ้น หากหาไม่พบ สามารถกด "ขอปริ้นใหม่" ในเว็บไซต์ได้',
+      wrap: true,
+      size: "sm",
+      margin: "md",
+    },
+    {
+      type: "text",
+      text: "📝 การขอปริ้นใหม่จะถูกบันทึกเป็นสถิติการจัดการเอกสารของทีม",
+      wrap: true,
+      size: "xs",
+      color: "#888888",
+      margin: "sm",
+    },
   ];
 
   if (job.isReprint) {
-    lines.push(
-      `⚠️ นี่คือการปริ้นซ้ำครั้งที่ ${job.attemptNo} ของเอกสารนี้ (เหตุผล: ${job.reprintReason || "ไม่ระบุ"})`,
+    bodyContents.push(
+      { type: "separator", margin: "md" },
+      {
+        type: "box",
+        layout: "vertical",
+        margin: "md",
+        spacing: "xs",
+        contents: [
+          { type: "text", text: "⚠️ หมายเหตุ", weight: "bold", color: "#A33124", wrap: true },
+          {
+            type: "text",
+            text: `นี่คือการปริ้นซ้ำครั้งที่ ${job.attemptNo} ของเอกสารนี้`,
+            wrap: true,
+            size: "sm",
+          },
+          {
+            type: "text",
+            text: `เหตุผล: ${job.reprintReason || "ไม่ระบุ"}`,
+            wrap: true,
+            size: "sm",
+          },
+        ],
+      },
     );
   }
 
-  return lines.join("\n");
+  return {
+    type: "bubble",
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: bodyContents,
+    },
+  };
+}
+
+// Shown in push notification previews and by any LINE client that can't render Flex —
+// must stay short, plain text, no formatting.
+function buildAltText(job, record) {
+  const status = job.isReprint ? `ปริ้นซ้ำครั้งที่ ${job.attemptNo}` : "ปริ้นสำเร็จ";
+  return `📄 ${record.filename} — ${status}`;
 }
 
 async function sendPrintNotification(job, record) {
@@ -73,7 +164,13 @@ async function sendPrintNotification(job, record) {
     },
     body: JSON.stringify({
       to: lineConfig.targetId,
-      messages: [{ type: "text", text: buildMessageText(job, record) }],
+      messages: [
+        {
+          type: "flex",
+          altText: buildAltText(job, record),
+          contents: buildFlexContents(job, record),
+        },
+      ],
     }),
   });
 

@@ -622,6 +622,7 @@ module.exports = {
   buildSheetModel,
   calculateColumnWidths,
   calculateRequiredRowHeights,
+  columnLetter,
   deleteColumnsPreservingMerges,
   findFirstHeaderRowInRange,
   findLastNonEmptyRowInRange,

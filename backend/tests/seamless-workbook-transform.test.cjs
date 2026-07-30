@@ -46,4 +46,68 @@ describe("seamless workbookTransformService", () => {
     expect(copiedSheet.getCell("A9").master.address).toBe("A8");
     expect(copiedSheet.getCell("A10").master.address).toBe("A8");
   });
+
+  test.each(["individual", "summary"])(
+    "transformWorkbook sets landscape page setup matching the legacy reference output (%s)",
+    async (variant) => {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet("Sheet1");
+      sheet.getRow(5).getCell(1).value = "ATK";
+      sheet.getRow(8).getCell(1).value = "HCODE";
+      sheet.getRow(9).getCell(1).value = "D1180";
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const result = await transformWorkbook(Buffer.from(buffer), { requestedVariant: variant });
+
+      // Verified directly against real legacy reference output files — the raw uploaded
+      // workbook's own pageSetup never has these fields at all (portrait by omission).
+      expect(result.worksheet.pageSetup.orientation).toBe("landscape");
+      expect(result.worksheet.pageSetup.fitToPage).toBe(false);
+      expect(result.worksheet.pageSetup.fitToWidth).toBe(1);
+      expect(result.worksheet.pageSetup.fitToHeight).toBe(1);
+      expect(result.worksheet.pageSetup.scale).toBe(100);
+      expect(result.worksheet.pageSetup.paperSize).toBe(9);
+      expect(result.worksheet.pageSetup.margins).toEqual({
+        left: 0.7,
+        right: 0.7,
+        top: 0.75,
+        bottom: 0.75,
+        header: 0,
+        footer: 0,
+      });
+    },
+  );
+
+  test("transformWorkbook adds a report title banner for individual reports (branch + date, no header overlap)", async () => {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Sheet1");
+    sheet.getCell("C5").value = "2569/กรกฎาคม   27";
+    sheet.getRow(8).getCell(1).value = "HCODE";
+    sheet.getRow(9).getCell(1).value = "D5811";
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const result = await transformWorkbook(Buffer.from(buffer), { requestedVariant: "individual" });
+
+    expect(result.worksheet.getCell("H1").value).toBe("รายคน สาขา 004 วันที่ 27/07/2026");
+    expect(result.worksheet.getCell("H1").font).toMatchObject({ bold: true, size: 48 });
+    // Individual's real header starts at row 8 — the title must stay within rows 1-5.
+    expect(result.worksheet.model.merges.some((range) => /^H1:[A-Z]+5$/.test(range))).toBe(true);
+  });
+
+  test("transformWorkbook adds a report title banner for summary reports (branch + date, no header overlap)", async () => {
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Sheet1");
+    sheet.getCell("C3").value = "29/07/2569 เวลา 16:56";
+    sheet.getCell("C11").value = "D5811";
+    // ATK sits well to the right of C3/C11 — collectSummaryColumnMatches deletes ATK and
+    // everything to its right, so placing it at column 1 would wipe out the C3/C11 fixture data.
+    sheet.getRow(5).getCell(10).value = "ATK";
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const result = await transformWorkbook(Buffer.from(buffer), { requestedVariant: "summary" });
+
+    expect(result.worksheet.getCell("H1").value).toBe("สรุป สาขา 004 วันที่ 29/07/2026");
+    // Summary's real header starts at row 5 — the title must stop at row 4, not overlap it.
+    expect(result.worksheet.model.merges.some((range) => /^H1:[A-Z]+4$/.test(range))).toBe(true);
+  });
 });
