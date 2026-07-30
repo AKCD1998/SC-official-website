@@ -455,6 +455,14 @@ function copyWorksheet(sourceWorksheet, targetWorkbook, sheetName) {
     targetWorksheet.mergeCells(range);
   });
 
+  // Same gap as merges: pageSetup (landscape orientation, margins, scale) and the frozen-pane
+  // view are worksheet-level properties, not per-cell — copying cells/columns/merges above never
+  // carries them, so the preview workbook (the file users actually see/print first) silently
+  // reverted to Portrait even though the processed_xlsx output (built directly on the source
+  // worksheet, no copy involved) was correctly landscape.
+  targetWorksheet.pageSetup = JSON.parse(JSON.stringify(sourceWorksheet.pageSetup || {}));
+  targetWorksheet.views = JSON.parse(JSON.stringify(sourceWorksheet.views || []));
+
   return targetWorksheet;
 }
 
