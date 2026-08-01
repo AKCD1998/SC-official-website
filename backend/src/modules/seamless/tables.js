@@ -20,6 +20,9 @@ function getTables() {
   return {
     generatedFiles: qualifyTable("generated_files"),
     operationLogs: qualifyTable("operation_logs"),
+    pharmcareDocuments: qualifyTable("pharmcare_documents"),
+    pharmcareEmailAttachments: qualifyTable("pharmcare_email_attachments"),
+    pharmcareEmailMessages: qualifyTable("pharmcare_email_messages"),
     previewSheets: qualifyTable("preview_sheets"),
     printJobs: qualifyTable("print_jobs"),
     processingBatches: qualifyTable("processing_batches"),
