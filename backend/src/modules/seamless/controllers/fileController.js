@@ -13,12 +13,14 @@ async function downloadGeneratedFile(req, res) {
     throw notFound(`Generated file has no storage path for id: ${req.params.id}`);
   }
 
+  const bucket = file.metadata?.storageBucket || undefined;
+
   let stream;
   try {
     if (file.storageProvider !== "r2") {
       await fs.access(file.storagePath);
     }
-    stream = await createStoredFileStream(file.storageProvider, file.storagePath);
+    stream = await createStoredFileStream(file.storageProvider, file.storagePath, bucket);
   } catch (error) {
     throw notFound(`Generated file content not found for id: ${req.params.id}`);
   }
@@ -45,7 +47,8 @@ async function sendGeneratedFileByEmail(req, res) {
 
   let buffer;
   try {
-    buffer = await readStoredFile(file.storageProvider, file.storagePath);
+    const bucket = file.metadata?.storageBucket || undefined;
+    buffer = await readStoredFile(file.storageProvider, file.storagePath, bucket);
   } catch (error) {
     throw notFound(`Generated file content not found for id: ${req.params.id}`);
   }

@@ -38,11 +38,11 @@ function buildKey(kind, uniqueName) {
   return `${prefix}/${kind}/${uniqueName}`;
 }
 
-async function uploadBuffer(key, buffer, mimeType) {
+async function uploadBuffer(key, buffer, mimeType, bucket) {
   const { client, r2 } = buildClient();
   await client.send(
     new PutObjectCommand({
-      Bucket: r2.bucket,
+      Bucket: bucket || r2.bucket,
       Key: key,
       Body: buffer,
       ContentType: mimeType || "application/octet-stream",
@@ -50,14 +50,14 @@ async function uploadBuffer(key, buffer, mimeType) {
   );
 }
 
-async function getObjectStream(key) {
+async function getObjectStream(key, bucket) {
   const { client, r2 } = buildClient();
-  const result = await client.send(new GetObjectCommand({ Bucket: r2.bucket, Key: key }));
+  const result = await client.send(new GetObjectCommand({ Bucket: bucket || r2.bucket, Key: key }));
   return result.Body;
 }
 
-async function getObjectBuffer(key) {
-  const stream = await getObjectStream(key);
+async function getObjectBuffer(key, bucket) {
+  const stream = await getObjectStream(key, bucket);
   const chunks = [];
 
   for await (const chunk of stream) {

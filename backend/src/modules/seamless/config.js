@@ -72,6 +72,7 @@ function readR2Config() {
     bucket: String(
       process.env.SEAMLESS_R2_BUCKET || process.env.R2_BUCKET || process.env.R2_BUCKET_NAME || "",
     ).trim(),
+    shopeeBucket: String(process.env.SHOPEE_R2_BUCKET || "").trim(),
     keyPrefix: String(process.env.SEAMLESS_R2_KEY_PREFIX || "clasp-scx-seamless").trim(),
     forcePathStyle: ["1", "true", "yes", "on"].includes(
       String(process.env.SEAMLESS_R2_FORCE_PATH_STYLE || "").trim().toLowerCase(),

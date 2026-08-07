@@ -2,7 +2,7 @@ const crypto = require("node:crypto");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { createReadStream } = require("node:fs");
-const { readPublicBaseUrl, readStorageDir } = require("../config");
+const { readPublicBaseUrl, readR2Config, readStorageDir } = require("../config");
 const r2Storage = require("./r2StorageService");
 
 function storageRoot() {
@@ -29,17 +29,19 @@ function sha256(buffer) {
   return crypto.createHash("sha256").update(buffer).digest("hex");
 }
 
-async function writeStoredFile(kind, filename, buffer) {
+async function writeStoredFile(kind, filename, buffer, options = {}) {
   const uniqueName = `${Date.now()}-${crypto.randomUUID()}-${safeSegment(filename)}`;
   const checksumSha256 = sha256(buffer);
 
   if (r2Storage.r2Configured) {
     const key = r2Storage.buildKey(safeSegment(kind), uniqueName);
-    await r2Storage.uploadBuffer(key, buffer);
+    const bucket = options.bucket || undefined;
+    await r2Storage.uploadBuffer(key, buffer, undefined, bucket);
 
     return {
       storageProvider: "r2",
       storagePath: key,
+      storageBucket: bucket || readR2Config().bucket,
       fileSizeBytes: buffer.length,
       checksumSha256,
     };
@@ -52,22 +54,23 @@ async function writeStoredFile(kind, filename, buffer) {
   return {
     storageProvider: "local",
     storagePath: filePath,
+    storageBucket: "",
     fileSizeBytes: buffer.length,
     checksumSha256,
   };
 }
 
-async function readStoredFile(storageProvider, storagePath) {
+async function readStoredFile(storageProvider, storagePath, bucket) {
   if (storageProvider === "r2") {
-    return r2Storage.getObjectBuffer(storagePath);
+    return r2Storage.getObjectBuffer(storagePath, bucket);
   }
 
   return fs.readFile(storagePath);
 }
 
-async function createStoredFileStream(storageProvider, storagePath) {
+async function createStoredFileStream(storageProvider, storagePath, bucket) {
   if (storageProvider === "r2") {
-    return r2Storage.getObjectStream(storagePath);
+    return r2Storage.getObjectStream(storagePath, bucket);
   }
 
   return createReadStream(storagePath);
