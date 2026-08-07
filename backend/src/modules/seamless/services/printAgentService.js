@@ -169,7 +169,8 @@ async function sendPrintEmailNotification(job, record) {
   }
 
   const generatedFile = await generatedFileRepository.getGeneratedFileById(outputFileId);
-  const buffer = await readStoredFile(generatedFile.storageProvider, generatedFile.storagePath);
+  const bucket = generatedFile.metadata?.storageBucket || undefined;
+  const buffer = await readStoredFile(generatedFile.storageProvider, generatedFile.storagePath, bucket);
 
   await sendGeneratedFileEmail({
     to: emailConfig.docsRecipientEmail,

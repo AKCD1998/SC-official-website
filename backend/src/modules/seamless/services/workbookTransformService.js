@@ -1,4 +1,5 @@
 const ExcelJS = require('exceljs');
+const { badRequest } = require('../errors');
 const {
   HIGHLIGHT_HEADERS,
   TARGET_HEADERS_TO_DELETE,
@@ -19,11 +20,16 @@ const {
   findLastNonEmptyRowInRange,
   fitColumnWidthsToPrintableWidth,
 } = require('./workbookFormatting');
+const { isShopeeWorksheet, transformShopeeWorkbook } = require('./shopeeWorkbookTransform');
 
 const INDIVIDUAL_HEADER_ROWS = [8, 9, 10];
 const SUMMARY_HEADER_ROWS = [5, 6, 7, 8, 9, 10];
 
 function detectWorkbookVariant(worksheet) {
+  if (isShopeeWorksheet(worksheet)) {
+    return 'shopee';
+  }
+
   const sheetName = normalizeHeaderText(worksheet.name).toLowerCase();
   if (sheetName === 'summary' || sheetName === 'sum') {
     return 'summary';
@@ -364,12 +370,23 @@ async function loadWorkbook(buffer) {
   return workbook;
 }
 
-async function transformWorkbook(buffer, options) {
+async function transformWorkbook(buffer, options = {}) {
   const workbook = await loadWorkbook(buffer);
   const worksheet = workbook.worksheets[0];
   const warnings = [];
   const detectedVariant = detectWorkbookVariant(worksheet);
   const effectiveVariant = options.requestedVariant || detectedVariant;
+
+  if (effectiveVariant === 'shopee' || detectedVariant === 'shopee') {
+    if (detectedVariant === 'shopee' && effectiveVariant !== 'shopee') {
+      throw badRequest('This file is a Shopee order export. Please upload it from the Shopee page.', {
+        detectedVariant,
+        requestedVariant: effectiveVariant,
+      });
+    }
+
+    return transformShopeeWorkbook(workbook, options);
+  }
 
   if (options.requestedVariant && options.requestedVariant !== detectedVariant) {
     warnings.push(
@@ -466,6 +483,11 @@ function copyWorksheet(sourceWorksheet, targetWorkbook, sheetName) {
   // worksheet, no copy involved) was correctly landscape.
   targetWorksheet.pageSetup = JSON.parse(JSON.stringify(sourceWorksheet.pageSetup || {}));
   targetWorksheet.views = JSON.parse(JSON.stringify(sourceWorksheet.views || []));
+  targetWorksheet.headerFooter = JSON.parse(JSON.stringify(sourceWorksheet.headerFooter || {}));
+  targetWorksheet.properties = JSON.parse(JSON.stringify(sourceWorksheet.properties || {}));
+  targetWorksheet.autoFilter = sourceWorksheet.autoFilter
+    ? JSON.parse(JSON.stringify(sourceWorksheet.autoFilter))
+    : null;
 
   return targetWorksheet;
 }

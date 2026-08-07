@@ -1,80 +1,80 @@
 const BRANCH_CODE_MAP = {
-  D1180: "001",
-  D6239: "003",
-  D5811: "004",
+  D1180: '001',
+  D6239: '003',
+  D5811: '004',
 };
 
-const TARGET_HEADERS_TO_DELETE = ["วันที่ลงทะเบียน", "หมายเหตุอื่นๆ (STMID)"];
+const TARGET_HEADERS_TO_DELETE = ['วันที่ลงทะเบียน', 'หมายเหตุอื่นๆ (STMID)'];
 const HIGHLIGHT_HEADERS = [
-  "ราคาต่อหน่วย",
-  "ราคาเพดาน",
-  "รวมเงินที่ขอเบิก",
-  "ชดเชย",
-  "ไม่ชดเชย",
-  "จ่ายเพิ่ม",
-  "เรียกคืน",
+  'ราคาต่อหน่วย',
+  'ราคาเพดาน',
+  'รวมเงินที่ขอเบิก',
+  'ชดเชย',
+  'ไม่ชดเชย',
+  'จ่ายเพิ่ม',
+  'เรียกคืน',
 ];
 
 const THAI_MONTH_TO_NUMBER = {
-  มกราคม: "01",
-  มค: "01",
-  กุมภาพันธ์: "02",
-  กพ: "02",
-  มีนาคม: "03",
-  มีค: "03",
-  เมษายน: "04",
-  เมย: "04",
-  พฤษภาคม: "05",
-  พค: "05",
-  มิถุนายน: "06",
-  มิย: "06",
-  กรกฎาคม: "07",
-  กค: "07",
-  สิงหาคม: "08",
-  สค: "08",
-  กันยายน: "09",
-  กย: "09",
-  ตุลาคม: "10",
-  ตค: "10",
-  พฤศจิกายน: "11",
-  พย: "11",
-  ธันวาคม: "12",
-  ธค: "12",
+  มกราคม: '01',
+  มค: '01',
+  กุมภาพันธ์: '02',
+  กพ: '02',
+  มีนาคม: '03',
+  มีค: '03',
+  เมษายน: '04',
+  เมย: '04',
+  พฤษภาคม: '05',
+  พค: '05',
+  มิถุนายน: '06',
+  มิย: '06',
+  กรกฎาคม: '07',
+  กค: '07',
+  สิงหาคม: '08',
+  สค: '08',
+  กันยายน: '09',
+  กย: '09',
+  ตุลาคม: '10',
+  ตค: '10',
+  พฤศจิกายน: '11',
+  พย: '11',
+  ธันวาคม: '12',
+  ธค: '12',
 };
 
 function normalizeDisplayText(value) {
-  if (value === null || typeof value === "undefined") {
-    return "";
+  if (value === null || typeof value === 'undefined') {
+    return '';
   }
 
   if (value instanceof Date) {
     return value.toISOString();
   }
 
-  if (typeof value === "object" && value.text) {
+  if (typeof value === 'object' && value.text) {
     return String(value.text).trim();
   }
 
-  if (typeof value === "object" && value.richText) {
-    return value.richText.map((part) => part.text || "").join("").trim();
+  if (typeof value === 'object' && value.richText) {
+    return value.richText.map((part) => part.text || '').join('').trim();
   }
 
   return String(value)
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .replace(/ /g, " ")
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/\u00a0/g, ' ')
     .trim();
 }
 
 function normalizeHeaderText(value) {
   return normalizeDisplayText(value)
-    .replace(/\n+/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/\n+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 
 function compactHeaderText(value) {
-  return normalizeHeaderText(value).replace(/\s+/g, "");
+  return normalizeHeaderText(value).replace(/\s+/g, '');
 }
 
 // ExcelJS's `cell.text` getter throws (rather than returning something falsy) for a merged
@@ -129,7 +129,7 @@ function findColumnByHeaderText(worksheet, headerText, options = {}) {
           columnNumber,
           matchedText,
           normalizedText,
-          strategy: "exact",
+          strategy: 'exact',
         };
       }
 
@@ -141,7 +141,7 @@ function findColumnByHeaderText(worksheet, headerText, options = {}) {
           columnNumber,
           matchedText,
           normalizedText,
-          strategy: "trimmed",
+          strategy: 'trimmed',
         };
       }
     }
@@ -151,13 +151,13 @@ function findColumnByHeaderText(worksheet, headerText, options = {}) {
 }
 
 function sanitizeBaseName(originalFilename) {
-  const nameWithoutExtension = String(originalFilename || "workbook.xlsx").replace(/\.[^.]+$/, "");
+  const nameWithoutExtension = String(originalFilename || 'workbook.xlsx').replace(/\.[^.]+$/, '');
   return (
     nameWithoutExtension
       .trim()
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "workbook"
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'workbook'
   );
 }
 
@@ -199,7 +199,7 @@ function parseThaiBuddhistDate(rawValue) {
   }
 
   const year = convertToGregorianYear(Number(match[1]));
-  const monthNumber = THAI_MONTH_TO_NUMBER[normalizeDisplayText(match[2]).replace(/[./\s]/g, "")];
+  const monthNumber = THAI_MONTH_TO_NUMBER[normalizeDisplayText(match[2]).replace(/[./\s]/g, '')];
   const day = Number(match[3]);
 
   if (!monthNumber || !year || !isValidDateParts(year, monthNumber, day)) {
@@ -233,10 +233,10 @@ function parseSummaryRepDate(rawValue) {
 function mapBranchSourceToBranchCode(rawValue) {
   const normalized = normalizeDisplayText(rawValue)
     .toUpperCase()
-    .replace(/\s+/g, "");
+    .replace(/\s+/g, '');
   const matchedCode = normalized.match(/D?\d{4}/);
   const base = matchedCode ? matchedCode[0] : normalized;
-  const candidates = base.charAt(0) === "D" ? [base] : [`D${base}`, base];
+  const candidates = base.charAt(0) === 'D' ? [base] : [`D${base}`, base];
 
   for (const candidate of candidates) {
     if (BRANCH_CODE_MAP[candidate]) {
@@ -248,19 +248,19 @@ function mapBranchSourceToBranchCode(rawValue) {
 }
 
 function getBranchResultFromHcodeColumn(worksheet) {
-  const match = findColumnByHeaderText(worksheet, "HCODE", {
+  const match = findColumnByHeaderText(worksheet, 'HCODE', {
     rowStart: 1,
     rowEnd: Math.min(Math.max(worksheet.rowCount || 1, 1), 20),
   });
 
   if (!match) {
-    return { rawBranchSource: "", branchCode: null };
+    return { rawBranchSource: '', branchCode: null };
   }
 
-  let firstNonEmptyValue = "";
+  let firstNonEmptyValue = '';
   for (let rowNumber = match.rowNumber + 1; rowNumber <= worksheet.rowCount; rowNumber += 1) {
     const rawValue = getCellText(worksheet, rowNumber, match.columnNumber);
-    if (!rawValue || normalizeHeaderText(rawValue).toUpperCase() === "HCODE") {
+    if (!rawValue || normalizeHeaderText(rawValue).toUpperCase() === 'HCODE') {
       continue;
     }
 
@@ -290,7 +290,7 @@ function scanIndividualDateFallback(worksheet) {
         return {
           rawDateSource: rawValue,
           formattedDate,
-          sourceLabel: "top metadata scan",
+          sourceLabel: 'top metadata scan',
         };
       }
     }
@@ -300,8 +300,8 @@ function scanIndividualDateFallback(worksheet) {
 }
 
 function getSummaryFilenameMetadata(worksheet) {
-  const fixedDateSource = getA1Text(worksheet, "C3");
-  const fixedBranchSource = getA1Text(worksheet, "C11");
+  const fixedDateSource = getA1Text(worksheet, 'C3');
+  const fixedBranchSource = getA1Text(worksheet, 'C11');
   const fixedFormattedDate = parseSummaryRepDate(fixedDateSource);
   const fixedBranchCode = mapBranchSourceToBranchCode(fixedBranchSource);
 
@@ -311,31 +311,31 @@ function getSummaryFilenameMetadata(worksheet) {
       formattedDate: fixedFormattedDate,
       rawBranchSource: fixedBranchSource,
       branchCode: fixedBranchCode,
-      dateSourceLabel: "C3 report date",
-      branchSourceLabel: "C11 unit branch source",
+      dateSourceLabel: 'C3 report date',
+      branchSourceLabel: 'C11 unit branch source',
     };
   }
 
-  const branchMatch = findColumnByHeaderText(worksheet, "รหัสหน่วยบริการ", {
+  const branchMatch = findColumnByHeaderText(worksheet, 'รหัสหน่วยบริการ', {
     rowStart: 5,
     rowEnd: 10,
   });
-  const dateMatch = findColumnByHeaderText(worksheet, "REP Date", {
+  const dateMatch = findColumnByHeaderText(worksheet, 'REP Date', {
     rowStart: 5,
     rowEnd: 10,
   });
-  let firstBranchSource = "";
-  let firstDateSource = "";
+  let firstBranchSource = '';
+  let firstDateSource = '';
 
   for (let rowNumber = 11; rowNumber <= worksheet.rowCount; rowNumber += 1) {
-    const rawBranchSource = branchMatch ? getCellText(worksheet, rowNumber, branchMatch.columnNumber) : "";
-    const rawDateSource = dateMatch ? getCellText(worksheet, rowNumber, dateMatch.columnNumber) : "";
+    const rawBranchSource = branchMatch ? getCellText(worksheet, rowNumber, branchMatch.columnNumber) : '';
+    const rawDateSource = dateMatch ? getCellText(worksheet, rowNumber, dateMatch.columnNumber) : '';
 
-    if (!firstBranchSource && rawBranchSource && rawBranchSource !== "รวม") {
+    if (!firstBranchSource && rawBranchSource && rawBranchSource !== 'รวม') {
       firstBranchSource = rawBranchSource;
     }
 
-    if (!firstDateSource && rawDateSource && rawDateSource !== "รวม") {
+    if (!firstDateSource && rawDateSource && rawDateSource !== 'รวม') {
       firstDateSource = rawDateSource;
     }
 
@@ -348,8 +348,8 @@ function getSummaryFilenameMetadata(worksheet) {
         formattedDate,
         rawBranchSource,
         branchCode,
-        dateSourceLabel: "summary fallback REP Date scan",
-        branchSourceLabel: "summary fallback branch scan",
+        dateSourceLabel: 'summary fallback REP Date scan',
+        branchSourceLabel: 'summary fallback branch scan',
       };
     }
   }
@@ -359,13 +359,125 @@ function getSummaryFilenameMetadata(worksheet) {
     formattedDate: fixedFormattedDate || parseSummaryRepDate(firstDateSource),
     rawBranchSource: fixedBranchSource || firstBranchSource,
     branchCode: fixedBranchCode || mapBranchSourceToBranchCode(firstBranchSource),
-    dateSourceLabel: fixedDateSource ? "C3 report date" : "summary fallback REP Date scan",
-    branchSourceLabel: fixedBranchSource ? "C11 unit branch source" : "summary fallback branch scan",
+    dateSourceLabel: fixedDateSource ? 'C3 report date' : 'summary fallback REP Date scan',
+    branchSourceLabel: fixedBranchSource ? 'C11 unit branch source' : 'summary fallback branch scan',
   };
 }
 
-function buildOutputFilename(worksheet, originalFilename, variant) {
-  if (variant === "summary") {
+function parseCompactGregorianDate(value) {
+  const match = /^(\d{4})(\d{2})(\d{2})$/.exec(String(value || ''));
+  if (!match) {
+    return '';
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!isValidDateParts(year, match[2], day)) {
+    return '';
+  }
+
+  return `${year}-${match[2]}-${match[3]}`;
+}
+
+function getShopeeFilenameMetadata(originalFilename, options = {}) {
+  const dataPeriodStart = String(options.periodStart || '').trim();
+  const dataPeriodEnd = String(options.periodEnd || '').trim();
+  let periodStart = dataPeriodStart;
+  let periodEnd = dataPeriodEnd;
+  let sourceLabel = 'Shopee order rows';
+  let filenamePeriodStart = '';
+  let filenamePeriodEnd = '';
+  const filenameMatch = String(originalFilename || '').match(/(\d{8})[_-](\d{8})/);
+
+  if (filenameMatch) {
+    filenamePeriodStart = parseCompactGregorianDate(filenameMatch[1]);
+    filenamePeriodEnd = parseCompactGregorianDate(filenameMatch[2]);
+    if (filenamePeriodStart && filenamePeriodEnd) {
+      periodStart = filenamePeriodStart;
+      periodEnd = filenamePeriodEnd;
+      sourceLabel = 'Shopee export filename';
+    }
+  }
+
+  return {
+    periodStart,
+    periodEnd,
+    dataPeriodStart,
+    dataPeriodEnd,
+    filenamePeriodStart,
+    filenamePeriodEnd,
+    sourceLabel,
+  };
+}
+
+function buildOutputFilename(worksheet, originalFilename, variant, options = {}) {
+  if (variant === 'shopee') {
+    const metadata = getShopeeFilenameMetadata(originalFilename, options);
+    const warnings = [];
+
+    // For the DR.Morepen accounting output, the resolved accounting-cycle period carried in
+    // metadata (periodStart/periodEnd) is authoritative — it reflects the actual weekly cycle
+    // window (e.g. 2026-06-01..2026-06-28), not the raw export filename's calendar-month span
+    // (which can include carryover days like June 29-30 that belong to the next cycle). The
+    // filename-derived period that getShopeeFilenameMetadata prefers is only a fallback when
+    // the cycle metadata is absent.
+    const cyclePeriodStart = String(options.periodStart || '').trim();
+    const cyclePeriodEnd = String(options.periodEnd || '').trim();
+    if (cyclePeriodStart && cyclePeriodEnd) {
+      metadata.periodStart = cyclePeriodStart;
+      metadata.periodEnd = cyclePeriodEnd;
+      metadata.sourceLabel = 'Shopee accounting cycle';
+    }
+
+    if (
+      metadata.filenamePeriodStart &&
+      metadata.filenamePeriodEnd &&
+      metadata.dataPeriodStart &&
+      metadata.dataPeriodEnd &&
+      (metadata.filenamePeriodStart !== metadata.dataPeriodStart ||
+        metadata.filenamePeriodEnd !== metadata.dataPeriodEnd)
+    ) {
+      warnings.push(
+        `Shopee filename period ${metadata.filenamePeriodStart}..${metadata.filenamePeriodEnd} did not match ` +
+          `the first/last order rows ${metadata.dataPeriodStart}..${metadata.dataPeriodEnd}. Kept the export filename ` +
+          'period because a valid report range can include days with no orders.',
+      );
+    }
+
+    if (metadata.periodStart && metadata.periodEnd) {
+      return {
+        variant,
+        filename: `${metadata.periodStart}_to_${metadata.periodEnd}-dr-morepen-accounting.xlsx`,
+        warnings,
+        parsedDate: metadata.periodEnd,
+        periodStart: metadata.periodStart,
+        periodEnd: metadata.periodEnd,
+        branchCode: null,
+        rawDateSource: `${metadata.periodStart}..${metadata.periodEnd}`,
+        rawBranchSource: '',
+        dateSourceLabel: metadata.sourceLabel,
+        branchSourceLabel: '',
+      };
+    }
+
+    warnings.push('Could not determine the Shopee report period. Used a fallback output filename.');
+    return {
+      variant,
+      filename: `${sanitizeBaseName(originalFilename)}-shopee-processed.xlsx`,
+      warnings,
+      parsedDate: metadata.periodEnd || metadata.periodStart || '',
+      periodStart: metadata.periodStart,
+      periodEnd: metadata.periodEnd,
+      branchCode: null,
+      rawDateSource: [metadata.periodStart, metadata.periodEnd].filter(Boolean).join('..'),
+      rawBranchSource: '',
+      dateSourceLabel: metadata.sourceLabel,
+      branchSourceLabel: '',
+    };
+  }
+
+  if (variant === 'summary') {
     const metadata = getSummaryFilenameMetadata(worksheet);
     const warnings = [];
 
@@ -384,11 +496,11 @@ function buildOutputFilename(worksheet, originalFilename, variant) {
     }
 
     if (!metadata.formattedDate) {
-      warnings.push("Could not parse the summary report date for the output filename. Used a fallback filename.");
+      warnings.push('Could not parse the summary report date for the output filename. Used a fallback filename.');
     }
 
     if (!metadata.branchCode) {
-      warnings.push("Could not parse the summary branch code for the output filename. Used a fallback filename.");
+      warnings.push('Could not parse the summary branch code for the output filename. Used a fallback filename.');
     }
 
     return {
@@ -405,9 +517,9 @@ function buildOutputFilename(worksheet, originalFilename, variant) {
   }
 
   const warnings = [];
-  let rawDateSource = getA1Text(worksheet, "C5");
+  let rawDateSource = getA1Text(worksheet, 'C5');
   let parsedDate = parseThaiBuddhistDate(rawDateSource);
-  let dateSourceLabel = "C5 date";
+  let dateSourceLabel = 'C5 date';
 
   if (!parsedDate) {
     const scannedDate = scanIndividualDateFallback(worksheet);
@@ -430,16 +542,16 @@ function buildOutputFilename(worksheet, originalFilename, variant) {
       rawDateSource,
       rawBranchSource: branchResult.rawBranchSource,
       dateSourceLabel,
-      branchSourceLabel: "HCODE branch source",
+      branchSourceLabel: 'HCODE branch source',
     };
   }
 
   if (!parsedDate) {
-    warnings.push("Could not parse the indiv report date for the output filename. Used a fallback filename.");
+    warnings.push('Could not parse the indiv report date for the output filename. Used a fallback filename.');
   }
 
   if (!branchResult.branchCode) {
-    warnings.push("Could not parse the HCODE branch code for the output filename. Used a fallback filename.");
+    warnings.push('Could not parse the HCODE branch code for the output filename. Used a fallback filename.');
   }
 
   return {
@@ -451,7 +563,7 @@ function buildOutputFilename(worksheet, originalFilename, variant) {
     rawDateSource,
     rawBranchSource: branchResult.rawBranchSource,
     dateSourceLabel,
-    branchSourceLabel: "HCODE branch source",
+    branchSourceLabel: 'HCODE branch source',
   };
 }
 
