@@ -96,9 +96,13 @@ function readPublicBaseUrl() {
 
 function readEmailConfig() {
   return {
+    provider: String(process.env.EMAIL_PROVIDER || "sendgrid").trim().toLowerCase(),
+    brevoApiKey: String(process.env.BREVO_API_KEY || "").trim(),
     sendgridApiKey: String(process.env.SENDGRID_API_KEY || "").trim(),
-    mailFrom: String(process.env.MAIL_USER || process.env.SEAMLESS_MAIL_FROM || "").trim(),
-    docsRecipientEmail: String(process.env.SEAMLESS_DOCS_RECIPIENT_EMAIL || "").trim(),
+    mailFrom: String(process.env.MAIL_FROM || process.env.MAIL_USER || process.env.SEAMLESS_MAIL_FROM || "").trim(),
+    docsRecipientEmail: String(
+      process.env.DOCS_RECIPIENT_EMAIL || process.env.SEAMLESS_DOCS_RECIPIENT_EMAIL || "",
+    ).trim(),
   };
 }
 

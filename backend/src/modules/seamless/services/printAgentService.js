@@ -148,10 +148,11 @@ async function updateAgentPrintJob(id, patch = {}) {
 async function sendPrintEmailNotification(job, record) {
   const emailConfig = readEmailConfig();
 
-  if (!emailConfig.sendgridApiKey || !emailConfig.mailFrom || !emailConfig.docsRecipientEmail) {
+  const providerConfigured = emailConfig.provider === "brevo" ? emailConfig.brevoApiKey : emailConfig.sendgridApiKey;
+  if (!providerConfigured || !emailConfig.mailFrom || !emailConfig.docsRecipientEmail) {
     return {
       skipped: true,
-      reason: "SENDGRID_API_KEY, MAIL_USER, or SEAMLESS_DOCS_RECIPIENT_EMAIL is not configured.",
+      reason: "Email provider credentials, MAIL_USER, or SEAMLESS_DOCS_RECIPIENT_EMAIL is not configured.",
     };
   }
 
