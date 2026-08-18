@@ -1,17 +1,23 @@
 process.env.SEAMLESS_DB_SCHEMA = "clasp_scx_seamless";
 
-const state = { attachments: [], documents: [], messages: [] };
+const state = { attachments: [], documents: [], messages: [], runs: [], syncState: null };
 let messageSeq = 0;
 let attachmentSeq = 0;
 let documentSeq = 0;
+let runSeq = 0;
+let lockAcquired = true;
 
 function resetState() {
   state.messages = [];
   state.attachments = [];
   state.documents = [];
+  state.runs = [];
+  state.syncState = null;
   messageSeq = 0;
   attachmentSeq = 0;
   documentSeq = 0;
+  runSeq = 0;
+  lockAcquired = true;
 }
 
 function normalizeSql(sql) {
@@ -23,6 +29,66 @@ async function mockQuery(sql, params = []) {
 
   if (text === "BEGIN" || text === "COMMIT" || text === "ROLLBACK") {
     return { rows: [], rowCount: 0 };
+  }
+
+  if (text.startsWith("SELECT pg_try_advisory_lock(")) {
+    return { rows: [{ acquired: lockAcquired }], rowCount: 1 };
+  }
+
+  if (text.startsWith("SELECT pg_advisory_unlock(")) {
+    return { rows: [{ pg_advisory_unlock: true }], rowCount: 1 };
+  }
+
+  if (text.startsWith('INSERT INTO "clasp_scx_seamless"."pharmcare_sync_runs"')) {
+    runSeq += 1;
+    const run = {
+      id: `run-${runSeq}`,
+      mailbox_account: params[0],
+      run_kind: params[1],
+      status: params[2] || "running",
+      message_count: 0,
+      outcome_counts: {},
+      errors: [],
+      checkpoint: {},
+      started_at: new Date().toISOString(),
+      finished_at: null,
+    };
+    state.runs.push(run);
+    return { rows: [run], rowCount: 1 };
+  }
+
+  if (text.startsWith('UPDATE "clasp_scx_seamless"."pharmcare_sync_runs"')) {
+    const run = state.runs.find((r) => r.id === params[0]);
+    if (run) {
+      run.status = params[1];
+      run.message_count = params[2];
+      run.outcome_counts = JSON.parse(params[3]);
+      run.errors = JSON.parse(params[4]);
+      run.checkpoint = JSON.parse(params[5]);
+      run.finished_at = new Date().toISOString();
+    }
+    return { rows: [], rowCount: run ? 1 : 0 };
+  }
+
+  if (text.startsWith('SELECT * FROM "clasp_scx_seamless"."pharmcare_sync_state"')) {
+    return { rows: state.syncState ? [state.syncState] : [], rowCount: state.syncState ? 1 : 0 };
+  }
+
+  if (text.startsWith('INSERT INTO "clasp_scx_seamless"."pharmcare_sync_state"')) {
+    state.syncState = {
+      mailbox_account: params[0],
+      checkpoint: JSON.parse(params[1]),
+      last_run_status: params[2],
+      last_run_finished_at: params[3],
+    };
+    return { rows: [state.syncState], rowCount: 1 };
+  }
+
+  if (
+    text.startsWith('SELECT * FROM "clasp_scx_seamless"."pharmcare_email_messages" WHERE id = $1')
+  ) {
+    const row = state.messages.find((msg) => msg.id === params[0]);
+    return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
   }
 
   if (text.startsWith('INSERT INTO "clasp_scx_seamless"."pharmcare_email_messages"')) {
@@ -178,7 +244,7 @@ jest.mock("../src/modules/seamless/services/fileStorageService", () => ({
 }));
 
 const { createMockGmailAdapter } = require("../src/modules/seamless/services/pharmcare/gmailAdapter");
-const { syncMessagesFromAdapter } = require("../src/modules/seamless/services/pharmcareSyncService");
+const { runPharmcareGmailSync, syncMessagesFromAdapter } = require("../src/modules/seamless/services/pharmcareSyncService");
 
 function pdfBuffer(content) {
   return Buffer.concat([Buffer.from("%PDF-1.4\n"), Buffer.from(content)]);
@@ -316,5 +382,180 @@ describe("pharmcareSyncService.syncMessagesFromAdapter (mock Gmail adapter -> no
     // Only the successful message's row should exist — the failed one wrote nothing.
     expect(state.messages).toHaveLength(1);
     expect(state.messages[0].gmail_message_id).toBe("gmail-sync-3");
+  });
+
+  test("a transient adapter failure is retried and succeeds within the attempt budget", async () => {
+    const attachmentData = pdfBuffer("CIV2601000111 retry content");
+    let getMessageCalls = 0;
+    const adapter = {
+      listCandidateMessageIds: async () => ["gmail-retry-1"],
+      getMessage: async () => {
+        getMessageCalls += 1;
+        if (getMessageCalls === 1) {
+          throw new Error("transient Gmail 500");
+        }
+        return createMockGmailAdapter([
+          {
+            attachments: [{ attachmentId: "att-1", data: attachmentData }],
+            id: "gmail-retry-1",
+            internalDate: "1767229200000",
+            payload: {
+              headers: [
+                { name: "From", value: "PharmCare <info@pharmcare.co>" },
+                { name: "Subject", value: "PharmCare e-credit invoice CIV2601000111" },
+              ],
+              parts: [
+                {
+                  body: { attachmentId: "att-1", size: attachmentData.length },
+                  filename: "CIV2601000111.pdf",
+                  mimeType: "application/pdf",
+                },
+              ],
+            },
+          },
+        ]).getMessage("gmail-retry-1");
+      },
+      getAttachment: async () => attachmentData,
+    };
+
+    const results = await syncMessagesFromAdapter(adapter, "admin@scgroup1989.com", { retryDelayMs: 1 });
+
+    expect(getMessageCalls).toBe(2);
+    expect(results[0].status).toBe("ingested");
+    expect(state.messages).toHaveLength(1);
+  });
+
+  test("a permanently failing message exhausts its attempts and is reported failed once", async () => {
+    let getMessageCalls = 0;
+    const adapter = {
+      listCandidateMessageIds: async () => ["gmail-retry-2"],
+      getMessage: async () => {
+        getMessageCalls += 1;
+        throw new Error("Gmail is down");
+      },
+      getAttachment: async () => Buffer.alloc(0),
+    };
+
+    const results = await syncMessagesFromAdapter(adapter, "admin@scgroup1989.com", { retryDelayMs: 1 });
+
+    expect(getMessageCalls).toBe(3);
+    expect(results).toEqual([
+      { error: "Gmail is down", gmailMessageId: "gmail-retry-2", status: "failed" },
+    ]);
+  });
+});
+
+describe("pharmcareSyncService.runPharmcareGmailSync (lock + checkpoint + metrics)", () => {
+  function makeFixtureAdapter(id, receivedAtMs, attachmentData) {
+    return createMockGmailAdapter([
+      {
+        attachments: [{ attachmentId: "att-1", data: attachmentData }],
+        id,
+        internalDate: String(receivedAtMs),
+        payload: {
+          headers: [
+            { name: "From", value: "PharmCare <info@pharmcare.co>" },
+            { name: "Subject", value: `PharmCare e-credit invoice ${id}` },
+          ],
+          parts: [
+            { body: { data: base64("hello") }, mimeType: "text/plain" },
+            {
+              body: { attachmentId: "att-1", size: attachmentData.length },
+              filename: `${id}.pdf`,
+              mimeType: "application/pdf",
+            },
+          ],
+        },
+      },
+    ]);
+  }
+
+  test("records a completed run, updates the checkpoint, and stores outcome metrics", async () => {
+    const receivedAtMs = Date.parse("2026-08-01T10:00:00Z");
+    const adapter = makeFixtureAdapter("CIV2601000999", receivedAtMs, pdfBuffer("CIV2601000999 content"));
+
+    const outcome = await runPharmcareGmailSync(adapter, "admin@scgroup1989.com");
+
+    expect(outcome.status).toBe("completed");
+    expect(outcome.results[0].status).toBe("ingested");
+    // Checkpoint = the newest successfully ingested message's receivedAt.
+    expect(outcome.checkpoint.newestReceivedAt).toBe(new Date(receivedAtMs).toISOString());
+    expect(state.syncState.checkpoint.newestReceivedAt).toBe(new Date(receivedAtMs).toISOString());
+    expect(state.syncState.last_run_status).toBe("completed");
+
+    const run = state.runs.find((r) => r.id === outcome.runId);
+    expect(run.status).toBe("completed");
+    expect(run.message_count).toBe(1);
+    expect(run.outcome_counts).toEqual({ ingested: 1 });
+  });
+
+  test("returns lock_busy and does not touch Gmail or messages when another sync holds the lock", async () => {
+    lockAcquired = false;
+    const adapter = makeFixtureAdapter("CIV2601000888", Date.now(), pdfBuffer("CIV2601000888 content"));
+
+    const outcome = await runPharmcareGmailSync(adapter, "admin@scgroup1989.com");
+
+    expect(outcome.status).toBe("lock_busy");
+    expect(outcome.results).toEqual([]);
+    expect(state.messages).toHaveLength(0);
+    // Contention is observable: a lock_busy run row exists.
+    const busyRun = state.runs.find((r) => r.status === "lock_busy");
+    expect(busyRun).toBeDefined();
+  });
+
+  test("an incremental run resumes from the stored checkpoint via listCandidateMessageIds(after)", async () => {
+    const checkpointTime = new Date("2026-08-01T10:00:00Z");
+    state.syncState = {
+      mailbox_account: "admin@scgroup1989.com",
+      checkpoint: { newestReceivedAt: checkpointTime.toISOString() },
+      last_run_status: "completed",
+      last_run_finished_at: null,
+    };
+    let seenAfter = "not called";
+    const adapter = {
+      listCandidateMessageIds: async ({ after } = {}) => {
+        seenAfter = after || null;
+        return [];
+      },
+      getAttachment: async () => Buffer.alloc(0),
+      getMessage: async () => {
+        throw new Error("should not be called");
+      },
+    };
+
+    const outcome = await runPharmcareGmailSync(adapter, "admin@scgroup1989.com");
+
+    expect(seenAfter).toBe(checkpointTime.toISOString());
+    expect(outcome.status).toBe("completed");
+  });
+
+  test("a backfill over older history records its checkpoint on the run row but never moves the state checkpoint backwards", async () => {
+    const stateCheckpointTime = new Date("2026-08-10T10:00:00Z");
+    state.syncState = {
+      mailbox_account: "admin@scgroup1989.com",
+      checkpoint: { newestReceivedAt: stateCheckpointTime.toISOString() },
+      last_run_status: "completed",
+      last_run_finished_at: null,
+    };
+    // Backfill scans an OLD message (older than the state checkpoint) and ingests it.
+    const oldReceivedAtMs = Date.parse("2026-08-01T10:00:00Z");
+    const adapter = makeFixtureAdapter("CIV2601000777", oldReceivedAtMs, pdfBuffer("CIV2601000777 content"));
+
+    const outcome = await runPharmcareGmailSync(adapter, "admin@scgroup1989.com", {
+      ignoreCheckpoint: true,
+      runKind: "backfill",
+    });
+
+    expect(outcome.status).toBe("completed");
+    expect(outcome.results[0].status).toBe("ingested");
+
+    // The run row keeps the evidence of what the backfill scanned...
+    const run = state.runs.find((r) => r.id === outcome.runId);
+    expect(run.run_kind).toBe("backfill");
+    expect(run.checkpoint.newestReceivedAt).toBe(new Date(oldReceivedAtMs).toISOString());
+
+    // ...but the resume checkpoint that incremental syncs use is untouched.
+    expect(state.syncState.checkpoint.newestReceivedAt).toBe(stateCheckpointTime.toISOString());
+    expect(state.syncState.last_run_status).toBe("completed");
   });
 });

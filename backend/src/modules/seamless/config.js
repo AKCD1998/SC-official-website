@@ -113,6 +113,16 @@ function readPharmcareGmailConfig() {
     clientId: String(process.env.SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID || "").trim(),
     clientSecret: String(process.env.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET || "").trim(),
     refreshToken: String(process.env.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN || "").trim(),
+    // Gmail search query for candidate messages. The default covers both delivery routes this
+    // mailbox sees: direct/filter-forwarded mail from PharmCare itself, and the historical
+    // manual forwards sent from the auukunn.bkk@gmail.com source mailbox (visible From is the
+    // forwarder, not PharmCare). Override with SEAMLESS_PHARMCARE_GMAIL_QUERY if the routes
+    // change; ingestion stays safe either way because the classifier re-checks the sender
+    // allowlist and unknown senders land in manual_review.
+    gmailQuery: String(
+      process.env.SEAMLESS_PHARMCARE_GMAIL_QUERY ||
+        "from:info@pharmcare.co OR from:auukunn.bkk@gmail.com",
+    ).trim(),
   };
 }
 

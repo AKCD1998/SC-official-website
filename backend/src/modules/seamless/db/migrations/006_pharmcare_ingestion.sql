@@ -1,3 +1,10 @@
+-- NOTE on the duplicate "006" prefix: 006_add_shopee_document_type.sql (Shopee workstream) and
+-- this file (PharmCare workstream) were authored around the same time in different features and
+-- both shipped as the sixth migration. This is intentional, not a bug: the runner keys applied
+-- migrations by FULL filename in schema_migrations, and production already applied BOTH under
+-- these exact names — renaming this file now would desync migration state and re-apply it.
+-- New migrations must take the next free number (007+).
+
 BEGIN;
 
 -- PharmCare finance email ingestion (Milestone 1: read-only inbox). Deliberately kept separate

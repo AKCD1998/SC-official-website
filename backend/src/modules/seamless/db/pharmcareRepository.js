@@ -460,6 +460,99 @@ async function getMessageWithEvidence(id, client = null) {
   };
 }
 
+async function getSyncState(mailboxAccount, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `SELECT * FROM ${tables.pharmcareSyncState} WHERE mailbox_account = $1`,
+    [mailboxAccount],
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    return { checkpoint: {}, lastRunStatus: null };
+  }
+
+  return {
+    checkpoint: row.checkpoint || {},
+    lastRunFinishedAt: row.last_run_finished_at instanceof Date ? row.last_run_finished_at.toISOString() : row.last_run_finished_at,
+    lastRunStartedAt: row.last_run_started_at instanceof Date ? row.last_run_started_at.toISOString() : row.last_run_started_at,
+    lastRunStatus: row.last_run_status || null,
+  };
+}
+
+async function saveSyncState(mailboxAccount, { checkpoint, lastRunStatus }, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const finishedAt = lastRunStatus ? new Date() : null;
+  await db.query(
+    `
+      INSERT INTO ${tables.pharmcareSyncState} (mailbox_account, checkpoint, last_run_status, last_run_finished_at)
+      VALUES ($1, $2::jsonb, $3, $4)
+      ON CONFLICT (mailbox_account) DO UPDATE SET
+        checkpoint = EXCLUDED.checkpoint,
+        last_run_status = EXCLUDED.last_run_status,
+        last_run_finished_at = EXCLUDED.last_run_finished_at,
+        updated_at = now()
+    `,
+    [mailboxAccount, JSON.stringify(checkpoint || {}), lastRunStatus || null, finishedAt],
+  );
+}
+
+async function markSyncRunStarted(mailboxAccount, runKind, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `INSERT INTO ${tables.pharmcareSyncRuns} (mailbox_account, run_kind, status) VALUES ($1, $2, 'running') RETURNING id`,
+    [mailboxAccount, runKind],
+  );
+  return result.rows[0].id;
+}
+
+async function markSyncRunFinished(runId, { status, messageCount, outcomeCounts, errors, checkpoint }, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  await db.query(
+    `
+      UPDATE ${tables.pharmcareSyncRuns}
+      SET finished_at = now(),
+          status = $2,
+          message_count = $3,
+          outcome_counts = $4::jsonb,
+          errors = $5::jsonb,
+          checkpoint = $6::jsonb
+      WHERE id = $1
+    `,
+    [
+      runId,
+      status,
+      messageCount || 0,
+      JSON.stringify(outcomeCounts || {}),
+      JSON.stringify(errors || []),
+      JSON.stringify(checkpoint || {}),
+    ],
+  );
+}
+
+async function listRecentSyncRuns(mailboxAccount, limit = 10, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `SELECT * FROM ${tables.pharmcareSyncRuns} WHERE mailbox_account = $1 ORDER BY started_at DESC LIMIT $2`,
+    [mailboxAccount, limit],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    runKind: row.run_kind,
+    startedAt: row.started_at instanceof Date ? row.started_at.toISOString() : row.started_at,
+    finishedAt: row.finished_at instanceof Date ? row.finished_at.toISOString() : row.finished_at,
+    status: row.status,
+    messageCount: row.message_count,
+    outcomeCounts: row.outcome_counts || {},
+    errors: row.errors || [],
+  }));
+}
+
 module.exports = {
   createAttachment,
   createDocument,
@@ -471,8 +564,13 @@ module.exports = {
   getInboxSummaryCounts,
   getMessageById,
   getMessageWithEvidence,
+  getSyncState,
   listInboxDocuments,
+  listRecentSyncRuns,
   mapAttachment,
   mapDocument,
   mapMessage,
+  markSyncRunFinished,
+  markSyncRunStarted,
+  saveSyncState,
 };

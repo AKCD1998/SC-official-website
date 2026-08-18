@@ -15,14 +15,53 @@ function isGmailConfigured(config = readPharmcareGmailConfig()) {
   return false;
 }
 
-// Real adapter interface. Implementation is deferred: this repo has no Gmail credential
-// provisioned yet (see docs/14-pharmcare-sonnet-implementation-plan.md section 4.6), and wiring
-// an untested googleapis integration without any credential to run it against would be
-// speculative. Config validation and the mock adapter below (used by ingestion tests and any
-// future dry-run script) are what Milestone 1 asks for in that situation. Read-only scope only —
-// this adapter must never send, forward, delete, or label a Gmail message.
-function createGmailAdapter(configOverride) {
+// Real adapter backed by googleapis. Read-only by construction: the OAuth/JWT client is scoped
+// to gmail.readonly only, and the adapter exposes exactly three read operations
+// (messages.list / messages.get / attachments.get) — it has no code path that could send,
+// forward, delete, mark-read, or label a message, even if callers wanted it to.
+//
+// Auth modes (see docs/14 section 4.6), selected by SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE:
+//   - "service_account" (preferred): service-account JSON + domain-wide delegation,
+//     impersonating the admin mailbox via the JWT subject.
+//   - "oauth_refresh_token" (fallback): OAuth client id/secret + the mailbox's refresh token.
+// Credentials come only from env vars — never from code or git.
+function createDefaultGmailClient(config) {
+  // Required lazily so tests and any environment without the googleapis package installed
+  // (e.g. a client-only checkout) don't pay for / break on the import.
+  const { google } = require("googleapis");
+
+  let auth;
+  if (config.authMode === "service_account") {
+    auth = new google.auth.JWT({
+      email: JSON.parse(config.serviceAccountJson).client_email,
+      key: config.serviceAccountJson,
+      scopes: [GMAIL_READONLY_SCOPE],
+      subject: config.impersonatedUser,
+    });
+  } else if (config.authMode === "oauth_refresh_token") {
+    auth = new google.auth.OAuth2(config.clientId, config.clientSecret);
+    auth.setCredentials({ refresh_token: config.refreshToken });
+  } else {
+    throw serviceUnavailable(
+      `Unsupported SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE: '${config.authMode}' (expected 'service_account' or 'oauth_refresh_token').`,
+    );
+  }
+
+  return google.gmail({ auth, version: "v1" });
+}
+
+function createGmailAdapter(configOverride, deps = {}) {
   const config = configOverride || readPharmcareGmailConfig();
+  // Injectable for tests: deps.createGmailClient(config) -> { users: { messages: {...} } }
+  const createGmailClient = deps.createGmailClient || (() => createDefaultGmailClient(config));
+  let gmailClient = null;
+
+  function client() {
+    if (!gmailClient) {
+      gmailClient = createGmailClient(config);
+    }
+    return gmailClient;
+  }
 
   function assertConfigured() {
     if (!isGmailConfigured(config)) {
@@ -32,25 +71,63 @@ function createGmailAdapter(configOverride) {
     }
   }
 
-  async function listCandidateMessageIds() {
-    assertConfigured();
-    throw serviceUnavailable(
-      "Live Gmail ingestion is not implemented yet — provision credentials and complete the googleapis integration before enabling this path.",
-    );
+  // `after` (Date or ISO string) narrows the search to messages received after a checkpoint
+  // timestamp, expressed as Gmail's epoch-seconds `after:` operator.
+  function buildQuery(after) {
+    const parts = [];
+    if (config.gmailQuery) {
+      parts.push(`(${config.gmailQuery})`);
+    }
+    if (after) {
+      const afterSeconds = Math.floor(new Date(after).getTime() / 1000);
+      if (Number.isFinite(afterSeconds)) {
+        parts.push(`after:${afterSeconds}`);
+      }
+    }
+    return parts.join(" ");
   }
 
-  async function getMessage() {
+  async function listCandidateMessageIds({ after, maxResults = 500 } = {}) {
     assertConfigured();
-    throw serviceUnavailable(
-      "Live Gmail ingestion is not implemented yet — provision credentials and complete the googleapis integration before enabling this path.",
-    );
+
+    const messageIds = [];
+    let pageToken;
+    do {
+      // eslint-disable-next-line no-await-in-loop
+      const { data } = await client().users.messages.list({
+        userId: "me",
+        q: buildQuery(after),
+        maxResults: 100,
+        pageToken,
+      });
+      (data.messages || []).forEach((message) => messageIds.push(message.id));
+      pageToken = data.nextPageToken;
+    } while (pageToken && messageIds.length < maxResults);
+
+    return messageIds;
   }
 
-  async function getAttachment() {
+  async function getMessage(messageId) {
     assertConfigured();
-    throw serviceUnavailable(
-      "Live Gmail ingestion is not implemented yet — provision credentials and complete the googleapis integration before enabling this path.",
-    );
+
+    const { data } = await client().users.messages.get({
+      format: "full",
+      id: messageId,
+      userId: "me",
+    });
+    return data;
+  }
+
+  async function getAttachment(messageId, attachmentId) {
+    assertConfigured();
+
+    const { data } = await client().users.messages.attachments.get({
+      id: attachmentId,
+      messageId,
+      userId: "me",
+    });
+    // Gmail returns attachment data as base64url with no padding.
+    return Buffer.from(data.data.replace(/-/g, "+").replace(/_/g, "/"), "base64");
   }
 
   return { getAttachment, getMessage, listCandidateMessageIds };

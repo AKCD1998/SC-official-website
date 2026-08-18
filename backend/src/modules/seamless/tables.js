@@ -29,6 +29,8 @@ function getTables() {
     processingRecordBranchCodes: qualifyTable("processing_record_branch_codes"),
     processingRecords: qualifyTable("processing_records"),
     schemaMigrations: qualifyTable("schema_migrations"),
+    pharmcareSyncRuns: qualifyTable("pharmcare_sync_runs"),
+    pharmcareSyncState: qualifyTable("pharmcare_sync_state"),
     workbookUploads: qualifyTable("workbook_uploads"),
   };
 }

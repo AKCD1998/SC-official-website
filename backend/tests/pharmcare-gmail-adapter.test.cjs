@@ -1,8 +1,58 @@
 const {
+  createGmailAdapter,
   createMockGmailAdapter,
   isGmailConfigured,
   normalizeGmailMessage,
 } = require("../src/modules/seamless/services/pharmcare/gmailAdapter");
+
+const SERVICE_ACCOUNT_CONFIG = {
+  authMode: "service_account",
+  gmailQuery: "from:info@pharmcare.co OR from:auukunn.bkk@gmail.com",
+  impersonatedUser: "admin@scgroup1989.com",
+  serviceAccountJson: JSON.stringify({ client_email: "sa@test.iam.gserviceaccount.com" }),
+};
+
+// Fake googleapis gmail client: records the calls it receives so tests can assert the adapter
+// only ever issues the three read operations, with the right parameters.
+function makeFakeGmailClient({ messages = [], attachments = {} } = {}) {
+  const calls = [];
+  return {
+    calls,
+    users: {
+      messages: {
+        list: async (params) => {
+          calls.push({ method: "list", params });
+          const matching = messages.filter((m) => !params.q || !params.q.includes("after:") || Number(m.internalDate) / 1000 > Number((params.q.match(/after:(\d+)/) || [])[1]));
+          const pageSize = params.maxResults || 100;
+          const page = matching.slice(0, pageSize);
+          return { data: { messages: page.map((m) => ({ id: m.id })), nextPageToken: null } };
+        },
+        get: async (params) => {
+          calls.push({ method: "get", params });
+          const message = messages.find((m) => m.id === params.id);
+          if (!message) {
+            throw new Error("message not found");
+          }
+          return { data: message };
+        },
+        attachments: {
+          get: async (params) => {
+            calls.push({ method: "attachments.get", params });
+            const data = attachments[`${params.messageId}/${params.id}`];
+            if (!data) {
+              throw new Error("attachment not found");
+            }
+            return { data: { data } };
+          },
+        },
+      },
+    },
+  };
+}
+
+function b64url(buffer) {
+  return buffer.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 
 describe("isGmailConfigured", () => {
   test("false when authMode is unset", () => {
@@ -91,5 +141,48 @@ describe("createMockGmailAdapter", () => {
     expect(data).toBe(attachmentData);
 
     await expect(adapter.getMessage("missing")).rejects.toThrow(/not found/);
+  });
+});
+
+describe("createGmailAdapter (real, googleapis-backed with injected fake client)", () => {
+  test("lists candidate message ids using the configured query and after: filter", async () => {
+    const fake = makeFakeGmailClient({
+      messages: [{ id: "m1", internalDate: "1767229200000" }],
+    });
+    const adapter = createGmailAdapter(SERVICE_ACCOUNT_CONFIG, { createGmailClient: () => fake });
+
+    const ids = await adapter.listCandidateMessageIds({ after: "2026-01-01T00:00:00Z" });
+
+    expect(ids).toEqual(["m1"]);
+    const listCall = fake.calls.find((c) => c.method === "list");
+    expect(listCall.params.userId).toBe("me");
+    expect(listCall.params.q).toContain("from:info@pharmcare.co");
+    expect(listCall.params.q).toMatch(/after:\d+/);
+  });
+
+  test("getMessage and getAttachment issue only read calls and decode base64url attachment data", async () => {
+    const pdfBytes = Buffer.from("%PDF-1.4 test bytes");
+    const fake = makeFakeGmailClient({
+      attachments: { "m1/att-1": b64url(pdfBytes) },
+      messages: [{ id: "m1", payload: { headers: [], parts: [] } }],
+    });
+    const adapter = createGmailAdapter(SERVICE_ACCOUNT_CONFIG, { createGmailClient: () => fake });
+
+    const message = await adapter.getMessage("m1");
+    expect(message.id).toBe("m1");
+
+    const attachment = await adapter.getAttachment("m1", "att-1");
+    expect(attachment.equals(pdfBytes)).toBe(true);
+
+    const methods = fake.calls.map((c) => c.method).sort();
+    // Only read operations were issued for get+attachment — no send/modify/label/delete path.
+    expect(methods).toEqual(["attachments.get", "get"].sort());
+  });
+
+  test("rejects with a 503-style error when credentials are not configured", async () => {
+    const adapter = createGmailAdapter({ authMode: "" }, { createGmailClient: () => makeFakeGmailClient() });
+    await expect(adapter.listCandidateMessageIds()).rejects.toThrow(/not configured/);
+    await expect(adapter.getMessage("m1")).rejects.toThrow(/not configured/);
+    await expect(adapter.getAttachment("m1", "a1")).rejects.toThrow(/not configured/);
   });
 });
