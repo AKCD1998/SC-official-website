@@ -434,18 +434,48 @@ describe("pharmcareIngestionService.ingestNormalizedMessage", () => {
     expect(storedFiles).toHaveLength(0);
   });
 
-  test("an attachment with an unexpected declared MIME type is rejected even with valid PDF bytes", async () => {
+  // Real-world evidence from a live PharmCare invoice (2026-08-18 dry-run): Gmail reported this
+  // attachment's mimeType as application/octet-stream even though it is a genuine PDF. Google's
+  // declared type is not authoritative — the PDF magic-byte signature is — so a mismatched
+  // declared MIME type must NOT bounce a real PDF to manual_review; it's recorded as evidence
+  // only.
+  test("an attachment with a mismatched declared MIME type is still ingested when the bytes are a real PDF", async () => {
     const dto = {
       ...baseDto,
       attachments: [
         {
-          attachmentId: "gmail-att-bad-mime",
+          attachmentId: "gmail-att-octet-stream",
           buffer: pdfBuffer("CIV2601000888 content"),
           filename: "CIV2601000888.pdf",
+          mimeType: "application/octet-stream",
+        },
+      ],
+      gmailMessageId: "gmail-msg-octet-stream",
+    };
+
+    const result = await ingestNormalizedMessage(dto);
+
+    expect(result.status).toBe("ingested");
+    expect(state.attachments[0].status).toBe("stored");
+    expect(state.documents[0].review_status).toBe("auto_classified");
+    expect(JSON.parse(JSON.stringify(state.documents[0].reason_codes))).toContain(
+      "declared_mime_type_mismatch",
+    );
+    expect(storedFiles).toHaveLength(1);
+  });
+
+  test("an attachment whose bytes are genuinely not a PDF is still rejected regardless of declared MIME type", async () => {
+    const dto = {
+      ...baseDto,
+      attachments: [
+        {
+          attachmentId: "gmail-att-actually-png",
+          buffer: Buffer.from("\x89PNG\r\n\x1a\nnot really a pdf"),
+          filename: "CIV2601000999.pdf",
           mimeType: "image/png",
         },
       ],
-      gmailMessageId: "gmail-msg-bad-mime",
+      gmailMessageId: "gmail-msg-actually-png",
     };
 
     const result = await ingestNormalizedMessage(dto);
@@ -453,7 +483,7 @@ describe("pharmcareIngestionService.ingestNormalizedMessage", () => {
     expect(result.status).toBe("ingested");
     expect(state.attachments[0].status).toBe("failed");
     expect(JSON.parse(JSON.stringify(state.attachments[0].metadata)).invalidReasons).toContain(
-      "unexpected_mime_type",
+      "invalid_pdf_signature",
     );
     expect(state.documents[0].review_status).toBe("manual_review");
     expect(storedFiles).toHaveLength(0);

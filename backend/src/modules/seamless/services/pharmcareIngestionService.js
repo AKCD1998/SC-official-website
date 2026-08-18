@@ -15,29 +15,38 @@ function looksLikePdf(buffer) {
   return Buffer.isBuffer(buffer) && buffer.length >= 4 && buffer.subarray(0, 4).equals(PDF_MAGIC_BYTES);
 }
 
-// Validates actual bytes (PDF signature), actual size, and the declared MIME type — never trusts
-// the filename extension alone, per docs/14-pharmcare-sonnet-implementation-plan.md section 4.6/6.
-// Returns every applicable reasonCode, not just the first failure, so manual review has full
-// evidence.
+// Validates actual bytes (PDF signature) and actual size — the real content, never the filename
+// extension alone, per docs/14-pharmcare-sonnet-implementation-plan.md section 4.6/6. Returns
+// every applicable reasonCode, not just the first failure, so manual review has full evidence.
+//
+// Gmail's declared MIME type for an attachment is not a reliable signal of what the file
+// actually is: a real PharmCare invoice was observed live reporting application/octet-stream
+// while its bytes are a perfectly valid PDF. The magic-byte check above IS the "actual MIME"
+// check the docs ask for — a declared-type mismatch is recorded as evidence for the audit trail
+// but never rejects an attachment whose bytes are genuinely a PDF.
 function validateAttachmentPayload({ buffer, mimeType }) {
   const reasonCodes = [];
+  let valid = true;
 
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
     reasonCodes.push("empty_attachment");
+    valid = false;
   } else {
     if (buffer.length > MAX_ATTACHMENT_BYTES) {
       reasonCodes.push("attachment_too_large");
+      valid = false;
     }
     if (!looksLikePdf(buffer)) {
       reasonCodes.push("invalid_pdf_signature");
+      valid = false;
     }
   }
 
   if (mimeType && !ACCEPTED_MIME_TYPES.has(String(mimeType).trim().toLowerCase())) {
-    reasonCodes.push("unexpected_mime_type");
+    reasonCodes.push("declared_mime_type_mismatch");
   }
 
-  return { reasonCodes, valid: reasonCodes.length === 0 };
+  return { reasonCodes, valid };
 }
 
 // Stores (or reuses) the attachment's bytes and returns the row it was persisted as. Reuses the
@@ -85,6 +94,7 @@ async function storeAttachment({ classifierAttachmentId, filename, mimeType, buf
         fileSizeBytes: buffer.length,
         gmailAttachmentId: classifierAttachmentId,
         messageId,
+        metadata: validation.reasonCodes.length ? { validationNotes: validation.reasonCodes } : undefined,
         mimeType,
         originalFilename: filename,
         status: "duplicate",
@@ -93,7 +103,7 @@ async function storeAttachment({ classifierAttachmentId, filename, mimeType, buf
       },
       client,
     );
-    return { row, valid: true };
+    return { reasonCodes: validation.reasonCodes, row, valid: true };
   }
 
   const stored = await fileStorageService.writeStoredFile(PHARMCARE_STORAGE_KIND, filename, buffer);
@@ -103,6 +113,7 @@ async function storeAttachment({ classifierAttachmentId, filename, mimeType, buf
       fileSizeBytes: stored.fileSizeBytes,
       gmailAttachmentId: classifierAttachmentId,
       messageId,
+      metadata: validation.reasonCodes.length ? { validationNotes: validation.reasonCodes } : undefined,
       mimeType,
       originalFilename: filename,
       status: "stored",
@@ -111,7 +122,7 @@ async function storeAttachment({ classifierAttachmentId, filename, mimeType, buf
     },
     client,
   );
-  return { row, valid: true };
+  return { reasonCodes: validation.reasonCodes, row, valid: true };
 }
 
 // Business dedup for a classified document. Two independent rules apply, checked in order:
@@ -247,6 +258,12 @@ async function ingestNormalizedMessage(dto, options = {}) {
         reviewStatus = "manual_review";
         reasonCodes = [...reasonCodes, ...(storedAttachment.reasonCodes || ["invalid_pdf_signature"])];
       } else {
+        // Carry through any non-blocking evidence from attachment validation (e.g. a declared
+        // MIME type that didn't match, even though the PDF signature was valid) so the audit
+        // trail shows it even though it didn't affect reviewStatus.
+        if (storedAttachment?.reasonCodes?.length) {
+          reasonCodes = [...reasonCodes, ...storedAttachment.reasonCodes];
+        }
         const dedup = await resolveDocumentDedup(classifiedDocument, attachmentRow, client);
         if (dedup.reviewStatus !== classifiedDocument.reviewStatus) {
           reviewStatus = dedup.reviewStatus;
