@@ -182,4 +182,37 @@ async function sendPrintNotification(job, record) {
   return { skipped: false };
 }
 
-module.exports = { sendPrintNotification };
+// Generic plain-text alert, reusing the same LINE config/target as print notifications — used
+// for operational alerts (e.g. PharmCare Gmail sync failures) that don't have a print job/record
+// to build a Flex message around. Same skip-if-unconfigured behavior as sendPrintNotification.
+async function sendTextAlert(text) {
+  const lineConfig = readLineConfig();
+
+  if (!lineConfig.channelAccessToken || !lineConfig.targetId) {
+    return {
+      skipped: true,
+      reason: "SEAMLESS_LINE_CHANNEL_ACCESS_TOKEN or SEAMLESS_LINE_TARGET_ID is not configured.",
+    };
+  }
+
+  const response = await fetch("https://api.line.me/v2/bot/message/push", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${lineConfig.channelAccessToken}`,
+    },
+    body: JSON.stringify({
+      to: lineConfig.targetId,
+      messages: [{ type: "text", text: String(text).slice(0, 4900) }], // LINE's text message limit is 5000 chars
+    }),
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new Error(`LINE push failed with status ${response.status}: ${body}`);
+  }
+
+  return { skipped: false };
+}
+
+module.exports = { sendPrintNotification, sendTextAlert };

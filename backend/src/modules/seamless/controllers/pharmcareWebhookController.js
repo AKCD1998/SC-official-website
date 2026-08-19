@@ -1,6 +1,7 @@
 const crypto = require("node:crypto");
 const { createGmailAdapter, isGmailConfigured } = require("../services/pharmcare/gmailAdapter");
 const { runPharmcareGmailSync } = require("../services/pharmcareSyncService");
+const { sendTextAlert } = require("../services/lineNotifyService");
 const { readPharmcareGmailConfig } = require("../config");
 const { unauthorized } = require("../errors");
 
@@ -38,11 +39,29 @@ async function handleGmailWebhook(req, res) {
 
   try {
     const adapter = createGmailAdapter(config);
-    await runPharmcareGmailSync(adapter, config.mailboxAccount, { runKind: "incremental" });
+    const outcome = await runPharmcareGmailSync(adapter, config.mailboxAccount, { runKind: "incremental" });
+
+    // There is no periodic health check on this (see docs/18) — the only alert path today is
+    // "a real sync attempt happened and it had errors". A dead/expired watch() subscription
+    // produces no webhook calls at all and so cannot be caught here; that gap is accepted for
+    // now and documented, with a paid Render Cron Job fallback planned once usage grows.
+    if (outcome.status === "failed") {
+      const failedCount = outcome.results.filter((r) => r.status === "failed").length;
+      await sendTextAlert(
+        `⚠️ PharmCare Gmail sync (webhook-triggered) completed with ${failedCount} failed message(s). Check pharmcare_sync_runs (runId: ${outcome.runId}) or run: node scripts/pharmcare-gmail.cjs status`,
+      ).catch((alertError) => {
+        console.error("[pharmcare-gmail-webhook] LINE alert failed:", alertError.message);
+      });
+    }
   } catch (error) {
-    // Response is already sent — nothing left to do but log. The next webhook call or the
-    // fallback cron sync will pick up anything missed here.
+    // Response is already sent — nothing left to do but log + alert. The next webhook call or a
+    // manual sync will pick up anything missed here.
     console.error("[pharmcare-gmail-webhook] incremental sync failed:", error.message);
+    await sendTextAlert(`⚠️ PharmCare Gmail sync (webhook-triggered) crashed: ${error.message}`).catch(
+      (alertError) => {
+        console.error("[pharmcare-gmail-webhook] LINE alert failed:", alertError.message);
+      },
+    );
   }
 }
 

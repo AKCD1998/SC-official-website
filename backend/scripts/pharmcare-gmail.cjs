@@ -114,6 +114,25 @@ async function main() {
     const repository = require("../src/modules/seamless/db/pharmcareRepository");
     const state = await repository.getSyncState(config.mailboxAccount);
     const runs = await repository.listRecentSyncRuns(config.mailboxAccount, 10);
+    const watch = state.checkpoint?.watch;
+
+    // No cron checks this proactively (see docs/18) — this is the manual/on-demand visibility
+    // path. Gmail push notifications silently stop with no error anywhere once watch() expires,
+    // so a stale/expired watch here is a real, easy-to-miss failure mode, not just informational.
+    if (watch?.expiresAt) {
+      const msRemaining = new Date(watch.expiresAt).getTime() - Date.now();
+      const hoursRemaining = (msRemaining / (1000 * 60 * 60)).toFixed(1);
+      if (msRemaining <= 0) {
+        console.error(`⚠️  Gmail push subscription EXPIRED at ${watch.expiresAt} — real-time sync has silently stopped. Run: node scripts/pharmcare-gmail.cjs watch`);
+      } else if (msRemaining < 24 * 60 * 60 * 1000) {
+        console.error(`⚠️  Gmail push subscription expires in ${hoursRemaining}h (${watch.expiresAt}) — renew soon: node scripts/pharmcare-gmail.cjs watch`);
+      } else {
+        console.error(`Gmail push subscription active, expires in ${hoursRemaining}h (${watch.expiresAt}).`);
+      }
+    } else {
+      console.error("Gmail push subscription: never started (no 'watch' has been run yet) — real-time sync is not active; only manual/webhook-triggered sync applies once one exists.");
+    }
+
     console.log(JSON.stringify({ mailboxAccount: config.mailboxAccount, recentRuns: runs, state }, null, 2));
     const pool = require("../db");
     await pool.end();
@@ -129,11 +148,24 @@ async function main() {
       return;
     }
     const result = await adapter.watchMailbox(config.pubsubTopicName);
-    console.log(JSON.stringify({
-      expiresAt: new Date(Number(result.expiration)).toISOString(),
-      historyId: result.historyId,
-      topicName: config.pubsubTopicName,
-    }, null, 2));
+    const expiresAt = new Date(Number(result.expiration)).toISOString();
+
+    // Persist expiry so `status` can warn before/after it lapses. Reads the existing state first
+    // and merges — saveSyncState() replaces checkpoint/lastRunStatus wholesale, so skipping this
+    // would silently wipe the incremental-sync checkpoint and last run status.
+    const repository = require("../src/modules/seamless/db/pharmcareRepository");
+    const existingState = await repository.getSyncState(config.mailboxAccount);
+    await repository.saveSyncState(config.mailboxAccount, {
+      checkpoint: {
+        ...existingState.checkpoint,
+        watch: { expiresAt, historyId: result.historyId, topicName: config.pubsubTopicName, watchedAt: new Date().toISOString() },
+      },
+      lastRunStatus: existingState.lastRunStatus,
+    });
+
+    console.log(JSON.stringify({ expiresAt, historyId: result.historyId, topicName: config.pubsubTopicName }, null, 2));
+    const pool = require("../db");
+    await pool.end();
     return;
   }
 
