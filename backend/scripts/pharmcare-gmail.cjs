@@ -148,9 +148,20 @@ async function main() {
   }
 
   const { runPharmcareGmailSync } = require("../src/modules/seamless/services/pharmcareSyncService");
+  const startedAt = Date.now();
   const outcome = await runPharmcareGmailSync(adapter, config.mailboxAccount, {
     after: sinceDate,
     ignoreCheckpoint: args.mode === "backfill",
+    onProgress(event) {
+      const elapsedSeconds = ((Date.now() - startedAt) / 1000).toFixed(1);
+      if (event.type === "listed") {
+        console.error(`[${elapsedSeconds}s] Found ${event.total} candidate message(s) to process.`);
+      } else if (event.type === "start") {
+        console.error(`[${elapsedSeconds}s] (${event.index}/${event.total}) fetching ${event.gmailMessageId} ...`);
+      } else if (event.type === "done") {
+        console.error(`[${elapsedSeconds}s] (${event.index}/${event.total}) ${event.gmailMessageId} -> ${event.status}`);
+      }
+    },
     runKind: args.mode === "backfill" ? "backfill" : "incremental",
   });
 

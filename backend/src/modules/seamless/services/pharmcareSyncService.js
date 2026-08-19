@@ -30,10 +30,15 @@ async function syncMessagesFromAdapter(adapter, mailboxAccount, options = {}) {
   const retryDelayMs = Number.isFinite(options.retryDelayMs)
     ? options.retryDelayMs
     : DEFAULT_RETRY_DELAY_MS;
+  // Optional hook so callers (the CLI in particular) can show progress on a long run. No-op by
+  // default so existing callers/tests are unaffected.
+  const onProgress = typeof options.onProgress === "function" ? options.onProgress : () => {};
   const messageIds = await adapter.listCandidateMessageIds({ after: options.after });
+  onProgress({ index: 0, total: messageIds.length, type: "listed" });
   const results = [];
 
-  for (const messageId of messageIds) {
+  for (const [index, messageId] of messageIds.entries()) {
+    onProgress({ gmailMessageId: messageId, index: index + 1, total: messageIds.length, type: "start" });
     let outcome = null;
     let lastError = null;
 
@@ -62,15 +67,15 @@ async function syncMessagesFromAdapter(adapter, mailboxAccount, options = {}) {
       }
     }
 
-    results.push(
-      outcome
-        ? { gmailMessageId: messageId, ...outcome }
-        : {
-            error: lastError ? lastError.message : "unknown error",
-            gmailMessageId: messageId,
-            status: "failed",
-          },
-    );
+    const result = outcome
+      ? { gmailMessageId: messageId, ...outcome }
+      : {
+          error: lastError ? lastError.message : "unknown error",
+          gmailMessageId: messageId,
+          status: "failed",
+        };
+    results.push(result);
+    onProgress({ gmailMessageId: messageId, index: index + 1, status: result.status, total: messageIds.length, type: "done" });
   }
 
   return results;
