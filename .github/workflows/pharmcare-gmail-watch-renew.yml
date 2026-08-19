@@ -1,0 +1,45 @@
+name: Renew PharmCare Gmail watch subscription
+
+# Gmail's push-notification subscription (watch()) expires every <= 7 days by Google's own rule
+# — see docs/14-pharmcare-sonnet-implementation-plan.md and docs/18 (ClaspSCxSeamless) for the
+# full design/decision history. Calling watch() again is idempotent and always extends it another
+# 7 days from that moment, regardless of how much time was left — so running this daily (instead
+# of trying to time it precisely near the 7-day mark) fully removes the "expired right before the
+# renewal ran" edge case, at zero extra cost: this repo is public, so GitHub Actions minutes are
+# unlimited/free here regardless of run frequency.
+#
+# If this job fails, GitHub emails the repo owner automatically (default behavior for scheduled
+# workflow failures) — no extra notification setup needed for that.
+
+on:
+  schedule:
+    # 03:00 UTC = 10:00 Bangkok time. Cron fields: minute hour day-of-month month day-of-week.
+    - cron: "0 3 * * *"
+  workflow_dispatch: {} # lets you trigger a run manually from the Actions tab, for testing
+
+jobs:
+  renew-watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Renew Gmail watch subscription
+        working-directory: backend
+        env:
+          SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE }}
+          SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID }}
+          SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET }}
+          SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN }}
+          SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC }}
+          SC_OFFICIAL_SUPABASE_DATABASE_URL: ${{ secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL }}
+        run: node scripts/pharmcare-gmail.cjs watch
