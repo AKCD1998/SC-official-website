@@ -36,6 +36,40 @@ function parseLimit(value) {
   return parsed;
 }
 
+const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+// V8 happily rolls impossible ISO dates forward (2026-02-31 → March 3) instead of rejecting
+// them, so verify the day actually exists by round-tripping through Date.UTC.
+function isValidCalendarDate(dateStr) {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const utc = new Date(Date.UTC(year, month - 1, day));
+  return utc.getUTCFullYear() === year && utc.getUTCMonth() === month - 1 && utc.getUTCDate() === day;
+}
+
+// Inbox users pick calendar dates (YYYY-MM-DD) in ICT (+07:00 — no DST). Convert each pick to an
+// ICT-midnight timestamp so a picked day means the user's calendar day, not the server's UTC
+// day. receivedTo becomes an exclusive upper bound (picked day + 1) while both ends stay
+// inclusive for the caller — from == to returns exactly that one day.
+function parseInboxDate(value, name) {
+  if (value === undefined || value === "") {
+    return undefined;
+  }
+  if (!DATE_ONLY_PATTERN.test(value) || !isValidCalendarDate(value)) {
+    throw badRequest(`${name} must be a calendar date in YYYY-MM-DD format.`);
+  }
+  return value;
+}
+
+function toIctMidnightIso(dateStr) {
+  return new Date(`${dateStr}T00:00:00+07:00`).toISOString();
+}
+
+function toNextIctMidnightIso(dateStr) {
+  const end = new Date(`${dateStr}T00:00:00+07:00`);
+  end.setUTCHours(end.getUTCHours() + 24);
+  return end.toISOString();
+}
+
 // The frontend must never see storage_path (an internal filesystem path or R2 object key), only
 // the API surfaces below — see docs/14-pharmcare-sonnet-implementation-plan.md section 4.7.
 function sanitizeAttachment(attachment) {
@@ -65,7 +99,7 @@ function sanitizeDocumentForRole(document, role) {
 }
 
 async function listInbox(req, res) {
-  const { status, documentType, duplicate, cursor, limit } = req.query || {};
+  const { status, documentType, duplicate, cursor, limit, order, receivedFrom, receivedTo } = req.query || {};
 
   if (status && !VALID_REVIEW_STATUSES.includes(status)) {
     throw badRequest(`Invalid status filter. Expected one of: ${VALID_REVIEW_STATUSES.join(", ")}`);
@@ -73,12 +107,24 @@ async function listInbox(req, res) {
   if (documentType && !VALID_DOCUMENT_TYPES.includes(documentType)) {
     throw badRequest(`Invalid documentType filter. Expected one of: ${VALID_DOCUMENT_TYPES.join(", ")}`);
   }
+  if (order && order !== "asc" && order !== "desc") {
+    throw badRequest("order must be 'asc' or 'desc'.");
+  }
+
+  const receivedFromDate = parseInboxDate(receivedFrom, "receivedFrom");
+  const receivedToDate = parseInboxDate(receivedTo, "receivedTo");
+  if (receivedFromDate && receivedToDate && receivedFromDate > receivedToDate) {
+    throw badRequest("receivedFrom must be on or before receivedTo.");
+  }
 
   const filters = {
     cursor: cursor || undefined,
     documentType: documentType || undefined,
     duplicate: parseDuplicateFilter(duplicate),
     limit: parseLimit(limit),
+    order: order || undefined,
+    receivedFrom: receivedFromDate ? toIctMidnightIso(receivedFromDate) : undefined,
+    receivedTo: receivedToDate ? toNextIctMidnightIso(receivedToDate) : undefined,
     status: status || undefined,
   };
 

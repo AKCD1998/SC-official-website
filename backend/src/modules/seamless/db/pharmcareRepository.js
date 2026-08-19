@@ -333,7 +333,10 @@ function decodeCursor(cursor) {
 
   try {
     const decoded = JSON.parse(Buffer.from(String(cursor), "base64url").toString("utf8"));
-    if (!decoded || !decoded.createdAt || !decoded.id) {
+    // Cursors encoded before the received_at ordering change (keyed by createdAt) fail this
+    // check and degrade to a fresh first page — only mid-session clients during that deploy
+    // ever see it.
+    if (!decoded || !decoded.receivedAt || !decoded.id) {
       return null;
     }
     return decoded;
@@ -342,11 +345,12 @@ function decodeCursor(cursor) {
   }
 }
 
-// Takes a raw SQL result row (snake_case created_at), not a mapped camelCase document — this is
-// called with pageRows straight from the query, before mapDocument() runs.
+// Takes a raw SQL result row (snake_case received_at from the joined message), not a mapped
+// camelCase document — this is called with pageRows straight from the query, before
+// mapDocument() runs.
 function encodeCursor(row) {
-  const createdAt = row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at;
-  return Buffer.from(JSON.stringify({ createdAt, id: row.id }), "utf8").toString("base64url");
+  const receivedAt = row.received_at instanceof Date ? row.received_at.toISOString() : row.received_at;
+  return Buffer.from(JSON.stringify({ receivedAt, id: row.id }), "utf8").toString("base64url");
 }
 
 // Document-level inbox listing: one row per classified document (a settlement email with both
@@ -374,10 +378,31 @@ async function listInboxDocuments(filters = {}, client = null) {
     conditions.push(`(d.review_status != 'duplicate' AND d.duplicate_of_document_id IS NULL)`);
   }
 
+  // Inclusive calendar-day range on the message's received_at — the date the inbox table
+  // displays. The controller hands these over as ICT-midnight ISO timestamps with receivedTo
+  // already exclusive (picked day + 1), so from == to selects exactly one day.
+  if (filters.receivedFrom) {
+    params.push(filters.receivedFrom);
+    conditions.push(`m.received_at >= $${params.length}::timestamptz`);
+  }
+  if (filters.receivedTo) {
+    params.push(filters.receivedTo);
+    conditions.push(`m.received_at < $${params.length}::timestamptz`);
+  }
+
+  // Ordered by the received date the user sees (m.received_at), not the ingest timestamp
+  // (d.created_at) — they differ only by seconds of processing time, but the sort button sits
+  // on the displayed column.
+  const ascending = filters.order === "asc";
+  const cursorComparison = ascending ? ">" : "<";
+  const sortDirection = ascending ? "ASC" : "DESC";
+
   const cursor = decodeCursor(filters.cursor);
   if (cursor) {
-    params.push(cursor.createdAt, cursor.id);
-    conditions.push(`(d.created_at, d.id) < ($${params.length - 1}::timestamptz, $${params.length}::uuid)`);
+    params.push(cursor.receivedAt, cursor.id);
+    conditions.push(
+      `(m.received_at, d.id) ${cursorComparison} ($${params.length - 1}::timestamptz, $${params.length}::uuid)`,
+    );
   }
 
   const whereClause = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
@@ -401,7 +426,7 @@ async function listInboxDocuments(filters = {}, client = null) {
       JOIN ${tables.pharmcareEmailMessages} m ON m.id = d.message_id
       LEFT JOIN ${tables.pharmcareEmailAttachments} a ON a.id = d.attachment_id
       ${whereClause}
-      ORDER BY d.created_at DESC, d.id DESC
+      ORDER BY m.received_at ${sortDirection}, d.id ${sortDirection}
       LIMIT $${params.length}
     `,
     params,

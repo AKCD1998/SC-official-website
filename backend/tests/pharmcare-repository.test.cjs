@@ -143,8 +143,11 @@ async function mockQuery(sql, params = []) {
       return { rows, rowCount: rows.length };
     }
 
-    // listInboxDocuments — apply filters loosely based on the params passed in, in the same
-    // order the repository builds them (status, documentType, duplicate has no param, cursor).
+    // listInboxDocuments — apply filters loosely based on the params passed in, using the
+    // parameter positions the repository builds them in (status, documentType, duplicate has
+    // no param, receivedFrom, receivedTo, cursor pair, limit last). Messages created without
+    // an explicit receivedAt fall back to their created_at, which in production differs only
+    // by seconds of ingest processing.
     let rows = state.documents.map((doc) => {
       const message = state.messages.find((msg) => msg.id === doc.message_id);
       const attachment = state.attachments.find((att) => att.id === doc.attachment_id);
@@ -157,28 +160,48 @@ async function mockQuery(sql, params = []) {
         normalized_subject: message?.normalized_subject,
         original_from: message?.original_from,
         original_subject: message?.original_subject,
-        received_at: message?.received_at,
+        received_at: message?.received_at || message?.created_at || doc.created_at,
         message_status: message?.status,
       };
     });
 
-    if (text.includes("d.review_status = $1")) {
-      rows = rows.filter((row) => row.review_status === params[0]);
+    const paramIndexOf = (fragment) => Number(text.match(fragment)[1]) - 1;
+
+    if (text.includes("d.review_status = $")) {
+      rows = rows.filter((row) => row.review_status === params[paramIndexOf(/d\.review_status = \$(\d+)/)]);
     }
     if (text.includes("d.document_type = $")) {
-      const idx = text.includes("d.review_status = $1") ? 1 : 0;
-      rows = rows.filter((row) => row.document_type === params[idx]);
+      rows = rows.filter((row) => row.document_type === params[paramIndexOf(/d\.document_type = \$(\d+)/)]);
+    }
+    if (text.includes("m.received_at >= $")) {
+      const from = new Date(params[paramIndexOf(/m\.received_at >= \$(\d+)/)]).getTime();
+      rows = rows.filter((row) => new Date(row.received_at).getTime() >= from);
+    }
+    if (text.includes("m.received_at < $")) {
+      const to = new Date(params[paramIndexOf(/m\.received_at < \$(\d+)/)]).getTime();
+      rows = rows.filter((row) => new Date(row.received_at).getTime() < to);
     }
 
-    rows.sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : a.id < b.id ? 1 : -1));
+    const ascending = text.includes("ORDER BY m.received_at ASC");
+    rows.sort((a, b) => {
+      const diff = new Date(a.received_at).getTime() - new Date(b.received_at).getTime();
+      if (diff !== 0) {
+        return ascending ? diff : -diff;
+      }
+      return ascending ? (a.id < b.id ? -1 : 1) : (a.id < b.id ? 1 : -1);
+    });
 
-    if (text.includes("(d.created_at, d.id) <")) {
-      const cursorCreatedAt = params[params.length - 3];
+    if (text.includes("(m.received_at, d.id) <") || text.includes("(m.received_at, d.id) >")) {
+      const isAscending = text.includes("(m.received_at, d.id) >");
+      const cursorReceivedAt = new Date(params[params.length - 3]).getTime();
       const cursorId = params[params.length - 2];
-      rows = rows.filter(
-        (row) =>
-          row.created_at < cursorCreatedAt || (row.created_at === cursorCreatedAt && row.id < cursorId),
-      );
+      rows = rows.filter((row) => {
+        const rowTime = new Date(row.received_at).getTime();
+        if (rowTime !== cursorReceivedAt) {
+          return isAscending ? rowTime > cursorReceivedAt : rowTime < cursorReceivedAt;
+        }
+        return isAscending ? row.id > cursorId : row.id < cursorId;
+      });
     }
 
     const limit = Number(params[params.length - 1]);
@@ -399,7 +422,8 @@ describe("pharmcareRepository", () => {
     const firstPage = await repository.listInboxDocuments({ limit: 2 });
     expect(firstPage.documents).toHaveLength(2);
     expect(firstPage.nextCursor).toBeTruthy();
-    // Most-recently-created documents come first (ORDER BY created_at DESC).
+    // Most-recently-received documents come first (ORDER BY m.received_at DESC — all five share
+    // one message here, so the d.id DESC tie-break decides, same as production).
     expect(firstPage.documents.map((doc) => doc.id)).toEqual([created[4], created[3]]);
 
     const secondPage = await repository.listInboxDocuments({ cursor: firstPage.nextCursor, limit: 2 });
@@ -413,6 +437,53 @@ describe("pharmcareRepository", () => {
     const thirdPage = await repository.listInboxDocuments({ cursor: secondPage.nextCursor, limit: 2 });
     expect(thirdPage.documents.map((doc) => doc.id)).toEqual([created[0]]);
     expect(thirdPage.nextCursor).toBeNull();
+  });
+
+  test("listInboxDocuments supports an inclusive single-day receivedAt range and ascending order with cursors", async () => {
+    const receivedAts = [
+      "2026-08-16T10:00:00+07:00", // before the range
+      "2026-08-19T08:30:00+07:00", // in range, earlier
+      "2026-08-19T23:59:00+07:00", // in range, late in the ICT day (16:59Z — still Aug 19 in ICT)
+      "2026-08-21T12:00:00+07:00", // after the range
+    ];
+    const idsByDay = [];
+    for (let i = 0; i < receivedAts.length; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      const message = await repository.createMessage({
+        mailboxAccount: "admin@scgroup1989.com",
+        gmailMessageId: `gmail-range-${i}`,
+        route: "gmail_filter_forward",
+        status: "classified",
+        receivedAt: receivedAts[i],
+      });
+      // eslint-disable-next-line no-await-in-loop
+      const document = await repository.createDocument({
+        messageId: message.id,
+        documentType: "e_credit_invoice",
+        documentNumber: `CIV-RANGE-${i}`,
+        reviewStatus: "auto_classified",
+      });
+      idsByDay.push(document.id);
+    }
+
+    // Controller-level conversion: 2026-08-19 in ICT = [Aug 18 17:00Z, Aug 19 17:00Z).
+    const singleDay = await repository.listInboxDocuments({
+      receivedFrom: "2026-08-18T17:00:00.000Z",
+      receivedTo: "2026-08-19T17:00:00.000Z",
+    });
+    expect(singleDay.documents.map((doc) => doc.documentNumber)).toEqual(["CIV-RANGE-2", "CIV-RANGE-1"]);
+    expect(singleDay.nextCursor).toBeNull();
+
+    // Ascending order pages oldest-first without repeats.
+    const ascendingPage1 = await repository.listInboxDocuments({ order: "asc", limit: 2 });
+    expect(ascendingPage1.documents.map((doc) => doc.documentNumber)).toEqual(["CIV-RANGE-0", "CIV-RANGE-1"]);
+    const ascendingPage2 = await repository.listInboxDocuments({
+      cursor: ascendingPage1.nextCursor,
+      limit: 2,
+      order: "asc",
+    });
+    expect(ascendingPage2.documents.map((doc) => doc.documentNumber)).toEqual(["CIV-RANGE-2", "CIV-RANGE-3"]);
+    expect(ascendingPage2.nextCursor).toBeNull();
   });
 
   test("getInboxSummaryCounts groups documents by review_status", async () => {

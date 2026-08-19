@@ -108,20 +108,36 @@ async function mockQuery(sql, params = []) {
         normalized_subject: message?.normalized_subject,
         original_from: message?.original_from,
         original_subject: message?.original_subject,
-        received_at: message?.received_at,
+        received_at: message?.received_at || message?.created_at || doc.created_at,
         route: message?.route,
       };
     });
 
-    if (text.includes("d.review_status = $1")) {
-      rows = rows.filter((row) => row.review_status === params[0]);
+    const paramIndexOf = (fragment) => Number(text.match(fragment)[1]) - 1;
+
+    if (text.includes("d.review_status = $")) {
+      rows = rows.filter((row) => row.review_status === params[paramIndexOf(/d\.review_status = \$(\d+)/)]);
     }
     if (text.includes("d.document_type = $")) {
-      const idx = text.includes("d.review_status = $1") ? 1 : 0;
-      rows = rows.filter((row) => row.document_type === params[idx]);
+      rows = rows.filter((row) => row.document_type === params[paramIndexOf(/d\.document_type = \$(\d+)/)]);
+    }
+    if (text.includes("m.received_at >= $")) {
+      const from = new Date(params[paramIndexOf(/m\.received_at >= \$(\d+)/)]).getTime();
+      rows = rows.filter((row) => new Date(row.received_at).getTime() >= from);
+    }
+    if (text.includes("m.received_at < $")) {
+      const to = new Date(params[paramIndexOf(/m\.received_at < \$(\d+)/)]).getTime();
+      rows = rows.filter((row) => new Date(row.received_at).getTime() < to);
     }
 
-    rows.sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    const ascending = text.includes("ORDER BY m.received_at ASC");
+    rows.sort((a, b) => {
+      const diff = new Date(a.received_at).getTime() - new Date(b.received_at).getTime();
+      if (diff !== 0) {
+        return ascending ? diff : -diff;
+      }
+      return ascending ? (a.id < b.id ? -1 : 1) : (a.id < b.id ? 1 : -1);
+    });
     const limit = Number(params[params.length - 1]);
     return { rows: rows.slice(0, limit), rowCount: Math.min(rows.length, limit) };
   }
@@ -246,6 +262,67 @@ describe("PharmCare API routes", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("BAD_REQUEST");
+  });
+
+  test("GET /inbox rejects an invalid order value", async () => {
+    const app = buildApp();
+    const response = await request(app).get("/api/app/pharmcare/inbox?order=alphabetical");
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.message).toContain("order");
+  });
+
+  test("GET /inbox rejects malformed and impossible date ranges", async () => {
+    const app = buildApp();
+
+    const malformed = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-19T10:00:00Z");
+    expect(malformed.status).toBe(400);
+    expect(malformed.body.error.message).toContain("YYYY-MM-DD");
+
+    const impossibleDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-02-31");
+    expect(impossibleDay.status).toBe(400);
+
+    const inverted = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-20&receivedTo=2026-08-19");
+    expect(inverted.status).toBe(400);
+    expect(inverted.body.error.message).toContain("receivedFrom");
+  });
+
+  test("GET /inbox accepts a single-day ICT range and returns only that day's documents", async () => {
+    await seedOneDocument(); // received 2026-08-01T03:00:00Z (= 10:00 ICT, Aug 1)
+    const app = buildApp();
+
+    // Same day on both ends (Aug 1 in ICT = Jul 31 17:00Z .. Aug 1 17:00Z) must match.
+    const sameDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-01&receivedTo=2026-08-01");
+    expect(sameDay.status).toBe(200);
+    expect(sameDay.body.documents).toHaveLength(1);
+
+    // 23:30 ICT on Aug 1 (= 16:30Z) is still Aug 1 for the picker.
+    await repository.createMessage({
+      gmailMessageId: "gmail-late-ict",
+      mailboxAccount: "admin@scgroup1989.com",
+      metadata: {},
+      normalizedSubject: "late ICT evening email",
+      originalFrom: "info@pharmcare.co",
+      originalSubject: "late ICT evening email",
+      rawSubject: "late ICT evening email",
+      receivedAt: "2026-08-01T16:30:00.000Z",
+      route: "gmail_filter_forward",
+      status: "classified",
+      visibleFrom: "info@pharmcare.co",
+    }).then((message) =>
+      repository.createDocument({
+        documentType: "e_credit_invoice",
+        messageId: message.id,
+        metadata: {},
+        reviewStatus: "auto_classified",
+      }),
+    );
+
+    const wholeDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-01&receivedTo=2026-08-01");
+    expect(wholeDay.body.documents).toHaveLength(2);
+
+    const otherDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-02&receivedTo=2026-08-02");
+    expect(otherDay.body.documents).toHaveLength(0);
   });
 
   test("GET /messages/:id returns message evidence without leaking storage_path", async () => {
