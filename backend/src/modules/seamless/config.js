@@ -94,6 +94,50 @@ function readPublicBaseUrl() {
   return String(process.env.SEAMLESS_PUBLIC_BASE_URL || process.env.RENDER_EXTERNAL_URL || "").trim();
 }
 
+// Pinned rather than left to whoever configures the mailbox, since ingesting from the wrong
+// mailbox would silently mix unrelated mail into PharmCare's financial-document pipeline.
+function readPharmcareGmailConfig() {
+  return {
+    mailboxAccount: String(
+      process.env.SEAMLESS_PHARMCARE_GMAIL_MAILBOX || "admin@scgroup1989.com",
+    ).trim(),
+    authMode: String(process.env.SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE || "").trim(),
+    serviceAccountJson: String(
+      process.env.SEAMLESS_PHARMCARE_GMAIL_SERVICE_ACCOUNT_JSON || "",
+    ).trim(),
+    impersonatedUser: String(
+      process.env.SEAMLESS_PHARMCARE_GMAIL_IMPERSONATED_USER ||
+        process.env.SEAMLESS_PHARMCARE_GMAIL_MAILBOX ||
+        "admin@scgroup1989.com",
+    ).trim(),
+    clientId: String(process.env.SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID || "").trim(),
+    clientSecret: String(process.env.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET || "").trim(),
+    refreshToken: String(process.env.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN || "").trim(),
+    // Gmail search query for candidate messages. The default covers both delivery routes this
+    // mailbox sees: direct/filter-forwarded mail from PharmCare itself, and the historical
+    // manual forwards sent from the auukunn.bkk@gmail.com source mailbox (visible From is the
+    // forwarder, not PharmCare). Override with SEAMLESS_PHARMCARE_GMAIL_QUERY if the routes
+    // change; ingestion stays safe either way because the classifier re-checks the sender
+    // allowlist and unknown senders land in manual_review.
+    gmailQuery: String(
+      process.env.SEAMLESS_PHARMCARE_GMAIL_QUERY ||
+        "from:info@pharmcare.co OR from:auukunn.bkk@gmail.com",
+    ).trim(),
+  };
+}
+
+function readPharmcareSenderAllowlist() {
+  const raw = String(process.env.SEAMLESS_PHARMCARE_SENDER_ALLOWLIST || "").trim();
+  if (!raw) {
+    return null; // caller falls back to the classifier's own default allowlist
+  }
+
+  return raw
+    .split(",")
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+}
+
 function readEmailConfig() {
   return {
     provider: String(process.env.EMAIL_PROVIDER || "sendgrid").trim().toLowerCase(),
@@ -112,6 +156,8 @@ module.exports = {
   readEmailConfig,
   readInternalApiToken,
   readLineConfig,
+  readPharmcareGmailConfig,
+  readPharmcareSenderAllowlist,
   readPublicBaseUrl,
   readR2Config,
   readSchemaName,
