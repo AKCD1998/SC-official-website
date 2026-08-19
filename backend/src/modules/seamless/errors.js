@@ -24,6 +24,13 @@ function unauthorized(message, details = null) {
   return new ApiError(401, message, "UNAUTHORIZED", details);
 }
 
+// Distinct from unauthorized (401, "no valid session at all") — this is "you have a valid
+// session but it's the wrong role for this action" (e.g. a regular-user session hitting an
+// admin-only route).
+function forbidden(message, details = null) {
+  return new ApiError(403, message, "FORBIDDEN", details);
+}
+
 function serviceUnavailable(message, details = null) {
   return new ApiError(503, message, "SERVICE_UNAVAILABLE", details);
 }
@@ -32,6 +39,7 @@ module.exports = {
   ApiError,
   badRequest,
   conflict,
+  forbidden,
   notFound,
   serviceUnavailable,
   unauthorized,

@@ -173,9 +173,15 @@ async function sendPrintEmailNotification(job, record) {
   const bucket = generatedFile.metadata?.storageBucket || undefined;
   const buffer = await readStoredFile(generatedFile.storageProvider, generatedFile.storagePath, bucket);
 
+  // Same recipient/provider as every other print — only the subject prefix tells PharmCare and
+  // Seamless mail apart at a glance in an inbox list (no HTML template exists for either today,
+  // see docs/22-pharmcare-print-integration-spec.md for why that's out of scope here).
+  const isPharmcare = record.metadata?.source === "pharmcare";
+  const subjectPrefix = isPharmcare ? "[PharmCare]" : "[ClaspSCxSeamless]";
+
   await sendGeneratedFileEmail({
     to: emailConfig.docsRecipientEmail,
-    subject: `[ClaspSCxSeamless] ปริ้นเอกสารส่งพี่เอแล้ว: ${record.filename}`,
+    subject: `${subjectPrefix} ปริ้นเอกสารส่งพี่เอแล้ว: ${record.filename}`,
     text: `ไฟล์ ${record.filename} ปริ้นเสร็จแล้วที่เครื่อง ${job.agentHost || "-"} (${job.printerName || "-"})`,
     filename: generatedFile.filename,
     mimeType: generatedFile.mimeType,

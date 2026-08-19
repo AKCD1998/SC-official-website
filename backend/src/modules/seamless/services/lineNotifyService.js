@@ -44,7 +44,132 @@ function buildFieldRow(emoji, label, value) {
   };
 }
 
+// PharmCare Thai labels are duplicated (not imported) from client/src/components/
+// pharmcareLabels.js — that file lives in the ClaspSCxSeamless frontend repo, unreachable from
+// this backend. Keep in sync by hand if PharmCare adds a document type.
+const PHARMCARE_DOCUMENT_TYPE_LABELS = {
+  e_credit_invoice: "E-Credit Invoice",
+  settlement_mrr: "Settlement (MRR)",
+  settlement_sfr: "Settlement (SFR)",
+  receipt_link_pending: "ใบเสร็จ/ใบกำกับภาษี (รอลิงก์)",
+  contract: "สัญญา",
+  unknown: "ไม่ทราบประเภท",
+};
+
+// isPharmcareSource(record) is true for a processing_records row created by
+// pharmcarePrintService.js (metadata.source === 'pharmcare') — every other row (the vast
+// majority: Seamless workbooks, Shopee orders) falls through to the original template
+// unchanged. See docs/22-pharmcare-print-integration-spec.md for why a shared table is reused
+// here instead of a separate one.
+function isPharmcareSource(record) {
+  return record?.metadata?.source === "pharmcare";
+}
+
+// A thin colored strip is the actual "tell them apart while scrolling" mechanism — same bubble
+// skeleton below (title → separator → field rows → status → footer) as the Seamless template,
+// just PharmCare teal (#1DADA8, the real brand color already used for the /pharmcare/* frontend
+// theme) instead of Seamless's green, so the two read as "same family, different module" rather
+// than needing to actually read the text to tell them apart.
+function buildAccentStrip(color) {
+  return { type: "box", layout: "vertical", height: "6px", backgroundColor: color, contents: [] };
+}
+
+function buildPharmcareFlexContents(job, record) {
+  const documentType = record.metadata?.pharmcareDocumentType;
+  const documentNumber = record.metadata?.pharmcareDocumentNumber;
+
+  const bodyContents = [
+    {
+      type: "text",
+      text: "💊 ปริ้นเอกสาร PharmCare ส่งพี่เอแล้ว",
+      weight: "bold",
+      size: "lg",
+      wrap: true,
+    },
+    { type: "separator", margin: "md" },
+    {
+      type: "box",
+      layout: "vertical",
+      margin: "md",
+      spacing: "sm",
+      contents: [
+        buildFieldRow("📁", "ไฟล์", record.filename),
+        buildFieldRow("🏷️", "ประเภทเอกสาร", PHARMCARE_DOCUMENT_TYPE_LABELS[documentType] || documentType || "-"),
+        ...(documentNumber ? [buildFieldRow("🔖", "เลขเอกสาร", documentNumber)] : []),
+      ],
+    },
+    { type: "separator", margin: "md" },
+    {
+      type: "box",
+      layout: "vertical",
+      margin: "md",
+      spacing: "sm",
+      contents: [
+        buildFieldRow("🖨️", "ปริ้นเมื่อ", formatTimestamp(job.completedAt)),
+        buildFieldRow("🖨️", "เครื่องปริ้น", `${job.printerName || "-"} (${job.agentHost || "-"})`),
+      ],
+    },
+    { type: "separator", margin: "md" },
+    {
+      type: "text",
+      text: "✅ สถานะ: สำเร็จ",
+      weight: "bold",
+      color: "#0A7A3D",
+      margin: "md",
+      wrap: true,
+    },
+    {
+      type: "text",
+      text: 'กรุณารับเอกสารที่เครื่องปริ้น หากหาไม่พบ สามารถกด "ขอปริ้นใหม่" ในหน้า PharmCare Inbox ได้',
+      wrap: true,
+      size: "sm",
+      margin: "md",
+    },
+  ];
+
+  if (job.isReprint) {
+    bodyContents.push(
+      { type: "separator", margin: "md" },
+      {
+        type: "box",
+        layout: "vertical",
+        margin: "md",
+        spacing: "xs",
+        contents: [
+          { type: "text", text: "⚠️ หมายเหตุ", weight: "bold", color: "#A33124", wrap: true },
+          {
+            type: "text",
+            text: `นี่คือการปริ้นซ้ำครั้งที่ ${job.attemptNo} ของเอกสารนี้`,
+            wrap: true,
+            size: "sm",
+          },
+          {
+            type: "text",
+            text: `เหตุผล: ${job.reprintReason || "ไม่ระบุ"}`,
+            wrap: true,
+            size: "sm",
+          },
+        ],
+      },
+    );
+  }
+
+  return {
+    type: "bubble",
+    header: buildAccentStrip("#1DADA8"),
+    body: {
+      type: "box",
+      layout: "vertical",
+      contents: bodyContents,
+    },
+  };
+}
+
 function buildFlexContents(job, record) {
+  if (isPharmcareSource(record)) {
+    return buildPharmcareFlexContents(job, record);
+  }
+
   const bodyContents = [
     {
       type: "text",
@@ -131,6 +256,7 @@ function buildFlexContents(job, record) {
 
   return {
     type: "bubble",
+    header: buildAccentStrip("#0D7A56"),
     body: {
       type: "box",
       layout: "vertical",
@@ -143,7 +269,8 @@ function buildFlexContents(job, record) {
 // must stay short, plain text, no formatting.
 function buildAltText(job, record) {
   const status = job.isReprint ? `ปริ้นซ้ำครั้งที่ ${job.attemptNo}` : "ปริ้นสำเร็จ";
-  return `📄 ${record.filename} — ${status}`;
+  const prefix = isPharmcareSource(record) ? "💊" : "📄";
+  return `${prefix} ${record.filename} — ${status}`;
 }
 
 async function sendPrintNotification(job, record) {

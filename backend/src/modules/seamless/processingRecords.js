@@ -154,6 +154,18 @@ async function listProcessingRecords(filters = {}, client = null) {
   params.push(normalizeLimit(filters.limit, 250));
   const limitPlaceholder = `$${params.length}`;
 
+  // PharmCare documents printed via the "ขอปริ้น" button (pharmcarePrintService.js) insert a
+  // real row into this same table so they can ride the existing print/email/LINE pipeline
+  // unchanged — but they must never show up in the Seamless/Shopee history dashboard mixed in
+  // with actual Seamless workbooks. This exclusion applies only when NOT looking up a specific
+  // id — a direct id lookup (getProcessingRecordById, used by the print pipeline itself on
+  // PharmCare-sourced records) must still find them; only the general/browsing list needs the
+  // filter. See docs/22-pharmcare-print-integration-spec.md.
+  const whereClauses = [...where.map((clause) => `pr.${clause}`)];
+  if (!normalizeString(filters.id)) {
+    whereClauses.push(`pr.metadata->>'source' IS DISTINCT FROM 'pharmcare'`);
+  }
+
   const result = await db.query(
     `
       SELECT
@@ -172,7 +184,7 @@ async function listProcessingRecords(filters = {}, client = null) {
         ORDER BY created_at DESC
         LIMIT 1
       ) latest_job ON true
-      ${where.length ? `WHERE ${where.map((clause) => `pr.${clause}`).join(" AND ")}` : ""}
+      WHERE ${whereClauses.join(" AND ")}
       ORDER BY COALESCE(pr.uploaded_at, pr.updated_at, pr.created_at) DESC
       LIMIT ${limitPlaceholder}
     `,

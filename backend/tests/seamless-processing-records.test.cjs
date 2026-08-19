@@ -87,6 +87,9 @@ async function mockQuery(sql, params = []) {
     if (text.includes("filename = $1")) {
       rows = rows.filter((row) => row.filename === params[0]);
     }
+    if (text.includes(`metadata->>'source' IS DISTINCT FROM 'pharmcare'`)) {
+      rows = rows.filter((row) => (row.metadata || {}).source !== "pharmcare");
+    }
 
     const limit = Number(params[params.length - 1] || rows.length);
     return { rows: rows.slice(0, limit), rowCount: Math.min(rows.length, limit) };
@@ -220,6 +223,39 @@ describe("seamless processing records routes", () => {
         branchCodes: "001",
       }),
     );
+  });
+
+  test("excludes PharmCare-sourced records from the general list (history dashboard)", async () => {
+    state.records.push({
+      ...state.records[0],
+      id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      filename: "CIV2601000123.pdf",
+      metadata: { source: "pharmcare", pharmcareDocumentId: "doc-1" },
+    });
+
+    const response = await request(createApp())
+      .get("/api/processing-records")
+      .set("Authorization", "Bearer seamless-token");
+
+    expect(response.status).toBe(200);
+    expect(response.body.records.map((record) => record.filename)).not.toContain("CIV2601000123.pdf");
+  });
+
+  test("still finds a PharmCare-sourced record when looked up directly by id", async () => {
+    state.records.push({
+      ...state.records[0],
+      id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      filename: "CIV2601000123.pdf",
+      metadata: { source: "pharmcare", pharmcareDocumentId: "doc-1" },
+    });
+
+    const response = await request(createApp())
+      .get("/api/processing-records?id=cccccccc-cccc-4ccc-8ccc-cccccccccccc")
+      .set("Authorization", "Bearer seamless-token");
+
+    expect(response.status).toBe(200);
+    expect(response.body.records).toHaveLength(1);
+    expect(response.body.records[0].filename).toBe("CIV2601000123.pdf");
   });
 
   test("creates or updates preview-backed processing history", async () => {
