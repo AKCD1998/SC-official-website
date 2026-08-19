@@ -54,10 +54,14 @@ function timingSafeEqualStrings(a, b) {
   return crypto.timingSafeEqual(bufferA, bufferB);
 }
 
-function appAuth(req, res, next) {
-  const { user: appBasicUser, password: appBasicPassword } = readAppBasicCredentials();
+function matchesAnyUsername(candidate, usernames) {
+  return usernames.some((username) => timingSafeEqualStrings(candidate, username));
+}
 
-  if (!appBasicUser || !appBasicPassword) {
+function appAuth(req, res, next) {
+  const { users: appBasicUsers, password: appBasicPassword } = readAppBasicCredentials();
+
+  if (!appBasicUsers.length || !appBasicPassword) {
     // Default-open (no credentials configured at all, e.g. local dev) — everyone gets admin so
     // nothing is hidden while poking around locally.
     req.appRole = "admin";
@@ -100,7 +104,7 @@ function appAuth(req, res, next) {
 
   if (
     basicCredentials &&
-    timingSafeEqualStrings(basicCredentials.username, appBasicUser) &&
+    matchesAnyUsername(basicCredentials.username, appBasicUsers) &&
     timingSafeEqualStrings(basicCredentials.password, appBasicPassword)
   ) {
     req.appRole = "user";

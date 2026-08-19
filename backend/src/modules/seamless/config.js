@@ -20,9 +20,17 @@ function readInternalApiToken() {
   ).trim();
 }
 
+// SEAMLESS_APP_BASIC_USER accepts a comma-separated list (e.g. multiple staff usernames sharing
+// one password) as well as a single username — both resolve to the "user" role. Blank entries
+// from stray commas/whitespace are dropped.
 function readAppBasicCredentials() {
+  const users = String(process.env.SEAMLESS_APP_BASIC_USER || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
   return {
-    user: String(process.env.SEAMLESS_APP_BASIC_USER || "").trim(),
+    users,
     password: String(process.env.SEAMLESS_APP_BASIC_PASSWORD || "").trim(),
   };
 }

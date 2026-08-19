@@ -14,8 +14,12 @@ function timingSafeEqualStrings(a, b) {
   return crypto.timingSafeEqual(bufferA, bufferB);
 }
 
+function matchesAnyUsername(candidate, usernames) {
+  return usernames.some((username) => timingSafeEqualStrings(candidate, username));
+}
+
 async function login(req, res) {
-  const { user: appBasicUser, password: appBasicPassword } = readAppBasicCredentials();
+  const { users: appBasicUsers, password: appBasicPassword } = readAppBasicCredentials();
   const { user: appAdminUser, password: appAdminPassword } = readAppAdminBasicCredentials();
   const username = String((req.body && req.body.username) || "").trim();
   const password = String((req.body && req.body.password) || "");
@@ -24,7 +28,7 @@ async function login(req, res) {
     throw badRequest("Username and password are required.");
   }
 
-  if (!appBasicUser || !appBasicPassword) {
+  if (!appBasicUsers.length || !appBasicPassword) {
     // Login is meaningless when the app has no configured credentials at all (dev/local
     // default-open mode) — treat it as already-authenticated rather than rejecting.
     res.json({ ok: true, role: "admin" });
@@ -44,7 +48,7 @@ async function login(req, res) {
     return;
   }
 
-  if (!timingSafeEqualStrings(username, appBasicUser) || !timingSafeEqualStrings(password, appBasicPassword)) {
+  if (!matchesAnyUsername(username, appBasicUsers) || !timingSafeEqualStrings(password, appBasicPassword)) {
     throw unauthorized("Incorrect username or password.");
   }
 
@@ -58,8 +62,8 @@ async function logout(req, res) {
 }
 
 async function getSession(req, res) {
-  const { user: appBasicUser, password: appBasicPassword } = readAppBasicCredentials();
-  const authRequired = Boolean(appBasicUser && appBasicPassword);
+  const { users: appBasicUsers, password: appBasicPassword } = readAppBasicCredentials();
+  const authRequired = Boolean(appBasicUsers.length && appBasicPassword);
 
   if (!authRequired) {
     res.json({ authenticated: true, role: "admin" });

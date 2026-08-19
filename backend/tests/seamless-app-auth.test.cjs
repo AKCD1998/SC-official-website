@@ -195,6 +195,27 @@ describe("seamless appAuth middleware", () => {
     delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
   });
 
+  test("SEAMLESS_APP_BASIC_USER accepts a comma-separated list of usernames sharing one password", async () => {
+    process.env.SEAMLESS_APP_BASIC_USER = "staff000,staff001,staff003,staff004,staff005";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "123123";
+    delete require.cache[require.resolve("../src/modules/seamless/middleware/appAuth")];
+    const { appAuth } = require("../src/modules/seamless/middleware/appAuth");
+
+    const app = express();
+    app.use(appAuth);
+    app.get("/protected", (req, res) => res.json({ role: req.appRole }));
+
+    const staff003Response = await request(app).get("/protected").auth("staff003", "123123");
+    expect(staff003Response.status).toBe(200);
+    expect(staff003Response.body).toEqual({ role: "user" });
+
+    const staff000Response = await request(app).get("/protected").auth("staff000", "123123");
+    expect(staff000Response.status).toBe(200);
+
+    const unknownStaffResponse = await request(app).get("/protected").auth("staff999", "123123");
+    expect(unknownStaffResponse.status).toBe(401);
+  });
+
   test("Basic auth with the admin credential pair attaches req.appRole = 'admin'", async () => {
     process.env.SEAMLESS_APP_BASIC_USER = "admin";
     process.env.SEAMLESS_APP_BASIC_PASSWORD = "secret";
