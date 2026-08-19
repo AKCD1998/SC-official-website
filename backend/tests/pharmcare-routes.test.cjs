@@ -329,4 +329,65 @@ describe("PharmCare API routes", () => {
 
     expect(response.status).toBe(200);
   });
+
+  test("GET /inbox strips admin-only fields when authenticated as a regular (non-admin) user", async () => {
+    process.env.SEAMLESS_APP_BASIC_USER = "admin";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "secret";
+    await seedOneDocument();
+    const app = buildApp();
+
+    const response = await request(app).get("/api/app/pharmcare/inbox").auth("admin", "secret");
+
+    expect(response.status).toBe(200);
+    const [document] = response.body.documents;
+    expect(document.documentType).toBe("e_credit_invoice");
+    expect(document.originalFrom).toBe("info@pharmcare.co");
+    expect(document.route).toBeUndefined();
+    expect(document.documentNumber).toBeUndefined();
+    expect(document.reviewStatus).toBeUndefined();
+    expect(document.reasonCodes).toBeUndefined();
+  });
+
+  test("GET /inbox keeps admin-only fields when authenticated with the admin credential pair", async () => {
+    process.env.SEAMLESS_APP_BASIC_USER = "admin";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "secret";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "root";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "root-secret";
+    await seedOneDocument();
+    const app = buildApp();
+
+    const response = await request(app).get("/api/app/pharmcare/inbox").auth("root", "root-secret");
+
+    expect(response.status).toBe(200);
+    const [document] = response.body.documents;
+    expect(document.route).toBe("gmail_filter_forward");
+    expect(document.documentNumber).toBe("CIV2601000123");
+    expect(document.reviewStatus).toBe("auto_classified");
+    expect(document.reasonCodes).toEqual(["filename_pattern_match"]);
+
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
+  });
+
+  test("GET /messages/:id strips per-document reasonCodes for a regular user but keeps them for admin", async () => {
+    process.env.SEAMLESS_APP_BASIC_USER = "admin";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "secret";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "root";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "root-secret";
+    const { message } = await seedOneDocument();
+    const app = buildApp();
+
+    const userResponse = await request(app)
+      .get(`/api/app/pharmcare/messages/${message.id}`)
+      .auth("admin", "secret");
+    expect(userResponse.body.documents[0].reasonCodes).toBeUndefined();
+
+    const adminResponse = await request(app)
+      .get(`/api/app/pharmcare/messages/${message.id}`)
+      .auth("root", "root-secret");
+    expect(adminResponse.body.documents[0].reasonCodes).toEqual(["filename_pattern_match"]);
+
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
+  });
 });

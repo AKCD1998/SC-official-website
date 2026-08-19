@@ -41,6 +41,8 @@ describe("seamless appAuth middleware", () => {
   afterEach(() => {
     delete process.env.SEAMLESS_APP_BASIC_USER;
     delete process.env.SEAMLESS_APP_BASIC_PASSWORD;
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
     delete process.env.SEAMLESS_INTERNAL_API_TOKEN;
     delete process.env.INTERNAL_API_TOKEN;
   });
@@ -169,7 +171,52 @@ describe("seamless appAuth middleware", () => {
     expect(protectedResponse.status).toBe(200);
 
     const sessionResponse = await request(app).get("/api/app/session").set("Cookie", cookie);
-    expect(sessionResponse.body).toEqual({ authenticated: true });
+    expect(sessionResponse.body).toEqual({ authenticated: true, role: "user" });
+  });
+
+  test("logging in with the admin credential pair grants the admin role", async () => {
+    process.env.SEAMLESS_APP_BASIC_USER = "admin";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "secret";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "root";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "root-secret";
+    const app = buildSessionApp();
+
+    const loginResponse = await request(app)
+      .post("/api/app/session/login")
+      .send({ username: "root", password: "root-secret" });
+    expect(loginResponse.status).toBe(200);
+    expect(loginResponse.body).toEqual({ ok: true, role: "admin" });
+
+    const cookie = loginResponse.headers["set-cookie"];
+    const sessionResponse = await request(app).get("/api/app/session").set("Cookie", cookie);
+    expect(sessionResponse.body).toEqual({ authenticated: true, role: "admin" });
+
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
+  });
+
+  test("Basic auth with the admin credential pair attaches req.appRole = 'admin'", async () => {
+    process.env.SEAMLESS_APP_BASIC_USER = "admin";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "secret";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "root";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "root-secret";
+    delete require.cache[require.resolve("../src/modules/seamless/middleware/appAuth")];
+    const { appAuth } = require("../src/modules/seamless/middleware/appAuth");
+
+    const app = express();
+    app.use(appAuth);
+    app.get("/protected", (req, res) => res.json({ role: req.appRole }));
+
+    const adminResponse = await request(app).get("/protected").auth("root", "root-secret");
+    expect(adminResponse.status).toBe(200);
+    expect(adminResponse.body).toEqual({ role: "admin" });
+
+    const userResponse = await request(app).get("/protected").auth("admin", "secret");
+    expect(userResponse.status).toBe(200);
+    expect(userResponse.body).toEqual({ role: "user" });
+
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
+    delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
   });
 
   test("POST /api/app/session/logout clears the cookie so appAuth-protected routes reject again", async () => {

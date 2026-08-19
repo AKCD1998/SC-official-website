@@ -27,6 +27,17 @@ function readAppBasicCredentials() {
   };
 }
 
+// A second, separate credential pair for admin-level access (sees classification diagnostics,
+// document numbers, routing/status columns; regular users get a stripped-down view — see
+// appAuth.js and pharmcareController.js). Optional: if unset, only the regular pair exists and
+// nobody gets the admin role, same as today.
+function readAppAdminBasicCredentials() {
+  return {
+    user: String(process.env.SEAMLESS_APP_ADMIN_BASIC_USER || "").trim(),
+    password: String(process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD || "").trim(),
+  };
+}
+
 // No dedicated SEAMLESS_SESSION_SECRET needs to be provisioned on Render for this to work —
 // it falls back to secrets that are already configured for this module, so login sessions work
 // immediately. Set SEAMLESS_SESSION_SECRET explicitly for a cleaner secret-separation story.
@@ -163,6 +174,7 @@ function readEmailConfig() {
 }
 
 module.exports = {
+  readAppAdminBasicCredentials,
   readAppBasicCredentials,
   readAutoPrintSince,
   readEmailConfig,

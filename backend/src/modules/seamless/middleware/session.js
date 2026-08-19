@@ -8,20 +8,23 @@ function sign(payload) {
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
-// Session token is a plain `<expiresAtMs>.<hmac>` — there is only one shared login (no
-// per-user identity to carry), so a stateless signed expiry is enough; no session table needed.
-function createSessionToken() {
+// Session token is a plain `<expiresAtMs>:<role>.<hmac>` — there is no per-user identity to
+// carry (still one shared login per role), but a role now rides along stateless-signed so
+// appAuth doesn't need to re-derive it from the original Basic credentials on every request.
+function createSessionToken(role = "user") {
   const expiresAt = Date.now() + readSessionCookieMaxAgeMs();
-  const payload = String(expiresAt);
+  const payload = `${expiresAt}:${role}`;
   return `${payload}.${sign(payload)}`;
 }
 
+// Returns the session's role ("admin" | "user") when the token is valid, or null when it's
+// missing/tampered/expired. Callers that only care about validity can check truthiness.
 function verifySessionToken(token) {
   const text = String(token || "");
   const separatorIndex = text.lastIndexOf(".");
 
   if (separatorIndex === -1) {
-    return false;
+    return null;
   }
 
   const payload = text.slice(0, separatorIndex);
@@ -32,15 +35,25 @@ function verifySessionToken(token) {
   const expectedBuffer = Buffer.from(expectedSignature);
 
   if (providedBuffer.length !== expectedBuffer.length) {
-    return false;
+    return null;
   }
 
   if (!crypto.timingSafeEqual(providedBuffer, expectedBuffer)) {
-    return false;
+    return null;
   }
 
-  const expiresAt = Number(payload);
-  return Number.isFinite(expiresAt) && Date.now() < expiresAt;
+  const separatorPos = payload.indexOf(":");
+  // Tokens minted before the role field existed have no ":" — treat those as "user" so
+  // sessions issued right before a deploy don't get silently logged out.
+  const expiresAtText = separatorPos === -1 ? payload : payload.slice(0, separatorPos);
+  const role = separatorPos === -1 ? "user" : payload.slice(separatorPos + 1) || "user";
+
+  const expiresAt = Number(expiresAtText);
+  if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) {
+    return null;
+  }
+
+  return role === "admin" ? "admin" : "user";
 }
 
 function cookieOptions() {
@@ -60,22 +73,33 @@ function cookieOptions() {
   };
 }
 
-function setSessionCookie(res) {
-  res.cookie(COOKIE_NAME, createSessionToken(), cookieOptions());
+function setSessionCookie(res, role = "user") {
+  res.cookie(COOKIE_NAME, createSessionToken(role), cookieOptions());
 }
 
 function clearSessionCookie(res) {
   res.clearCookie(COOKIE_NAME, { ...cookieOptions(), maxAge: undefined });
 }
 
-function hasValidSessionCookie(req) {
+// Returns "admin" | "user" for a valid cookie, or null when there's no valid session at all —
+// distinct from "no session" so callers can tell "not logged in" from "logged in as a regular
+// user" without a separate boolean check.
+function getSessionRole(req) {
   const token = req.cookies && req.cookies[COOKIE_NAME];
-  return Boolean(token) && verifySessionToken(token);
+  if (!token) {
+    return null;
+  }
+  return verifySessionToken(token);
+}
+
+function hasValidSessionCookie(req) {
+  return Boolean(getSessionRole(req));
 }
 
 module.exports = {
   COOKIE_NAME,
   clearSessionCookie,
+  getSessionRole,
   hasValidSessionCookie,
   setSessionCookie,
 };

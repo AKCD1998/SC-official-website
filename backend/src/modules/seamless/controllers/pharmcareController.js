@@ -46,6 +46,24 @@ function sanitizeAttachment(attachment) {
   return safe;
 }
 
+// route/documentNumber/reviewStatus and the classification diagnostics (reasonCodes,
+// classifierVersion) are internal/operational detail — a regular user only needs to know what
+// arrived and open it; only admin accounts (see appAuth.js) get the full picture. Stripped
+// server-side, not just hidden in the UI, so it never reaches the browser for a non-admin
+// session regardless of what the frontend chooses to render.
+const ADMIN_ONLY_DOCUMENT_FIELDS = ["route", "documentNumber", "reviewStatus", "reasonCodes", "classifierVersion"];
+
+function sanitizeDocumentForRole(document, role) {
+  if (role === "admin") {
+    return document;
+  }
+  const safe = { ...document };
+  ADMIN_ONLY_DOCUMENT_FIELDS.forEach((field) => {
+    delete safe[field];
+  });
+  return safe;
+}
+
 async function listInbox(req, res) {
   const { status, documentType, duplicate, cursor, limit } = req.query || {};
 
@@ -69,7 +87,11 @@ async function listInbox(req, res) {
     repository.getInboxSummaryCounts(),
   ]);
 
-  res.json({ documents, nextCursor, summary });
+  res.json({
+    documents: documents.map((document) => sanitizeDocumentForRole(document, req.appRole)),
+    nextCursor,
+    summary,
+  });
 }
 
 async function getMessageDetail(req, res) {
@@ -78,6 +100,7 @@ async function getMessageDetail(req, res) {
   res.json({
     ...message,
     attachments: message.attachments.map(sanitizeAttachment),
+    documents: message.documents.map((document) => sanitizeDocumentForRole(document, req.appRole)),
   });
 }
 

@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
-const { readAppBasicCredentials, readInternalApiToken } = require("../config");
+const { readAppAdminBasicCredentials, readAppBasicCredentials, readInternalApiToken } = require("../config");
 const { unauthorized } = require("../errors");
-const { hasValidSessionCookie } = require("./session");
+const { getSessionRole } = require("./session");
 
 // Unlike ClaspSCxSeamless's own appAuth (which wraps the ENTIRE standalone app), this shared
 // backend serves many public, unrelated features. This middleware must only be mounted on the
@@ -58,11 +58,16 @@ function appAuth(req, res, next) {
   const { user: appBasicUser, password: appBasicPassword } = readAppBasicCredentials();
 
   if (!appBasicUser || !appBasicPassword) {
+    // Default-open (no credentials configured at all, e.g. local dev) — everyone gets admin so
+    // nothing is hidden while poking around locally.
+    req.appRole = "admin";
     next();
     return;
   }
 
-  if (hasValidSessionCookie(req)) {
+  const sessionRole = getSessionRole(req);
+  if (sessionRole) {
+    req.appRole = sessionRole;
     next();
     return;
   }
@@ -71,17 +76,34 @@ function appAuth(req, res, next) {
   const bearerToken = normalizeBearerToken(req.headers.authorization);
 
   if (internalApiToken && bearerToken && timingSafeEqualStrings(bearerToken, internalApiToken)) {
+    // Internal server-to-server callers (print-agent, cron scripts) are trusted, not
+    // role-restricted — they don't hit the admin-gated UI routes anyway.
+    req.appRole = "admin";
     next();
     return;
   }
 
   const basicCredentials = parseBasicCredentials(req.headers.authorization);
+  const { user: appAdminUser, password: appAdminPassword } = readAppAdminBasicCredentials();
+
+  if (
+    basicCredentials &&
+    appAdminUser &&
+    appAdminPassword &&
+    timingSafeEqualStrings(basicCredentials.username, appAdminUser) &&
+    timingSafeEqualStrings(basicCredentials.password, appAdminPassword)
+  ) {
+    req.appRole = "admin";
+    next();
+    return;
+  }
 
   if (
     basicCredentials &&
     timingSafeEqualStrings(basicCredentials.username, appBasicUser) &&
     timingSafeEqualStrings(basicCredentials.password, appBasicPassword)
   ) {
+    req.appRole = "user";
     next();
     return;
   }
