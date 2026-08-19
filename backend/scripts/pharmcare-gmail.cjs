@@ -12,6 +12,9 @@
 //   backfill     full scan from --since=YYYY-MM-DD (default: mailbox start); same locking and
 //                idempotency as sync, so re-running is always safe.
 //   status       show the sync checkpoint and recent sync runs.
+//   watch        start/renew Gmail push notifications to SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC.
+//                Expires in <= 7 days — call this again periodically (e.g. a daily Render Cron
+//                Job) before it expires, or notifications silently stop with no error anywhere.
 //
 // Requires the SEAMLESS_PHARMCARE_GMAIL_* env vars (see src/modules/seamless/config.js).
 // Usage: node scripts/pharmcare-gmail.cjs <mode> [--message-id=...] [--since=YYYY-MM-DD]
@@ -40,7 +43,7 @@ function parseArgs(argv) {
 }
 
 function usage() {
-  console.log("Usage: node scripts/pharmcare-gmail.cjs <dry-run|ingest-one|sync|backfill|status> [--message-id=ID] [--since=YYYY-MM-DD]");
+  console.log("Usage: node scripts/pharmcare-gmail.cjs <dry-run|ingest-one|sync|backfill|status|watch> [--message-id=ID] [--since=YYYY-MM-DD]");
 }
 
 async function fetchOneMessage(adapter, messageId) {
@@ -92,7 +95,7 @@ async function dryRun(adapter, mailboxAccount, messageId) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const modes = ["dry-run", "ingest-one", "sync", "backfill", "status"];
+  const modes = ["dry-run", "ingest-one", "sync", "backfill", "status", "watch"];
   if (!modes.includes(args.mode)) {
     usage();
     process.exitCode = 1;
@@ -118,6 +121,21 @@ async function main() {
   }
 
   const adapter = createGmailAdapter(config);
+
+  if (args.mode === "watch") {
+    if (!config.pubsubTopicName) {
+      console.error("SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC is not set.");
+      process.exitCode = 1;
+      return;
+    }
+    const result = await adapter.watchMailbox(config.pubsubTopicName);
+    console.log(JSON.stringify({
+      expiresAt: new Date(Number(result.expiration)).toISOString(),
+      historyId: result.historyId,
+      topicName: config.pubsubTopicName,
+    }, null, 2));
+    return;
+  }
 
   if (args.mode === "dry-run") {
     await dryRun(adapter, config.mailboxAccount, args.messageId);

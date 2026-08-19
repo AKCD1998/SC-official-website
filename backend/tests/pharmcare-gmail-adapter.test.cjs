@@ -46,6 +46,10 @@ function makeFakeGmailClient({ messages = [], attachments = {} } = {}) {
           },
         },
       },
+      watch: async (params) => {
+        calls.push({ method: "watch", params });
+        return { data: { expiration: "1767315600000", historyId: "hist-123" } };
+      },
     },
   };
 }
@@ -233,5 +237,25 @@ describe("createGmailAdapter (real, googleapis-backed with injected fake client)
     await expect(adapter.listCandidateMessageIds()).rejects.toThrow(/not configured/);
     await expect(adapter.getMessage("m1")).rejects.toThrow(/not configured/);
     await expect(adapter.getAttachment("m1", "a1")).rejects.toThrow(/not configured/);
+  });
+
+  test("watchMailbox subscribes the mailbox to the given Pub/Sub topic and returns expiry info", async () => {
+    const fake = makeFakeGmailClient();
+    const adapter = createGmailAdapter(SERVICE_ACCOUNT_CONFIG, { createGmailClient: () => fake });
+
+    const result = await adapter.watchMailbox("projects/my-project/topics/pharmcare-gmail-notifications");
+
+    expect(result).toEqual({ expiration: "1767315600000", historyId: "hist-123" });
+    const watchCall = fake.calls.find((c) => c.method === "watch");
+    expect(watchCall.params.userId).toBe("me");
+    expect(watchCall.params.requestBody).toEqual({
+      labelIds: ["INBOX"],
+      topicName: "projects/my-project/topics/pharmcare-gmail-notifications",
+    });
+  });
+
+  test("watchMailbox rejects when credentials are not configured", async () => {
+    const adapter = createGmailAdapter({ authMode: "" }, { createGmailClient: () => makeFakeGmailClient() });
+    await expect(adapter.watchMailbox("projects/x/topics/y")).rejects.toThrow(/not configured/);
   });
 });

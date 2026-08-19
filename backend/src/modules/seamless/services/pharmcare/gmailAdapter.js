@@ -130,7 +130,22 @@ function createGmailAdapter(configOverride, deps = {}) {
     return Buffer.from(data.data.replace(/-/g, "+").replace(/_/g, "/"), "base64");
   }
 
-  return { getAttachment, getMessage, listCandidateMessageIds };
+  // Starts (or renews — calling this again before expiry just extends it) Gmail push
+  // notifications for the mailbox: Gmail will publish a message to topicName every time this
+  // mailbox changes. This does not read or return any message content — it's a subscribe call,
+  // not a read call — but it's still access-controlled the same way (assertConfigured) since it
+  // acts on the mailbox. Expires in <= 7 days; callers must re-call this periodically.
+  async function watchMailbox(topicName) {
+    assertConfigured();
+
+    const { data } = await client().users.watch({
+      requestBody: { labelIds: ["INBOX"], topicName },
+      userId: "me",
+    });
+    return { expiration: data.expiration, historyId: data.historyId };
+  }
+
+  return { getAttachment, getMessage, listCandidateMessageIds, watchMailbox };
 }
 
 // Test/dry-run double: backed entirely by an in-memory fixture list, so ingestion logic can be
@@ -160,7 +175,11 @@ function createMockGmailAdapter(fixtureMessages = []) {
     return attachment.data;
   }
 
-  return { getAttachment, getMessage, listCandidateMessageIds };
+  async function watchMailbox() {
+    return { expiration: String(Date.now() + 7 * 24 * 60 * 60 * 1000), historyId: "mock-history-id" };
+  }
+
+  return { getAttachment, getMessage, listCandidateMessageIds, watchMailbox };
 }
 
 function getHeader(headers, name) {

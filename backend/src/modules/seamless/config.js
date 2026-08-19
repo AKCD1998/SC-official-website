@@ -130,6 +130,11 @@ function readPharmcareGmailConfig() {
       process.env.SEAMLESS_PHARMCARE_GMAIL_QUERY ||
         '(from:info@pharmcare.co) OR (from:auukunn.bkk@gmail.com "info@pharmcare.co")',
     ).trim(),
+    // Google Cloud Pub/Sub topic that Gmail publishes mailbox-change notifications to, and the
+    // shared secret this backend checks on the push-webhook URL (Google can't do Basic Auth, so
+    // the secret is a query-string token instead — see docs/14 M2 real-time sync design).
+    pubsubTopicName: String(process.env.SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC || "").trim(),
+    webhookSecret: String(process.env.SEAMLESS_PHARMCARE_GMAIL_WEBHOOK_SECRET || "").trim(),
   };
 }
 
