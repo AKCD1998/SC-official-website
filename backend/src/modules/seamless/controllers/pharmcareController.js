@@ -1,5 +1,6 @@
 const repository = require("../db/pharmcareRepository");
-const { badRequest } = require("../errors");
+const { createStoredFileStream } = require("../services/fileStorageService");
+const { badRequest, notFound } = require("../errors");
 
 const VALID_REVIEW_STATUSES = ["auto_classified", "manual_review", "duplicate", "conflict"];
 const VALID_DOCUMENT_TYPES = [
@@ -80,4 +81,29 @@ async function getMessageDetail(req, res) {
   });
 }
 
-module.exports = { getMessageDetail, listInbox };
+// Authenticated proxy so the browser never sees storage_path or talks to R2/local disk
+// directly — matches the existing /api/files/:id/download pattern (fileController.js).
+async function downloadAttachment(req, res) {
+  const attachment = await repository.getAttachmentById(req.params.id);
+
+  if (!attachment.storagePath) {
+    throw notFound(`Attachment has no stored content for id: ${req.params.id}`);
+  }
+
+  let stream;
+  try {
+    stream = await createStoredFileStream(attachment.storageProvider, attachment.storagePath);
+  } catch (error) {
+    throw notFound(`Attachment content not found for id: ${req.params.id}`);
+  }
+
+  res.setHeader("Content-Type", attachment.mimeType || "application/pdf");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${encodeURIComponent(attachment.originalFilename)}"`,
+  );
+
+  stream.pipe(res);
+}
+
+module.exports = { downloadAttachment, getMessageDetail, listInbox };

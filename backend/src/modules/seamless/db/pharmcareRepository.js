@@ -114,6 +114,18 @@ async function getMessageById(id, client = null) {
   return mapMessage(result.rows[0]);
 }
 
+async function getAttachmentById(id, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(`SELECT * FROM ${tables.pharmcareEmailAttachments} WHERE id = $1`, [id]);
+
+  if (!result.rows.length) {
+    throw notFound(`PharmCare attachment not found for id: ${id}`);
+  }
+
+  return mapAttachment(result.rows[0]);
+}
+
 async function createMessage(message, client = null) {
   const db = executor(client);
   const tables = getTables();
@@ -561,6 +573,7 @@ module.exports = {
   findDocumentsByAttachmentId,
   findDocumentsByDocumentNumber,
   findMessageByGmailId,
+  getAttachmentById,
   getInboxSummaryCounts,
   getMessageById,
   getMessageWithEvidence,

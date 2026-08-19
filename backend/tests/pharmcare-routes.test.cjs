@@ -126,6 +126,11 @@ async function mockQuery(sql, params = []) {
     return { rows: rows.slice(0, limit), rowCount: Math.min(rows.length, limit) };
   }
 
+  if (text.startsWith('SELECT * FROM "clasp_scx_seamless"."pharmcare_email_attachments" WHERE id = $1')) {
+    const row = state.attachments.find((att) => att.id === params[0]);
+    return { rows: row ? [row] : [], rowCount: row ? 1 : 0 };
+  }
+
   if (text.startsWith("SELECT review_status, COUNT(*)::int AS count")) {
     const counts = {};
     state.documents.forEach((doc) => {
@@ -142,6 +147,18 @@ async function mockQuery(sql, params = []) {
 
 jest.mock("../db", () => ({
   query: jest.fn((sql, params) => mockQuery(sql, params)),
+}));
+
+jest.mock("../src/modules/seamless/services/fileStorageService", () => ({
+  createStoredFileStream: jest.fn(async (storageProvider, storagePath) => {
+    if (storagePath === "/missing/path.pdf") {
+      throw new Error("ENOENT");
+    }
+    const { PassThrough } = require("node:stream");
+    const stream = new PassThrough();
+    stream.end(Buffer.from("%PDF-1.4 fake content"));
+    return stream;
+  }),
 }));
 
 const repository = require("../src/modules/seamless/db/pharmcareRepository");
@@ -248,6 +265,48 @@ describe("PharmCare API routes", () => {
     const response = await request(app).get("/api/app/pharmcare/messages/does-not-exist");
 
     expect(response.status).toBe(404);
+  });
+
+  test("GET /attachments/:id/download streams the file with correct headers", async () => {
+    const { attachment } = await seedOneDocument();
+    const app = buildApp();
+
+    const response = await request(app).get(`/api/app/pharmcare/attachments/${attachment.id}/download`);
+
+    expect(response.status).toBe(200);
+    expect(response.headers["content-type"]).toMatch(/application\/pdf|octet-stream/);
+    expect(response.headers["content-disposition"]).toContain("CIV2601000123.pdf");
+    expect(response.body.toString()).toContain("%PDF");
+  });
+
+  test("GET /attachments/:id/download returns 404 for an unknown attachment id", async () => {
+    const app = buildApp();
+    const response = await request(app).get("/api/app/pharmcare/attachments/does-not-exist/download");
+
+    expect(response.status).toBe(404);
+  });
+
+  test("GET /attachments/:id/download returns 404 without leaking the storage path when content is missing", async () => {
+    const message = await repository.createMessage({
+      gmailMessageId: "gmail-missing",
+      mailboxAccount: "admin@scgroup1989.com",
+      route: "gmail_filter_forward",
+      status: "classified",
+    });
+    const attachment = await repository.createAttachment({
+      gmailAttachmentId: "att-missing",
+      messageId: message.id,
+      originalFilename: "missing.pdf",
+      status: "stored",
+      storagePath: "/missing/path.pdf",
+      storageProvider: "local",
+    });
+    const app = buildApp();
+
+    const response = await request(app).get(`/api/app/pharmcare/attachments/${attachment.id}/download`);
+
+    expect(response.status).toBe(404);
+    expect(JSON.stringify(response.body)).not.toContain("/missing/path.pdf");
   });
 
   test("routes are rejected without credentials once basic auth is configured", async () => {
