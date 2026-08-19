@@ -118,6 +118,55 @@ describe("normalizeGmailMessage", () => {
       { attachmentId: "att-1", filename: "CIV2601000123.pdf", mimeType: "application/pdf", sizeBytes: 1234 },
     ]);
   });
+
+  // Regression test for a real live parsing failure (2026-08-19): a genuine PharmCare monthly
+  // report forward had text/plain nested inside a multipart/alternative part, sitting alongside
+  // sibling attachment parts at the top level — parts: [multipart/alternative,
+  // application/octet-stream, application/octet-stream]. bodyText came back empty, so the
+  // forwarded-block parser couldn't find the original sender even though the message genuinely
+  // was PharmCare.
+  test("finds text/plain nested inside a multipart/alternative part, not just top-level parts", () => {
+    const raw = {
+      id: "gmail-nested",
+      payload: {
+        headers: [
+          { name: "From", value: "Someone <auukunn.bkk@gmail.com>" },
+          { name: "Subject", value: "Fwd: PharmCare- รายงานสรุปข้อมูลบริการประจําเดือน" },
+        ],
+        parts: [
+          {
+            mimeType: "multipart/alternative",
+            parts: [
+              {
+                body: { data: Buffer.from("---------- Forwarded message ---------\nFrom: PharmCare <info@pharmcare.co>\nSubject: PharmCare- รายงานสรุปข้อมูลบริการประจําเดือน\n").toString("base64") },
+                mimeType: "text/plain",
+              },
+              {
+                body: { data: Buffer.from("<p>html version</p>").toString("base64") },
+                mimeType: "text/html",
+              },
+            ],
+          },
+          {
+            body: { attachmentId: "att-1", size: 999 },
+            filename: "report.pdf",
+            mimeType: "application/octet-stream",
+          },
+          {
+            body: { attachmentId: "att-2", size: 111 },
+            filename: "report2.pdf",
+            mimeType: "application/octet-stream",
+          },
+        ],
+      },
+    };
+
+    const normalized = normalizeGmailMessage(raw);
+
+    expect(normalized.bodyText).toContain("From: PharmCare <info@pharmcare.co>");
+    expect(normalized.attachments).toHaveLength(2);
+    expect(normalized.attachments.map((a) => a.attachmentId)).toEqual(["att-1", "att-2"]);
+  });
 });
 
 describe("createMockGmailAdapter", () => {

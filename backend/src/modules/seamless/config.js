@@ -116,12 +116,19 @@ function readPharmcareGmailConfig() {
     // Gmail search query for candidate messages. The default covers both delivery routes this
     // mailbox sees: direct/filter-forwarded mail from PharmCare itself, and the historical
     // manual forwards sent from the auukunn.bkk@gmail.com source mailbox (visible From is the
-    // forwarder, not PharmCare). Override with SEAMLESS_PHARMCARE_GMAIL_QUERY if the routes
-    // change; ingestion stays safe either way because the classifier re-checks the sender
-    // allowlist and unknown senders land in manual_review.
+    // forwarder, not PharmCare).
+    //
+    // A bare `from:auukunn.bkk@gmail.com` is deliberately NOT used here: that mailbox forwards
+    // plenty of unrelated mail (observed live: branch call-tracking/daily-summary reports from
+    // an unrelated "CI Reports Bot"), and a query that broad pulls all of it into this pipeline
+    // — the sender-allowlist check catches it at classification time (manual_review), but by
+    // then it has already burned Gmail API quota and cluttered the inbox. Requiring the literal
+    // string "info@pharmcare.co" to also appear in the message text (present in every genuine
+    // forwarded block's "From:" line) keeps the query itself scoped to real PharmCare forwards.
+    // Override with SEAMLESS_PHARMCARE_GMAIL_QUERY if the routes change.
     gmailQuery: String(
       process.env.SEAMLESS_PHARMCARE_GMAIL_QUERY ||
-        "from:info@pharmcare.co OR from:auukunn.bkk@gmail.com",
+        '(from:info@pharmcare.co) OR (from:auukunn.bkk@gmail.com "info@pharmcare.co")',
     ).trim(),
   };
 }

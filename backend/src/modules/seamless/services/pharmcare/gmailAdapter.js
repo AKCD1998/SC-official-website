@@ -172,9 +172,26 @@ function getHeader(headers, name) {
 // users.messages.get with format=full) into the flat DTO the pure classifier and ingestion
 // service consume. Kept pure/synchronous — attachment bytes are fetched separately via
 // getAttachment() and passed in by the caller, not fetched here.
+// Gmail MIME parts nest: a top-level payload.parts entry can itself be a multipart/alternative
+// (or multipart/related, etc.) container holding the actual text/plain and text/html parts,
+// sitting alongside sibling attachment parts. A single-level parts.find() misses any part nested
+// this way — observed live on a real PharmCare forward (parts: [multipart/alternative,
+// application/octet-stream, application/octet-stream]) where the text/plain lived inside the
+// multipart/alternative child, leaving bodyText empty and silently breaking forwarded-block
+// parsing (original sender came back null even though the message genuinely was PharmCare).
+// This walks the whole part tree instead of assuming it is flat.
+function flattenParts(part, into) {
+  if (!part) return into;
+  into.push(part);
+  if (Array.isArray(part.parts)) {
+    part.parts.forEach((child) => flattenParts(child, into));
+  }
+  return into;
+}
+
 function normalizeGmailMessage(rawMessage) {
   const headers = rawMessage?.payload?.headers || [];
-  const parts = rawMessage?.payload?.parts || [];
+  const parts = flattenParts(rawMessage?.payload, []);
 
   const textPart = parts.find((part) => part.mimeType === "text/plain");
   const bodyText = textPart?.body?.data
