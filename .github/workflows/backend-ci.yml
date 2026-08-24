@@ -32,8 +32,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-        with:
-          persist-credentials: false
+
+      # The repository currently contains an orphaned gitlink with no matching
+      # .gitmodules entry. Remove it from the ephemeral runner index so the
+      # checkout action can clean up credentials without treating it as a
+      # configured submodule. This does not change the checked-out commit.
+      - name: Work around orphaned gitlink
+        working-directory: .
+        run: git update-index --force-remove -- .claude/worktrees/awesome-pare-ca96e3
 
       - name: Setup Node
         uses: actions/setup-node@v5
