@@ -7,6 +7,7 @@ const lineRoutes = require("./lineRoutes");
 const pharmcareRoutes = require("./pharmcareRoutes");
 const pharmcareWebhookRoutes = require("./pharmcareWebhookRoutes");
 const sessionRoutes = require("./sessionRoutes");
+const shopeeEmailRoutes = require("./shopeeEmailRoutes");
 const workbookRoutes = require("./workbookRoutes");
 const { errorHandler } = require("../middleware/errorHandler");
 
@@ -19,6 +20,7 @@ router.use("/bootstrap", bootstrapRoutes);
 router.use("/files", fileRoutes);
 router.use("/line", lineRoutes);
 router.use("/app/pharmcare", pharmcareRoutes);
+router.use("/app/shopee", shopeeEmailRoutes);
 router.use("/pharmcare-webhooks", pharmcareWebhookRoutes);
 router.use("/workbooks", workbookRoutes);
 

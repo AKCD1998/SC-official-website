@@ -14,21 +14,21 @@ const SERVICE_ACCOUNT_CONFIG = {
 
 // Fake googleapis gmail client: records the calls it receives so tests can assert the adapter
 // only ever issues the three read operations, with the right parameters.
-function makeFakeGmailClient({ messages = [], attachments = {} } = {}) {
+function makeFakeGmailClient({ messages = [], attachments = {}, nextPageToken = null } = {}) {
   const calls = [];
   return {
     calls,
     users: {
       messages: {
-        list: async (params) => {
-          calls.push({ method: "list", params });
+        list: async (params, options) => {
+          calls.push({ method: "list", options, params });
           const matching = messages.filter((m) => !params.q || !params.q.includes("after:") || Number(m.internalDate) / 1000 > Number((params.q.match(/after:(\d+)/) || [])[1]));
           const pageSize = params.maxResults || 100;
           const page = matching.slice(0, pageSize);
-          return { data: { messages: page.map((m) => ({ id: m.id })), nextPageToken: null } };
+          return { data: { messages: page.map((m) => ({ id: m.id })), nextPageToken } };
         },
-        get: async (params) => {
-          calls.push({ method: "get", params });
+        get: async (params, options) => {
+          calls.push({ method: "get", options, params });
           const message = messages.find((m) => m.id === params.id);
           if (!message) {
             throw new Error("message not found");
@@ -232,10 +232,49 @@ describe("createGmailAdapter (real, googleapis-backed with injected fake client)
     expect(methods).toEqual(["attachments.get", "get"].sort());
   });
 
+  test("listMessagePage preserves Gmail pagination tokens for an app-driven inbox", async () => {
+    const fake = makeFakeGmailClient({
+      messages: [{ id: "m1" }, { id: "m2" }],
+      nextPageToken: "gmail-page-2",
+    });
+    const adapter = createGmailAdapter(SERVICE_ACCOUNT_CONFIG, { createGmailClient: () => fake });
+
+    const page = await adapter.listMessagePage({ maxResults: 2, pageToken: "gmail-page-1" });
+
+    expect(page).toEqual({ messageIds: ["m1", "m2"], nextPageToken: "gmail-page-2" });
+    const listCall = fake.calls.find((call) => call.method === "list");
+    expect(listCall.params.pageToken).toBe("gmail-page-1");
+    expect(listCall.params.maxResults).toBe(2);
+    expect(listCall.options.retry).toBe(false);
+    expect(listCall.options.timeout).toBe(10000);
+  });
+
+  test("getMessageMetadata fetches only the Shopee inbox envelope fields with a timeout", async () => {
+    const fake = makeFakeGmailClient({
+      messages: [{ id: "m1", internalDate: "1787549837000", payload: { headers: [] } }],
+    });
+    const adapter = createGmailAdapter(SERVICE_ACCOUNT_CONFIG, { createGmailClient: () => fake });
+
+    const message = await adapter.getMessageMetadata("m1");
+
+    expect(message.id).toBe("m1");
+    const getCall = fake.calls.find((call) => call.method === "get");
+    expect(getCall.params).toMatchObject({
+      fields: "id,threadId,internalDate,labelIds,payload(headers)",
+      format: "metadata",
+      id: "m1",
+      metadataHeaders: ["From", "Subject"],
+      userId: "me",
+    });
+    expect(getCall.options.retry).toBe(false);
+    expect(getCall.options.timeout).toBe(10000);
+  });
+
   test("rejects with a 503-style error when credentials are not configured", async () => {
     const adapter = createGmailAdapter({ authMode: "" }, { createGmailClient: () => makeFakeGmailClient() });
     await expect(adapter.listCandidateMessageIds()).rejects.toThrow(/not configured/);
     await expect(adapter.getMessage("m1")).rejects.toThrow(/not configured/);
+    await expect(adapter.getMessageMetadata("m1")).rejects.toThrow(/not configured/);
     await expect(adapter.getAttachment("m1", "a1")).rejects.toThrow(/not configured/);
   });
 

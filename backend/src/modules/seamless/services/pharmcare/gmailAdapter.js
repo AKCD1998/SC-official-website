@@ -2,6 +2,7 @@ const { readPharmcareGmailConfig } = require("../../config");
 const { serviceUnavailable } = require("../../errors");
 
 const GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
+const GMAIL_INBOX_REQUEST_TIMEOUT_MS = 10000;
 
 function isGmailConfigured(config = readPharmcareGmailConfig()) {
   if (config.authMode === "service_account") {
@@ -66,7 +67,7 @@ function createGmailAdapter(configOverride, deps = {}) {
   function assertConfigured() {
     if (!isGmailConfigured(config)) {
       throw serviceUnavailable(
-        "PharmCare Gmail adapter is not configured. Set SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE and its matching credential env vars.",
+        "Gmail read-only adapter is not configured. Set SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE and its matching credential env vars.",
       );
     }
   }
@@ -107,6 +108,31 @@ function createGmailAdapter(configOverride, deps = {}) {
     return messageIds;
   }
 
+  // One Gmail result page with its opaque page token. PharmCare's ingestion path deliberately
+  // scans all candidate pages via listCandidateMessageIds(); the Shopee read-only inbox instead
+  // needs user-driven pagination and therefore must preserve Gmail's nextPageToken.
+  async function listMessagePage({ after, maxResults = 25, pageToken } = {}) {
+    assertConfigured();
+
+    const safeLimit = Number.isFinite(Number(maxResults))
+      ? Math.min(Math.max(Number(maxResults), 1), 100)
+      : 25;
+    const { data } = await client().users.messages.list(
+      {
+        userId: "me",
+        q: buildQuery(after),
+        maxResults: safeLimit,
+        pageToken: pageToken || undefined,
+      },
+      { retry: false, timeout: GMAIL_INBOX_REQUEST_TIMEOUT_MS },
+    );
+
+    return {
+      messageIds: (data.messages || []).map((message) => message.id),
+      nextPageToken: data.nextPageToken || null,
+    };
+  }
+
   async function getMessage(messageId) {
     assertConfigured();
 
@@ -115,6 +141,25 @@ function createGmailAdapter(configOverride, deps = {}) {
       id: messageId,
       userId: "me",
     });
+    return data;
+  }
+
+  // Shopee's live inbox only needs envelope metadata. Keeping this separate from getMessage()
+  // preserves PharmCare ingestion's full MIME/attachment behavior while ensuring the live UI
+  // never downloads message bodies it will not return or display.
+  async function getMessageMetadata(messageId) {
+    assertConfigured();
+
+    const { data } = await client().users.messages.get(
+      {
+        fields: "id,threadId,internalDate,labelIds,payload(headers)",
+        format: "metadata",
+        id: messageId,
+        metadataHeaders: ["From", "Subject"],
+        userId: "me",
+      },
+      { retry: false, timeout: GMAIL_INBOX_REQUEST_TIMEOUT_MS },
+    );
     return data;
   }
 
@@ -145,7 +190,14 @@ function createGmailAdapter(configOverride, deps = {}) {
     return { expiration: data.expiration, historyId: data.historyId };
   }
 
-  return { getAttachment, getMessage, listCandidateMessageIds, watchMailbox };
+  return {
+    getAttachment,
+    getMessage,
+    getMessageMetadata,
+    listCandidateMessageIds,
+    listMessagePage,
+    watchMailbox,
+  };
 }
 
 // Test/dry-run double: backed entirely by an in-memory fixture list, so ingestion logic can be
@@ -158,12 +210,23 @@ function createMockGmailAdapter(fixtureMessages = []) {
     return Array.from(messagesById.keys());
   }
 
+  async function listMessagePage({ maxResults = 25 } = {}) {
+    return {
+      messageIds: Array.from(messagesById.keys()).slice(0, maxResults),
+      nextPageToken: null,
+    };
+  }
+
   async function getMessage(messageId) {
     const message = messagesById.get(messageId);
     if (!message) {
       throw serviceUnavailable(`Mock Gmail message not found: ${messageId}`);
     }
     return message;
+  }
+
+  async function getMessageMetadata(messageId) {
+    return getMessage(messageId);
   }
 
   async function getAttachment(messageId, attachmentId) {
@@ -179,7 +242,14 @@ function createMockGmailAdapter(fixtureMessages = []) {
     return { expiration: String(Date.now() + 7 * 24 * 60 * 60 * 1000), historyId: "mock-history-id" };
   }
 
-  return { getAttachment, getMessage, listCandidateMessageIds, watchMailbox };
+  return {
+    getAttachment,
+    getMessage,
+    getMessageMetadata,
+    listCandidateMessageIds,
+    listMessagePage,
+    watchMailbox,
+  };
 }
 
 function getHeader(headers, name) {
@@ -231,10 +301,12 @@ function normalizeGmailMessage(rawMessage) {
     bodyText,
     gmailMessageId: rawMessage.id,
     gmailThreadId: rawMessage.threadId || "",
+    labelIds: rawMessage.labelIds || [],
     rawSubject: getHeader(headers, "Subject"),
     receivedAt: rawMessage.internalDate
       ? new Date(Number(rawMessage.internalDate)).toISOString()
       : null,
+    snippet: rawMessage.snippet || "",
     visibleCc: getHeader(headers, "Cc"),
     visibleFrom: getHeader(headers, "From"),
     visibleTo: getHeader(headers, "To"),
@@ -242,6 +314,7 @@ function normalizeGmailMessage(rawMessage) {
 }
 
 module.exports = {
+  GMAIL_INBOX_REQUEST_TIMEOUT_MS,
   GMAIL_READONLY_SCOPE,
   createGmailAdapter,
   createMockGmailAdapter,
