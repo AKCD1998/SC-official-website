@@ -144,6 +144,24 @@ function createGmailAdapter(configOverride, deps = {}) {
     return data;
   }
 
+  // Interactive Shopee timeline sync fetches full MIME bodies, but unlike PharmCare's scheduled
+  // ingestion it must stay within one user-request budget. This separate operation deliberately
+  // disables client retries and applies the same timeout as the live inbox, without changing the
+  // established PharmCare ingestion behavior of getMessage().
+  async function getMessageBounded(messageId) {
+    assertConfigured();
+
+    const { data } = await client().users.messages.get(
+      {
+        format: "full",
+        id: messageId,
+        userId: "me",
+      },
+      { retry: false, timeout: GMAIL_INBOX_REQUEST_TIMEOUT_MS },
+    );
+    return data;
+  }
+
   // Shopee's live inbox only needs envelope metadata. Keeping this separate from getMessage()
   // preserves PharmCare ingestion's full MIME/attachment behavior while ensuring the live UI
   // never downloads message bodies it will not return or display.
@@ -193,6 +211,7 @@ function createGmailAdapter(configOverride, deps = {}) {
   return {
     getAttachment,
     getMessage,
+    getMessageBounded,
     getMessageMetadata,
     listCandidateMessageIds,
     listMessagePage,
@@ -225,6 +244,10 @@ function createMockGmailAdapter(fixtureMessages = []) {
     return message;
   }
 
+  async function getMessageBounded(messageId) {
+    return getMessage(messageId);
+  }
+
   async function getMessageMetadata(messageId) {
     return getMessage(messageId);
   }
@@ -245,6 +268,7 @@ function createMockGmailAdapter(fixtureMessages = []) {
   return {
     getAttachment,
     getMessage,
+    getMessageBounded,
     getMessageMetadata,
     listCandidateMessageIds,
     listMessagePage,

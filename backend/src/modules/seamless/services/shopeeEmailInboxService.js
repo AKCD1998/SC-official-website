@@ -217,6 +217,7 @@ module.exports = {
   SHOPEE_SENDER,
   buildShopeeGmailQuery,
   classifyShopeeSubject,
+  extractEmailAddress,
   extractOrderNumber,
   isGmailNotFoundError,
   isWithinReceivedRange,

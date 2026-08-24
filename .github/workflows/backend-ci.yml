@@ -26,6 +26,24 @@ jobs:
   test:
     name: Jest regression suite
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: seamless_ci
+          POSTGRES_USER: seamless_ci
+          POSTGRES_PASSWORD: seamless_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U seamless_ci -d seamless_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      SC_OFFICIAL_SUPABASE_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/seamless_ci
+      SEAMLESS_DB_SCHEMA: clasp_scx_seamless_ci
+      SEAMLESS_MIGRATION_SMOKE: "1"
     defaults:
       run:
         working-directory: backend
@@ -54,6 +72,15 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Apply Seamless migrations
+        run: npm run seamless:migrate
+
+      - name: Re-run Seamless migrations to prove idempotency
+        run: npm run seamless:migrate
+
+      - name: Verify Seamless migration contract
+        run: npm run seamless:migrate:verify
 
       - name: Run backend tests
         run: npm test -- --testPathIgnorePatterns=backend-integration.test.cjs

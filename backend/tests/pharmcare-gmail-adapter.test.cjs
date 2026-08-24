@@ -270,10 +270,26 @@ describe("createGmailAdapter (real, googleapis-backed with injected fake client)
     expect(getCall.options.timeout).toBe(10000);
   });
 
+  test("getMessageBounded fetches full MIME content without retry and with a timeout", async () => {
+    const fake = makeFakeGmailClient({
+      messages: [{ id: "m1", internalDate: "1787549837000", payload: { headers: [] } }],
+    });
+    const adapter = createGmailAdapter(SERVICE_ACCOUNT_CONFIG, { createGmailClient: () => fake });
+
+    const message = await adapter.getMessageBounded("m1");
+
+    expect(message.id).toBe("m1");
+    const getCall = fake.calls.find((call) => call.method === "get");
+    expect(getCall.params).toMatchObject({ format: "full", id: "m1", userId: "me" });
+    expect(getCall.options.retry).toBe(false);
+    expect(getCall.options.timeout).toBe(10000);
+  });
+
   test("rejects with a 503-style error when credentials are not configured", async () => {
     const adapter = createGmailAdapter({ authMode: "" }, { createGmailClient: () => makeFakeGmailClient() });
     await expect(adapter.listCandidateMessageIds()).rejects.toThrow(/not configured/);
     await expect(adapter.getMessage("m1")).rejects.toThrow(/not configured/);
+    await expect(adapter.getMessageBounded("m1")).rejects.toThrow(/not configured/);
     await expect(adapter.getMessageMetadata("m1")).rejects.toThrow(/not configured/);
     await expect(adapter.getAttachment("m1", "a1")).rejects.toThrow(/not configured/);
   });

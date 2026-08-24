@@ -10,7 +10,8 @@
     "digitalpjk:migrate": "node ./src/modules/digitalpjk/db/migrate.js",
     "digitalpjk:seed": "node ./src/modules/digitalpjk/db/seed.js",
     "digitalpjk:setup": "node ./src/modules/digitalpjk/db/setup.js",
-    "seamless:migrate": "node ./src/modules/seamless/db/migrate.js"
+    "seamless:migrate": "node ./src/modules/seamless/db/migrate.js",
+    "seamless:migrate:verify": "node ./scripts/verify-seamless-migrations.cjs"
   },
   "repository": {
     "type": "git",
