@@ -39,7 +39,11 @@ jobs:
       # configured submodule. This does not change the checked-out commit.
       - name: Work around orphaned gitlink
         working-directory: .
-        run: git update-index --force-remove -- .claude/worktrees/awesome-pare-ca96e3
+        run: >-
+          git update-index --force-remove --
+          .claude/worktrees/awesome-pare-ca96e3
+          .claude/worktrees/modest-johnson-105d4a
+          .claude/worktrees/pedantic-rosalind-d1ee3a
 
       - name: Setup Node
         uses: actions/setup-node@v5
