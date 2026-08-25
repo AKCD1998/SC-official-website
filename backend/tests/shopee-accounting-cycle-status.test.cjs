@@ -74,9 +74,14 @@ test('returns the next four-week cycle after continuous stored Shopee workbooks'
     '10-16.08',
     '17-23.08',
   ]);
-  expect(status.nextCycle.downloadGuidance.orderDateFallback.minimumLookbackDays).toBe(28);
-  expect(status.nextCycle.downloadGuidance.orderDateFallback.fromIct).toBe(
-    '2026-06-29T00:00:00+07:00',
+  expect(status.nextCycle.downloadGuidance.orderDateFallback.minimumLookbackDays).toBe(0);
+  expect(status.nextCycle.downloadGuidance.orderDateWindow.fromIct).toBe(
+    '2026-07-27T00:00:00+07:00',
+  );
+  expect(status.dateFieldGuidance.preferredExportFilter).toBe('order_created_at');
+  expect(status.dateFieldGuidance.transformUses).toBe('order_created_at');
+  expect(status.dateFieldGuidance.pendingCompletionPolicy).toBe(
+    'exclude_and_reupload_same_order_date_period',
   );
 });
 

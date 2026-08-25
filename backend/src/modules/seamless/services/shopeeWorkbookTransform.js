@@ -1,11 +1,6 @@
 const ExcelJS = require('exceljs');
 const { badRequest } = require('../errors');
-const {
-  CYCLE_ANCHOR_START,
-  DAYS_PER_CYCLE,
-  addDays,
-  resolveCycleProfile,
-} = require('./shopeeAccountingCycles');
+const { resolveCycleProfile } = require('./shopeeAccountingCycles');
 const { applyDefaultFont, DEFAULT_FONT } = require('./xlsxDefaultFont');
 
 // ---------------------------------------------------------------------------
@@ -272,8 +267,7 @@ function parseWeekWindow(week) {
   };
 }
 
-function assessSourceCoverage(rows, filenamePeriod, profile, cycle) {
-  const minimumLookbackStart = addDays(profile.periodStart, -DAYS_PER_CYCLE);
+function assessSourceCoverage(rows, filenamePeriod, profile) {
   const sourceWindowEnd = filenamePeriod
     ? parseDateTime(`${filenamePeriod.periodEnd} 23:59:59`)
     : null;
@@ -289,43 +283,13 @@ function assessSourceCoverage(rows, filenamePeriod, profile, cycle) {
     });
   }
 
-  const orderDateFilterEvidence =
-    cycle.pendingCompletionExcluded > 0 || completedAfterSourcePeriod > 0;
-  const hasMinimumLookback = Boolean(
-    filenamePeriod && filenamePeriod.periodStart <= minimumLookbackStart,
-  );
-
-  // June is the manually verified historical anchor workbook. Preserve that accepted reference
-  // even though its old export filename did not include the later overlap rule. Every subsequent
-  // cycle must satisfy the new safety gate whenever its own rows prove the export was filtered by
-  // order-created date rather than completed time.
-  const legacyAnchorAccepted = profile.periodStart === CYCLE_ANCHOR_START;
-
-  if (orderDateFilterEvidence && !hasMinimumLookback && !legacyAnchorAccepted) {
-    throw badRequest(
-      `ไฟล์ Shopee นี้น่าจะกรองด้วยวันที่สั่งซื้อ เพราะมี ${cycle.pendingCompletionExcluded} แถวที่ยังไม่มีเวลาสั่งซื้อสำเร็จ และ ${completedAfterSourcePeriod} แถวที่สำเร็จหลังวันสิ้นสุดไฟล์ ระบบจึงยังยืนยันไม่ได้ว่าข้อมูลรอบบัญชีครบ กรุณาดาวน์โหลด Order.all ย้อนหลังอย่างน้อย ${DAYS_PER_CYCLE} วัน ตั้งแต่ ${minimumLookbackStart} ถึง ${profile.periodEnd} และรวมออเดอร์ค้างที่เก่ากว่านั้นด้วยถ้ามี แล้วอัปโหลดไฟล์ใหม่`,
-      {
-        code: 'SHOPEE_ORDER_DATE_LOOKBACK_REQUIRED',
-        completedAfterSourcePeriod,
-        minimumLookbackDays: DAYS_PER_CYCLE,
-        requiredPeriodStart: minimumLookbackStart,
-        requiredPeriodEnd: profile.periodEnd,
-        observedPeriodStart: filenamePeriod ? filenamePeriod.periodStart : null,
-        observedPeriodEnd: filenamePeriod ? filenamePeriod.periodEnd : null,
-        pendingCompletionExcluded: cycle.pendingCompletionExcluded,
-      },
-    );
-  }
-
   return {
     completedAfterSourcePeriod,
-    minimumLookbackStart,
-    orderDateFilterEvidence,
-    sourceCoverageStatus: orderDateFilterEvidence
-      ? legacyAnchorAccepted
-        ? 'legacy_anchor_reference'
-        : 'order_date_lookback_satisfied'
-      : 'filter_not_inferred',
+    // Backwards-compatible audit keys. The Shopee picker is now an explicit order-date contract,
+    // so no inferred evidence or fixed lookback is needed to establish the cycle boundary.
+    minimumLookbackStart: null,
+    orderDateFilterEvidence: true,
+    sourceCoverageStatus: 'order_date_window_covered',
   };
 }
 
@@ -336,8 +300,10 @@ function applyCycle(rows, profile) {
   let cancelledExcluded = 0;
   let carryoverExcluded = 0;
   let outOfRangeExcluded = 0;
-  let completedBeforeCycleExcluded = 0;
-  let completedAfterCycleExcluded = 0;
+  let orderDateBeforeCycleExcluded = 0;
+  let orderDateAfterCycleExcluded = 0;
+  let completedBeforeCycleObserved = 0;
+  let completedAfterCycleObserved = 0;
   let pendingCompletionExcluded = 0;
   const pendingCompletionOrderNumbers = new Set();
   const pendingCompletionStatusMap = new Map();
@@ -355,12 +321,33 @@ function applyCycle(rows, profile) {
       return;
     }
 
-    // The completed-time field is the accounting source of truth. A non-cancelled row can
-    // legitimately have no value yet while Shopee reports statuses such as "การจัดส่ง" or
-    // "จัดส่งสำเร็จแล้ว". Those rows are pending completion and belong in a later overlapping
-    // export, not in this cycle. Keep them auditable instead of failing the entire workbook.
-    // A non-blank but malformed value still fails closed below so corrupt timestamps cannot be
-    // silently dropped.
+    // Shopee's export picker and this accounting cycle both use the order-created timestamp.
+    // Parse it before looking at completion so out-of-cycle rows cannot affect this document.
+    const orderDate = row.orderDate instanceof Date
+      ? new Date(row.orderDate.getTime())
+      : parseDateTime(row.orderDate);
+    if (!(orderDate instanceof Date) || Number.isNaN(orderDate.getTime())) {
+      throw badRequest(
+        `Could not parse the order date on source row ${row.sourceRowNumber}; cannot determine the accounting cycle.`,
+        { sourceRowNumber: row.sourceRowNumber, orderNumber: row.orderNumber },
+      );
+    }
+
+    if (orderDate < window.start) {
+      orderDateBeforeCycleExcluded += 1;
+      outOfRangeExcluded += 1;
+      return;
+    }
+
+    if (orderDate > window.end) {
+      orderDateAfterCycleExcluded += 1;
+      carryoverExcluded += 1;
+      return;
+    }
+
+    // A non-cancelled in-cycle row can legitimately have no completed time yet. Exclude it from
+    // the current document but keep the cycle open for a refreshed export of the same order-date
+    // period. A non-blank malformed value still fails closed because column M must remain typed.
     if (!normalizeText(row.completedAtRaw)) {
       pendingCompletionExcluded += 1;
       pendingCompletionOrderNumbers.add(row.orderNumber);
@@ -385,28 +372,8 @@ function applyCycle(rows, profile) {
       );
     }
 
-    if (completedAt < window.start) {
-      completedBeforeCycleExcluded += 1;
-      outOfRangeExcluded += 1; // backwards-compatible alias for pre-cycle rows
-      return;
-    }
-
-    if (completedAt > window.end) {
-      completedAfterCycleExcluded += 1;
-      carryoverExcluded += 1; // backwards-compatible alias for next-cycle carryover rows
-      return;
-    }
-
-    const orderDate = row.orderDate instanceof Date
-      ? new Date(row.orderDate.getTime())
-      : parseDateTime(row.orderDate);
-    if (!(orderDate instanceof Date) || Number.isNaN(orderDate.getTime())) {
-      // Order date is still required as a typed output column, but it never decides membership.
-      throw badRequest(
-        `Could not parse the order date on source row ${row.sourceRowNumber}; cannot create the accounting workbook.`,
-        { sourceRowNumber: row.sourceRowNumber, orderNumber: row.orderNumber },
-      );
-    }
+    if (completedAt < window.start) completedBeforeCycleObserved += 1;
+    if (completedAt > window.end) completedAfterCycleObserved += 1;
 
     // Duplicate-order tracking (informational; row-based totals preserved).
     if (orderNumberSet.has(row.orderNumber)) {
@@ -417,22 +384,22 @@ function applyCycle(rows, profile) {
     included.push({ ...row, orderDate, completedAt });
   });
 
-  // Allocate each included row to a week by the same completed-time field used for membership.
+  // Allocate each included row to a week by the same order-date field used for membership.
   // An in-cycle value that does not match a week is a profile invariant failure and must surface.
   const weekWindows = profile.weeks.map((week) => ({ week, window: parseWeekWindow(week) }));
   const byWeek = new Map(profile.weeks.map((week) => [week.name, []]));
 
   included.forEach((row) => {
     const match = weekWindows.find(
-      ({ window: weekWindow }) => row.completedAt >= weekWindow.start && row.completedAt <= weekWindow.end,
+      ({ window: weekWindow }) => row.orderDate >= weekWindow.start && row.orderDate <= weekWindow.end,
     );
     if (!match) {
       throw badRequest(
-        `Source row ${row.sourceRowNumber} (order ${row.orderNumber}) completed at ${row.completedAt.toISOString()} does not fall in any configured weekly sheet; cannot allocate.`,
+        `Source row ${row.sourceRowNumber} (order ${row.orderNumber}) was ordered at ${row.orderDate.toISOString()} and does not fall in any configured weekly sheet; cannot allocate.`,
         {
           sourceRowNumber: row.sourceRowNumber,
           orderNumber: row.orderNumber,
-          completedAt: row.completedAt.toISOString(),
+          orderDate: row.orderDate.toISOString(),
         },
       );
     }
@@ -445,8 +412,13 @@ function applyCycle(rows, profile) {
     cancelledExcluded,
     carryoverExcluded,
     outOfRangeExcluded,
-    completedBeforeCycleExcluded,
-    completedAfterCycleExcluded,
+    orderDateBeforeCycleExcluded,
+    orderDateAfterCycleExcluded,
+    // Kept as zero-valued compatibility keys: completion time no longer excludes membership.
+    completedBeforeCycleExcluded: 0,
+    completedAfterCycleExcluded: 0,
+    completedBeforeCycleObserved,
+    completedAfterCycleObserved,
     pendingCompletionExcluded,
     pendingCompletionOrderCount: pendingCompletionOrderNumbers.size,
     pendingCompletionStatuses: Array.from(pendingCompletionStatusMap.values()).map((entry) => ({
@@ -716,8 +688,12 @@ function buildMetadata(profile, cycle, sourceSheetName, filenamePeriod) {
     cancelledExcluded: cycle.cancelledExcluded,
     carryoverExcluded: cycle.carryoverExcluded,
     outOfRangeExcluded: cycle.outOfRangeExcluded,
+    orderDateBeforeCycleExcluded: cycle.orderDateBeforeCycleExcluded,
+    orderDateAfterCycleExcluded: cycle.orderDateAfterCycleExcluded,
     completedBeforeCycleExcluded: cycle.completedBeforeCycleExcluded,
     completedAfterCycleExcluded: cycle.completedAfterCycleExcluded,
+    completedBeforeCycleObserved: cycle.completedBeforeCycleObserved,
+    completedAfterCycleObserved: cycle.completedAfterCycleObserved,
     pendingCompletionExcluded: cycle.pendingCompletionExcluded,
     pendingCompletionOrderCount: cycle.pendingCompletionOrderCount,
     pendingCompletionStatuses: cycle.pendingCompletionStatuses,
@@ -725,9 +701,14 @@ function buildMetadata(profile, cycle, sourceSheetName, filenamePeriod) {
     minimumLookbackStart: cycle.sourceCoverage.minimumLookbackStart,
     orderDateFilterEvidence: cycle.sourceCoverage.orderDateFilterEvidence,
     sourceCoverageStatus: cycle.sourceCoverage.sourceCoverageStatus,
+    cycleDateField: 'order_created_at',
     finalRows: included.length,
-    cycleClosureStatus: included.length ? 'ready_with_rows' : 'review_required_empty',
-    checkpointEligible: included.length > 0,
+    cycleClosureStatus: cycle.pendingCompletionExcluded
+      ? 'review_required_pending'
+      : included.length
+        ? 'ready_with_rows'
+        : 'review_required_empty',
+    checkpointEligible: included.length > 0 && cycle.pendingCompletionExcluded === 0,
     weeklyCounts,
     weeklyNetTotals,
     sheets: [profile.masterSheetName, ...profile.weeks.map((week) => week.name)],
@@ -758,7 +739,7 @@ async function transformShopeeWorkbook(sourceWorkbook, options = {}) {
   });
 
   const cycle = applyCycle(rows, profile);
-  cycle.sourceCoverage = assessSourceCoverage(rows, filenamePeriod, profile, cycle);
+  cycle.sourceCoverage = assessSourceCoverage(rows, filenamePeriod, profile);
   cycle.rawRows = rows.length;
   cycle.blankSkipped = 0; // blank-order rows are skipped silently during read (not tracked per spec)
 
@@ -799,7 +780,7 @@ async function transformShopeeWorkbook(sourceWorkbook, options = {}) {
 
   if (cycle.pendingCompletionExcluded) {
     warnings.push(
-      `Excluded ${cycle.pendingCompletionExcluded} non-cancelled row(s) across ${cycle.pendingCompletionOrderCount} order(s) because Shopee has not assigned a completed time yet. Include these pending orders in a later overlapping export after they complete.`,
+      `Excluded ${cycle.pendingCompletionExcluded} non-cancelled in-cycle row(s) across ${cycle.pendingCompletionOrderCount} order(s) because Shopee has not assigned a completed time yet. Re-export this same order-date period after they complete before closing the cycle.`,
     );
   }
 

@@ -139,12 +139,13 @@ async function getShopeeAccountingCycleStatus() {
     futureCompletedCycles: history.futureCompletedCycles.map(toPublicCycle),
     unconfirmedEmptyCycles: history.unconfirmedProfiles.map(toPublicCycle),
     dateFieldGuidance: {
-      transformUses: 'order_completed_at',
-      preferredExportFilter: 'order_completed_at',
-      orderDateFallbackMinimumLookbackDays: 28,
+      transformUses: 'order_created_at',
+      preferredExportFilter: 'order_created_at',
+      orderDateFallbackMinimumLookbackDays: 0,
+      pendingCompletionPolicy: 'exclude_and_reupload_same_order_date_period',
       reconciliationPreferred: 'income_posted_at',
       message:
-        'ตัวแปลงใช้เวลาที่คำสั่งซื้อสำเร็จเป็นเกณฑ์ทั้งรอบและชีต หาก Shopee กรอง export ได้เฉพาะวันที่สั่งซื้อ ต้องดาวน์โหลดย้อนหลังอย่างน้อย 28 วันและรวมออเดอร์ค้างที่เก่ากว่านั้นด้วย; วันที่รายได้เข้าอาจไม่ตรงกันจึงยังต้องเทียบรายงานรายได้ก่อนปิดบัญชี',
+        'ตัวกรอง Order.all และตัวแปลงใช้วันที่ทำการสั่งซื้อเป็นเกณฑ์เดียวกันทั้งรอบและชีต ดาวน์โหลดช่วงรอบบัญชีตรง ๆ; รายการที่ยังไม่มีเวลาสั่งซื้อสำเร็จจะถูกพักไว้และต้อง export ช่วงเดิมซ้ำก่อนปิดรอบ',
     },
   };
 }

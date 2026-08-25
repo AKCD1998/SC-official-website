@@ -5,10 +5,9 @@ const DAYS_PER_WEEK = 7;
 const WEEKS_PER_CYCLE = 4;
 const DAYS_PER_CYCLE = DAYS_PER_WEEK * WEEKS_PER_CYCLE;
 
-// Accounting approved 2026-08-25: reports are continuous four-week blocks anchored to the
-// verified June workbook. A source filename may start before a boundary so an order-date export
-// can include pending orders from an earlier period. Its end date selects the latest accounting
-// cycle that the source range covers completely.
+// Accounting decision 2026-08-25: reports are continuous four-week blocks anchored to the
+// verified June workbook, and both membership and weekly allocation use Shopee's order-created
+// timestamp. The filename end selects the latest cycle that the source order-date range covers.
 const CYCLE_ANCHOR_START = '2026-06-01';
 
 const MASTER_ROW_FILLS = [
@@ -102,9 +101,7 @@ function latestCoveredCycleStart(periodEnd) {
   const anchorTimestamp = parseIsoDay(CYCLE_ANCHOR_START);
   if (endTimestamp === null) return '';
 
-  // A cycle is selectable only after its final day is covered by the source range. This lets
-  // an Order.all export start before the accounting cycle (order-date lookback) while still
-  // choosing one deterministic cycle from the filename's end date.
+  // A cycle is selectable only after its final day is covered by the source order-date range.
   const daysFromAnchor = Math.floor((endTimestamp - anchorTimestamp) / DAY_MS);
   const cycleIndex = Math.floor((daysFromAnchor - (DAYS_PER_CYCLE - 1)) / DAYS_PER_CYCLE);
   return addDays(CYCLE_ANCHOR_START, cycleIndex * DAYS_PER_CYCLE);
@@ -193,9 +190,8 @@ function resolveCycleProfile({ filenamePeriodStart, filenamePeriodEnd } = {}) {
 }
 
 function toPublicCycle(profile) {
-  const completionWindowFromIct = `${profile.periodStart}T00:00:00+07:00`;
-  const completionWindowToIct = `${profile.periodEnd}T23:59:59+07:00`;
-  const fallbackOrderDateStart = addDays(profile.periodStart, -DAYS_PER_CYCLE);
+  const orderDateWindowFromIct = `${profile.periodStart}T00:00:00+07:00`;
+  const orderDateWindowToIct = `${profile.periodEnd}T23:59:59+07:00`;
 
   return {
     cycleKey: profile.cycleKey,
@@ -203,22 +199,28 @@ function toPublicCycle(profile) {
     periodEnd: profile.periodEnd,
     masterSheetName: profile.masterSheetName,
     weeks: profile.weeks.map(({ name, start, end }) => ({ name, start, end })),
-    // Kept for backwards-compatible consumers. These are the accounting completion boundaries,
-    // not a safe order-created-date export range.
-    downloadFromIct: completionWindowFromIct,
-    downloadToIct: completionWindowToIct,
-    completionWindowFromIct,
-    completionWindowToIct,
+    downloadFromIct: orderDateWindowFromIct,
+    downloadToIct: orderDateWindowToIct,
+    orderDateWindowFromIct,
+    orderDateWindowToIct,
     downloadGuidance: {
-      preferredFilterField: 'order_completed_at',
-      preferredFromIct: completionWindowFromIct,
-      preferredToIct: completionWindowToIct,
+      preferredFilterField: 'order_created_at',
+      preferredFromIct: orderDateWindowFromIct,
+      preferredToIct: orderDateWindowToIct,
+      accountingFilterField: 'order_created_at',
+      orderDateWindow: {
+        filterField: 'order_created_at',
+        fromIct: orderDateWindowFromIct,
+        toIct: orderDateWindowToIct,
+        guaranteedComplete: true,
+      },
+      // Deprecated response alias retained while deployed clients roll forward.
       orderDateFallback: {
         filterField: 'order_created_at',
-        minimumLookbackDays: DAYS_PER_CYCLE,
-        fromIct: `${fallbackOrderDateStart}T00:00:00+07:00`,
-        toIct: completionWindowToIct,
-        guaranteedComplete: false,
+        minimumLookbackDays: 0,
+        fromIct: orderDateWindowFromIct,
+        toIct: orderDateWindowToIct,
+        guaranteedComplete: true,
       },
     },
   };

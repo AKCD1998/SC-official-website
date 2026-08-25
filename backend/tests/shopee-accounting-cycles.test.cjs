@@ -61,13 +61,21 @@ test('public cycle exposes exact ICT download boundaries and four auditable week
 
   expect(publicCycle.downloadFromIct).toBe('2026-07-27T00:00:00+07:00');
   expect(publicCycle.downloadToIct).toBe('2026-08-23T23:59:59+07:00');
-  expect(publicCycle.downloadGuidance.preferredFilterField).toBe('order_completed_at');
+  expect(publicCycle.downloadGuidance.preferredFilterField).toBe('order_created_at');
+  expect(publicCycle.downloadGuidance.preferredFromIct).toBe('2026-07-27T00:00:00+07:00');
+  expect(publicCycle.downloadGuidance.accountingFilterField).toBe('order_created_at');
+  expect(publicCycle.downloadGuidance.orderDateWindow).toEqual({
+    filterField: 'order_created_at',
+    fromIct: '2026-07-27T00:00:00+07:00',
+    toIct: '2026-08-23T23:59:59+07:00',
+    guaranteedComplete: true,
+  });
   expect(publicCycle.downloadGuidance.orderDateFallback).toEqual({
     filterField: 'order_created_at',
-    minimumLookbackDays: 28,
-    fromIct: '2026-06-29T00:00:00+07:00',
+    minimumLookbackDays: 0,
+    fromIct: '2026-07-27T00:00:00+07:00',
     toIct: '2026-08-23T23:59:59+07:00',
-    guaranteedComplete: false,
+    guaranteedComplete: true,
   });
   expect(publicCycle.weeks).toHaveLength(4);
   expect(publicCycle.weeks[3]).toEqual({
