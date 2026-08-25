@@ -4,6 +4,7 @@ async function processWorkbooks(req, res) {
   const payload = await workbookService.processWorkbooks({
     files: req.files || [],
     formatterMode: req.body && req.body.formatterMode,
+    shopCode: req.body && req.body.shopCode,
     previewWorkbookId: req.body && (req.body.previewWorkbookId || req.body.previewSpreadsheetId),
     batchId: req.body && req.body.batchId,
     batchFileCount: req.body && req.body.batchFileCount,
