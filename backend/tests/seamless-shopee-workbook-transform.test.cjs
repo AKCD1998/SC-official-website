@@ -87,7 +87,7 @@ function sourceRow(values) {
 }
 
 // Synthetic fixture modeled on the real June 2026 export's shape, but with invented order IDs,
-// products, and zero real PII. Rows exercise: all 4 weeks (by completed time), a cancelled row
+// products, and zero real PII. Rows exercise: all 4 weeks (by order date), a cancelled row
 // with blank completed time, two June 29-30 carryover rows, a blank-SKU row, comma-formatted
 // numbers, and a blank numeric cell. Counts/totals are derived in-test from this data.
 function juneRows() {
@@ -288,17 +288,21 @@ function shiftRows(rows, days) {
   }));
 }
 
-// Which fixture rows are included (status != cancelled AND completed time in [06-01, 06-28]).
+// Which fixture rows are included (order date in [06-01, 06-28], not cancelled, completed).
 function includedRows(rows) {
   return rows.filter((row) => {
     const status = row[HEADERS.status];
+    const orderDate = String(row[HEADERS.orderDate] || '');
     const completedAt = String(row[HEADERS.completedAt] || '');
-    return status !== 'ยกเลิกแล้ว' && completedAt >= '2026-06-01 00:00' && completedAt <= '2026-06-28 23:59';
+    return status !== 'ยกเลิกแล้ว' &&
+      completedAt &&
+      orderDate >= '2026-06-01 00:00' &&
+      orderDate <= '2026-06-28 23:59';
   });
 }
 
-function weekOf(completedAt) {
-  const day = String(completedAt).slice(8, 10);
+function weekOf(dateTime) {
+  const day = String(dateTime).slice(8, 10);
   const num = Number(day);
   if (num >= 1 && num <= 7) return '01-07.06';
   if (num >= 8 && num <= 14) return '08-14.06';
@@ -425,10 +429,10 @@ test('3. excludes cancelled and June 29-30 carryover rows from all sheets', asyn
 });
 
 // ---------------------------------------------------------------------------
-// 4. Completed-time weekly allocation and stable sorting
+// 4. Order-date weekly allocation and stable completion-time sorting
 // ---------------------------------------------------------------------------
 
-test('4. allocates rows by completed time and sorts stably', async () => {
+test('4. allocates rows by order date and sorts completed time stably within each week', async () => {
   const rows = juneRows();
   const included = includedRows(rows);
   const { buffer } = await createJuneBuffer();
@@ -436,7 +440,7 @@ test('4. allocates rows by completed time and sorts stably', async () => {
 
   const expectedByWeek = {};
   included.forEach((row) => {
-    const week = weekOf(row[HEADERS.completedAt]);
+    const week = weekOf(row[HEADERS.orderDate]);
     expectedByWeek[week] = (expectedByWeek[week] || 0) + 1;
   });
 
@@ -465,8 +469,8 @@ test('4. allocates rows by completed time and sorts stably', async () => {
   const master = result.workbook.getWorksheet('06');
   const weekSequence = [];
   for (let r = 2; r <= master.rowCount; r += 1) {
-    const completed = master.getRow(r).getCell(13).value;
-    if (completed instanceof Date) weekSequence.push(weekOf(completed.toISOString().slice(0, 10).replace(/-/g, '-') + ' ' + '00:00'));
+    const orderDate = master.getRow(r).getCell(2).value;
+    if (orderDate instanceof Date) weekSequence.push(weekOf(orderDate.toISOString().slice(0, 10) + ' 00:00'));
   }
   const sorted = [...weekSequence].sort((a, b) => SHEET_ORDER.indexOf(a) - SHEET_ORDER.indexOf(b));
   assert.deepEqual(weekSequence, sorted, 'master rows grouped by week index');
@@ -511,16 +515,16 @@ test('6. matches fixture-derived oracle counts and net totals', async () => {
 
   const totalsByWeek = {};
   included.forEach((row) => {
-    const week = weekOf(row[HEADERS.completedAt]);
+    const week = weekOf(row[HEADERS.orderDate]);
     totalsByWeek[week] = Math.round(((totalsByWeek[week] || 0) + expectedNet(row)) * 100) / 100;
   });
   const masterTotal = Object.values(totalsByWeek).reduce((sum, value) => sum + value, 0);
 
   assert.deepEqual(result.metadata.weeklyCounts, {
-    '01-07.06': totalsByWeek['01-07.06'] ? included.filter((row) => weekOf(row[HEADERS.completedAt]) === '01-07.06').length : 0,
-    '08-14.06': included.filter((row) => weekOf(row[HEADERS.completedAt]) === '08-14.06').length,
-    '15-21.06': included.filter((row) => weekOf(row[HEADERS.completedAt]) === '15-21.06').length,
-    '22-28.06': included.filter((row) => weekOf(row[HEADERS.completedAt]) === '22-28.06').length,
+    '01-07.06': totalsByWeek['01-07.06'] ? included.filter((row) => weekOf(row[HEADERS.orderDate]) === '01-07.06').length : 0,
+    '08-14.06': included.filter((row) => weekOf(row[HEADERS.orderDate]) === '08-14.06').length,
+    '15-21.06': included.filter((row) => weekOf(row[HEADERS.orderDate]) === '15-21.06').length,
+    '22-28.06': included.filter((row) => weekOf(row[HEADERS.orderDate]) === '22-28.06').length,
   });
 
   Object.entries(totalsByWeek).forEach(([week, total]) => {
@@ -567,11 +571,11 @@ test('7. non-cancelled rows with blank completed time remain pending without fai
     { status: 'จัดส่งสำเร็จแล้ว', rowCount: 1, orderCount: 1 },
     { status: 'การจัดส่ง', rowCount: 1, orderCount: 1 },
   ]);
-  assert.equal(result.metadata.cycleClosureStatus, 'review_required_empty');
+  assert.equal(result.metadata.cycleClosureStatus, 'review_required_pending');
   assert.equal(result.metadata.checkpointEligible, false);
   assert.match(
     result.warnings.join('\n'),
-    /Excluded 2 non-cancelled row\(s\).*later overlapping export/i,
+    /Excluded 2 non-cancelled in-cycle row\(s\).*same order-date period/i,
   );
 });
 
@@ -596,26 +600,40 @@ test('7a. a non-blank malformed completed time still fails closed', async () => 
   );
 });
 
-test('7d. order-date evidence requires the 28-day lookback after the reference cycle', async () => {
+test('7d. an exact post-anchor order-date export succeeds without lookback', async () => {
   const included = shiftRows([withPii(juneRows())[0]], 28)[0];
-  const pending = {
-    ...included,
-    [HEADERS.orderNumber]: '260630PENDINGLOOKBACK',
-    [HEADERS.status]: 'การจัดส่ง',
-    [HEADERS.completedAt]: '',
-  };
-  const { buffer } = await createJuneBuffer({ rows: [included, pending] });
+  const { buffer } = await createJuneBuffer({ rows: [included] });
 
-  await assert.rejects(
-    () => transformWorkbook(buffer, {
-      requestedVariant: 'shopee',
-      originalFilename: 'Order.all.20260629_20260726.xlsx',
-    }),
-    /กรองด้วยวันที่สั่งซื้อ.*2026-06-01.*2026-07-26/s,
-  );
+  const result = await transformWorkbook(buffer, {
+    requestedVariant: 'shopee',
+    originalFilename: 'Order.all.20260629_20260726.xlsx',
+  });
+
+  assert.equal(result.metadata.finalRows, 1);
+  assert.equal(result.metadata.minimumLookbackStart, null);
+  assert.equal(result.metadata.sourceCoverageStatus, 'order_date_window_covered');
+  assert.equal(result.metadata.cycleDateField, 'order_created_at');
+  assert.equal(result.metadata.checkpointEligible, true);
 });
 
-test('7e. pending rows are excluded after the order-date lookback requirement is satisfied', async () => {
+test('7e. completion after the cycle remains included when order date is in the cycle', async () => {
+  const included = {
+    ...shiftRows([withPii(juneRows())[0]], 28)[0],
+    [HEADERS.completedAt]: '2026-07-27 00:05',
+  };
+  const { buffer } = await createJuneBuffer({ rows: [included] });
+
+  const result = await transformWorkbook(buffer, {
+    requestedVariant: 'shopee',
+    originalFilename: 'Order.all.20260629_20260726.xlsx',
+  });
+
+  assert.equal(result.metadata.finalRows, 1);
+  assert.equal(result.metadata.completedAfterCycleObserved, 1);
+  assert.equal(result.metadata.completedAfterCycleExcluded, 0);
+});
+
+test('7f. pending rows keep the same order-date cycle open for a refreshed export', async () => {
   const included = shiftRows([withPii(juneRows())[0]], 28)[0];
   const pending = {
     ...included,
@@ -627,16 +645,17 @@ test('7e. pending rows are excluded after the order-date lookback requirement is
 
   const result = await transformWorkbook(buffer, {
     requestedVariant: 'shopee',
-    originalFilename: 'Order.all.20260601_20260726.xlsx',
+    originalFilename: 'Order.all.20260629_20260726.xlsx',
   });
 
   assert.equal(result.metadata.finalRows, 1);
   assert.equal(result.metadata.pendingCompletionExcluded, 1);
   assert.equal(result.metadata.pendingCompletionOrderCount, 1);
   assert.equal(result.metadata.orderDateFilterEvidence, true);
-  assert.equal(result.metadata.minimumLookbackStart, '2026-06-01');
-  assert.equal(result.metadata.sourceCoverageStatus, 'order_date_lookback_satisfied');
-  assert.equal(result.metadata.checkpointEligible, true);
+  assert.equal(result.metadata.minimumLookbackStart, null);
+  assert.equal(result.metadata.sourceCoverageStatus, 'order_date_window_covered');
+  assert.equal(result.metadata.cycleClosureStatus, 'review_required_pending');
+  assert.equal(result.metadata.checkpointEligible, false);
 });
 
 // ---------------------------------------------------------------------------
@@ -806,7 +825,7 @@ test('11b. a filename that starts after the selected rolling cycle fails closed'
   );
 });
 
-test('7b. order created before the cycle is included when completed time is inside the cycle', async () => {
+test('7b. order created before the cycle is excluded even when completed time is inside', async () => {
   const row = {
     ...withPii(juneRows())[0],
     [HEADERS.orderNumber]: '260628BOUNDARY1',
@@ -819,15 +838,13 @@ test('7b. order created before the cycle is included when completed time is insi
   const result = await transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename });
 
   assert.equal(result.metadata.periodStart, '2026-06-29');
-  assert.equal(result.metadata.finalRows, 1);
-  assert.equal(result.metadata.weeklyCounts['29.06-05.07'], 1);
-  assert.equal(
-    result.workbook.getWorksheet('29.06-05.07').getCell('A3').value,
-    '260628BOUNDARY1',
-  );
+  assert.equal(result.metadata.finalRows, 0);
+  assert.equal(result.metadata.orderDateBeforeCycleExcluded, 1);
+  assert.equal(result.metadata.outOfRangeExcluded, 1);
+  assert.equal(result.metadata.checkpointEligible, false);
 });
 
-test('7c. order completed after the cycle is carried forward without allocation failure', async () => {
+test('7c. order created inside the cycle is included when completed after the cycle', async () => {
   const row = {
     ...withPii(juneRows())[0],
     [HEADERS.orderNumber]: '260726BOUNDARY2',
@@ -835,16 +852,18 @@ test('7c. order completed after the cycle is carried forward without allocation 
     [HEADERS.completedAt]: '2026-07-27 00:05',
   };
   const { buffer } = await createJuneBuffer({ rows: [row] });
-  const originalFilename = 'Order.all.20260629_20260731.xlsx';
+  const originalFilename = 'Order.all.20260601_20260731.xlsx';
 
   const result = await transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename });
 
   assert.equal(result.metadata.periodStart, '2026-06-29');
-  assert.equal(result.metadata.finalRows, 0);
-  assert.equal(result.metadata.completedAfterCycleExcluded, 1);
-  assert.equal(result.metadata.carryoverExcluded, 1);
-  assert.equal(result.metadata.cycleClosureStatus, 'review_required_empty');
-  assert.equal(result.metadata.checkpointEligible, false);
+  assert.equal(result.metadata.finalRows, 1);
+  assert.equal(result.metadata.completedAfterCycleObserved, 1);
+  assert.equal(result.metadata.completedAfterCycleExcluded, 0);
+  assert.equal(result.metadata.carryoverExcluded, 0);
+  assert.equal(result.metadata.weeklyCounts['20-26.07'], 1);
+  assert.equal(result.metadata.cycleClosureStatus, 'ready_with_rows');
+  assert.equal(result.metadata.checkpointEligible, true);
 });
 
 test('11c. a filename that ends before all four weeks are covered fails closed', async () => {
