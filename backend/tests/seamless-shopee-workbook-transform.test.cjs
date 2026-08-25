@@ -533,30 +533,110 @@ test('6. matches fixture-derived oracle counts and net totals', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// 7. Missing / unparseable / out-of-cycle completed time fails explicitly
+// 7. Pending completion is excluded; malformed completed time still fails explicitly
 // ---------------------------------------------------------------------------
 
-test('7. an included row with missing completed time fails closed', async () => {
+test('7. non-cancelled rows with blank completed time remain pending without failing the file', async () => {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('orders');
   ws.addRow(HEADER_ORDER);
-  // A non-cancelled row with blank completed time cannot be cycle-classified.
+  const fixture = withPii(juneRows())[0];
+  ws.addRow(sourceRow({
+    ...fixture,
+    [HEADERS.orderNumber]: '260601PENDING1',
+    [HEADERS.status]: 'จัดส่งสำเร็จแล้ว',
+    [HEADERS.completedAt]: '',
+  }));
+  ws.addRow(sourceRow({
+    ...fixture,
+    [HEADERS.orderNumber]: '260601PENDING2',
+    [HEADERS.status]: 'การจัดส่ง',
+    [HEADERS.completedAt]: '',
+  }));
+  const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+
+  const result = await transformWorkbook(buffer, {
+    requestedVariant: 'shopee',
+    originalFilename: 'Order.all.20260601_20260630.xlsx',
+  });
+
+  assert.equal(result.metadata.finalRows, 0);
+  assert.equal(result.metadata.pendingCompletionExcluded, 2);
+  assert.equal(result.metadata.pendingCompletionOrderCount, 2);
+  assert.deepEqual(result.metadata.pendingCompletionStatuses, [
+    { status: 'จัดส่งสำเร็จแล้ว', rowCount: 1, orderCount: 1 },
+    { status: 'การจัดส่ง', rowCount: 1, orderCount: 1 },
+  ]);
+  assert.equal(result.metadata.cycleClosureStatus, 'review_required_empty');
+  assert.equal(result.metadata.checkpointEligible, false);
+  assert.match(
+    result.warnings.join('\n'),
+    /Excluded 2 non-cancelled row\(s\).*later overlapping export/i,
+  );
+});
+
+test('7a. a non-blank malformed completed time still fails closed', async () => {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet('orders');
+  ws.addRow(HEADER_ORDER);
   ws.addRow(
     sourceRow({
       ...withPii(juneRows())[0],
-      [HEADERS.completedAt]: '',
+      [HEADERS.completedAt]: 'not-a-date',
     }),
   );
   const buffer = Buffer.from(await wb.xlsx.writeBuffer());
 
   await assert.rejects(
-    () =>
-      transformWorkbook(buffer, {
-        requestedVariant: 'shopee',
-        originalFilename: 'Order.all.20260601_20260630.xlsx',
-      }),
-    /completed time|เวลาที่ทำการสั่งซื้อสำเร็จ|cannot allocate/i,
+    () => transformWorkbook(buffer, {
+      requestedVariant: 'shopee',
+      originalFilename: 'Order.all.20260601_20260630.xlsx',
+    }),
+    /no parseable completed time|เวลาที่ทำการสั่งซื้อสำเร็จ/i,
   );
+});
+
+test('7d. order-date evidence requires the 28-day lookback after the reference cycle', async () => {
+  const included = shiftRows([withPii(juneRows())[0]], 28)[0];
+  const pending = {
+    ...included,
+    [HEADERS.orderNumber]: '260630PENDINGLOOKBACK',
+    [HEADERS.status]: 'การจัดส่ง',
+    [HEADERS.completedAt]: '',
+  };
+  const { buffer } = await createJuneBuffer({ rows: [included, pending] });
+
+  await assert.rejects(
+    () => transformWorkbook(buffer, {
+      requestedVariant: 'shopee',
+      originalFilename: 'Order.all.20260629_20260726.xlsx',
+    }),
+    /กรองด้วยวันที่สั่งซื้อ.*2026-06-01.*2026-07-26/s,
+  );
+});
+
+test('7e. pending rows are excluded after the order-date lookback requirement is satisfied', async () => {
+  const included = shiftRows([withPii(juneRows())[0]], 28)[0];
+  const pending = {
+    ...included,
+    [HEADERS.orderNumber]: '260630PENDINGSAFE',
+    [HEADERS.status]: 'จัดส่งสำเร็จแล้ว',
+    [HEADERS.completedAt]: '',
+  };
+  const { buffer } = await createJuneBuffer({ rows: [included, pending] });
+
+  const result = await transformWorkbook(buffer, {
+    requestedVariant: 'shopee',
+    originalFilename: 'Order.all.20260601_20260726.xlsx',
+  });
+
+  assert.equal(result.metadata.finalRows, 1);
+  assert.equal(result.metadata.pendingCompletionExcluded, 1);
+  assert.equal(result.metadata.pendingCompletionOrderCount, 1);
+  assert.equal(result.metadata.orderDateFilterEvidence, true);
+  assert.equal(result.metadata.minimumLookbackStart, '2026-06-01');
+  assert.equal(result.metadata.sourceCoverageStatus, 'order_date_lookback_satisfied');
+  assert.equal(result.metadata.checkpointEligible, true);
 });
 
 // ---------------------------------------------------------------------------
@@ -697,7 +777,7 @@ test('10. no PII anywhere in processed workbook', async () => {
 
 test('11. a filename aligned to the next 28-day boundary creates the July cycle automatically', async () => {
   const { buffer, originalFilename } = await createJuneBuffer({
-    originalFilename: 'Order.all.20260629_20260731.xlsx',
+    originalFilename: 'Order.all.20260601_20260731.xlsx',
     rows: shiftRows(juneRows(), 28),
   });
   const result = await transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename });
