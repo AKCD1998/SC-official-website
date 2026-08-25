@@ -262,20 +262,38 @@ function expectedNet(row) {
   return Math.round((netSale - sellerVoucher - commission - transactionFee) * 100) / 100;
 }
 
-async function createJuneBuffer({ originalFilename = 'Order.all.20260601_20260630.xlsx' } = {}) {
+async function createJuneBuffer({
+  originalFilename = 'Order.all.20260601_20260630.xlsx',
+  rows = juneRows(),
+} = {}) {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('orders');
   worksheet.addRow(HEADER_ORDER);
-  withPii(juneRows()).forEach((row) => worksheet.addRow(sourceRow(row)));
+  withPii(rows).forEach((row) => worksheet.addRow(sourceRow(row)));
   return { buffer: Buffer.from(await workbook.xlsx.writeBuffer()), originalFilename };
 }
 
-// Which fixture rows are included (status != cancelled AND order date in [06-01, 06-28]).
+function shiftDateTime(value, days) {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})(.*)$/);
+  if (!match) return value;
+  const shifted = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]) + days));
+  return `${shifted.toISOString().slice(0, 10)}${match[4]}`;
+}
+
+function shiftRows(rows, days) {
+  return rows.map((row) => ({
+    ...row,
+    [HEADERS.orderDate]: shiftDateTime(row[HEADERS.orderDate], days),
+    [HEADERS.completedAt]: shiftDateTime(row[HEADERS.completedAt], days),
+  }));
+}
+
+// Which fixture rows are included (status != cancelled AND completed time in [06-01, 06-28]).
 function includedRows(rows) {
   return rows.filter((row) => {
     const status = row[HEADERS.status];
-    const orderDate = String(row[HEADERS.orderDate] || '');
-    return status !== 'ยกเลิกแล้ว' && orderDate >= '2026-06-01 00:00' && orderDate <= '2026-06-28 23:59';
+    const completedAt = String(row[HEADERS.completedAt] || '');
+    return status !== 'ยกเลิกแล้ว' && completedAt >= '2026-06-01 00:00' && completedAt <= '2026-06-28 23:59';
   });
 }
 
@@ -522,7 +540,7 @@ test('7. an included row with missing completed time fails closed', async () => 
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('orders');
   ws.addRow(HEADER_ORDER);
-  // Included by status + order date, but completed time blank -> must throw, never silent drop.
+  // A non-cancelled row with blank completed time cannot be cycle-classified.
   ws.addRow(
     sourceRow({
       ...withPii(juneRows())[0],
@@ -597,6 +615,10 @@ test('9. applies exact comments, formats, fills, widths, heights, views, page se
   profile.geometry.master.widths.forEach((width, index) => {
     assert.equal(master.getColumn(index + 1).width, width, `master col ${index + 1} width`);
   });
+  assert.ok(
+    master.getColumn(2).width >= master.getColumn(13).width,
+    'master order-date column is wide enough for the same typed datetime format as completed-at',
+  );
   assert.equal(master.getRow(1).height, profile.geometry.master.rowHeights.header, 'master row1 height');
   for (let r = 2; r <= master.rowCount; r += 1) {
     if (master.getRow(r).getCell(1).value) {
@@ -624,6 +646,10 @@ test('9. applies exact comments, formats, fills, widths, heights, views, page se
     profile.geometry.weekly.widths.forEach((width, index) => {
       assert.equal(sheet.getColumn(index + 1).width, width, `weekly ${name} col ${index + 1} width`);
     });
+    assert.ok(
+      sheet.getColumn(2).width >= sheet.getColumn(13).width,
+      `weekly ${name} order-date column is wide enough for the same typed datetime format as completed-at`,
+    );
     assert.equal(sheet.getRow(1).height, profile.geometry.weekly.rowHeights.period);
     assert.equal(sheet.getRow(2).height, profile.geometry.weekly.rowHeights.header);
     assert.equal(sheet.pageSetup.orientation, 'landscape', `weekly ${name} landscape`);
@@ -666,14 +692,92 @@ test('10. no PII anywhere in processed workbook', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// 11. Unconfigured month fails closed
+// 11. Automatic rolling four-week cycles
 // ---------------------------------------------------------------------------
 
-test('11. an unconfigured month fails closed with a clear message', async () => {
-  const { buffer } = await createJuneBuffer({ originalFilename: 'Order.all.20260501_20260531.xlsx' });
+test('11. a filename aligned to the next 28-day boundary creates the July cycle automatically', async () => {
+  const { buffer, originalFilename } = await createJuneBuffer({
+    originalFilename: 'Order.all.20260629_20260731.xlsx',
+    rows: shiftRows(juneRows(), 28),
+  });
+  const result = await transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename });
+
+  assert.deepEqual(result.workbook.worksheets.map((sheet) => sheet.name), [
+    '07',
+    '29.06-05.07',
+    '06-12.07',
+    '13-19.07',
+    '20-26.07',
+  ]);
+  assert.equal(result.metadata.periodStart, '2026-06-29');
+  assert.equal(result.metadata.periodEnd, '2026-07-26');
+  assert.equal(result.metadata.finalRows, 7);
+  assert.equal(result.metadata.carryoverExcluded, 2);
+
+  const filename = buildOutputFilename(result.worksheet, originalFilename, 'shopee', result.metadata);
+  assert.equal(filename.filename, '2026-06-29_to_2026-07-26-dr-morepen-accounting.xlsx');
+});
+
+test('11b. a filename that starts after the selected rolling cycle fails closed', async () => {
+  const { buffer } = await createJuneBuffer({ originalFilename: 'Order.all.20260510_20260531.xlsx' });
   await assert.rejects(
-    () => transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename: 'Order.all.20260501_20260531.xlsx' }),
-    /No verified Shopee accounting-cycle configuration for period 2026-05/,
+    () => transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename: 'Order.all.20260510_20260531.xlsx' }),
+    /must cover the complete four-week accounting cycle/,
+  );
+});
+
+test('7b. order created before the cycle is included when completed time is inside the cycle', async () => {
+  const row = {
+    ...withPii(juneRows())[0],
+    [HEADERS.orderNumber]: '260628BOUNDARY1',
+    [HEADERS.orderDate]: '2026-06-28 23:50',
+    [HEADERS.completedAt]: '2026-06-29 00:05',
+  };
+  const { buffer } = await createJuneBuffer({ rows: [row] });
+  const originalFilename = 'Order.all.20260601_20260731.xlsx';
+
+  const result = await transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename });
+
+  assert.equal(result.metadata.periodStart, '2026-06-29');
+  assert.equal(result.metadata.finalRows, 1);
+  assert.equal(result.metadata.weeklyCounts['29.06-05.07'], 1);
+  assert.equal(
+    result.workbook.getWorksheet('29.06-05.07').getCell('A3').value,
+    '260628BOUNDARY1',
+  );
+});
+
+test('7c. order completed after the cycle is carried forward without allocation failure', async () => {
+  const row = {
+    ...withPii(juneRows())[0],
+    [HEADERS.orderNumber]: '260726BOUNDARY2',
+    [HEADERS.orderDate]: '2026-07-26 23:50',
+    [HEADERS.completedAt]: '2026-07-27 00:05',
+  };
+  const { buffer } = await createJuneBuffer({ rows: [row] });
+  const originalFilename = 'Order.all.20260629_20260731.xlsx';
+
+  const result = await transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename });
+
+  assert.equal(result.metadata.periodStart, '2026-06-29');
+  assert.equal(result.metadata.finalRows, 0);
+  assert.equal(result.metadata.completedAfterCycleExcluded, 1);
+  assert.equal(result.metadata.carryoverExcluded, 1);
+  assert.equal(result.metadata.cycleClosureStatus, 'review_required_empty');
+  assert.equal(result.metadata.checkpointEligible, false);
+});
+
+test('11c. a filename that ends before all four weeks are covered fails closed', async () => {
+  const { buffer } = await createJuneBuffer({
+    originalFilename: 'Order.all.20260629_20260705.xlsx',
+    rows: shiftRows(juneRows(), 28),
+  });
+  await assert.rejects(
+    () => transformWorkbook(buffer, {
+      requestedVariant: 'shopee',
+      originalFilename: 'Order.all.20260629_20260705.xlsx',
+    }),
+    /must cover the complete four-week accounting cycle/,
   );
 });
 

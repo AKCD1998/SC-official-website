@@ -194,6 +194,39 @@ async function listProcessingRecords(filters = {}, client = null) {
   return result.rows.map(mapRecord);
 }
 
+// Task 12 checkpoint calculation must see every distinct stored cycle, not only the most recent
+// history page. Keep the payload narrow and let PostgreSQL collapse duplicate uploads so this
+// remains bounded as processing_records grows.
+async function listShopeeAccountingCycleSummaries(client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `
+      SELECT DISTINCT
+        pr.metadata #>> '{transformSummary,periodStart}' AS period_start,
+        pr.metadata #>> '{transformSummary,periodEnd}' AS period_end,
+        pr.metadata #>> '{transformSummary,finalRows}' AS final_rows,
+        pr.metadata #>> '{transformSummary,rowCount}' AS row_count,
+        pr.metadata #>> '{transformSummary,checkpointEligible}' AS checkpoint_eligible,
+        pr.metadata #>> '{transformSummary,cycleClosureStatus}' AS cycle_closure_status
+      FROM ${tables.processingRecords} pr
+      WHERE pr.report_type = 'shopee'
+        AND pr.metadata->>'source' IS DISTINCT FROM 'pharmcare'
+        AND pr.metadata #>> '{transformSummary,periodStart}' IS NOT NULL
+        AND pr.metadata #>> '{transformSummary,periodEnd}' IS NOT NULL
+    `,
+  );
+
+  return result.rows.map((row) => ({
+    periodStart: row.period_start || '',
+    periodEnd: row.period_end || '',
+    finalRows: row.final_rows,
+    rowCount: row.row_count,
+    checkpointEligible: row.checkpoint_eligible,
+    cycleClosureStatus: row.cycle_closure_status || '',
+  }));
+}
+
 async function getProcessingRecordById(id, client = null) {
   const records = await listProcessingRecords({ id, limit: 1 }, client);
 
@@ -590,6 +623,7 @@ module.exports = {
   getProcessingRecordById,
   inspectDatabaseContext,
   listProcessingRecords,
+  listShopeeAccountingCycleSummaries,
   mapRecord,
   markPrinted,
   markUnprinted,

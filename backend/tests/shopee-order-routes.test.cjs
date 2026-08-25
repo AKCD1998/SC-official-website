@@ -27,6 +27,22 @@ const syncShopeeOrderPageMock = jest.fn(async () => ({
   source: "info@mail.shopee.co.th",
   storedEvents: 1,
 }));
+const getShopeeAccountingCycleStatusMock = jest.fn(async () => ({
+  basis: "continuous_four_week_cycle",
+  hasHistory: true,
+  lastCompletedCycle: { periodStart: "2026-06-29", periodEnd: "2026-07-26" },
+  nextCycle: {
+    periodStart: "2026-07-27",
+    periodEnd: "2026-08-23",
+    weeks: [
+      { name: "27.07-02.08", start: "2026-07-27", end: "2026-08-02" },
+      { name: "03-09.08", start: "2026-08-03", end: "2026-08-09" },
+      { name: "10-16.08", start: "2026-08-10", end: "2026-08-16" },
+      { name: "17-23.08", start: "2026-08-17", end: "2026-08-23" },
+    ],
+  },
+  timezone: "Asia/Bangkok",
+}));
 
 jest.mock("../src/modules/seamless/db/shopeeOrderRepository", () => ({
   getOrderTimeline: (...args) => getOrderTimelineMock(...args),
@@ -35,6 +51,10 @@ jest.mock("../src/modules/seamless/db/shopeeOrderRepository", () => ({
 
 jest.mock("../src/modules/seamless/services/shopeeOrderTimelineService", () => ({
   syncShopeeOrderPage: (...args) => syncShopeeOrderPageMock(...args),
+}));
+
+jest.mock("../src/modules/seamless/services/shopeeAccountingCycleStatusService", () => ({
+  getShopeeAccountingCycleStatus: (...args) => getShopeeAccountingCycleStatusMock(...args),
 }));
 
 const { errorHandler } = require("../src/modules/seamless/middleware/errorHandler");
@@ -66,6 +86,17 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
   expect(response.body.orders).toEqual([orderRow]);
   expect(response.body.nextCursor).toEqual(expect.any(String));
   expect(listOrdersMock).toHaveBeenCalledWith({ cursor: null, limit: 10, status: "shipment_due" });
+});
+
+test("returns the latest completed and next four-week accounting cycles", async () => {
+  const response = await request(buildApp()).get("/api/app/shopee/accounting-cycle");
+
+  expect(response.status).toBe(200);
+  expect(response.body.lastCompletedCycle.periodEnd).toBe("2026-07-26");
+  expect(response.body.nextCycle.periodStart).toBe("2026-07-27");
+  expect(response.body.nextCycle.periodEnd).toBe("2026-08-23");
+  expect(response.body.nextCycle.weeks).toHaveLength(4);
+  expect(getShopeeAccountingCycleStatusMock).toHaveBeenCalledTimes(1);
 });
 
 test("returns one order and its chronological event timeline", async () => {

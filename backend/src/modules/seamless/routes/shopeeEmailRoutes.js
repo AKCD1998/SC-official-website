@@ -1,4 +1,7 @@
 const express = require("express");
+const {
+  getAccountingCycleStatus,
+} = require("../controllers/shopeeAccountingCycleController");
 const { listInbox } = require("../controllers/shopeeEmailController");
 const {
   getOrder,
@@ -11,6 +14,7 @@ const { asyncHandler } = require("../utils/asyncHandler");
 const router = express.Router();
 
 router.use(appAuth);
+router.get("/accounting-cycle", asyncHandler(getAccountingCycleStatus));
 router.get("/inbox", asyncHandler(listInbox));
 router.get("/orders", asyncHandler(listOrders));
 router.get("/orders/:orderNumber", asyncHandler(getOrder));
