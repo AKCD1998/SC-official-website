@@ -161,9 +161,11 @@ function dateKey(date) {
   if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
     return '';
   }
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  // parseDateTime deliberately stores the source wall clock in UTC fields for stable XLSX
+  // serialization. Read the same UTC fields here so a host timezone cannot shift the fill date.
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(date.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -265,53 +267,60 @@ function parseWeekWindow(week) {
   };
 }
 
-function applyCycle(rows, profile, filenamePeriod, warnings) {
+function applyCycle(rows, profile) {
   const window = parseCycleWindow(profile);
   const cancelledStatus = profile.cancelledStatus;
 
   let cancelledExcluded = 0;
   let carryoverExcluded = 0;
   let outOfRangeExcluded = 0;
+  let completedBeforeCycleExcluded = 0;
+  let completedAfterCycleExcluded = 0;
   const included = [];
   const orderNumberSet = new Set();
   const duplicateOrderNumbers = new Set();
 
   rows.forEach((row) => {
     const status = row.status;
-    const orderDate = row.orderDate instanceof Date ? row.orderDate : parseDateTime(row.orderDate);
 
-    // Cancelled rows are excluded BEFORE the completed-time check, so a cancelled row with a
-    // blank completed time (e.g. raw row 9) never trips the missing-completed-time rule.
+    // Cancelled rows are excluded before date parsing. Shopee commonly leaves the completed-time
+    // cell blank for them, and cancelled orders never belong in an accounting completion cycle.
     if (status === cancelledStatus) {
       cancelledExcluded += 1;
       return;
     }
 
-    if (!(orderDate instanceof Date)) {
-      // A non-cancelled row with an unparseable order date cannot be cycle-classified.
+    const completedAt = row.completedAtRaw instanceof Date
+      ? new Date(row.completedAtRaw.getTime())
+      : parseDateTime(row.completedAtRaw);
+    if (!(completedAt instanceof Date) || Number.isNaN(completedAt.getTime())) {
       throw badRequest(
-        `Could not parse the order date on source row ${row.sourceRowNumber}; cannot determine the accounting cycle.`,
-        { sourceRowNumber: row.sourceRowNumber },
+        `Source row ${row.sourceRowNumber} (order ${row.orderNumber}) has no parseable completed time (เวลาที่ทำการสั่งซื้อสำเร็จ); cannot determine the accounting cycle.`,
+        { sourceRowNumber: row.sourceRowNumber, orderNumber: row.orderNumber },
       );
     }
 
-    const inCycle = orderDate >= window.start && orderDate <= window.end;
-    if (!inCycle) {
-      // Carryover = order date within the filename period but outside the cycle window
-      // (e.g. June 29-30 carried to July). Rows outside even the filename period are flagged.
-      const inFilename =
-        filenamePeriod &&
-        orderDate >= parseDateTime(`${filenamePeriod.periodStart} 00:00:00`) &&
-        orderDate <= parseDateTime(`${filenamePeriod.periodEnd} 23:59:59`);
-      if (inFilename) {
-        carryoverExcluded += 1;
-      } else {
-        outOfRangeExcluded += 1;
-        warnings.push(
-          `Source row ${row.sourceRowNumber} order date ${dateKey(orderDate)} is outside the report period ${filenamePeriod?.periodStart}..${filenamePeriod?.periodEnd}; excluded.`,
-        );
-      }
+    if (completedAt < window.start) {
+      completedBeforeCycleExcluded += 1;
+      outOfRangeExcluded += 1; // backwards-compatible alias for pre-cycle rows
       return;
+    }
+
+    if (completedAt > window.end) {
+      completedAfterCycleExcluded += 1;
+      carryoverExcluded += 1; // backwards-compatible alias for next-cycle carryover rows
+      return;
+    }
+
+    const orderDate = row.orderDate instanceof Date
+      ? new Date(row.orderDate.getTime())
+      : parseDateTime(row.orderDate);
+    if (!(orderDate instanceof Date) || Number.isNaN(orderDate.getTime())) {
+      // Order date is still required as a typed output column, but it never decides membership.
+      throw badRequest(
+        `Could not parse the order date on source row ${row.sourceRowNumber}; cannot create the accounting workbook.`,
+        { sourceRowNumber: row.sourceRowNumber, orderNumber: row.orderNumber },
+      );
     }
 
     // Duplicate-order tracking (informational; row-based totals preserved).
@@ -320,30 +329,29 @@ function applyCycle(rows, profile, filenamePeriod, warnings) {
     }
     orderNumberSet.add(row.orderNumber);
 
-    included.push({ ...row, orderDate });
+    included.push({ ...row, orderDate, completedAt });
   });
 
-  // Allocate each included row to a week by completed time. Missing/unparseable/out-of-cycle
-  // completed time must fail explicitly — never silently drop a row.
+  // Allocate each included row to a week by the same completed-time field used for membership.
+  // An in-cycle value that does not match a week is a profile invariant failure and must surface.
   const weekWindows = profile.weeks.map((week) => ({ week, window: parseWeekWindow(week) }));
   const byWeek = new Map(profile.weeks.map((week) => [week.name, []]));
 
   included.forEach((row) => {
-    const completedAt = row.completedAtRaw instanceof Date ? row.completedAtRaw : parseDateTime(row.completedAtRaw);
-    if (!(completedAt instanceof Date)) {
-      throw badRequest(
-        `Source row ${row.sourceRowNumber} (order ${row.orderNumber}) is included in the cycle but has no parseable completed time (เวลาที่ทำการสั่งซื้อสำเร็จ); cannot allocate to a weekly sheet.`,
-        { sourceRowNumber: row.sourceRowNumber, orderNumber: row.orderNumber },
-      );
-    }
-    const match = weekWindows.find(({ window }) => completedAt >= window.start && completedAt <= window.end);
+    const match = weekWindows.find(
+      ({ window: weekWindow }) => row.completedAt >= weekWindow.start && row.completedAt <= weekWindow.end,
+    );
     if (!match) {
       throw badRequest(
-        `Source row ${row.sourceRowNumber} (order ${row.orderNumber}) completed at ${completedAt.toISOString()} does not fall in any configured weekly sheet; cannot allocate.`,
-        { sourceRowNumber: row.sourceRowNumber, orderNumber: row.orderNumber, completedAt: completedAt.toISOString() },
+        `Source row ${row.sourceRowNumber} (order ${row.orderNumber}) completed at ${row.completedAt.toISOString()} does not fall in any configured weekly sheet; cannot allocate.`,
+        {
+          sourceRowNumber: row.sourceRowNumber,
+          orderNumber: row.orderNumber,
+          completedAt: row.completedAt.toISOString(),
+        },
       );
     }
-    byWeek.get(match.week.name).push({ ...row, completedAt });
+    byWeek.get(match.week.name).push(row);
   });
 
   return {
@@ -352,6 +360,8 @@ function applyCycle(rows, profile, filenamePeriod, warnings) {
     cancelledExcluded,
     carryoverExcluded,
     outOfRangeExcluded,
+    completedBeforeCycleExcluded,
+    completedAfterCycleExcluded,
     uniqueOrderCount: orderNumberSet.size,
     duplicateOrderCount: duplicateOrderNumbers.size,
   };
@@ -614,7 +624,11 @@ function buildMetadata(profile, cycle, sourceSheetName, filenamePeriod) {
     cancelledExcluded: cycle.cancelledExcluded,
     carryoverExcluded: cycle.carryoverExcluded,
     outOfRangeExcluded: cycle.outOfRangeExcluded,
+    completedBeforeCycleExcluded: cycle.completedBeforeCycleExcluded,
+    completedAfterCycleExcluded: cycle.completedAfterCycleExcluded,
     finalRows: included.length,
+    cycleClosureStatus: included.length ? 'ready_with_rows' : 'review_required_empty',
+    checkpointEligible: included.length > 0,
     weeklyCounts,
     weeklyNetTotals,
     sheets: [profile.masterSheetName, ...profile.weeks.map((week) => week.name)],
@@ -641,9 +655,10 @@ async function transformShopeeWorkbook(sourceWorkbook, options = {}) {
   const filenamePeriod = parseFilenamePeriod(options.originalFilename);
   const { profile } = resolveCycleProfile({
     filenamePeriodStart: filenamePeriod ? filenamePeriod.periodStart : '',
+    filenamePeriodEnd: filenamePeriod ? filenamePeriod.periodEnd : '',
   });
 
-  const cycle = applyCycle(rows, profile, filenamePeriod, warnings);
+  const cycle = applyCycle(rows, profile);
   cycle.rawRows = rows.length;
   cycle.blankSkipped = 0; // blank-order rows are skipped silently during read (not tracked per spec)
 

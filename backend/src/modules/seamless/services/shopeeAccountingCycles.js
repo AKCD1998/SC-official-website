@@ -1,106 +1,240 @@
 const { badRequest } = require('../errors');
 
-// Verified Shopee accounting-cycle profiles, keyed by the cycle's start month (YYYY-MM).
-// Each profile is a self-contained description of how a DR.Morepen accounting workbook must
-// be built for that cycle: the include window, the completed-time weekly allocation, sheet
-// names/order, exact fills, geometry, and the verbatim cell comments. The renderer in
-// shopeeWorkbookTransform.js consumes a profile and produces the workbook; it does not invent
-// cycle-specific dates, names, colors, or totals.
-//
-// Only cycles that have been hand-verified against a real export belong here. An unconfigured
-// period must fail closed (see resolveCycleProfile) rather than silently reusing another
-// cycle's rules — the same fail-closed principle the spec applies everywhere.
-//
-// Expected row counts and net-revenue totals are deliberately NOT defined here. They are
-// regression oracles for tests/verification only; the production renderer computes everything
-// from the data and must never hardcode an expected total into the output.
+const DAY_MS = 24 * 60 * 60 * 1000;
+const DAYS_PER_WEEK = 7;
+const WEEKS_PER_CYCLE = 4;
+const DAYS_PER_CYCLE = DAYS_PER_WEEK * WEEKS_PER_CYCLE;
 
-const MONTH_PROFILES = {
-  '2026-06': {
-    cycleKey: '2026-06',
-    cycleLabel: '2026-06',
-    // Include window is [periodStart 00:00:00, periodEnd 23:59:59] by order date.
-    // June 2026 uses complete Mon-Sun weeks; June 29-30 are carried to the July cycle.
-    periodStart: '2026-06-01',
-    periodEnd: '2026-06-28',
-    cancelledStatus: 'ยกเลิกแล้ว',
-    masterSheetName: '06',
-    // Weeks are allocated by completed time (raw column BF). Each week is its own sheet and
-    // also drives the master-sheet row grouping + per-week master row fill (A:M, full row).
-    weeks: [
-      { name: '01-07.06', start: '2026-06-01', end: '2026-06-07', masterRowFill: 'FFDAF2D0' },
-      { name: '08-14.06', start: '2026-06-08', end: '2026-06-14', masterRowFill: 'FFF2CEEF' },
-      { name: '15-21.06', start: '2026-06-15', end: '2026-06-21', masterRowFill: 'FFCAEDFB' },
-      { name: '22-28.06', start: '2026-06-22', end: '2026-06-28', masterRowFill: 'FFC1F0C8' },
-    ],
-    weeklyHeaderFill: 'FFC0E6F5',
-    // Weekly sheets color only the completed-time cell (column M). Distinct completed dates
-    // found in a sheet, ordered oldest-first, cycle through this palette; the same date always
-    // gets the same color. This is a configured fill, not Excel conditional formatting.
-    weeklyDateFills: [
-      'FFDAF2D0',
-      'FFF2CEEF',
-      'FFCAEDFB',
-      'FF83E28E',
-      'FFE49EDD',
-      'FFF4B183',
-      'FFFFD966',
-    ],
-    comments: {
-      // Verbatim from the full specification §13. Kept as single strings; the renderer wraps
-      // them into the cell note as-is.
-      masterL1:
-        'รายได้สุทธิ = ราคาขายสุทธิ - ส่วนลดที่ผู้ขายชำระ - ค่าคอมมิชชั่น - Transaction Fee; raw file ไม่มีค่าคอมมิชชั่น ASM',
-      weeklyL2: 'สูตร =H-I-J-K; raw file ไม่มีค่าคอมมิชชั่น ASM',
+// Accounting approved 2026-08-25: reports are continuous four-week blocks anchored to the
+// verified June workbook. A source filename may start before a boundary so an order-date export
+// can include pending orders from an earlier period. Its end date selects the latest accounting
+// cycle that the source range covers completely.
+const CYCLE_ANCHOR_START = '2026-06-01';
+
+const MASTER_ROW_FILLS = [
+  'FFDAF2D0',
+  'FFF2CEEF',
+  'FFCAEDFB',
+  'FFC1F0C8',
+];
+
+const WEEKLY_DATE_FILLS = [
+  'FFDAF2D0',
+  'FFF2CEEF',
+  'FFCAEDFB',
+  'FF83E28E',
+  'FFE49EDD',
+  'FFF4B183',
+  'FFFFD966',
+];
+
+const SHARED_PROFILE = {
+  cancelledStatus: 'ยกเลิกแล้ว',
+  weeklyHeaderFill: 'FFC0E6F5',
+  weeklyDateFills: WEEKLY_DATE_FILLS,
+  comments: {
+    masterL1:
+      'รายได้สุทธิ = ราคาขายสุทธิ - ส่วนลดที่ผู้ขายชำระ - ค่าคอมมิชชั่น - Transaction Fee; raw file ไม่มีค่าคอมมิชชั่น ASM',
+    weeklyL2: 'สูตร =H-I-J-K; raw file ไม่มีค่าคอมมิชชั่น ASM',
+  },
+  geometry: {
+    master: {
+      // B and M both render typed Excel datetimes with the same yyyy-mm-dd hh:mm format.
+      // Keep B as wide as M; the narrower June-reference width only worked while B was text
+      // and renders typed dates as ######## in desktop Excel/PDF output.
+      widths: [16.9, 17.2, 47.1, 16.8, 8.1, 8.1, 10.7, 9.9, 10.5, 8.1, 8.1, 8.1, 17.2],
+      rowHeights: { header: 48.6, data: 33.6 },
+      zoom: 90,
+      print: { orientation: 'portrait', paperSize: 9, scale: 100 },
     },
-    geometry: {
-      master: {
-        // Column widths A:M, exact from spec §11.
-        widths: [16.9, 14.6, 47.1, 16.8, 8.1, 8.1, 10.7, 9.9, 10.5, 8.1, 8.1, 8.1, 17.2],
-        rowHeights: { header: 48.6, data: 33.6 },
-        zoom: 90,
-        print: { orientation: 'portrait', paperSize: 9, scale: 100 },
-      },
-      weekly: {
-        // Column widths A:M, exact from spec §12.
-        widths: [13.7, 11.8, 41.6, 16.8, 8.1, 8.1, 11.6, 8.1, 11.8, 8.1, 8.1, 10.1, 15.3],
-        rowHeights: { period: 19.8, header: 45.6, data: 39.0 },
-        zoom: 100,
-        print: { orientation: 'landscape', paperSize: 9, fitToWidth: 1, fitToHeight: 0 },
-      },
+    weekly: {
+      widths: [13.7, 15.3, 41.6, 16.8, 8.1, 8.1, 11.6, 8.1, 11.8, 8.1, 8.1, 10.1, 15.3],
+      rowHeights: { period: 19.8, header: 45.6, data: 39.0 },
+      zoom: 100,
+      print: { orientation: 'landscape', paperSize: 9, fitToWidth: 1, fitToHeight: 0 },
     },
   },
 };
 
-// Derive the YYYY-MM lookup key from an ISO date string (YYYY-MM-DD). Returns '' if the input
-// is not a parseable ISO date.
+function parseIsoDay(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim());
+  if (!match) return null;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const timestamp = Date.UTC(year, month - 1, day);
+  const parsed = new Date(timestamp);
+
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  return timestamp;
+}
+
+function formatIsoDay(timestamp) {
+  return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function addDays(isoDate, days) {
+  const timestamp = parseIsoDay(isoDate);
+  return timestamp === null ? '' : formatIsoDay(timestamp + Number(days) * DAY_MS);
+}
+
+function cycleOffsetDays(isoDate) {
+  const timestamp = parseIsoDay(isoDate);
+  const anchor = parseIsoDay(CYCLE_ANCHOR_START);
+  return timestamp === null ? null : Math.round((timestamp - anchor) / DAY_MS);
+}
+
+function isApprovedCycleStart(isoDate) {
+  const offset = cycleOffsetDays(isoDate);
+  return offset !== null && offset % DAYS_PER_CYCLE === 0;
+}
+
+function latestCoveredCycleStart(periodEnd) {
+  const endTimestamp = parseIsoDay(periodEnd);
+  const anchorTimestamp = parseIsoDay(CYCLE_ANCHOR_START);
+  if (endTimestamp === null) return '';
+
+  // A cycle is selectable only after its final day is covered by the source range. This lets
+  // an Order.all export start before the accounting cycle (order-date lookback) while still
+  // choosing one deterministic cycle from the filename's end date.
+  const daysFromAnchor = Math.floor((endTimestamp - anchorTimestamp) / DAY_MS);
+  const cycleIndex = Math.floor((daysFromAnchor - (DAYS_PER_CYCLE - 1)) / DAYS_PER_CYCLE);
+  return addDays(CYCLE_ANCHOR_START, cycleIndex * DAYS_PER_CYCLE);
+}
+
+function weekName(start, end) {
+  const [, startMonth, startDay] = start.split('-');
+  const [, endMonth, endDay] = end.split('-');
+
+  return startMonth === endMonth
+    ? `${startDay}-${endDay}.${endMonth}`
+    : `${startDay}.${startMonth}-${endDay}.${endMonth}`;
+}
+
+function buildCycleProfile(periodStart) {
+  if (!isApprovedCycleStart(periodStart)) {
+    throw badRequest(
+      `Shopee accounting period must start on an approved 28-day boundary anchored at ${CYCLE_ANCHOR_START}; received ${periodStart || '(unknown)'}.`,
+      {
+        anchorPeriodStart: CYCLE_ANCHOR_START,
+        requestedPeriodStart: periodStart || null,
+      },
+    );
+  }
+
+  const periodEnd = addDays(periodStart, DAYS_PER_CYCLE - 1);
+  const weeks = Array.from({ length: WEEKS_PER_CYCLE }, (_, index) => {
+    const start = addDays(periodStart, index * DAYS_PER_WEEK);
+    const end = addDays(start, DAYS_PER_WEEK - 1);
+    return {
+      name: weekName(start, end),
+      start,
+      end,
+      masterRowFill: MASTER_ROW_FILLS[index],
+    };
+  });
+
+  return {
+    cycleKey: `${periodStart}_to_${periodEnd}`,
+    cycleLabel: `${periodStart}..${periodEnd}`,
+    periodStart,
+    periodEnd,
+    masterSheetName: periodEnd.slice(5, 7),
+    weeks,
+    ...SHARED_PROFILE,
+  };
+}
+
+// Backwards-compatible export for the original June verification tests and any read-only
+// diagnostics that still inspect the known reference profile directly.
+const MONTH_PROFILES = {
+  '2026-06': buildCycleProfile(CYCLE_ANCHOR_START),
+};
+
 function monthKeyFromIsoDate(isoDate) {
   const match = /^(\d{4})-(\d{2})-\d{2}$/.exec(String(isoDate || '').trim());
   return match ? `${match[1]}-${match[2]}` : '';
 }
 
-// Resolve the accounting-cycle profile for a Shopee export. The cycle is identified by the
-// upload filename's period start month (the export filename is the authoritative cycle marker
-// because a valid report range can include boundary days with no orders). Throws a 400 if no
-// verified profile exists for that month — never returns null and never falls back to another
-// cycle's rules.
-function resolveCycleProfile({ filenamePeriodStart } = {}) {
-  const monthKey = monthKeyFromIsoDate(filenamePeriodStart);
-  const profile = monthKey ? MONTH_PROFILES[monthKey] : null;
+function resolveCycleProfile({ filenamePeriodStart, filenamePeriodEnd } = {}) {
+  const sourceStart = String(filenamePeriodStart || '').trim();
+  const sourceEnd = String(filenamePeriodEnd || '').trim();
+  const periodStart = latestCoveredCycleStart(sourceEnd);
 
-  if (!profile) {
+  if (parseIsoDay(sourceStart) === null || !periodStart) {
+    throw badRequest('Shopee source filename must contain a valid start and end date range.', {
+      filenamePeriodStart: sourceStart || null,
+      filenamePeriodEnd: sourceEnd || null,
+    });
+  }
+
+  const profile = buildCycleProfile(periodStart);
+  if (sourceStart > profile.periodStart || sourceEnd < profile.periodEnd) {
     throw badRequest(
-      `No verified Shopee accounting-cycle configuration for period ${monthKey || '(unknown)'}. ` +
-        'Only cycles with an approved, hand-verified profile can be processed.',
-      { requestedMonthKey: monthKey || null },
+      `Shopee source filename range ${sourceStart}..${sourceEnd} must cover the complete four-week accounting cycle ${profile.periodStart}..${profile.periodEnd}.`,
+      {
+        accountingPeriodStart: profile.periodStart,
+        accountingPeriodEnd: profile.periodEnd,
+        filenamePeriodStart: sourceStart,
+        filenamePeriodEnd: sourceEnd,
+      },
     );
   }
 
   return { profile };
 }
 
+function toPublicCycle(profile) {
+  const completionWindowFromIct = `${profile.periodStart}T00:00:00+07:00`;
+  const completionWindowToIct = `${profile.periodEnd}T23:59:59+07:00`;
+  const fallbackOrderDateStart = addDays(profile.periodStart, -DAYS_PER_CYCLE);
+
+  return {
+    cycleKey: profile.cycleKey,
+    periodStart: profile.periodStart,
+    periodEnd: profile.periodEnd,
+    masterSheetName: profile.masterSheetName,
+    weeks: profile.weeks.map(({ name, start, end }) => ({ name, start, end })),
+    // Kept for backwards-compatible consumers. These are the accounting completion boundaries,
+    // not a safe order-created-date export range.
+    downloadFromIct: completionWindowFromIct,
+    downloadToIct: completionWindowToIct,
+    completionWindowFromIct,
+    completionWindowToIct,
+    downloadGuidance: {
+      preferredFilterField: 'order_completed_at',
+      preferredFromIct: completionWindowFromIct,
+      preferredToIct: completionWindowToIct,
+      orderDateFallback: {
+        filterField: 'order_created_at',
+        minimumLookbackDays: DAYS_PER_CYCLE,
+        fromIct: `${fallbackOrderDateStart}T00:00:00+07:00`,
+        toIct: completionWindowToIct,
+        guaranteedComplete: false,
+      },
+    },
+  };
+}
+
 module.exports = {
+  CYCLE_ANCHOR_START,
+  DAYS_PER_CYCLE,
   MONTH_PROFILES,
+  WEEKS_PER_CYCLE,
+  addDays,
+  buildCycleProfile,
+  isApprovedCycleStart,
+  latestCoveredCycleStart,
   monthKeyFromIsoDate,
   resolveCycleProfile,
+  toPublicCycle,
+  weekName,
 };
