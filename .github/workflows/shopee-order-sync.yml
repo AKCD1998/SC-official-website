@@ -1,0 +1,43 @@
+name: Sync Shopee order timeline
+
+on:
+  schedule:
+    # GitHub cron is UTC. Run every 15 minutes around the clock so orders arriving outside
+    # Bangkok business hours are still persisted without staff opening the admin page.
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shopee-order-timeline-production-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Persist new Shopee order events
+        working-directory: backend
+        env:
+          NODE_ENV: production
+          SC_OFFICIAL_SUPABASE_DATABASE_URL: ${{ secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL }}
+          SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE }}
+          SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID }}
+          SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET }}
+          SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN }}
+        run: npm run seamless:shopee:sync

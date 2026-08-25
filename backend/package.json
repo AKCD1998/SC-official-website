@@ -11,7 +11,8 @@
     "digitalpjk:seed": "node ./src/modules/digitalpjk/db/seed.js",
     "digitalpjk:setup": "node ./src/modules/digitalpjk/db/setup.js",
     "seamless:migrate": "node ./src/modules/seamless/db/migrate.js",
-    "seamless:migrate:verify": "node ./scripts/verify-seamless-migrations.cjs"
+    "seamless:migrate:verify": "node ./scripts/verify-seamless-migrations.cjs",
+    "seamless:shopee:sync": "node ./scripts/shopee-order-sync.cjs"
   },
   "repository": {
     "type": "git",

@@ -7,12 +7,14 @@ on:
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/shopee-order-sync.yml"
   pull_request:
     branches:
       - main
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci.yml"
+      - ".github/workflows/shopee-order-sync.yml"
   workflow_dispatch:
 
 permissions:
