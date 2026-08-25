@@ -27,6 +27,7 @@ const {
   writeStoredFile,
 } = require("./fileStorageService");
 const { buildOutputFilename } = require("./workbookRules");
+const { requireShopeeShopCode } = require("./shopeeShops");
 const {
   copyWorksheet,
   transformWorkbook,
@@ -77,12 +78,13 @@ function nowKeyParts(date = new Date()) {
   };
 }
 
-function buildPreviewFilename(formatterMode, batchFileCount) {
+function buildPreviewFilename(formatterMode, batchFileCount, shopCode = "") {
   const { dateKey, timeKey } = nowKeyParts();
   const batchMode = Number(batchFileCount) > 1 ? "multi" : "single";
+  const shopSegment = shopCode ? `-${shopCode}` : "";
 
   return {
-    filename: `Preview-${formatterMode}-${batchMode}-${dateKey}-${timeKey}.xlsx`,
+    filename: `Preview-${formatterMode}${shopSegment}-${batchMode}-${dateKey}-${timeKey}.xlsx`,
     batchMode,
   };
 }
@@ -148,6 +150,7 @@ async function createOrUpdatePreview({
   uploadId,
   processingRecordId,
   formatterMode,
+  shopCode,
   batchFileCount,
   outputFilename,
   sourceWorksheet,
@@ -163,13 +166,20 @@ async function createOrUpdatePreview({
     if (previewFile.fileKind !== "preview_workbook") {
       throw badRequest("previewWorkbookId must point to a preview workbook generated file.");
     }
+    if (shopCode && previewFile.metadata?.shopCode && previewFile.metadata.shopCode !== shopCode) {
+      throw badRequest("A Shopee preview workbook cannot combine files from different shops.", {
+        code: "SHOPEE_PREVIEW_SHOP_MISMATCH",
+        expectedShopCode: previewFile.metadata.shopCode,
+        receivedShopCode: shopCode,
+      });
+    }
 
     previewWorkbook = await loadPreviewWorkbook(previewFile);
     const previewSheets = await listPreviewSheets(previewFile.id, client);
     sheetOrder = previewSheets.length + 1;
     previewFilename = previewFile.filename;
   } else {
-    const previewName = buildPreviewFilename(formatterMode, batchFileCount);
+    const previewName = buildPreviewFilename(formatterMode, batchFileCount, shopCode);
     previewFilename = previewName.filename;
     previewWorkbook = new ExcelJS.Workbook();
     previewWorkbook.creator = "Seamless X PERN";
@@ -211,6 +221,7 @@ async function createOrUpdatePreview({
         checksumSha256: storedPreview.checksumSha256,
         metadata: {
           formatterMode,
+          shopCode: shopCode || undefined,
           batchFileCount,
           storageBucket: storedPreview.storageBucket,
         },
@@ -240,6 +251,7 @@ async function createOrUpdatePreview({
 async function processSingleWorkbook({
   file,
   formatterMode,
+  shopCode,
   previewWorkbookId,
   batchId,
   batchFileCount,
@@ -247,6 +259,7 @@ async function processSingleWorkbook({
   validateUploadFile(file);
 
   const requestedVariant = parseFormatterMode(formatterMode, { allowEmpty: false });
+  const resolvedShopCode = requestedVariant === "shopee" ? requireShopeeShopCode(shopCode) : "";
   const originalFilename = file.originalname;
   const sourceChecksumSha256 = sha256(file.buffer);
   const client = await pool.connect();
@@ -255,7 +268,11 @@ async function processSingleWorkbook({
   try {
     await client.query("BEGIN");
 
-    const duplicateSourceUpload = await findSourceUploadByChecksum(sourceChecksumSha256, client);
+    const duplicateSourceUpload = await findSourceUploadByChecksum(
+      sourceChecksumSha256,
+      { requestedVariant, shopCode: resolvedShopCode },
+      client,
+    );
     if (duplicateSourceUpload) {
       throw conflict("This workbook was already uploaded previously.", {
         code: "DUPLICATE_UPLOAD",
@@ -285,7 +302,7 @@ async function processSingleWorkbook({
       transformResult.worksheet,
       originalFilename,
       transformResult.effectiveVariant,
-      transformResult.metadata || {},
+      { ...(transformResult.metadata || {}), shopCode: resolvedShopCode },
     );
     const outputFilename = filenameResult.filename;
     const warnings = [...transformResult.warnings, ...filenameResult.warnings];
@@ -298,7 +315,7 @@ async function processSingleWorkbook({
     );
 
     if (!activeBatchId) {
-      const previewName = buildPreviewFilename(requestedVariant, batchFileCount);
+      const previewName = buildPreviewFilename(requestedVariant, batchFileCount, resolvedShopCode);
       const batch = await createBatch(
         {
           formatterMode: requestedVariant,
@@ -336,6 +353,7 @@ async function processSingleWorkbook({
         checksumSha256: sourceChecksumSha256,
         metadata: {
           importedFrom: "user_upload",
+          shopCode: resolvedShopCode || undefined,
           storageBucket: sourceStoredFile.storageBucket,
         },
       },
@@ -355,6 +373,7 @@ async function processSingleWorkbook({
         checksumSha256: processedStoredFile.checksumSha256,
         metadata: {
           originalFilename,
+          shopCode: resolvedShopCode || undefined,
           requestedVariant,
           detectedVariant: transformResult.detectedVariant,
           effectiveVariant: transformResult.effectiveVariant,
@@ -383,6 +402,7 @@ async function processSingleWorkbook({
       uploadId: upload.id,
       processingRecordId: null,
       formatterMode: requestedVariant,
+      shopCode: resolvedShopCode,
       batchFileCount,
       outputFilename,
       sourceWorksheet: transformResult.worksheet,
@@ -406,6 +426,7 @@ async function processSingleWorkbook({
           previewFileId: previewResult.previewFile.id,
           outputFileId: processedFile.id,
           outputFilename,
+          shopCode: resolvedShopCode || undefined,
           outputDownloadUrl: processedFile.downloadUrl,
           detectedVariant: transformResult.detectedVariant,
           effectiveVariant: transformResult.effectiveVariant,
@@ -432,6 +453,7 @@ async function processSingleWorkbook({
         highlightCount: transformResult.highlightCount,
         transformSummary: {
           outputFilename,
+          shopCode: resolvedShopCode || undefined,
           previewSheetName: previewResult.previewSheetName,
           branchCode: filenameResult.branchCode || "",
           parsedDate: filenameResult.parsedDate || "",
@@ -449,6 +471,7 @@ async function processSingleWorkbook({
         sheetOrder: previewResult.sheetOrder,
         metadata: {
           outputFilename,
+          shopCode: resolvedShopCode || undefined,
         },
       },
       client,
@@ -464,6 +487,7 @@ async function processSingleWorkbook({
         generatedFileId: processedFile.id,
         metadata: {
           outputFilename,
+          shopCode: resolvedShopCode || undefined,
           previewFileId: previewResult.previewFile.id,
           warnings,
         },
@@ -479,6 +503,7 @@ async function processSingleWorkbook({
       filename: outputFilename,
       variant: transformResult.effectiveVariant,
       requestedVariant,
+      shopCode: resolvedShopCode || null,
       detectedVariant: transformResult.detectedVariant,
       warnings,
       deletedColumns: transformResult.deletedColumns,
@@ -501,7 +526,7 @@ async function processSingleWorkbook({
   }
 }
 
-async function processWorkbooks({ files, formatterMode, previewWorkbookId, batchId, batchFileCount }) {
+async function processWorkbooks({ files, formatterMode, shopCode, previewWorkbookId, batchId, batchFileCount }) {
   const uploadFiles = Array.isArray(files) ? files : [];
 
   if (!uploadFiles.length) {
@@ -522,6 +547,7 @@ async function processWorkbooks({ files, formatterMode, previewWorkbookId, batch
       const result = await processSingleWorkbook({
         file,
         formatterMode,
+        shopCode,
         previewWorkbookId: activePreviewWorkbookId,
         batchId: activeBatchId,
         batchFileCount: Number(batchFileCount) || uploadFiles.length,

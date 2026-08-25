@@ -126,9 +126,11 @@ async function findLatestPrintableFileByProcessingRecordId(processingRecordId, c
   return mapGeneratedFile(result.rows[0]);
 }
 
-async function findSourceUploadByChecksum(checksumSha256, client = null) {
+async function findSourceUploadByChecksum(checksumSha256, options = {}, client = null) {
   const db = executor(client);
   const tables = getTables();
+  const requestedVariant = String(options.requestedVariant || "").trim();
+  const shopCode = String(options.shopCode || "").trim();
   const result = await db.query(
     `
       SELECT
@@ -145,10 +147,20 @@ async function findSourceUploadByChecksum(checksumSha256, client = null) {
       LEFT JOIN ${tables.processingRecords} pr ON pr.id = gf.processing_record_id
       WHERE gf.file_kind = 'source_upload'
         AND gf.checksum_sha256 = $1
+        AND (
+          $2::text <> 'shopee'
+          OR (
+            wu.requested_variant = 'shopee'
+            AND COALESCE(
+              NULLIF(gf.metadata ->> 'shopCode', ''),
+              'dr-morepen'
+            ) = $3::text
+          )
+        )
       ORDER BY gf.created_at DESC
       LIMIT 1
     `,
-    [checksumSha256],
+    [checksumSha256, requestedVariant, shopCode || null],
   );
 
   if (!result.rows.length) {

@@ -813,7 +813,10 @@ test('11. a filename aligned to the next 28-day boundary creates the July cycle 
   assert.equal(result.metadata.finalRows, 7);
   assert.equal(result.metadata.carryoverExcluded, 2);
 
-  const filename = buildOutputFilename(result.worksheet, originalFilename, 'shopee', result.metadata);
+  const filename = buildOutputFilename(result.worksheet, originalFilename, 'shopee', {
+    ...result.metadata,
+    shopCode: 'dr-morepen',
+  });
   assert.equal(filename.filename, '2026-06-29_to_2026-07-26-dr-morepen-accounting.xlsx');
 });
 
@@ -901,17 +904,27 @@ test('12. shopee stays manual-print, variant identity preserved, Seamless format
 // Filename: cycle-driven production naming, period-driven, no hardcoded month literal
 // ---------------------------------------------------------------------------
 
-test('filename is cycle-driven dr-morepen-accounting and uses period end as history date', async () => {
+test('filename is cycle- and shop-driven and uses period end as history date', async () => {
   const { buffer, originalFilename } = await createJuneBuffer();
   const result = await transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename });
-  const filename = buildOutputFilename(result.worksheet, originalFilename, 'shopee', result.metadata);
+  const drMorepenFilename = buildOutputFilename(result.worksheet, originalFilename, 'shopee', {
+    ...result.metadata,
+    shopCode: 'dr-morepen',
+  });
+  const scDrugStoreFilename = buildOutputFilename(result.worksheet, originalFilename, 'shopee', {
+    ...result.metadata,
+    shopCode: 'sc-drug-store',
+  });
 
-  assert.equal(filename.filename, '2026-06-01_to_2026-06-28-dr-morepen-accounting.xlsx');
-  assert.equal(filename.parsedDate, '2026-06-28');
-  assert.equal(filename.periodStart, '2026-06-01');
-  assert.equal(filename.periodEnd, '2026-06-28');
+  assert.equal(drMorepenFilename.filename, '2026-06-01_to_2026-06-28-dr-morepen-accounting.xlsx');
+  assert.equal(drMorepenFilename.shopCode, 'dr-morepen');
+  assert.equal(scDrugStoreFilename.filename, '2026-06-01_to_2026-06-28-sc-drug-store-accounting.xlsx');
+  assert.equal(scDrugStoreFilename.shopCode, 'sc-drug-store');
+  assert.equal(scDrugStoreFilename.parsedDate, '2026-06-28');
+  assert.equal(scDrugStoreFilename.periodStart, '2026-06-01');
+  assert.equal(scDrugStoreFilename.periodEnd, '2026-06-28');
   // No hardcoded Thai month literal in the production filename.
-  assert.ok(!filename.filename.includes('มิถุนายน'));
+  assert.ok(!scDrugStoreFilename.filename.includes('มิถุนายน'));
 });
 
 // ---------------------------------------------------------------------------

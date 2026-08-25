@@ -1,3 +1,5 @@
+const { getShopeeShopProfile } = require('./shopeeShops');
+
 const BRANCH_CODE_MAP = {
   D1180: '001',
   D6239: '003',
@@ -415,8 +417,9 @@ function buildOutputFilename(worksheet, originalFilename, variant, options = {})
   if (variant === 'shopee') {
     const metadata = getShopeeFilenameMetadata(originalFilename, options);
     const warnings = [];
+    const shopProfile = getShopeeShopProfile(options.shopCode);
 
-    // For the DR.Morepen accounting output, the resolved accounting-cycle period carried in
+    // For Shopee accounting outputs, the resolved accounting-cycle period carried in
     // metadata (periodStart/periodEnd) is authoritative — it reflects the actual weekly cycle
     // window (e.g. 2026-06-01..2026-06-28), not the raw export filename's calendar-month span
     // (which can include carryover days like June 29-30 that belong to the next cycle). The
@@ -446,9 +449,12 @@ function buildOutputFilename(worksheet, originalFilename, variant, options = {})
     }
 
     if (metadata.periodStart && metadata.periodEnd) {
+      if (!shopProfile) {
+        warnings.push('Shopee shop was not specified. Used a generic output filename.');
+      }
       return {
         variant,
-        filename: `${metadata.periodStart}_to_${metadata.periodEnd}-dr-morepen-accounting.xlsx`,
+        filename: `${metadata.periodStart}_to_${metadata.periodEnd}-${shopProfile?.outputSlug || 'shopee'}-accounting.xlsx`,
         warnings,
         parsedDate: metadata.periodEnd,
         periodStart: metadata.periodStart,
@@ -458,6 +464,8 @@ function buildOutputFilename(worksheet, originalFilename, variant, options = {})
         rawBranchSource: '',
         dateSourceLabel: metadata.sourceLabel,
         branchSourceLabel: '',
+        shopCode: shopProfile?.code || '',
+        shopName: shopProfile?.displayName || '',
       };
     }
 
