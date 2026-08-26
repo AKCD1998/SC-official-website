@@ -28,17 +28,16 @@ const syncShopeeOrderPageMock = jest.fn(async () => ({
   storedEvents: 1,
 }));
 const getShopeeAccountingCycleStatusMock = jest.fn(async () => ({
-  basis: "continuous_four_week_cycle",
+  basis: "latest_completed_cycle_with_operational_baseline",
   hasHistory: true,
-  lastCompletedCycle: { periodStart: "2026-06-29", periodEnd: "2026-07-26" },
+  lastCompletedCycle: { periodStart: "2026-07-27", periodEnd: "2026-08-23" },
   nextCycle: {
-    periodStart: "2026-07-27",
-    periodEnd: "2026-08-23",
+    periodStart: "2026-08-24",
+    periodEnd: "2026-09-13",
     weeks: [
-      { name: "27.07-02.08", start: "2026-07-27", end: "2026-08-02" },
-      { name: "03-09.08", start: "2026-08-03", end: "2026-08-09" },
-      { name: "10-16.08", start: "2026-08-10", end: "2026-08-16" },
-      { name: "17-23.08", start: "2026-08-17", end: "2026-08-23" },
+      { name: "24-30.08", start: "2026-08-24", end: "2026-08-30" },
+      { name: "31.08-06.09", start: "2026-08-31", end: "2026-09-06" },
+      { name: "07-13.09", start: "2026-09-07", end: "2026-09-13" },
     ],
   },
   timezone: "Asia/Bangkok",
@@ -88,14 +87,14 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
   expect(listOrdersMock).toHaveBeenCalledWith({ cursor: null, limit: 10, status: "shipment_due" });
 });
 
-test("returns the latest completed and next four-week accounting cycles", async () => {
+test("returns the latest completed cycle and configured next accounting cycle", async () => {
   const response = await request(buildApp()).get("/api/app/shopee/accounting-cycle");
 
   expect(response.status).toBe(200);
-  expect(response.body.lastCompletedCycle.periodEnd).toBe("2026-07-26");
-  expect(response.body.nextCycle.periodStart).toBe("2026-07-27");
-  expect(response.body.nextCycle.periodEnd).toBe("2026-08-23");
-  expect(response.body.nextCycle.weeks).toHaveLength(4);
+  expect(response.body.lastCompletedCycle.periodEnd).toBe("2026-08-23");
+  expect(response.body.nextCycle.periodStart).toBe("2026-08-24");
+  expect(response.body.nextCycle.periodEnd).toBe("2026-09-13");
+  expect(response.body.nextCycle.weeks).toHaveLength(3);
   expect(getShopeeAccountingCycleStatusMock).toHaveBeenCalledTimes(1);
 });
 

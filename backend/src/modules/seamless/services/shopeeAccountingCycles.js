@@ -5,10 +5,16 @@ const DAYS_PER_WEEK = 7;
 const WEEKS_PER_CYCLE = 4;
 const DAYS_PER_CYCLE = DAYS_PER_WEEK * WEEKS_PER_CYCLE;
 
-// Accounting decision 2026-08-25: reports are continuous four-week blocks anchored to the
-// verified June workbook, and both membership and weekly allocation use Shopee's order-created
-// timestamp. The filename end selects the latest cycle that the source order-date range covers.
+// Historical reports through 2026-08-23 use four-week blocks anchored to the verified June
+// workbook. Accounting reset the active cycle to a three-week period on 2026-08-24 so that it
+// closes on 2026-09-13; standard four-week periods resume from 2026-09-14. Both membership and
+// weekly allocation use Shopee's order-created timestamp.
 const CYCLE_ANCHOR_START = '2026-06-01';
+const OPERATIONAL_CYCLE_START = '2026-08-24';
+const NEXT_STANDARD_CYCLE_START = '2026-09-14';
+const CYCLE_WEEK_OVERRIDES = Object.freeze({
+  [OPERATIONAL_CYCLE_START]: 3,
+});
 
 const MASTER_ROW_FILLS = [
   'FFDAF2D0',
@@ -85,26 +91,42 @@ function addDays(isoDate, days) {
   return timestamp === null ? '' : formatIsoDay(timestamp + Number(days) * DAY_MS);
 }
 
-function cycleOffsetDays(isoDate) {
+function cycleOffsetDays(isoDate, anchorStart = CYCLE_ANCHOR_START) {
   const timestamp = parseIsoDay(isoDate);
-  const anchor = parseIsoDay(CYCLE_ANCHOR_START);
+  const anchor = parseIsoDay(anchorStart);
   return timestamp === null ? null : Math.round((timestamp - anchor) / DAY_MS);
 }
 
 function isApprovedCycleStart(isoDate) {
-  const offset = cycleOffsetDays(isoDate);
+  const normalized = String(isoDate || '').trim();
+  const anchor = normalized >= NEXT_STANDARD_CYCLE_START
+    ? NEXT_STANDARD_CYCLE_START
+    : CYCLE_ANCHOR_START;
+  const offset = cycleOffsetDays(normalized, anchor);
   return offset !== null && offset % DAYS_PER_CYCLE === 0;
 }
 
 function latestCoveredCycleStart(periodEnd) {
   const endTimestamp = parseIsoDay(periodEnd);
-  const anchorTimestamp = parseIsoDay(CYCLE_ANCHOR_START);
   if (endTimestamp === null) return '';
 
-  // A cycle is selectable only after its final day is covered by the source order-date range.
+  const operationalEnd = addDays(
+    OPERATIONAL_CYCLE_START,
+    CYCLE_WEEK_OVERRIDES[OPERATIONAL_CYCLE_START] * DAYS_PER_WEEK - 1,
+  );
+  const nextStandardEnd = addDays(NEXT_STANDARD_CYCLE_START, DAYS_PER_CYCLE - 1);
+
+  if (periodEnd >= operationalEnd && periodEnd < nextStandardEnd) {
+    return OPERATIONAL_CYCLE_START;
+  }
+
+  const sequenceAnchor = periodEnd >= nextStandardEnd
+    ? NEXT_STANDARD_CYCLE_START
+    : CYCLE_ANCHOR_START;
+  const anchorTimestamp = parseIsoDay(sequenceAnchor);
   const daysFromAnchor = Math.floor((endTimestamp - anchorTimestamp) / DAY_MS);
   const cycleIndex = Math.floor((daysFromAnchor - (DAYS_PER_CYCLE - 1)) / DAYS_PER_CYCLE);
-  return addDays(CYCLE_ANCHOR_START, cycleIndex * DAYS_PER_CYCLE);
+  return addDays(sequenceAnchor, cycleIndex * DAYS_PER_CYCLE);
 }
 
 function weekName(start, end) {
@@ -119,16 +141,18 @@ function weekName(start, end) {
 function buildCycleProfile(periodStart) {
   if (!isApprovedCycleStart(periodStart)) {
     throw badRequest(
-      `Shopee accounting period must start on an approved 28-day boundary anchored at ${CYCLE_ANCHOR_START}; received ${periodStart || '(unknown)'}.`,
+      `Shopee accounting period must start on an approved accounting-cycle boundary; received ${periodStart || '(unknown)'}.`,
       {
         anchorPeriodStart: CYCLE_ANCHOR_START,
+        operationalPeriodStart: OPERATIONAL_CYCLE_START,
         requestedPeriodStart: periodStart || null,
       },
     );
   }
 
-  const periodEnd = addDays(periodStart, DAYS_PER_CYCLE - 1);
-  const weeks = Array.from({ length: WEEKS_PER_CYCLE }, (_, index) => {
+  const weekCount = CYCLE_WEEK_OVERRIDES[periodStart] || WEEKS_PER_CYCLE;
+  const periodEnd = addDays(periodStart, weekCount * DAYS_PER_WEEK - 1);
+  const weeks = Array.from({ length: weekCount }, (_, index) => {
     const start = addDays(periodStart, index * DAYS_PER_WEEK);
     const end = addDays(start, DAYS_PER_WEEK - 1);
     return {
@@ -148,6 +172,10 @@ function buildCycleProfile(periodStart) {
     weeks,
     ...SHARED_PROFILE,
   };
+}
+
+function nextCycleStart(periodStart) {
+  return addDays(buildCycleProfile(periodStart).periodEnd, 1);
 }
 
 // Backwards-compatible export for the original June verification tests and any read-only
@@ -176,7 +204,7 @@ function resolveCycleProfile({ filenamePeriodStart, filenamePeriodEnd } = {}) {
   const profile = buildCycleProfile(periodStart);
   if (sourceStart > profile.periodStart || sourceEnd < profile.periodEnd) {
     throw badRequest(
-      `Shopee source filename range ${sourceStart}..${sourceEnd} must cover the complete four-week accounting cycle ${profile.periodStart}..${profile.periodEnd}.`,
+      `Shopee source filename range ${sourceStart}..${sourceEnd} must cover the complete accounting cycle ${profile.periodStart}..${profile.periodEnd}.`,
       {
         accountingPeriodStart: profile.periodStart,
         accountingPeriodEnd: profile.periodEnd,
@@ -230,12 +258,15 @@ module.exports = {
   CYCLE_ANCHOR_START,
   DAYS_PER_CYCLE,
   MONTH_PROFILES,
+  NEXT_STANDARD_CYCLE_START,
+  OPERATIONAL_CYCLE_START,
   WEEKS_PER_CYCLE,
   addDays,
   buildCycleProfile,
   isApprovedCycleStart,
   latestCoveredCycleStart,
   monthKeyFromIsoDate,
+  nextCycleStart,
   resolveCycleProfile,
   toPublicCycle,
   weekName,
