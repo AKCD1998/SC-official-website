@@ -579,6 +579,27 @@ test('7. non-cancelled rows with blank completed time remain pending without fai
   );
 });
 
+test('1b. processes the active 24 August to 13 September cycle as three weekly sheets', async () => {
+  const rows = shiftRows(juneRows(), 84);
+  const { buffer } = await createJuneBuffer({ rows });
+  const result = await transformWorkbook(buffer, {
+    requestedVariant: 'shopee',
+    originalFilename: 'Order.all.20260824_20260913.xlsx',
+  });
+
+  assert.deepEqual(
+    result.workbook.worksheets.map((sheet) => sheet.name),
+    ['09', '24-30.08', '31.08-06.09', '07-13.09'],
+  );
+  assert.equal(result.metadata.periodStart, '2026-08-24');
+  assert.equal(result.metadata.periodEnd, '2026-09-13');
+  assert.equal(result.metadata.finalRows, 6);
+  assert.deepEqual(
+    result.metadata.sheets.slice(1),
+    ['24-30.08', '31.08-06.09', '07-13.09'],
+  );
+});
+
 test('7a. a non-blank malformed completed time still fails closed', async () => {
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet('orders');
@@ -824,7 +845,7 @@ test('11b. a filename that starts after the selected rolling cycle fails closed'
   const { buffer } = await createJuneBuffer({ originalFilename: 'Order.all.20260510_20260531.xlsx' });
   await assert.rejects(
     () => transformWorkbook(buffer, { requestedVariant: 'shopee', originalFilename: 'Order.all.20260510_20260531.xlsx' }),
-    /must cover the complete four-week accounting cycle/,
+    /must cover the complete accounting cycle/,
   );
 });
 
@@ -879,7 +900,7 @@ test('11c. a filename that ends before all four weeks are covered fails closed',
       requestedVariant: 'shopee',
       originalFilename: 'Order.all.20260629_20260705.xlsx',
     }),
-    /must cover the complete four-week accounting cycle/,
+    /must cover the complete accounting cycle/,
   );
 });
 

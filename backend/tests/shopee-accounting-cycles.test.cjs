@@ -49,11 +49,24 @@ test('builds July and August as consecutive four-week cycles with cross-month na
   ]);
 });
 
+test('builds the active 24 August to 13 September cycle as three complete weeks', () => {
+  const active = buildCycleProfile('2026-08-24');
+
+  expect(active.periodEnd).toBe('2026-09-13');
+  expect(active.masterSheetName).toBe('09');
+  expect(active.weeks.map((week) => week.name)).toEqual([
+    '24-30.08',
+    '31.08-06.09',
+    '07-13.09',
+  ]);
+  expect(buildCycleProfile('2026-09-14').periodEnd).toBe('2026-10-11');
+});
+
 test('supports cycles before the anchor only when they stay on the same 28-day sequence', () => {
   expect(isApprovedCycleStart('2026-05-04')).toBe(true);
   expect(buildCycleProfile('2026-05-04').periodEnd).toBe('2026-05-31');
   expect(isApprovedCycleStart('2026-05-01')).toBe(false);
-  expect(() => buildCycleProfile('2026-05-01')).toThrow(/approved 28-day boundary/);
+  expect(() => buildCycleProfile('2026-05-01')).toThrow(/approved accounting-cycle boundary/);
 });
 
 test('public cycle exposes exact ICT download boundaries and four auditable weeks', () => {
@@ -87,17 +100,26 @@ test('public cycle exposes exact ICT download boundaries and four auditable week
 
 test('selects the latest fully covered cycle from the filename end and accepts a lookback start', () => {
   expect(latestCoveredCycleStart('2026-07-31')).toBe('2026-06-29');
+  expect(latestCoveredCycleStart('2026-09-13')).toBe('2026-08-24');
+  expect(latestCoveredCycleStart('2026-10-10')).toBe('2026-08-24');
+  expect(latestCoveredCycleStart('2026-10-11')).toBe('2026-09-14');
   expect(
     resolveCycleProfile({
       filenamePeriodStart: '2026-06-01',
       filenamePeriodEnd: '2026-07-31',
     }).profile.cycleKey,
   ).toBe('2026-06-29_to_2026-07-26');
+  expect(
+    resolveCycleProfile({
+      filenamePeriodStart: '2026-08-24',
+      filenamePeriodEnd: '2026-09-13',
+    }).profile.cycleKey,
+  ).toBe('2026-08-24_to_2026-09-13');
 });
 
 test('rejects a filename range that starts after the selected accounting cycle begins', () => {
   expect(() => resolveCycleProfile({
     filenamePeriodStart: '2026-07-01',
     filenamePeriodEnd: '2026-07-31',
-  })).toThrow(/must cover the complete four-week accounting cycle 2026-06-29\.\.2026-07-26/);
+  })).toThrow(/must cover the complete accounting cycle 2026-06-29\.\.2026-07-26/);
 });

@@ -1,8 +1,8 @@
 const processingRecords = require('../processingRecords');
 const {
-  CYCLE_ANCHOR_START,
-  addDays,
+  OPERATIONAL_CYCLE_START,
   buildCycleProfile,
+  nextCycleStart,
   toPublicCycle,
 } = require('./shopeeAccountingCycles');
 
@@ -70,56 +70,40 @@ function analyzeCycleHistory(records) {
   const observations = (Array.isArray(records) ? records : []).map(observeCycle).filter(Boolean);
   const eligibleProfiles = uniqueProfiles(
     observations.filter((item) => item.eligible).map((item) => item.profile),
-  ).filter((profile) => profile.periodStart >= CYCLE_ANCHOR_START);
+  );
   const eligibleKeys = new Set(eligibleProfiles.map((profile) => profile.cycleKey));
   const unconfirmedProfiles = uniqueProfiles(
     observations.filter((item) => !item.eligible).map((item) => item.profile),
   ).filter(
     (profile) =>
-      profile.periodStart >= CYCLE_ANCHOR_START && !eligibleKeys.has(profile.cycleKey),
+      profile.periodStart >= OPERATIONAL_CYCLE_START && !eligibleKeys.has(profile.cycleKey),
   );
 
-  const eligibleByStart = new Map(eligibleProfiles.map((profile) => [profile.periodStart, profile]));
-  const latestObserved = eligibleProfiles[eligibleProfiles.length - 1] || null;
-  const missingCycles = [];
-  const futureCompletedCycles = [];
-  let lastContinuousCycle = null;
-  let gapFound = false;
-
-  if (latestObserved) {
-    for (
-      let expectedStart = CYCLE_ANCHOR_START;
-      expectedStart <= latestObserved.periodStart;
-      expectedStart = addDays(expectedStart, 28)
-    ) {
-      const profile = eligibleByStart.get(expectedStart);
-      if (!profile) {
-        gapFound = true;
-        missingCycles.push(buildCycleProfile(expectedStart));
-      } else if (gapFound) {
-        futureCompletedCycles.push(profile);
-      } else {
-        lastContinuousCycle = profile;
-      }
-    }
-  }
-
-  const nextStart = lastContinuousCycle
-    ? addDays(lastContinuousCycle.periodEnd, 1)
-    : CYCLE_ANCHOR_START;
+  // Operational guidance follows the latest successfully processed cycle and never rewinds
+  // staff to historical gaps. Older workbooks can still be uploaded manually, but their
+  // absence does not move the displayed next cycle behind the configured operational start.
+  const lastCompletedCycle = eligibleProfiles[eligibleProfiles.length - 1] || null;
+  const candidateNextStart = lastCompletedCycle
+    ? nextCycleStart(lastCompletedCycle.periodStart)
+    : OPERATIONAL_CYCLE_START;
+  const nextStart = candidateNextStart < OPERATIONAL_CYCLE_START
+    ? OPERATIONAL_CYCLE_START
+    : candidateNextStart;
 
   return {
     eligibleProfiles,
-    lastContinuousCycle,
-    missingCycles,
-    futureCompletedCycles,
+    lastCompletedCycle,
+    // Retain these response fields for deployed-client compatibility. Operational guidance no
+    // longer treats absent historical cycles as blockers.
+    missingCycles: [],
+    futureCompletedCycles: [],
     unconfirmedProfiles,
     nextCycle: buildCycleProfile(nextStart),
   };
 }
 
 function findLatestCompletedCycle(records) {
-  return analyzeCycleHistory(records).lastContinuousCycle;
+  return analyzeCycleHistory(records).lastCompletedCycle;
 }
 
 async function getShopeeAccountingCycleStatus() {
@@ -127,12 +111,12 @@ async function getShopeeAccountingCycleStatus() {
   const history = analyzeCycleHistory(summaries);
 
   return {
-    basis: 'continuous_four_week_cycle',
+    basis: 'latest_completed_cycle_with_operational_baseline',
     timezone: 'Asia/Bangkok',
     hasHistory: history.eligibleProfiles.length > 0,
-    hasGaps: history.missingCycles.length > 0,
-    lastCompletedCycle: history.lastContinuousCycle
-      ? toPublicCycle(history.lastContinuousCycle)
+    hasGaps: false,
+    lastCompletedCycle: history.lastCompletedCycle
+      ? toPublicCycle(history.lastCompletedCycle)
       : null,
     nextCycle: toPublicCycle(history.nextCycle),
     missingCycles: history.missingCycles.map(toPublicCycle),

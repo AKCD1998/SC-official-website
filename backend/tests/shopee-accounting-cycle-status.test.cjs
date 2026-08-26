@@ -24,7 +24,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-test('finds the highest cycle that is continuous from the anchor, regardless of upload order', () => {
+test('finds the latest completed cycle regardless of upload order', () => {
   const latest = findLatestCompletedCycle([
     summary('2026-07-27', '2026-08-23'),
     summary('2026-06-01', '2026-06-28'),
@@ -37,23 +37,20 @@ test('finds the highest cycle that is continuous from the anchor, regardless of 
   expect(latest.periodEnd).toBe('2026-08-23');
 });
 
-test('does not advance past a missing July cycle when June and August exist', () => {
+test('does not rewind to missing historical cycles when a later completed cycle exists', () => {
   const history = analyzeCycleHistory([
     summary('2026-06-01', '2026-06-28'),
     summary('2026-07-27', '2026-08-23'),
   ]);
 
-  expect(history.lastContinuousCycle.periodEnd).toBe('2026-06-28');
-  expect(history.nextCycle.periodStart).toBe('2026-06-29');
-  expect(history.missingCycles.map((cycle) => cycle.cycleKey)).toEqual([
-    '2026-06-29_to_2026-07-26',
-  ]);
-  expect(history.futureCompletedCycles.map((cycle) => cycle.cycleKey)).toEqual([
-    '2026-07-27_to_2026-08-23',
-  ]);
+  expect(history.lastCompletedCycle.periodEnd).toBe('2026-08-23');
+  expect(history.nextCycle.periodStart).toBe('2026-08-24');
+  expect(history.nextCycle.periodEnd).toBe('2026-09-13');
+  expect(history.missingCycles).toEqual([]);
+  expect(history.futureCompletedCycles).toEqual([]);
 });
 
-test('returns the next four-week cycle after continuous stored Shopee workbooks', async () => {
+test('clamps historical history to the configured active cycle', async () => {
   listCycleSummariesMock.mockResolvedValue([
     summary('2026-06-01', '2026-06-28'),
     summary('2026-06-29', '2026-07-26'),
@@ -66,17 +63,16 @@ test('returns the next four-week cycle after continuous stored Shopee workbooks'
   expect(status.hasGaps).toBe(false);
   expect(status.missingCycles).toEqual([]);
   expect(status.lastCompletedCycle.periodEnd).toBe('2026-07-26');
-  expect(status.nextCycle.periodStart).toBe('2026-07-27');
-  expect(status.nextCycle.periodEnd).toBe('2026-08-23');
+  expect(status.nextCycle.periodStart).toBe('2026-08-24');
+  expect(status.nextCycle.periodEnd).toBe('2026-09-13');
   expect(status.nextCycle.weeks.map((week) => week.name)).toEqual([
-    '27.07-02.08',
-    '03-09.08',
-    '10-16.08',
-    '17-23.08',
+    '24-30.08',
+    '31.08-06.09',
+    '07-13.09',
   ]);
   expect(status.nextCycle.downloadGuidance.orderDateFallback.minimumLookbackDays).toBe(0);
   expect(status.nextCycle.downloadGuidance.orderDateWindow.fromIct).toBe(
-    '2026-07-27T00:00:00+07:00',
+    '2026-08-24T00:00:00+07:00',
   );
   expect(status.dateFieldGuidance.preferredExportFilter).toBe('order_created_at');
   expect(status.dateFieldGuidance.transformUses).toBe('order_created_at');
@@ -85,7 +81,7 @@ test('returns the next four-week cycle after continuous stored Shopee workbooks'
   );
 });
 
-test('reports missing and already-uploaded future cycles without moving the checkpoint', async () => {
+test('uses the latest stored cycle without requiring historical backfill', async () => {
   listCycleSummariesMock.mockResolvedValue([
     summary('2026-06-01', '2026-06-28'),
     summary('2026-07-27', '2026-08-23'),
@@ -93,17 +89,18 @@ test('reports missing and already-uploaded future cycles without moving the chec
 
   const status = await getShopeeAccountingCycleStatus();
 
-  expect(status.hasGaps).toBe(true);
-  expect(status.lastCompletedCycle.periodEnd).toBe('2026-06-28');
-  expect(status.nextCycle.periodStart).toBe('2026-06-29');
-  expect(status.missingCycles.map((cycle) => cycle.periodStart)).toEqual(['2026-06-29']);
-  expect(status.futureCompletedCycles.map((cycle) => cycle.periodStart)).toEqual(['2026-07-27']);
+  expect(status.hasGaps).toBe(false);
+  expect(status.lastCompletedCycle.periodEnd).toBe('2026-08-23');
+  expect(status.nextCycle.periodStart).toBe('2026-08-24');
+  expect(status.nextCycle.periodEnd).toBe('2026-09-13');
+  expect(status.missingCycles).toEqual([]);
+  expect(status.futureCompletedCycles).toEqual([]);
 });
 
 test('zero-row output requires review and never closes or advances a cycle', async () => {
   listCycleSummariesMock.mockResolvedValue([
-    summary('2026-06-01', '2026-06-28'),
-    summary('2026-06-29', '2026-07-26', {
+    summary('2026-07-27', '2026-08-23'),
+    summary('2026-08-24', '2026-09-13', {
       finalRows: 0,
       checkpointEligible: false,
       cycleClosureStatus: 'review_required_empty',
@@ -112,29 +109,29 @@ test('zero-row output requires review and never closes or advances a cycle', asy
 
   const status = await getShopeeAccountingCycleStatus();
 
-  expect(status.lastCompletedCycle.periodEnd).toBe('2026-06-28');
-  expect(status.nextCycle.periodStart).toBe('2026-06-29');
-  expect(status.unconfirmedEmptyCycles.map((cycle) => cycle.periodStart)).toEqual(['2026-06-29']);
+  expect(status.lastCompletedCycle.periodEnd).toBe('2026-08-23');
+  expect(status.nextCycle.periodStart).toBe('2026-08-24');
+  expect(status.unconfirmedEmptyCycles.map((cycle) => cycle.periodStart)).toEqual(['2026-08-24']);
 });
 
 test('a later valid upload clears the empty-cycle warning for the same cycle', async () => {
   listCycleSummariesMock.mockResolvedValue([
-    summary('2026-06-01', '2026-06-28'),
-    summary('2026-06-29', '2026-07-26', {
+    summary('2026-07-27', '2026-08-23'),
+    summary('2026-08-24', '2026-09-13', {
       finalRows: 0,
       checkpointEligible: false,
       cycleClosureStatus: 'review_required_empty',
     }),
-    summary('2026-06-29', '2026-07-26', { finalRows: 46 }),
+    summary('2026-08-24', '2026-09-13', { finalRows: 46 }),
   ]);
 
   const status = await getShopeeAccountingCycleStatus();
 
-  expect(status.lastCompletedCycle.periodEnd).toBe('2026-07-26');
+  expect(status.lastCompletedCycle.periodEnd).toBe('2026-09-13');
   expect(status.unconfirmedEmptyCycles).toEqual([]);
 });
 
-test('falls back to the approved June anchor when no valid cycle history exists', async () => {
+test('falls back to the configured active cycle when no valid history exists', async () => {
   listCycleSummariesMock.mockResolvedValue([{ periodStart: '', periodEnd: '' }]);
 
   const status = await getShopeeAccountingCycleStatus();
@@ -142,6 +139,20 @@ test('falls back to the approved June anchor when no valid cycle history exists'
   expect(status.hasHistory).toBe(false);
   expect(status.hasGaps).toBe(false);
   expect(status.lastCompletedCycle).toBeNull();
-  expect(status.nextCycle.periodStart).toBe('2026-06-01');
-  expect(status.nextCycle.periodEnd).toBe('2026-06-28');
+  expect(status.nextCycle.periodStart).toBe('2026-08-24');
+  expect(status.nextCycle.periodEnd).toBe('2026-09-13');
+  expect(status.nextCycle.weeks).toHaveLength(3);
+});
+
+test('continues from 14 September after the configured three-week active cycle closes', async () => {
+  listCycleSummariesMock.mockResolvedValue([
+    summary('2026-08-24', '2026-09-13'),
+  ]);
+
+  const status = await getShopeeAccountingCycleStatus();
+
+  expect(status.lastCompletedCycle.periodEnd).toBe('2026-09-13');
+  expect(status.nextCycle.periodStart).toBe('2026-09-14');
+  expect(status.nextCycle.periodEnd).toBe('2026-10-11');
+  expect(status.nextCycle.weeks).toHaveLength(4);
 });
