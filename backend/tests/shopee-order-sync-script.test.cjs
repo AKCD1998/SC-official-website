@@ -1,11 +1,27 @@
 const {
   CONSERVATIVE_UNITS_PER_PAGE,
   PAGE_INTERVAL_MS,
-  runScheduledShopeeSync,
+  runScheduledShopeeSync: runScheduledShopeeSyncImpl,
 } = require("../scripts/shopee-order-sync.cjs");
+const fs = require("node:fs");
+const path = require("node:path");
+
+function runScheduledShopeeSync(options = {}) {
+  return runScheduledShopeeSyncImpl({ shopCode: "sc-drug-store", ...options });
+}
 
 test("scheduled sync CLI resolves the production database module", () => {
   expect(() => require.resolve("../db")).not.toThrow();
+});
+
+test("production schedule invokes the CLI with an explicit shop", () => {
+  const workflow = fs.readFileSync(
+    path.join(__dirname, "..", "..", ".github", "workflows", "shopee-order-sync.yml"),
+    "utf8",
+  );
+  expect(workflow).toContain(
+    "npm run seamless:shopee:sync -- --shop-code=sc-drug-store",
+  );
 });
 
 function page(overrides = {}) {
@@ -31,7 +47,11 @@ test("scheduled sync stops after processing the first page that reaches known hi
 
   const result = await runScheduledShopeeSync({ log, syncPage, sleep });
 
-  expect(syncPage).toHaveBeenCalledWith({ cursor: undefined, limit: 25 });
+  expect(syncPage).toHaveBeenCalledWith({
+    cursor: undefined,
+    limit: 25,
+    shopCode: "sc-drug-store",
+  });
   expect(syncPage).toHaveBeenCalledTimes(1);
   expect(sleep).not.toHaveBeenCalled();
   expect(result).toMatchObject({
@@ -55,9 +75,9 @@ test("scheduled sync follows a burst across pages at the quota-safe interval", a
   const result = await runScheduledShopeeSync({ log, syncPage, sleep });
 
   expect(syncPage.mock.calls).toEqual([
-    [{ cursor: undefined, limit: 25 }],
-    [{ cursor: "page-2", limit: 25 }],
-    [{ cursor: "page-3", limit: 25 }],
+    [{ cursor: undefined, limit: 25, shopCode: "sc-drug-store" }],
+    [{ cursor: "page-2", limit: 25, shopCode: "sc-drug-store" }],
+    [{ cursor: "page-3", limit: 25, shopCode: "sc-drug-store" }],
   ]);
   expect(sleep.mock.calls).toEqual([[PAGE_INTERVAL_MS], [PAGE_INTERVAL_MS]]);
   expect(result).toMatchObject({
@@ -108,4 +128,9 @@ test("scheduled sync refuses a page interval that would violate its quota budget
     intervalMs: PAGE_INTERVAL_MS - 1,
     syncPage: jest.fn(),
   })).rejects.toThrow(`intervalMs must be at least ${PAGE_INTERVAL_MS}`);
+});
+
+test("scheduled sync requires an explicit shop identity", async () => {
+  await expect(runScheduledShopeeSyncImpl({ syncPage: jest.fn() }))
+    .rejects.toThrow("shopCode is required");
 });

@@ -197,7 +197,7 @@ function createGmailAdapter(configOverride, deps = {}) {
         fields: "id,threadId,internalDate,labelIds,payload(headers)",
         format: "metadata",
         id: messageId,
-        metadataHeaders: ["From", "Subject"],
+        metadataHeaders: ["From", "Subject", "To"],
         userId: "me",
       },
       { retry: false, timeout: GMAIL_INBOX_REQUEST_TIMEOUT_MS },

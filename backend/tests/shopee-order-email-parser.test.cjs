@@ -1,4 +1,5 @@
 const {
+  buildCanonicalMessageKey,
   extractShopeeBodyText,
   parseShopeeDateTime,
   parseShopeeOrderEmail,
@@ -8,7 +9,14 @@ function encode(value) {
   return Buffer.from(value, "utf8").toString("base64url");
 }
 
-function rawHtmlMessage({ id, subject, body, internalDate = "1787549837000" }) {
+function rawHtmlMessage({
+  body,
+  date = "Mon, 24 Aug 2026 16:13:40 +0700",
+  id,
+  internalDate = "1787549837000",
+  messageId = `<${id}@mail.shopee.co.th>`,
+  subject,
+}) {
   return {
     id,
     internalDate,
@@ -16,6 +24,8 @@ function rawHtmlMessage({ id, subject, body, internalDate = "1787549837000" }) {
     payload: {
       headers: [
         { name: "From", value: "Shopee <info@mail.shopee.co.th>" },
+        ...(date ? [{ name: "Date", value: date }] : []),
+        ...(messageId ? [{ name: "Message-ID", value: messageId }] : []),
         { name: "Subject", value: subject },
       ],
       mimeType: "multipart/alternative",
@@ -41,6 +51,59 @@ test("extractShopeeBodyText reads nested HTML-only Gmail messages", () => {
   });
 
   expect(extractShopeeBodyText(raw)).toBe("รายละเอียด คำสั่งซื้อ\nจำนวน: 2");
+});
+
+test("canonicalizes the same RFC Message-ID across different Gmail mailboxes and ids", () => {
+  const first = buildCanonicalMessageKey({
+    eventType: "shipment_due",
+    gmailMessageId: "gmail-a",
+    mailboxAccount: "first@example.invalid",
+    orderNumber: "26082476830R2P",
+    rfcMessageId: "<Shopee-Event-1@mailer.example>",
+    subject: "first subject",
+  });
+  const forwarded = buildCanonicalMessageKey({
+    eventType: "shipment_due",
+    gmailMessageId: "gmail-b",
+    mailboxAccount: "second@example.invalid",
+    orderNumber: "DIFFERENTORDER",
+    rfcMessageId: " shopee-event-1@mailer.example ",
+    subject: "forwarded subject",
+  });
+
+  expect(first).toBe(forwarded);
+  expect(first).toMatch(/^sha256:[a-f0-9]{64}$/u);
+  expect(first).not.toContain("shopee-event-1");
+});
+
+test("falls back to stable Date+semantic identity, then mailbox-local identity when evidence is absent", () => {
+  const semantic = {
+    eventType: "shipment_due",
+    orderNumber: "26082476830R2P",
+    rfcDate: "Mon, 24 Aug 2026 16:13:40 +0700",
+    subject: "ถึงเวลาจัดส่งสินค้าหมายเลข #26082476830R2P แล้ว!",
+  };
+  expect(buildCanonicalMessageKey({
+    ...semantic,
+    gmailMessageId: "gmail-a",
+    mailboxAccount: "first@example.invalid",
+  })).toBe(buildCanonicalMessageKey({
+    ...semantic,
+    gmailMessageId: "gmail-b",
+    mailboxAccount: "second@example.invalid",
+  }));
+
+  expect(buildCanonicalMessageKey({
+    eventType: "shipment_due",
+    gmailMessageId: "gmail-a",
+    mailboxAccount: "first@example.invalid",
+    orderNumber: "26082476830R2P",
+  })).not.toBe(buildCanonicalMessageKey({
+    eventType: "shipment_due",
+    gmailMessageId: "gmail-b",
+    mailboxAccount: "second@example.invalid",
+    orderNumber: "26082476830R2P",
+  }));
 });
 
 test("parses a real-template COD confirmation into non-empty bounded items", () => {

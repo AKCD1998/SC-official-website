@@ -157,18 +157,23 @@ function readPharmcareGmailConfig() {
   };
 }
 
+const SHOPEE_SC_DRUG_STORE_MAILBOX = "admin@scgroup1989.com";
+
 // Shopee email reporting reads the same admin mailbox through the already-provisioned,
 // read-only Gmail OAuth credential. Only the search scope differs from PharmCare. Keeping the
 // credential source shared avoids a second refresh token for the same mailbox, while the pinned
-// default query prevents this app-facing endpoint from becoming a general mailbox browser.
+// account identity and default query prevent this app-facing endpoint from becoming a general
+// mailbox browser or silently using credentials for a different Gmail account.
 function readShopeeGmailConfig() {
   const sharedMailboxConfig = readPharmcareGmailConfig();
 
   return {
     ...sharedMailboxConfig,
+    expectedMailbox: SHOPEE_SC_DRUG_STORE_MAILBOX,
     gmailQuery: String(
       process.env.SEAMLESS_SHOPEE_GMAIL_QUERY || "from:info@mail.shopee.co.th",
     ).trim(),
+    mailboxAccount: SHOPEE_SC_DRUG_STORE_MAILBOX,
   };
 }
 

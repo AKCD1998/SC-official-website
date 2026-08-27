@@ -55,16 +55,24 @@ beforeEach(() => {
 });
 
 describe("Shopee email inbox API", () => {
-  test("returns the live read-only Gmail page", async () => {
-    const response = await request(buildApp()).get("/api/app/shopee/inbox?limit=20&category=shipment_due");
+  test("returns the live read-only Gmail page with buyer identifiers redacted for every role", async () => {
+    process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
+    const response = await request(buildApp())
+      .get("/api/app/shopee/inbox?shopCode=sc-drug-store&limit=20&category=shipment_due")
+      .auth("admin001", "admin-password");
 
     expect(response.status).toBe(200);
     expect(response.body.source).toBe("info@mail.shopee.co.th");
     expect(response.body.emails).toHaveLength(3);
-    expect(response.body.emails[0].subject).toContain("buyer_name");
-    expect(response.body.emails[1].subject).toContain("cancellation_buyer");
-    expect(response.body.emails[2].subject).toContain("short_form_buyer");
-    expect(lastFilters).toMatchObject({ category: "shipment_due", limit: 20 });
+    expect(JSON.stringify(response.body.emails)).not.toMatch(
+      /buyer_name|cancellation_buyer|short_form_buyer/u,
+    );
+    expect(lastFilters).toMatchObject({
+      category: "shipment_due",
+      limit: 20,
+      shopCode: "sc-drug-store",
+    });
   });
 
   test("redacts buyer usernames server-side for a regular staff session", async () => {
@@ -72,11 +80,11 @@ describe("Shopee email inbox API", () => {
     process.env.SEAMLESS_APP_BASIC_PASSWORD = "staff-password";
 
     const response = await request(buildApp())
-      .get("/api/app/shopee/inbox")
+      .get("/api/app/shopee/inbox?shopCode=sc-drug-store")
       .auth("staff001", "staff-password");
 
     expect(response.status).toBe(200);
-    expect(response.body.emails[0].subject).toContain("จากผู้ซื้อ [ปกปิด]");
+    expect(response.body.emails[0].subject).toBe("คำสั่งซื้อถูกยกเลิก #260824ABC");
     expect(response.body.emails[0].subject).not.toContain("buyer_name");
   });
 
@@ -85,19 +93,19 @@ describe("Shopee email inbox API", () => {
     process.env.SEAMLESS_APP_BASIC_PASSWORD = "staff-password";
 
     const response = await request(buildApp())
-      .get("/api/app/shopee/inbox")
+      .get("/api/app/shopee/inbox?shopCode=sc-drug-store")
       .auth("staff001", "staff-password");
 
     expect(response.status).toBe(200);
-    expect(response.body.emails[1].subject).toContain("ถูกทำการยกเลิกโดย [ปกปิด]");
+    expect(response.body.emails[1].subject).toBe("คำสั่งซื้อถูกยกเลิก #260824XYZ");
     expect(response.body.emails[1].subject).not.toContain("cancellation_buyer");
-    expect(response.body.emails[2].subject).toContain("ถูกยกเลิกโดย [ปกปิด]");
+    expect(response.body.emails[2].subject).toBe("คำสั่งซื้อถูกยกเลิก #260824SHORT");
     expect(response.body.emails[2].subject).not.toContain("short_form_buyer");
   });
 
   test("converts a single ICT calendar day to an inclusive/exclusive timestamp range", async () => {
     const response = await request(buildApp()).get(
-      "/api/app/shopee/inbox?receivedFrom=2026-08-24&receivedTo=2026-08-24",
+      "/api/app/shopee/inbox?shopCode=sc-drug-store&receivedFrom=2026-08-24&receivedTo=2026-08-24",
     );
 
     expect(response.status).toBe(200);
@@ -121,10 +129,20 @@ describe("Shopee email inbox API", () => {
     ["receivedFrom=2026-02-31", "receivedFrom"],
     ["receivedFrom=2026-08-25&receivedTo=2026-08-24", "receivedFrom"],
   ])("rejects invalid query parameters: %s", async (query, messagePart) => {
-    const response = await request(buildApp()).get(`/api/app/shopee/inbox?${query}`);
+    const response = await request(buildApp()).get(
+      `/api/app/shopee/inbox?shopCode=sc-drug-store&${query}`,
+    );
 
     expect(response.status).toBe(400);
     expect(response.body.error.message).toContain(messagePart);
+    expect(lastFilters).toBeNull();
+  });
+
+  test("requires an explicit shop before selecting a Gmail mailbox", async () => {
+    const response = await request(buildApp()).get("/api/app/shopee/inbox");
+
+    expect(response.status).toBe(400);
+    expect(response.body.error.details.code).toBe("SHOPEE_SHOP_REQUIRED");
     expect(lastFilters).toBeNull();
   });
 });

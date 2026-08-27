@@ -40,4 +40,4 @@ jobs:
           SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID }}
           SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET }}
           SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN }}
-        run: npm run seamless:shopee:sync
+        run: npm run seamless:shopee:sync -- --shop-code=sc-drug-store

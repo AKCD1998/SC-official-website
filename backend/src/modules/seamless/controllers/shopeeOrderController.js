@@ -17,19 +17,24 @@ function parseLimit(value) {
   return parsed;
 }
 
-function parseOpaqueCursor(value) {
+function parseOpaqueCursor(value, expectedShopCode) {
   if (value === undefined || value === "") return null;
   if (String(value).length > 2048) throw badRequest("cursor is too long.");
   try {
     const decoded = JSON.parse(Buffer.from(String(value), "base64url").toString("utf8"));
     if (
       !decoded ||
+      decoded.shopCode !== expectedShopCode ||
       Number.isNaN(new Date(decoded.lastEventAt).getTime()) ||
       !SHOPEE_ORDER_NUMBER_PATTERN.test(String(decoded.orderNumber || ""))
     ) {
       throw new Error("invalid cursor payload");
     }
-    return { lastEventAt: decoded.lastEventAt, orderNumber: decoded.orderNumber };
+    return {
+      lastEventAt: decoded.lastEventAt,
+      orderNumber: decoded.orderNumber,
+      shopCode: decoded.shopCode,
+    };
   } catch (error) {
     throw badRequest("cursor is invalid.");
   }
@@ -39,6 +44,7 @@ function encodeCursor(order) {
   return Buffer.from(JSON.stringify({
     lastEventAt: order.lastEventAt,
     orderNumber: order.orderNumber,
+    shopCode: order.shopCode,
   })).toString("base64url");
 }
 
@@ -59,21 +65,28 @@ function parseOrderNumber(value) {
 }
 
 async function listOrders(req, res) {
+  const shopCode = requireShopeeShopCode(req.query?.shopCode);
   const limit = parseLimit(req.query?.limit);
   const result = await repository.listOrders({
-    cursor: parseOpaqueCursor(req.query?.cursor),
+    cursor: parseOpaqueCursor(req.query?.cursor, shopCode),
     limit,
+    shopCode,
     status: parseStatus(req.query?.status),
   });
   const lastOrder = result.orders[result.orders.length - 1];
   res.json({
     nextCursor: result.hasMore && lastOrder ? encodeCursor(lastOrder) : null,
     orders: result.orders,
+    shopCode,
   });
 }
 
 async function getOrder(req, res) {
-  res.json(await repository.getOrderTimeline(parseOrderNumber(req.params.orderNumber)));
+  const shopCode = requireShopeeShopCode(req.query?.shopCode);
+  res.json(await repository.getOrderTimeline(
+    shopCode,
+    parseOrderNumber(req.params.orderNumber),
+  ));
 }
 
 async function syncOrders(req, res) {
@@ -82,12 +95,11 @@ async function syncOrders(req, res) {
   }
   const cursor = req.body?.cursor;
   if (cursor && String(cursor).length > 2048) throw badRequest("cursor is too long.");
+  const shopCode = requireShopeeShopCode(req.body?.shopCode);
   res.json(await syncShopeeOrderPage({
     cursor: cursor || undefined,
     limit: parseLimit(req.body?.limit),
-    ...(req.body?.shopCode
-      ? { shopCode: requireShopeeShopCode(req.body.shopCode) }
-      : {}),
+    shopCode,
   }));
 }
 
