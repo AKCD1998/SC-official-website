@@ -6,6 +6,7 @@ const {
 } = require("../shopeeOrderValidation");
 const { TIMELINE_EVENT_TYPES } = require("../services/shopeeOrderEmailParser");
 const { syncShopeeOrderPage } = require("../services/shopeeOrderTimelineService");
+const { requireShopeeShopCode } = require("../services/shopeeShops");
 
 function parseLimit(value) {
   if (value === undefined || value === "") return 25;
@@ -84,6 +85,9 @@ async function syncOrders(req, res) {
   res.json(await syncShopeeOrderPage({
     cursor: cursor || undefined,
     limit: parseLimit(req.body?.limit),
+    ...(req.body?.shopCode
+      ? { shopCode: requireShopeeShopCode(req.body.shopCode) }
+      : {}),
   }));
 }
 

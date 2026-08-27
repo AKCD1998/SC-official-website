@@ -1,19 +1,20 @@
 #!/usr/bin/env node
-// One-time interactive setup for the PharmCare Gmail OAuth refresh-token auth mode.
-// Run this ONCE, locally, logged into the browser as admin@scgroup1989.com (or whichever
-// mailbox SEAMLESS_PHARMCARE_GMAIL_MAILBOX points at). It opens a consent URL, catches the
-// redirect on a temporary local server, exchanges the code for tokens, and prints the
-// refresh_token you paste into SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN on Render.
+// One-time interactive setup for a project-scoped Gmail OAuth refresh-token auth mode.
+// The expected mailbox and destination env namespace are mandatory so a refresh token cannot
+// accidentally be copied into another feature's credential set.
 //
 // This script never touches this app's database or any production system — it only talks to
 // Google's OAuth endpoints and a throwaway localhost server. Requests read-only Gmail access
 // (gmail.readonly) and nothing else.
 //
 // Usage:
-//   node scripts/pharmcare-gmail-oauth-setup.cjs --client-id=... --client-secret=...
+//   node scripts/pharmcare-gmail-oauth-setup.cjs --client-id=... --client-secret=... \
+//     --expected-email=admin@scgroup1989.com --env-prefix=SEAMLESS_PHARMCARE_GMAIL
 // or, if you downloaded the "OAuth client" JSON Google Cloud Console offers for Desktop app
 // credentials (shape: { "installed": { "client_id": ..., "client_secret": ... } }):
-//   node scripts/pharmcare-gmail-oauth-setup.cjs --client-json=/path/to/client_secret.json
+//   node scripts/pharmcare-gmail-oauth-setup.cjs --client-json=/path/to/client_secret.json \
+//     --expected-email=scgroup1989.glucooneshop@gmail.com \
+//     --env-prefix=SEAMLESS_SHOPEE_DRMOREPEN_GMAIL
 
 "use strict";
 
@@ -23,6 +24,11 @@ const { URL } = require("node:url");
 
 const GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
 const LOOPBACK_PORT = 51823; // arbitrary fixed port so the redirect URI is predictable
+const ENV_PREFIX_PATTERN = /^[A-Z][A-Z0-9_]*$/;
+const PINNED_NAMESPACE_MAILBOXES = Object.freeze({
+  SEAMLESS_PHARMCARE_GMAIL: "admin@scgroup1989.com",
+  SEAMLESS_SHOPEE_DRMOREPEN_GMAIL: "scgroup1989.glucooneshop@gmail.com",
+});
 
 function parseArgs(argv) {
   const args = {};
@@ -52,9 +58,35 @@ function loadClientCredentials(args) {
   );
 }
 
+function loadSetupIdentity(args) {
+  const expectedEmail = String(args["expected-email"] || "").trim();
+  const envPrefix = String(args["env-prefix"] || "").trim();
+  if (!expectedEmail) {
+    throw new Error("--expected-email=<mailbox> is required.");
+  }
+  if (!ENV_PREFIX_PATTERN.test(envPrefix)) {
+    throw new Error("--env-prefix must be an uppercase environment-variable prefix.");
+  }
+
+  const pinnedMailbox = PINNED_NAMESPACE_MAILBOXES[envPrefix];
+  if (pinnedMailbox && expectedEmail !== pinnedMailbox) {
+    throw new Error("The expected mailbox does not match the selected env namespace.");
+  }
+  return { envPrefix, expectedEmail };
+}
+
+async function verifyExpectedMailbox(gmailClient, expectedEmail) {
+  const { data } = await gmailClient.users.getProfile({ userId: "me" });
+  if (data?.emailAddress !== expectedEmail) {
+    throw new Error("Authorized Gmail account does not exactly match --expected-email.");
+  }
+  return data.emailAddress;
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const { clientId, clientSecret } = loadClientCredentials(args);
+  const { envPrefix, expectedEmail } = loadSetupIdentity(args);
 
   // Required lazily so this script has a clear error if googleapis isn't installed, instead of
   // failing at require-time for unrelated commands.
@@ -65,12 +97,14 @@ async function main() {
 
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline", // required to get a refresh_token back
+    include_granted_scopes: false,
+    login_hint: expectedEmail,
     prompt: "consent", // forces Google to issue a refresh_token even on repeat authorizations
     scope: [GMAIL_READONLY_SCOPE],
   });
 
-  console.log("\n1. Open this URL in a browser where you are logged in as the PharmCare mailbox owner");
-  console.log("   (e.g. admin@scgroup1989.com) and approve the read-only Gmail access request:\n");
+  console.log("\n1. Open this URL in a browser and choose only the expected mailbox:");
+  console.log(`   ${expectedEmail}\n`);
   console.log(`   ${authUrl}\n`);
   console.log(`2. Waiting for the browser redirect back to ${redirectUri} ...\n`);
 
@@ -107,6 +141,12 @@ async function main() {
 
   const { tokens } = await oauth2Client.getToken(code);
 
+  // Verify the account before displaying or persisting any long-lived credential. The access
+  // token is used only for this read-only profile check and is never printed.
+  oauth2Client.setCredentials(tokens);
+  const gmailClient = google.gmail({ auth: oauth2Client, version: "v1" });
+  await verifyExpectedMailbox(gmailClient, expectedEmail);
+
   if (!tokens.refresh_token) {
     console.error(
       "\nGoogle did not return a refresh_token. This usually means this client/account combination\n" +
@@ -118,16 +158,30 @@ async function main() {
     return;
   }
 
-  console.log("\n=== Success — set these on Render (do not commit or log them anywhere else) ===\n");
-  console.log("SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE=oauth_refresh_token");
-  console.log(`SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID=${clientId}`);
-  console.log(`SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET=${clientSecret}`);
-  console.log(`SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN=${tokens.refresh_token}`);
+  console.log("\n=== Mailbox verified — copy these only into your private environment ===\n");
+  console.log(`${envPrefix}_MAILBOX=${expectedEmail}`);
+  console.log(`${envPrefix}_AUTH_MODE=oauth_refresh_token`);
+  console.log(`${envPrefix}_CLIENT_ID=<client_id from the same private client JSON>`);
+  console.log(`${envPrefix}_CLIENT_SECRET=<client_secret from the same private client JSON>`);
+  console.log(`${envPrefix}_REFRESH_TOKEN=${tokens.refresh_token}`);
+  if (envPrefix === "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL") {
+    console.log(`${envPrefix}_QUERY=from:info@mail.shopee.co.th`);
+  }
   console.log("\nThe access_token this script also received is short-lived and not needed — only the");
   console.log("refresh_token above matters; the adapter mints fresh access tokens from it automatically.");
 }
 
-main().catch((error) => {
-  console.error(`[pharmcare-gmail-oauth-setup] failed: ${error.message}`);
-  process.exitCode = 1;
-});
+if (require.main === module) {
+  main().catch((error) => {
+    console.error(`[pharmcare-gmail-oauth-setup] failed: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
+
+module.exports = {
+  GMAIL_READONLY_SCOPE,
+  loadClientCredentials,
+  loadSetupIdentity,
+  parseArgs,
+  verifyExpectedMailbox,
+};

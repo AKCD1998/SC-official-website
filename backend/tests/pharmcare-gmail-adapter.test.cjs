@@ -14,11 +14,20 @@ const SERVICE_ACCOUNT_CONFIG = {
 
 // Fake googleapis gmail client: records the calls it receives so tests can assert the adapter
 // only ever issues the three read operations, with the right parameters.
-function makeFakeGmailClient({ messages = [], attachments = {}, nextPageToken = null } = {}) {
+function makeFakeGmailClient({
+  messages = [],
+  attachments = {},
+  nextPageToken = null,
+  profileEmail = "admin@scgroup1989.com",
+} = {}) {
   const calls = [];
   return {
     calls,
     users: {
+      getProfile: async (params) => {
+        calls.push({ method: "getProfile", params });
+        return { data: { emailAddress: profileEmail } };
+      },
       messages: {
         list: async (params, options) => {
           calls.push({ method: "list", options, params });
@@ -198,6 +207,47 @@ describe("createMockGmailAdapter", () => {
 });
 
 describe("createGmailAdapter (real, googleapis-backed with injected fake client)", () => {
+  test("verifies an expected mailbox exactly before the first Gmail message operation", async () => {
+    const fake = makeFakeGmailClient({
+      messages: [{ id: "m1", payload: { headers: [], parts: [] } }],
+      profileEmail: "scgroup1989.glucooneshop@gmail.com",
+    });
+    const adapter = createGmailAdapter({
+      authMode: "oauth_refresh_token",
+      clientId: "client-id-placeholder",
+      clientSecret: "client-secret-placeholder",
+      expectedMailbox: "scgroup1989.glucooneshop@gmail.com",
+      gmailQuery: "from:info@mail.shopee.co.th",
+      refreshToken: "refresh-token-placeholder",
+    }, { createGmailClient: () => fake });
+
+    await adapter.listMessagePage({ maxResults: 1 });
+    await adapter.getMessageMetadata("m1");
+
+    expect(fake.calls.map((call) => call.method)).toEqual(["getProfile", "list", "get"]);
+    expect(fake.calls[0].params).toEqual({ userId: "me" });
+    ["send", "forward", "delete", "archive", "markRead", "modifyLabels"].forEach((operation) => {
+      expect(adapter[operation]).toBeUndefined();
+    });
+  });
+
+  test("fails closed before listing messages when the OAuth account is not the exact mailbox", async () => {
+    const fake = makeFakeGmailClient({
+      profileEmail: "SCGROUP1989.GLUCOONESHOP@gmail.com",
+    });
+    const adapter = createGmailAdapter({
+      authMode: "oauth_refresh_token",
+      clientId: "client-id-placeholder",
+      clientSecret: "client-secret-placeholder",
+      expectedMailbox: "scgroup1989.glucooneshop@gmail.com",
+      gmailQuery: "from:info@mail.shopee.co.th",
+      refreshToken: "refresh-token-placeholder",
+    }, { createGmailClient: () => fake });
+
+    await expect(adapter.listMessagePage()).rejects.toThrow(/identity check failed/);
+    expect(fake.calls.map((call) => call.method)).toEqual(["getProfile"]);
+  });
+
   test("lists candidate message ids using the configured query and after: filter", async () => {
     const fake = makeFakeGmailClient({
       messages: [{ id: "m1", internalDate: "1767229200000" }],

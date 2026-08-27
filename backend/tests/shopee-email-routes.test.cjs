@@ -105,6 +105,15 @@ describe("Shopee email inbox API", () => {
     expect(lastFilters.receivedTo).toBe("2026-08-24T17:00:00.000Z");
   });
 
+  test("routes an explicit DR.Morepen inbox request to its mailbox config", async () => {
+    const response = await request(buildApp()).get(
+      "/api/app/shopee/inbox?shopCode=dr-morepen",
+    );
+
+    expect(response.status).toBe(200);
+    expect(lastFilters.shopCode).toBe("dr-morepen");
+  });
+
   test.each([
     ["category=unknown", "category"],
     ["limit=0", "limit"],

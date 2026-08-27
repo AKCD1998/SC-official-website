@@ -1,4 +1,4 @@
-const { readShopeeGmailConfig } = require("../config");
+const { readShopeeGmailConfigForShop } = require("../config");
 const repository = require("../db/shopeeOrderRepository");
 const {
   createGmailAdapter,
@@ -34,7 +34,7 @@ async function fetchFullMessagesInBatches(adapter, messageIds) {
 }
 
 async function syncShopeeOrderPage(options = {}, dependencies = {}) {
-  const config = dependencies.config || readShopeeGmailConfig();
+  const config = dependencies.config || readShopeeGmailConfigForShop(options.shopCode);
   const activeRepository = dependencies.repository || repository;
   if (typeof activeRepository.withShopeeOrderSyncLock !== "function") {
     throw new Error("Shopee order repository must provide cross-request sync locking.");
@@ -59,7 +59,11 @@ async function syncShopeeOrderPage(options = {}, dependencies = {}) {
         continue;
       }
 
-      const parsed = parseShopeeOrderEmail(rawMessage, config.mailboxAccount);
+      const parsed = parseShopeeOrderEmail(
+        rawMessage,
+        config.mailboxAccount,
+        config.shopCode,
+      );
       if (!parsed) {
         skippedMessages += 1;
         continue;
@@ -73,7 +77,7 @@ async function syncShopeeOrderPage(options = {}, dependencies = {}) {
       else deduplicatedEvents += 1;
     }
 
-    return {
+    const result = {
       deduplicatedEvents,
       nextCursor: page.nextPageToken || null,
       processedMessages: rawMessages.length,
@@ -81,6 +85,8 @@ async function syncShopeeOrderPage(options = {}, dependencies = {}) {
       source: SHOPEE_SENDER,
       storedEvents,
     };
+    if (config.shopCode) result.shopCode = config.shopCode;
+    return result;
   });
 }
 
