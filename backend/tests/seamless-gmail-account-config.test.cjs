@@ -5,6 +5,7 @@ const {
   readShopeeGmailConfigForShop,
 } = require("../src/modules/seamless/config");
 const {
+  createGmailAdapter,
   isGmailConfigured,
 } = require("../src/modules/seamless/services/pharmcare/gmailAdapter");
 
@@ -65,10 +66,35 @@ test("keeps the existing PharmCare and admin Shopee credential behavior unchange
   expect(legacyShopee).toMatchObject({
     clientId: pharmcare.clientId,
     clientSecret: pharmcare.clientSecret,
+    expectedMailbox: "admin@scgroup1989.com",
     gmailQuery: "from:info@mail.shopee.co.th",
-    mailboxAccount: pharmcare.mailboxAccount,
+    mailboxAccount: "admin@scgroup1989.com",
     refreshToken: pharmcare.refreshToken,
   });
+});
+
+test("pins SC Drug Store to the admin mailbox and rejects another OAuth account", async () => {
+  setCompleteConfigs();
+  process.env.SEAMLESS_PHARMCARE_GMAIL_MAILBOX = "other@example.com";
+
+  const scDrugStore = readShopeeGmailConfigForShop("sc-drug-store");
+  expect(scDrugStore).toMatchObject({
+    expectedMailbox: "admin@scgroup1989.com",
+    mailboxAccount: "admin@scgroup1989.com",
+    shopCode: "sc-drug-store",
+  });
+
+  const getProfile = jest.fn(async () => ({
+    data: { emailAddress: "other@example.com" },
+  }));
+  const list = jest.fn(async () => ({ data: { messages: [] } }));
+  const adapter = createGmailAdapter(scDrugStore, {
+    createGmailClient: () => ({ users: { getProfile, messages: { list } } }),
+  });
+
+  await expect(adapter.listMessagePage()).rejects.toThrow(/identity check failed/);
+  expect(getProfile).toHaveBeenCalledWith({ userId: "me" });
+  expect(list).not.toHaveBeenCalled();
 });
 
 test("reads DR.Morepen from a completely separate credential namespace", () => {

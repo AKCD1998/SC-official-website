@@ -1,3 +1,5 @@
+const crypto = require("node:crypto");
+
 const {
   classifyShopeeSubject,
   extractOrderNumber,
@@ -32,6 +34,62 @@ const THAI_MONTHS = new Map([
 
 const PRODUCT_SECTION_HEADING_PATTERN = /^(?:รายละเอียดคำสั่งซื้อ|รายละเอียดสินค้า|รายการสินค้า|สินค้าที่สั่งซื้อ)\s*:?\s*$/iu;
 const PRODUCT_SECTION_END_PATTERN = /^(?:ยอดรวมค่าสินค้า|ค่าจัดส่งสินค้า|ยอดที่ต้องชำระทั้งหมด)\s*:/u;
+
+function sha256CanonicalKey(value) {
+  return `sha256:${crypto.createHash("sha256").update(value, "utf8").digest("hex")}`;
+}
+
+function normalizeCanonicalText(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function normalizeRfcMessageId(value) {
+  const normalized = normalizeCanonicalText(value).replace(/^<|>$/gu, "");
+  return normalized && normalized.length <= 998 ? normalized : "";
+}
+
+// Gmail message ids are mailbox-local and change when the same Shopee notification is delivered
+// through forwarding. RFC Message-ID is the preferred cross-mailbox identity. The Date+semantic
+// fallback handles providers that omit Message-ID while refusing cross-mailbox dedup when there
+// is not enough stable evidence; that final branch remains idempotent only inside one mailbox.
+function buildCanonicalMessageKey({
+  eventType,
+  gmailMessageId,
+  mailboxAccount,
+  orderNumber,
+  rfcDate,
+  rfcMessageId,
+  subject,
+}) {
+  const normalizedMessageId = normalizeRfcMessageId(rfcMessageId);
+  if (normalizedMessageId) {
+    return sha256CanonicalKey(`shopee-email-v1|message-id|${normalizedMessageId}`);
+  }
+
+  const normalizedDate = normalizeCanonicalText(rfcDate);
+  const normalizedSubject = normalizeCanonicalText(subject);
+  if (normalizedDate && normalizedSubject && orderNumber && eventType) {
+    return sha256CanonicalKey([
+      "shopee-email-v1",
+      "semantic",
+      normalizeCanonicalText(orderNumber),
+      normalizeCanonicalText(eventType),
+      normalizedDate,
+      normalizedSubject,
+    ].join("|"));
+  }
+
+  return sha256CanonicalKey([
+    "shopee-email-v1",
+    "mailbox-local",
+    normalizeCanonicalText(mailboxAccount),
+    normalizeCanonicalText(gmailMessageId),
+  ].join("|"));
+}
 
 function getHeader(headers, name) {
   const wanted = String(name || "").toLowerCase();
@@ -276,6 +334,15 @@ function parseShopeeOrderEmail(rawMessage, mailboxAccount, shopCode = "") {
 
   const parsed = {
     event: {
+      canonicalMessageKey: buildCanonicalMessageKey({
+        eventType,
+        gmailMessageId: rawMessage.id,
+        mailboxAccount,
+        orderNumber,
+        rfcDate: getHeader(headers, "Date"),
+        rfcMessageId: getHeader(headers, "Message-ID"),
+        subject,
+      }),
       details: {
         ...(shippingDeadline ? { shippingDeadline } : {}),
         ...(cancellationReasonCode ? { cancellationReasonCode } : {}),
@@ -312,6 +379,7 @@ function parseShopeeOrderEmail(rawMessage, mailboxAccount, shopCode = "") {
 
 module.exports = {
   TIMELINE_EVENT_TYPES,
+  buildCanonicalMessageKey,
   extractBodyOrderNumber,
   extractShopeeBodyText,
   htmlToText,

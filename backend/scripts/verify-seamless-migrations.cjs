@@ -42,8 +42,8 @@ async function verifyInvalidOrderNumberConstraint(client, tables) {
     await client.query(
       `
         INSERT INTO ${tables.shopeeOrders} (
-          order_number, current_status, first_event_at, last_event_at
-        ) VALUES ('SHORT', 'order_confirmed', now(), now())
+          shop_code, order_number, current_status, first_event_at, last_event_at
+        ) VALUES ('sc-drug-store', 'SHORT', 'order_confirmed', now(), now())
       `,
     );
   } catch (error) {
@@ -61,19 +61,56 @@ async function verifyValidOrderAndEventInsert(client, tables) {
   await client.query(
     `
       INSERT INTO ${tables.shopeeOrders} (
-        order_number, current_status, first_event_at, last_event_at
-      ) VALUES ($1, 'order_confirmed', now(), now())
+        shop_code, order_number, current_status, first_event_at, last_event_at
+      ) VALUES
+        ('sc-drug-store', $1, 'order_confirmed', now(), now()),
+        ('dr-morepen', $1, 'order_confirmed', now(), now())
     `,
     [orderNumber],
   );
   await client.query(
     `
       INSERT INTO ${tables.shopeeOrderEvents} (
-        order_number, mailbox_account, gmail_message_id, event_type, occurred_at
-      ) VALUES ($1, 'ci@example.invalid', 'migration-smoke-message', 'order_confirmed', now())
+        shop_code, order_number, canonical_message_key, mailbox_account,
+        gmail_message_id, event_type, occurred_at
+      ) VALUES (
+        'sc-drug-store', $1, $2, 'ci@example.invalid',
+        'migration-smoke-message', 'order_confirmed', now()
+      )
     `,
+    [orderNumber, `sha256:${"a".repeat(64)}`],
+  );
+
+  const countResult = await client.query(
+    `SELECT COUNT(*) AS count FROM ${tables.shopeeOrders} WHERE order_number = $1`,
     [orderNumber],
   );
+  if (Number(countResult.rows[0]?.count) !== 2) {
+    throw new Error("Composite Shopee order identity did not preserve both shops.");
+  }
+
+  await client.query("SAVEPOINT canonical_duplicate");
+  let duplicateRejection = null;
+  try {
+    await client.query(
+      `
+        INSERT INTO ${tables.shopeeOrderEvents} (
+          shop_code, order_number, canonical_message_key, mailbox_account,
+          gmail_message_id, event_type, occurred_at
+        ) VALUES (
+          'dr-morepen', $1, $2, 'forwarded@example.invalid',
+          'different-gmail-id', 'order_confirmed', now()
+        )
+      `,
+      [orderNumber, `sha256:${"a".repeat(64)}`],
+    );
+  } catch (error) {
+    duplicateRejection = error;
+  }
+  await client.query("ROLLBACK TO SAVEPOINT canonical_duplicate");
+  if (duplicateRejection?.code !== "23505") {
+    throw duplicateRejection || new Error("Migration accepted a cross-mailbox canonical duplicate.");
+  }
 }
 
 async function verifyMigrations() {

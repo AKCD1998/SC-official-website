@@ -37,7 +37,7 @@ function getShopeeShopProfile(value) {
 
 function requireShopeeShopCode(value) {
   if (!String(value || "").trim()) {
-    throw badRequest("กรุณาเลือกร้าน Shopee ก่อนอัปโหลดไฟล์", {
+    throw badRequest("กรุณาเลือกร้าน Shopee", {
       code: "SHOPEE_SHOP_REQUIRED",
       supportedShopCodes: Object.keys(SHOPEE_SHOP_PROFILES),
     });

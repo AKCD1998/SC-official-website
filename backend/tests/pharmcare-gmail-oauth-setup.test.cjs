@@ -1,4 +1,5 @@
 const {
+  deliverPrivateEnvironment,
   GMAIL_READONLY_SCOPE,
   loadClientCredentials,
   loadSetupIdentity,
@@ -14,6 +15,35 @@ test("OAuth setup is limited to gmail.readonly", () => {
     "utf8",
   );
   expect(script).not.toMatch(/console\.log\([^\n]*tokens\.access_token/u);
+  expect(script).not.toMatch(/console\.log\([^\n]*tokens\.refresh_token/u);
+});
+
+test("writes the refresh token once to a private file without logging it by default", () => {
+  const log = jest.fn();
+  const writeFileSync = jest.fn();
+  const result = deliverPrivateEnvironment({
+    args: { "token-output": "private-oauth.env" },
+    envPrefix: "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL",
+    expectedEmail: "scgroup1989.glucooneshop@gmail.com",
+    refreshToken: "synthetic-refresh-token",
+  }, { log, writeFileSync });
+
+  expect(result.mode).toBe("file");
+  expect(writeFileSync).toHaveBeenCalledWith(
+    expect.stringMatching(/private-oauth\.env$/u),
+    expect.stringContaining("_REFRESH_TOKEN=synthetic-refresh-token"),
+    { encoding: "utf8", flag: "wx", mode: 0o600 },
+  );
+  expect(JSON.stringify(log.mock.calls)).not.toContain("synthetic-refresh-token");
+});
+
+test("requires a private output file unless terminal disclosure is explicitly requested", () => {
+  expect(() => deliverPrivateEnvironment({
+    args: {},
+    envPrefix: "SEAMLESS_PHARMCARE_GMAIL",
+    expectedEmail: "admin@scgroup1989.com",
+    refreshToken: "synthetic-refresh-token",
+  }, { log: jest.fn(), writeFileSync: jest.fn() })).toThrow(/--token-output/);
 });
 
 test("accepts the exact GlucoOne mailbox with the DR.Morepen env namespace", () => {

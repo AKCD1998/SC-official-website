@@ -313,7 +313,7 @@ describe("createGmailAdapter (real, googleapis-backed with injected fake client)
       fields: "id,threadId,internalDate,labelIds,payload(headers)",
       format: "metadata",
       id: "m1",
-      metadataHeaders: ["From", "Subject"],
+      metadataHeaders: ["From", "Subject", "To"],
       userId: "me",
     });
     expect(getCall.options.retry).toBe(false);

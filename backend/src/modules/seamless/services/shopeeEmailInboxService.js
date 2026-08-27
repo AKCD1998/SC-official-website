@@ -10,6 +10,22 @@ const INBOX_CACHE_TTL_MS = 15000;
 const INBOX_CACHE_MAX_ENTRIES = 100;
 const inboxPageCache = new Map();
 
+function extractHeaderEmailAddresses(value) {
+  return new Set(
+    (String(value || "").match(/[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9.-]+/giu) || [])
+      .map((address) => address.toLowerCase()),
+  );
+}
+
+function isAddressedToConfiguredMailbox(normalizedMessage, config) {
+  const expectedMailbox = String(config.expectedMailbox || config.mailboxAccount || "")
+    .trim()
+    .toLowerCase();
+  return Boolean(
+    expectedMailbox && extractHeaderEmailAddresses(normalizedMessage?.visibleTo).has(expectedMailbox),
+  );
+}
+
 const CATEGORY_QUERIES = {
   order_confirmed: 'subject:"คำสั่งซื้อชำระเงินปลายทาง" subject:"ถูกยืนยันแล้ว"',
   shipment_due: 'subject:"ถึงเวลาจัดส่งสินค้า"',
@@ -148,6 +164,7 @@ async function loadShopeeEmailInboxPage(filters, baseConfig, adapter, createAdap
   // mailbox content.
   const emails = rawMessages
     .filter((message) => isWithinReceivedRange(message, filters))
+    .filter((message) => isAddressedToConfiguredMailbox(normalizeGmailMessage(message), baseConfig))
     .map((message) => mapShopeeEmail(message, baseConfig.shopCode))
     .filter((email) => extractEmailAddress(email.from) === SHOPEE_SENDER);
 
@@ -224,8 +241,10 @@ module.exports = {
   buildShopeeGmailQuery,
   classifyShopeeSubject,
   extractEmailAddress,
+  extractHeaderEmailAddresses,
   extractOrderNumber,
   isGmailNotFoundError,
+  isAddressedToConfiguredMailbox,
   isWithinReceivedRange,
   listShopeeEmailInbox,
   mapShopeeEmail,

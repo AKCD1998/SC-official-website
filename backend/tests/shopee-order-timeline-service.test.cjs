@@ -6,7 +6,13 @@ function encode(value) {
   return Buffer.from(value, "utf8").toString("base64url");
 }
 
-function rawMessage({ id, subject, body, from = "Shopee <info@mail.shopee.co.th>" }) {
+function rawMessage({
+  body,
+  from = "Shopee <info@mail.shopee.co.th>",
+  id,
+  subject,
+  to = "admin@scgroup1989.com",
+}) {
   return {
     id,
     internalDate: "1787549837000",
@@ -14,6 +20,7 @@ function rawMessage({ id, subject, body, from = "Shopee <info@mail.shopee.co.th>
       headers: [
         { name: "From", value: from },
         { name: "Subject", value: subject },
+        { name: "To", value: to },
       ],
       parts: [{ body: { data: encode(body) }, mimeType: "text/html" }],
     },
@@ -23,7 +30,7 @@ function rawMessage({ id, subject, body, from = "Shopee <info@mail.shopee.co.th>
 
 function repositoryWithSyncLock(overrides = {}) {
   return {
-    withShopeeOrderSyncLock: jest.fn(async (_mailboxAccount, callback) => callback()),
+    withShopeeOrderSyncLock: jest.fn(async (_shopCode, _mailboxAccount, callback) => callback()),
     ...overrides,
   };
 }
@@ -67,11 +74,20 @@ test("syncs one bounded Gmail page, skips non-order mail, and reports deduplicat
 
   const result = await syncShopeeOrderPage(
     { cursor: "page-1", limit: 4 },
-    { adapter, config: { gmailQuery: "from:info@mail.shopee.co.th", mailboxAccount: "admin@scgroup1989.com" }, repository },
+    {
+      adapter,
+      config: {
+        gmailQuery: "from:info@mail.shopee.co.th",
+        mailboxAccount: "admin@scgroup1989.com",
+        shopCode: "sc-drug-store",
+      },
+      repository,
+    },
   );
 
   expect(adapter.listMessagePage).toHaveBeenCalledWith({ maxResults: 4, pageToken: "page-1" });
   expect(repository.withShopeeOrderSyncLock).toHaveBeenCalledWith(
+    "sc-drug-store",
     "admin@scgroup1989.com",
     expect.any(Function),
   );
@@ -82,6 +98,7 @@ test("syncs one bounded Gmail page, skips non-order mail, and reports deduplicat
     deduplicatedEvents: 1,
     nextCursor: "older-page",
     processedMessages: 4,
+    shopCode: "sc-drug-store",
     skippedMessages: 2,
     source: "info@mail.shopee.co.th",
     storedEvents: 1,
@@ -98,7 +115,7 @@ test("skips a Gmail 404 but rejects quota/auth/upstream failures", async () => {
   };
   await expect(syncShopeeOrderPage({}, {
     adapter: adapter404,
-    config: { mailboxAccount: "admin@scgroup1989.com" },
+    config: { mailboxAccount: "admin@scgroup1989.com", shopCode: "sc-drug-store" },
     repository: repositoryWithSyncLock({ upsertOrderEvent: jest.fn() }),
   })).resolves.toMatchObject({ processedMessages: 0, skippedMessages: 1 });
 
@@ -110,7 +127,7 @@ test("skips a Gmail 404 but rejects quota/auth/upstream failures", async () => {
   };
   await expect(syncShopeeOrderPage({}, {
     adapter: adapter429,
-    config: { mailboxAccount: "admin@scgroup1989.com" },
+    config: { mailboxAccount: "admin@scgroup1989.com", shopCode: "sc-drug-store" },
     repository: repositoryWithSyncLock({ upsertOrderEvent: jest.fn() }),
   })).rejects.toBe(quota);
 });
@@ -127,7 +144,7 @@ test("prefers the bounded full-message adapter operation for interactive sync", 
   };
   const result = await syncShopeeOrderPage({}, {
     adapter,
-    config: { mailboxAccount: "admin@scgroup1989.com" },
+    config: { mailboxAccount: "admin@scgroup1989.com", shopCode: "sc-drug-store" },
     repository: repositoryWithSyncLock({
       upsertOrderEvent: jest.fn(async () => ({ eventCreated: true })),
     }),
@@ -152,7 +169,7 @@ test("does not call Gmail when the cross-request mailbox lock is busy", async ()
 
   await expect(syncShopeeOrderPage({}, {
     adapter,
-    config: { mailboxAccount: "admin@scgroup1989.com" },
+    config: { mailboxAccount: "admin@scgroup1989.com", shopCode: "sc-drug-store" },
     repository,
   })).rejects.toBe(busy);
 
@@ -167,6 +184,7 @@ test("derives dr-morepen shop identity from the selected GlucoOne mailbox config
       id: "dr-message",
       subject: "ถึงเวลาจัดส่งสินค้าหมายเลข #26082476830R2P แล้ว!",
       body: "<div>หมายเลขคำสั่งซื้อ:</div><div>#26082476830R2P</div>",
+      to: "SC GlucoOne <scgroup1989.glucooneshop@gmail.com>",
     })),
     listMessagePage: jest.fn(async () => ({ messageIds: ["dr-message"], nextPageToken: null })),
   };
@@ -192,4 +210,32 @@ test("derives dr-morepen shop identity from the selected GlucoOne mailbox config
     }),
     order: expect.objectContaining({ shopCode: "dr-morepen" }),
   }));
+});
+
+test("skips a forwarded copy whose original To header belongs to another shop mailbox", async () => {
+  const adapter = {
+    getMessageBounded: jest.fn(async () => rawMessage({
+      id: "forwarded-dr-copy",
+      subject: "ถึงเวลาจัดส่งสินค้าหมายเลข #26082476830R2P แล้ว!",
+      body: "<div>หมายเลขคำสั่งซื้อ:</div><div>#26082476830R2P</div>",
+      to: "scgroup1989.glucooneshop@gmail.com",
+    })),
+    listMessagePage: jest.fn(async () => ({
+      messageIds: ["forwarded-dr-copy"],
+      nextPageToken: null,
+    })),
+  };
+  const repository = repositoryWithSyncLock({ upsertOrderEvent: jest.fn() });
+
+  const result = await syncShopeeOrderPage({}, {
+    adapter,
+    config: {
+      mailboxAccount: "admin@scgroup1989.com",
+      shopCode: "sc-drug-store",
+    },
+    repository,
+  });
+
+  expect(repository.upsertOrderEvent).not.toHaveBeenCalled();
+  expect(result).toMatchObject({ skippedMessages: 1, storedEvents: 0 });
 });

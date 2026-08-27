@@ -9,17 +9,20 @@
 //
 // Usage:
 //   node scripts/pharmcare-gmail-oauth-setup.cjs --client-id=... --client-secret=... \
-//     --expected-email=admin@scgroup1989.com --env-prefix=SEAMLESS_PHARMCARE_GMAIL
+//     --expected-email=admin@scgroup1989.com --env-prefix=SEAMLESS_PHARMCARE_GMAIL \
+//     --token-output=/private/path/pharmcare-oauth.env
 // or, if you downloaded the "OAuth client" JSON Google Cloud Console offers for Desktop app
 // credentials (shape: { "installed": { "client_id": ..., "client_secret": ... } }):
 //   node scripts/pharmcare-gmail-oauth-setup.cjs --client-json=/path/to/client_secret.json \
 //     --expected-email=scgroup1989.glucooneshop@gmail.com \
-//     --env-prefix=SEAMLESS_SHOPEE_DRMOREPEN_GMAIL
+//     --env-prefix=SEAMLESS_SHOPEE_DRMOREPEN_GMAIL \
+//     --token-output=/private/path/shopee-oauth.env
 
 "use strict";
 
 const fs = require("node:fs");
 const http = require("node:http");
+const path = require("node:path");
 const { URL } = require("node:url");
 
 const GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
@@ -83,10 +86,57 @@ async function verifyExpectedMailbox(gmailClient, expectedEmail) {
   return data.emailAddress;
 }
 
+function formatPrivateEnvironment({ envPrefix, expectedEmail, refreshToken }) {
+  const lines = [
+    `${envPrefix}_MAILBOX=${expectedEmail}`,
+    `${envPrefix}_AUTH_MODE=oauth_refresh_token`,
+    `${envPrefix}_CLIENT_ID=<client_id from the same private client JSON>`,
+    `${envPrefix}_CLIENT_SECRET=<client_secret from the same private client JSON>`,
+    `${envPrefix}_REFRESH_TOKEN=${refreshToken}`,
+  ];
+  if (envPrefix === "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL") {
+    lines.push(`${envPrefix}_QUERY=from:info@mail.shopee.co.th`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function deliverPrivateEnvironment({ args, envPrefix, expectedEmail, refreshToken }, deps = {}) {
+  const log = deps.log || console.log;
+  const writeFileSync = deps.writeFileSync || fs.writeFileSync;
+  const privateEnvironment = formatPrivateEnvironment({
+    envPrefix,
+    expectedEmail,
+    refreshToken,
+  });
+
+  if (args["show-refresh-token"] === "true") {
+    log("\n=== Mailbox verified — copy these only into your private environment ===\n");
+    privateEnvironment.trimEnd().split("\n").forEach((line) => log(line));
+    return { mode: "terminal" };
+  }
+
+  const tokenOutput = String(args["token-output"] || "").trim();
+  if (!tokenOutput) {
+    throw new Error(
+      "Pass --token-output=<new private file> (recommended), or explicitly opt in with --show-refresh-token=true.",
+    );
+  }
+  const resolvedPath = path.resolve(tokenOutput);
+  writeFileSync(resolvedPath, privateEnvironment, { encoding: "utf8", flag: "wx", mode: 0o600 });
+  log(`\nMailbox verified. Private environment written once to: ${resolvedPath}`);
+  log("The refresh token was not printed to the terminal.");
+  return { mode: "file", path: resolvedPath };
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const { clientId, clientSecret } = loadClientCredentials(args);
   const { envPrefix, expectedEmail } = loadSetupIdentity(args);
+  if (!args["token-output"] && args["show-refresh-token"] !== "true") {
+    throw new Error(
+      "Pass --token-output=<new private file> (recommended), or explicitly opt in with --show-refresh-token=true.",
+    );
+  }
 
   // Required lazily so this script has a clear error if googleapis isn't installed, instead of
   // failing at require-time for unrelated commands.
@@ -158,17 +208,13 @@ async function main() {
     return;
   }
 
-  console.log("\n=== Mailbox verified — copy these only into your private environment ===\n");
-  console.log(`${envPrefix}_MAILBOX=${expectedEmail}`);
-  console.log(`${envPrefix}_AUTH_MODE=oauth_refresh_token`);
-  console.log(`${envPrefix}_CLIENT_ID=<client_id from the same private client JSON>`);
-  console.log(`${envPrefix}_CLIENT_SECRET=<client_secret from the same private client JSON>`);
-  console.log(`${envPrefix}_REFRESH_TOKEN=${tokens.refresh_token}`);
-  if (envPrefix === "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL") {
-    console.log(`${envPrefix}_QUERY=from:info@mail.shopee.co.th`);
-  }
-  console.log("\nThe access_token this script also received is short-lived and not needed — only the");
-  console.log("refresh_token above matters; the adapter mints fresh access tokens from it automatically.");
+  deliverPrivateEnvironment({
+    args,
+    envPrefix,
+    expectedEmail,
+    refreshToken: tokens.refresh_token,
+  });
+  console.log("\nThe access_token this script also received is short-lived and was not printed.");
 }
 
 if (require.main === module) {
@@ -179,6 +225,8 @@ if (require.main === module) {
 }
 
 module.exports = {
+  deliverPrivateEnvironment,
+  formatPrivateEnvironment,
   GMAIL_READONLY_SCOPE,
   loadClientCredentials,
   loadSetupIdentity,

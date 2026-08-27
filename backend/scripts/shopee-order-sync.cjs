@@ -20,11 +20,15 @@ async function runScheduledShopeeSync({
   intervalMs = PAGE_INTERVAL_MS,
   log = defaultLog,
   maxPages = MAX_PAGES_PER_RUN,
+  shopCode,
   sleep = defaultSleep,
   syncPage,
 } = {}) {
   if (typeof syncPage !== "function") {
     throw new TypeError("syncPage is required.");
+  }
+  if (!String(shopCode || "").trim()) {
+    throw new TypeError("shopCode is required.");
   }
   if (!Number.isInteger(maxPages) || maxPages < 1 || maxPages > MAX_PAGES_PER_RUN) {
     throw new RangeError(`maxPages must be between 1 and ${MAX_PAGES_PER_RUN}.`);
@@ -45,7 +49,7 @@ async function runScheduledShopeeSync({
 
   for (let pageNumber = 1; pageNumber <= maxPages; pageNumber += 1) {
     // eslint-disable-next-line no-await-in-loop
-    const result = await syncPage({ cursor, limit: PAGE_SIZE });
+    const result = await syncPage({ cursor, limit: PAGE_SIZE, shopCode });
     const hasNextPage = Boolean(result?.nextCursor);
     const deduplicatedEvents = count(result?.deduplicatedEvents);
     const processedMessages = count(result?.processedMessages);
@@ -100,9 +104,13 @@ async function runCli() {
   const {
     syncShopeeOrderPage,
   } = require("../src/modules/seamless/services/shopeeOrderTimelineService");
+  const { requireShopeeShopCode } = require("../src/modules/seamless/services/shopeeShops");
 
   try {
-    const result = await runScheduledShopeeSync({ syncPage: syncShopeeOrderPage });
+    const shopArgument = process.argv.slice(2)
+      .find((value) => value.startsWith("--shop-code="));
+    const shopCode = requireShopeeShopCode(shopArgument?.slice("--shop-code=".length));
+    const result = await runScheduledShopeeSync({ shopCode, syncPage: syncShopeeOrderPage });
     defaultLog({ ...result, type: "shopee_sync_complete" });
   } catch (error) {
     if (error?.statusCode === 409) {

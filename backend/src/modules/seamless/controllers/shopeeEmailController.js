@@ -43,16 +43,30 @@ function parseLimit(value) {
   return parsed;
 }
 
-function redactBuyerUsername(subject) {
-  return String(subject || "").replace(
-    /((?:จากผู้ซื้อ|ถูก(?:ทำการ)?ยกเลิกโดย)\s+)[^\s]+/gu,
-    "$1[ปกปิด]",
-  );
+const PUBLIC_SHOPEE_SUBJECTS = Object.freeze({
+  order_cancelled: "คำสั่งซื้อถูกยกเลิก",
+  order_confirmed: "คำสั่งซื้อถูกยืนยันแล้ว",
+  out_of_stock: "สินค้า Shopee ขายหมดแล้ว",
+  security_alert: "แจ้งเตือนความปลอดภัยของบัญชี Shopee",
+  seller_return_delivery: "พัสดุกำลังจัดส่งคืนผู้ขาย",
+  shipment_due: "ถึงเวลาจัดส่งสินค้า",
+});
+
+function buildPublicShopeeSubject(email) {
+  const orderNumber = String(
+    email?.orderNumber || String(email?.subject || "").match(/#([A-Z0-9]+)/iu)?.[1] || "",
+  ).trim();
+  const label = PUBLIC_SHOPEE_SUBJECTS[email?.category] || "การแจ้งเตือนจาก Shopee";
+  return orderNumber ? `${label} #${orderNumber}` : label;
 }
 
 function sanitizeShopeeEmailForRole(email, role) {
-  if (role === "admin") return email;
-  return { ...email, subject: redactBuyerUsername(email.subject) };
+  // Buyer identifiers are not required by any role. Apply the same public contract to admins so
+  // credentials or role changes cannot turn this endpoint into a PII disclosure path. Rebuild
+  // the subject from bounded category/order fields rather than trying to enumerate every future
+  // Shopee buyer-identifier phrase.
+  void role;
+  return { ...email, subject: buildPublicShopeeSubject(email) };
 }
 
 async function listInbox(req, res) {
@@ -76,7 +90,7 @@ async function listInbox(req, res) {
     limit: parseLimit(limit),
     receivedFrom: fromDate ? toIctMidnightIso(fromDate) : undefined,
     receivedTo: toDate ? toNextIctMidnightIso(toDate) : undefined,
-    ...(shopCode ? { shopCode: requireShopeeShopCode(shopCode) } : {}),
+    shopCode: requireShopeeShopCode(shopCode),
   });
   res.json({
     ...result,
@@ -84,4 +98,8 @@ async function listInbox(req, res) {
   });
 }
 
-module.exports = { listInbox, redactBuyerUsername, sanitizeShopeeEmailForRole };
+module.exports = {
+  buildPublicShopeeSubject,
+  listInbox,
+  sanitizeShopeeEmailForRole,
+};

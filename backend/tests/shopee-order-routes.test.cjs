@@ -10,6 +10,7 @@ const orderRow = {
   lastEventAt: "2026-08-24T03:00:00.000Z",
   orderNumber: "26082471YK8C02",
   shippingDeadline: "2026-08-30",
+  shopCode: "sc-drug-store",
   totalAmount: 108,
   totalQuantity: 1,
 };
@@ -79,12 +80,26 @@ beforeEach(() => {
 });
 
 test("lists persisted Shopee orders with an opaque cursor", async () => {
-  const response = await request(buildApp()).get("/api/app/shopee/orders?status=shipment_due&limit=10");
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/orders?shopCode=sc-drug-store&status=shipment_due&limit=10",
+  );
 
   expect(response.status).toBe(200);
   expect(response.body.orders).toEqual([orderRow]);
   expect(response.body.nextCursor).toEqual(expect.any(String));
-  expect(listOrdersMock).toHaveBeenCalledWith({ cursor: null, limit: 10, status: "shipment_due" });
+  expect(response.body.shopCode).toBe("sc-drug-store");
+  expect(listOrdersMock).toHaveBeenCalledWith({
+    cursor: null,
+    limit: 10,
+    shopCode: "sc-drug-store",
+    status: "shipment_due",
+  });
+
+  const replay = await request(buildApp()).get(
+    `/api/app/shopee/orders?shopCode=dr-morepen&cursor=${response.body.nextCursor}`,
+  );
+  expect(replay.status).toBe(400);
+  expect(replay.body.error.message).toContain("cursor");
 });
 
 test("returns the latest completed cycle and configured next accounting cycle", async () => {
@@ -99,12 +114,14 @@ test("returns the latest completed cycle and configured next accounting cycle", 
 });
 
 test("returns one order and its chronological event timeline", async () => {
-  const response = await request(buildApp()).get("/api/app/shopee/orders/26082471YK8C02");
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/orders/26082471YK8C02?shopCode=sc-drug-store",
+  );
 
   expect(response.status).toBe(200);
   expect(response.body.order.orderNumber).toBe("26082471YK8C02");
   expect(response.body.events[0].eventType).toBe("shipment_due");
-  expect(getOrderTimelineMock).toHaveBeenCalledWith("26082471YK8C02");
+  expect(getOrderTimelineMock).toHaveBeenCalledWith("sc-drug-store", "26082471YK8C02");
 });
 
 test("allows only an admin session to sync full Gmail bodies into the timeline", async () => {
@@ -116,16 +133,20 @@ test("allows only an admin session to sync full Gmail bodies into the timeline",
   const regular = await request(buildApp())
     .post("/api/app/shopee/orders/sync")
     .auth("staff001", "staff-password")
-    .send({ limit: 10 });
+    .send({ limit: 10, shopCode: "sc-drug-store" });
   expect(regular.status).toBe(403);
   expect(syncShopeeOrderPageMock).not.toHaveBeenCalled();
 
   const admin = await request(buildApp())
     .post("/api/app/shopee/orders/sync")
     .auth("admin001", "admin-password")
-    .send({ cursor: "gmail-page", limit: 10 });
+    .send({ cursor: "gmail-page", limit: 10, shopCode: "sc-drug-store" });
   expect(admin.status).toBe(200);
-  expect(syncShopeeOrderPageMock).toHaveBeenCalledWith({ cursor: "gmail-page", limit: 10 });
+  expect(syncShopeeOrderPageMock).toHaveBeenCalledWith({
+    cursor: "gmail-page",
+    limit: 10,
+    shopCode: "sc-drug-store",
+  });
 });
 
 test("routes an admin DR.Morepen sync to the dedicated mailbox config", async () => {
@@ -155,20 +176,39 @@ test("returns a non-blocking conflict when the mailbox sync lock is busy", async
   const response = await request(buildApp())
     .post("/api/app/shopee/orders/sync")
     .auth("admin001", "admin-password")
-    .send({ limit: 25 });
+    .send({ limit: 25, shopCode: "sc-drug-store" });
 
   expect(response.status).toBe(409);
   expect(response.body.error.message).toContain("already running");
 });
 
 test.each([
-  ["/api/app/shopee/orders?status=unknown", "status"],
-  ["/api/app/shopee/orders?limit=26", "limit"],
-  ["/api/app/shopee/orders?cursor=broken", "cursor"],
-  ["/api/app/shopee/orders/SHORT", "orderNumber"],
-  ["/api/app/shopee/orders/not-valid!", "orderNumber"],
+  ["/api/app/shopee/orders?shopCode=sc-drug-store&status=unknown", "status"],
+  ["/api/app/shopee/orders?shopCode=sc-drug-store&limit=26", "limit"],
+  ["/api/app/shopee/orders?shopCode=sc-drug-store&cursor=broken", "cursor"],
+  ["/api/app/shopee/orders/SHORT?shopCode=sc-drug-store", "orderNumber"],
+  ["/api/app/shopee/orders/not-valid!?shopCode=sc-drug-store", "orderNumber"],
 ])("rejects invalid timeline request %s", async (path, messagePart) => {
   const response = await request(buildApp()).get(path);
   expect(response.status).toBe(400);
   expect(response.body.error.message).toContain(messagePart);
+});
+
+test("requires an explicit supported shop for list, detail, and admin sync", async () => {
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
+
+  const [list, detail, sync] = await Promise.all([
+    request(buildApp()).get("/api/app/shopee/orders"),
+    request(buildApp()).get("/api/app/shopee/orders/26082471YK8C02"),
+    request(buildApp())
+      .post("/api/app/shopee/orders/sync")
+      .auth("admin001", "admin-password")
+      .send({ limit: 25 }),
+  ]);
+
+  expect([list.status, detail.status, sync.status]).toEqual([400, 400, 400]);
+  expect(list.body.error.details.code).toBe("SHOPEE_SHOP_REQUIRED");
+  expect(detail.body.error.details.code).toBe("SHOPEE_SHOP_REQUIRED");
+  expect(sync.body.error.details.code).toBe("SHOPEE_SHOP_REQUIRED");
 });

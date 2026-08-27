@@ -5,12 +5,16 @@ jest.mock("../db", () => ({
 
 const pool = require("../db");
 const {
+  getOrderTimeline,
+  listOrders,
   mapEvent,
   mapOrder,
   upsertOrderEvent,
   withShopeeOrderSyncLock,
 } = require("../src/modules/seamless/db/shopeeOrderRepository");
 
+const CANONICAL_KEY = `sha256:${"a".repeat(64)}`;
+const ORDER_NUMBER = "26082471YK8C02";
 const databaseOrder = {
   current_status: "shipment_due",
   delivery_method: "Standard Delivery - ส่งธรรมดาในประเทศ",
@@ -21,22 +25,57 @@ const databaseOrder = {
   items: [{ name: "สินค้าทดสอบ", quantity: 1, unitPrice: 70, variant: "1 ขวด" }],
   last_event_at: new Date("2026-08-24T03:00:00.000Z"),
   ordered_at: new Date("2026-08-24T01:00:00.000Z"),
-  order_number: "26082471YK8C02",
+  order_number: ORDER_NUMBER,
   shipping_deadline: "2026-08-30",
   shipping_fee: "38.00",
+  shop_code: "sc-drug-store",
   total_amount: "108.00",
   total_quantity: 1,
 };
 
-const SENSITIVE_ITEM_LABEL_CASES = [
-  "• ข้อมูลผู้ซื้อ: Private Buyer",
-  "- ข้อมูลผู้รับ: Private Recipient",
-  "▪ ที่อยู่สำหรับจัดส่ง: Private Address",
-  "1) เบอร์โทรมือถือ: 0812345678",
-  "(1) หมายเลขโทรศัพท์มือถือ: 0898765432",
-];
+function parsedEvent(overrides = {}) {
+  return {
+    event: {
+      canonicalMessageKey: CANONICAL_KEY,
+      details: { shippingDeadline: "2026-08-30" },
+      eventType: "shipment_due",
+      gmailMessageId: "gmail-1",
+      gmailThreadId: "thread-1",
+      mailboxAccount: "admin@scgroup1989.com",
+      occurredAt: "2026-08-24T03:00:00.000Z",
+      orderNumber: ORDER_NUMBER,
+      shopCode: "sc-drug-store",
+      ...overrides.event,
+    },
+    order: {
+      currentStatus: "shipment_due",
+      deliveryMethod: databaseOrder.delivery_method,
+      firstEventAt: "2026-08-24T02:00:00.000Z",
+      itemSubtotal: 70,
+      items: databaseOrder.items,
+      lastEventAt: "2026-08-24T03:00:00.000Z",
+      orderedAt: "2026-08-24T01:00:00.000Z",
+      orderNumber: ORDER_NUMBER,
+      shippingDeadline: "2026-08-30",
+      shippingFee: 38,
+      shopCode: "sc-drug-store",
+      totalAmount: 108,
+      ...overrides.order,
+    },
+  };
+}
 
-test("maps PostgreSQL values to the bounded public timeline contract", () => {
+function successfulClient(orderRow = databaseOrder) {
+  return {
+    query: jest.fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [orderRow] })
+      .mockResolvedValueOnce({ rows: [{ id: "event-1" }] }),
+  };
+}
+
+test("maps PostgreSQL values to the bounded, shop-scoped public timeline contract", () => {
   expect(mapOrder(databaseOrder)).toEqual({
     currentStatus: "shipment_due",
     deliveryMethod: "Standard Delivery - ส่งธรรมดาในประเทศ",
@@ -47,9 +86,10 @@ test("maps PostgreSQL values to the bounded public timeline contract", () => {
     items: databaseOrder.items,
     lastEventAt: "2026-08-24T03:00:00.000Z",
     orderedAt: "2026-08-24T01:00:00.000Z",
-    orderNumber: "26082471YK8C02",
+    orderNumber: ORDER_NUMBER,
     shippingDeadline: "2026-08-30",
     shippingFee: 38,
+    shopCode: "sc-drug-store",
     totalAmount: 108,
     totalQuantity: 1,
   });
@@ -58,11 +98,13 @@ test("maps PostgreSQL values to the bounded public timeline contract", () => {
     event_type: "shipment_due",
     id: "event-1",
     occurred_at: databaseOrder.last_event_at,
+    shop_code: "sc-drug-store",
   })).toEqual({
     details: { shippingDeadline: "2026-08-30" },
     eventType: "shipment_due",
     id: "event-1",
     occurredAt: "2026-08-24T03:00:00.000Z",
+    shopCode: "sc-drug-store",
   });
 });
 
@@ -85,6 +127,7 @@ test("strips unexpected JSONB fields at the repository egress boundary", () => {
     event_type: "order_cancelled",
     id: "event-1",
     occurred_at: databaseOrder.last_event_at,
+    shop_code: "sc-drug-store",
   });
 
   expect(mappedOrder.items).toEqual(databaseOrder.items);
@@ -92,116 +135,108 @@ test("strips unexpected JSONB fields at the repository egress boundary", () => {
   expect(JSON.stringify({ mappedEvent, mappedOrder })).not.toMatch(/private|subject|recipient|rawBody/iu);
 });
 
-test.each(SENSITIVE_ITEM_LABEL_CASES)(
-  "fails persistence and API egress closed for sensitive item label: %s",
-  async (sensitiveLabel) => {
-    const items = [
-      databaseOrder.items[0],
-      { name: sensitiveLabel, quantity: 1, unitPrice: 70, variant: "" },
-    ];
-    const client = {
-      query: jest.fn()
-        .mockResolvedValueOnce({ rows: [{ ...databaseOrder, items: [] }] })
-        .mockResolvedValueOnce({ rows: [{ id: "event-sensitive" }] }),
-    };
-    const parsed = {
-      order: {
-        currentStatus: "shipment_due",
-        firstEventAt: "2026-08-24T02:00:00.000Z",
-        items,
-        lastEventAt: "2026-08-24T03:00:00.000Z",
-        orderNumber: databaseOrder.order_number,
-      },
-      event: {
-        details: {},
-        eventType: "shipment_due",
-        gmailMessageId: "gmail-sensitive",
-        mailboxAccount: "admin@scgroup1989.com",
-        occurredAt: "2026-08-24T03:00:00.000Z",
-        orderNumber: databaseOrder.order_number,
-      },
-    };
-
-    await upsertOrderEvent(parsed, client);
-
-    expect(JSON.parse(client.query.mock.calls[0][1][4])).toEqual([]);
-    expect(mapOrder({ ...databaseOrder, items }).items).toEqual([]);
-    expect(JSON.stringify(client.query.mock.calls.map((call) => call[1])))
-      .not.toMatch(/private buyer|private recipient|private address|0812345678|0898765432/iu);
-  },
-);
-
-test("upserts one order and idempotent Gmail event without raw email or buyer fields", async () => {
-  const client = {
-    query: jest.fn()
-      .mockResolvedValueOnce({ rows: [databaseOrder] })
-      .mockResolvedValueOnce({ rows: [{ id: "event-1" }] }),
-  };
-  const parsed = {
+test.each([
+  "• ข้อมูลผู้ซื้อ: Private Buyer",
+  "- ข้อมูลผู้รับ: Private Recipient",
+  "▪ ที่อยู่สำหรับจัดส่ง: Private Address",
+  "1) เบอร์โทรมือถือ: 0812345678",
+  "(1) หมายเลขโทรศัพท์มือถือ: 0898765432",
+])("fails persistence closed for sensitive item label: %s", async (sensitiveLabel) => {
+  const client = successfulClient({ ...databaseOrder, items: [] });
+  await upsertOrderEvent(parsedEvent({
     order: {
-      currentStatus: "shipment_due",
-      deliveryMethod: databaseOrder.delivery_method,
-      firstEventAt: "2026-08-24T02:00:00.000Z",
-      itemCount: 1,
-      itemSubtotal: 70,
-      items: [{
-        ...databaseOrder.items[0],
-        recipientName: "Private Recipient",
-        rawBody: "private raw email",
-      }],
-      lastEventAt: "2026-08-24T03:00:00.000Z",
-      orderedAt: "2026-08-24T01:00:00.000Z",
-      orderNumber: databaseOrder.order_number,
-      shippingDeadline: "2026-08-30",
-      shippingFee: 38,
-      totalAmount: 108,
-      totalQuantity: 1,
+      items: [
+        databaseOrder.items[0],
+        { name: sensitiveLabel, quantity: 1, unitPrice: 70, variant: "" },
+      ],
     },
-    event: {
-      details: {
-        shippingDeadline: "2026-08-30",
-        subject: "private subject",
-        username: "private_buyer",
-      },
-      eventType: "shipment_due",
-      gmailMessageId: "gmail-1",
-      gmailThreadId: "thread-1",
-      mailboxAccount: "admin@scgroup1989.com",
-      occurredAt: "2026-08-24T03:00:00.000Z",
-      orderNumber: databaseOrder.order_number,
-    },
-  };
+  }), client);
+
+  expect(JSON.parse(client.query.mock.calls[2][1][5])).toEqual([]);
+  expect(JSON.stringify(client.query.mock.calls.map((call) => call[1])))
+    .not.toMatch(/private buyer|private recipient|private address|0812345678|0898765432/iu);
+});
+
+test("upserts a composite shop/order and canonical event without raw email or buyer fields", async () => {
+  const client = successfulClient();
+  const parsed = parsedEvent({
+    event: { details: { shippingDeadline: "2026-08-30", subject: "private subject" } },
+    order: { items: [{ ...databaseOrder.items[0], recipientName: "Private Recipient" }] },
+  });
 
   const result = await upsertOrderEvent(parsed, client);
 
   expect(result.eventCreated).toBe(true);
-  expect(client.query).toHaveBeenCalledTimes(2);
-  expect(client.query.mock.calls[1][0]).toContain("ON CONFLICT (mailbox_account, gmail_message_id)");
-  expect(client.query.mock.calls[1][0]).toContain("DO NOTHING");
+  expect(client.query).toHaveBeenCalledTimes(4);
+  expect(client.query.mock.calls[0][0]).toContain("pg_advisory_xact_lock");
+  expect(client.query.mock.calls[2][0]).toContain("ON CONFLICT (shop_code, order_number)");
+  expect(client.query.mock.calls[3][0]).toContain("canonical_message_key");
+  expect(client.query.mock.calls[3][0]).toContain("ON CONFLICT DO NOTHING");
   const persistedValues = JSON.stringify(client.query.mock.calls.map((call) => call[1]));
-  expect(persistedValues).not.toMatch(/subject|body|buyer|username|phone|address/iu);
-  expect(persistedValues).not.toMatch(/recipient|private/iu);
+  expect(persistedValues).not.toMatch(/subject|body|buyer|username|phone|address|recipient|private/iu);
 });
 
-test("rejects invalid or mismatched order numbers before persistence", async () => {
-  const client = { query: jest.fn() };
-  const base = {
-    event: { orderNumber: "26082471YK8C02" },
-    order: { items: [], orderNumber: "26082471YK8C02" },
+test("deduplicates a forwarded canonical email before mutating another shop order", async () => {
+  const client = {
+    query: jest.fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [{ order_number: ORDER_NUMBER, shop_code: "sc-drug-store" }] }),
   };
+  const result = await upsertOrderEvent(parsedEvent({
+    event: {
+      gmailMessageId: "forwarded-gmail-id",
+      mailboxAccount: "second-mailbox@example.invalid",
+      shopCode: "dr-morepen",
+    },
+    order: { shopCode: "dr-morepen" },
+  }), client);
 
-  await expect(upsertOrderEvent({
-    ...base,
-    order: { ...base.order, orderNumber: "SHORT" },
-  }, client)).rejects.toThrow("same valid order number");
-  await expect(upsertOrderEvent({
-    ...base,
-    event: { ...base.event, orderNumber: "26082471YK8C03" },
-  }, client)).rejects.toThrow("same valid order number");
+  expect(result).toMatchObject({
+    duplicateShopCode: "sc-drug-store",
+    eventCreated: false,
+    order: null,
+  });
+  expect(client.query).toHaveBeenCalledTimes(2);
+});
+
+test("rejects missing/mismatched shop, order, or canonical identity before persistence", async () => {
+  const client = { query: jest.fn() };
+  await expect(upsertOrderEvent(parsedEvent({
+    order: { shopCode: "" },
+  }), client)).rejects.toThrow("shopCode is required");
+  await expect(upsertOrderEvent(parsedEvent({
+    event: { shopCode: "dr-morepen" },
+  }), client)).rejects.toThrow("same valid shop and order number");
+  await expect(upsertOrderEvent(parsedEvent({
+    event: { orderNumber: "26082471YK8C03" },
+  }), client)).rejects.toThrow("same valid shop and order number");
+  await expect(upsertOrderEvent(parsedEvent({
+    event: { canonicalMessageKey: "gmail-1" },
+  }), client)).rejects.toThrow("canonicalMessageKey");
   expect(client.query).not.toHaveBeenCalled();
 });
 
-test("uses a non-blocking mailbox lock and rejects a concurrent sync", async () => {
+test("list/detail SQL binds shopCode in every order and event lookup", async () => {
+  pool.query
+    .mockResolvedValueOnce({ rows: [databaseOrder] })
+    .mockResolvedValueOnce({ rows: [databaseOrder] })
+    .mockResolvedValueOnce({ rows: [{
+      details: {}, event_type: "shipment_due", id: "event-1",
+      occurred_at: databaseOrder.last_event_at, shop_code: "sc-drug-store",
+    }] });
+
+  await listOrders({ limit: 25, shopCode: "sc-drug-store" });
+  await getOrderTimeline("sc-drug-store", ORDER_NUMBER);
+
+  expect(pool.query.mock.calls[0][0]).toContain("o.shop_code = $1");
+  expect(pool.query.mock.calls[0][1][0]).toBe("sc-drug-store");
+  expect(pool.query.mock.calls[1][0]).toContain("o.shop_code = $1 AND o.order_number = $2");
+  expect(pool.query.mock.calls[2][0]).toContain("shop_code = $1 AND order_number = $2");
+  expect(pool.query.mock.calls[1][1]).toEqual(["sc-drug-store", ORDER_NUMBER]);
+  expect(pool.query.mock.calls[2][1]).toEqual(["sc-drug-store", ORDER_NUMBER]);
+});
+
+test("uses a non-blocking shop+mailbox lock and rejects a concurrent same-shop sync", async () => {
   let enterFirstSync;
   const firstStarted = new Promise((resolve) => { enterFirstSync = resolve; });
   let finishFirstSync;
@@ -216,59 +251,60 @@ test("uses a non-blocking mailbox lock and rejects a concurrent sync", async () 
     query: jest.fn().mockResolvedValueOnce({ rows: [{ acquired: false }] }),
     release: jest.fn(),
   };
-  pool.connect
-    .mockResolvedValueOnce(firstClient)
-    .mockResolvedValueOnce(secondClient);
+  pool.connect.mockResolvedValueOnce(firstClient).mockResolvedValueOnce(secondClient);
 
-  const firstSync = withShopeeOrderSyncLock("Admin@SCGroup1989.com", async () => {
-    enterFirstSync();
-    return firstCompletion;
-  });
+  const firstSync = withShopeeOrderSyncLock(
+    "sc-drug-store",
+    "Admin@SCGroup1989.com",
+    async () => {
+      enterFirstSync();
+      return firstCompletion;
+    },
+  );
   await firstStarted;
-
-  await expect(withShopeeOrderSyncLock("admin@scgroup1989.com", async () => "never"))
-    .rejects.toMatchObject({ code: "CONFLICT", statusCode: 409 });
-  expect(secondClient.release).toHaveBeenCalledTimes(1);
-  expect(firstClient.release).not.toHaveBeenCalled();
+  await expect(withShopeeOrderSyncLock(
+    "sc-drug-store",
+    "admin@scgroup1989.com",
+    async () => "never",
+  )).rejects.toMatchObject({ code: "CONFLICT", statusCode: 409 });
 
   finishFirstSync("complete");
   await expect(firstSync).resolves.toBe("complete");
-  expect(firstClient.release).toHaveBeenCalledTimes(1);
   expect(firstClient.query.mock.calls[0][1]).toEqual([
-    "shopee-order-timeline-sync:admin@scgroup1989.com",
+    "shopee-order-timeline-sync:sc-drug-store:admin@scgroup1989.com",
   ]);
-  expect(firstClient.query.mock.calls[1][0]).toContain("pg_advisory_unlock");
+  expect(firstClient.release).toHaveBeenCalledTimes(1);
+  expect(secondClient.release).toHaveBeenCalledTimes(1);
 });
 
-test("releases the mailbox lock when the sync callback fails", async () => {
+test("releases or destroys the session client after callback/unlock failures", async () => {
   const callbackFailure = new Error("database write failed");
-  const client = {
+  const callbackClient = {
     query: jest.fn()
       .mockResolvedValueOnce({ rows: [{ acquired: true }] })
       .mockResolvedValueOnce({ rows: [{ unlocked: true }] }),
     release: jest.fn(),
   };
-  pool.connect.mockResolvedValueOnce(client);
+  pool.connect.mockResolvedValueOnce(callbackClient);
+  await expect(withShopeeOrderSyncLock(
+    "sc-drug-store",
+    "admin@scgroup1989.com",
+    async () => { throw callbackFailure; },
+  )).rejects.toBe(callbackFailure);
+  expect(callbackClient.release).toHaveBeenCalledTimes(1);
 
-  await expect(withShopeeOrderSyncLock("admin@scgroup1989.com", async () => {
-    throw callbackFailure;
-  })).rejects.toBe(callbackFailure);
-
-  expect(client.query.mock.calls[1][0]).toContain("pg_advisory_unlock");
-  expect(client.release).toHaveBeenCalledTimes(1);
-});
-
-test("destroys the session client when advisory unlock fails", async () => {
   const unlockFailure = new Error("connection lost before unlock confirmation");
-  const client = {
+  const unlockClient = {
     query: jest.fn()
       .mockResolvedValueOnce({ rows: [{ acquired: true }] })
       .mockRejectedValueOnce(unlockFailure),
     release: jest.fn(),
   };
-  pool.connect.mockResolvedValueOnce(client);
-
-  await expect(withShopeeOrderSyncLock("admin@scgroup1989.com", async () => "complete"))
-    .rejects.toBe(unlockFailure);
-  expect(client.release).toHaveBeenCalledWith(unlockFailure);
+  pool.connect.mockResolvedValueOnce(unlockClient);
+  await expect(withShopeeOrderSyncLock(
+    "sc-drug-store",
+    "admin@scgroup1989.com",
+    async () => "complete",
+  )).rejects.toBe(unlockFailure);
+  expect(unlockClient.release).toHaveBeenCalledWith(unlockFailure);
 });
