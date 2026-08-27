@@ -172,6 +172,69 @@ function readShopeeGmailConfig() {
   };
 }
 
+const SHOPEE_DRMOREPEN_MAILBOX = "scgroup1989.glucooneshop@gmail.com";
+const SHOPEE_DRMOREPEN_QUERY = "from:info@mail.shopee.co.th";
+
+function requirePinnedConfigValue(name, value, expected) {
+  const configured = String(value || expected).trim();
+  if (configured !== expected) {
+    const error = new Error(`${name} must remain pinned to its approved value.`);
+    error.statusCode = 500;
+    throw error;
+  }
+  return configured;
+}
+
+// DR.Morepen has its own Gmail account and refresh token. Nothing in this reader falls back to
+// SEAMLESS_PHARMCARE_GMAIL_*: a partially configured deployment must fail closed instead of
+// silently reading the admin mailbox. The mailbox and sender query are pinned because they are
+// security boundaries, while the OAuth Desktop client itself may be reused across accounts.
+function readShopeeDrMorepenGmailConfig() {
+  const envPrefix = "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL";
+  const authMode = String(process.env[`${envPrefix}_AUTH_MODE`] || "").trim();
+  if (authMode && authMode !== "oauth_refresh_token") {
+    const error = new Error(`${envPrefix}_AUTH_MODE must be oauth_refresh_token.`);
+    error.statusCode = 500;
+    throw error;
+  }
+
+  return {
+    authMode,
+    clientId: String(process.env[`${envPrefix}_CLIENT_ID`] || "").trim(),
+    clientSecret: String(process.env[`${envPrefix}_CLIENT_SECRET`] || "").trim(),
+    credentialEnvPrefix: envPrefix,
+    expectedMailbox: SHOPEE_DRMOREPEN_MAILBOX,
+    gmailQuery: requirePinnedConfigValue(
+      `${envPrefix}_QUERY`,
+      process.env[`${envPrefix}_QUERY`],
+      SHOPEE_DRMOREPEN_QUERY,
+    ),
+    mailboxAccount: requirePinnedConfigValue(
+      `${envPrefix}_MAILBOX`,
+      process.env[`${envPrefix}_MAILBOX`],
+      SHOPEE_DRMOREPEN_MAILBOX,
+    ),
+    refreshToken: String(process.env[`${envPrefix}_REFRESH_TOKEN`] || "").trim(),
+    shopCode: "dr-morepen",
+  };
+}
+
+// Existing callers that do not select a shop retain the original admin-mailbox Shopee config.
+// Explicit shop routing is additive and derives shopCode from the mailbox mapping, never from
+// an email subject or body.
+function readShopeeGmailConfigForShop(shopCode) {
+  const normalized = String(shopCode || "").trim().toLowerCase();
+  if (!normalized) return readShopeeGmailConfig();
+  if (normalized === "dr-morepen") return readShopeeDrMorepenGmailConfig();
+  if (normalized === "sc-drug-store") {
+    return { ...readShopeeGmailConfig(), shopCode: "sc-drug-store" };
+  }
+
+  const error = new Error(`Unsupported Shopee Gmail shop code: ${shopCode}`);
+  error.statusCode = 400;
+  throw error;
+}
+
 function readPharmcareSenderAllowlist() {
   const raw = String(process.env.SEAMLESS_PHARMCARE_SENDER_ALLOWLIST || "").trim();
   if (!raw) {
@@ -210,6 +273,8 @@ module.exports = {
   readSchemaName,
   readSessionCookieMaxAgeMs,
   readSessionSecret,
+  readShopeeDrMorepenGmailConfig,
   readShopeeGmailConfig,
+  readShopeeGmailConfigForShop,
   readStorageDir,
 };

@@ -128,6 +128,22 @@ test("allows only an admin session to sync full Gmail bodies into the timeline",
   expect(syncShopeeOrderPageMock).toHaveBeenCalledWith({ cursor: "gmail-page", limit: 10 });
 });
 
+test("routes an admin DR.Morepen sync to the dedicated mailbox config", async () => {
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
+
+  const response = await request(buildApp())
+    .post("/api/app/shopee/orders/sync")
+    .auth("admin001", "admin-password")
+    .send({ limit: 10, shopCode: "dr-morepen" });
+
+  expect(response.status).toBe(200);
+  expect(syncShopeeOrderPageMock).toHaveBeenCalledWith({
+    limit: 10,
+    shopCode: "dr-morepen",
+  });
+});
+
 test("returns a non-blocking conflict when the mailbox sync lock is busy", async () => {
   process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
   process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";

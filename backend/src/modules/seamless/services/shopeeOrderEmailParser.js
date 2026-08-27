@@ -238,7 +238,7 @@ function extractBodyOrderNumber(bodyText) {
   return labeled?.[1] || String(bodyText || "").match(/#(\d{6}[A-Z0-9]{6,})/iu)?.[1] || "";
 }
 
-function parseShopeeOrderEmail(rawMessage, mailboxAccount) {
+function parseShopeeOrderEmail(rawMessage, mailboxAccount, shopCode = "") {
   const headers = rawMessage?.payload?.headers || [];
   const subject = getHeader(headers, "Subject");
   const eventType = classifyShopeeSubject(subject);
@@ -274,7 +274,7 @@ function parseShopeeOrderEmail(rawMessage, mailboxAccount) {
     ? "shipping_deadline_missed"
     : "";
 
-  return {
+  const parsed = {
     event: {
       details: {
         ...(shippingDeadline ? { shippingDeadline } : {}),
@@ -303,6 +303,11 @@ function parseShopeeOrderEmail(rawMessage, mailboxAccount) {
       totalQuantity: items.reduce((total, item) => total + (item.quantity || 0), 0),
     },
   };
+  if (shopCode) {
+    parsed.event.shopCode = shopCode;
+    parsed.order.shopCode = shopCode;
+  }
+  return parsed;
 }
 
 module.exports = {

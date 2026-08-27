@@ -1,4 +1,4 @@
-const { readShopeeGmailConfig } = require("../config");
+const { readShopeeGmailConfigForShop } = require("../config");
 const {
   createGmailAdapter,
   normalizeGmailMessage,
@@ -118,9 +118,9 @@ function isWithinReceivedRange(rawMessage, filters = {}) {
   );
 }
 
-function mapShopeeEmail(rawMessage) {
+function mapShopeeEmail(rawMessage, shopCode = "") {
   const message = normalizeGmailMessage(rawMessage);
-  return {
+  const email = {
     id: message.gmailMessageId,
     threadId: message.gmailThreadId,
     receivedAt: message.receivedAt,
@@ -130,6 +130,8 @@ function mapShopeeEmail(rawMessage) {
     orderNumber: extractOrderNumber(message.rawSubject),
     unread: message.labelIds.includes("UNREAD"),
   };
+  if (shopCode) email.shopCode = shopCode;
+  return email;
 }
 
 async function loadShopeeEmailInboxPage(filters, baseConfig, adapter, createAdapter = createGmailAdapter) {
@@ -146,18 +148,22 @@ async function loadShopeeEmailInboxPage(filters, baseConfig, adapter, createAdap
   // mailbox content.
   const emails = rawMessages
     .filter((message) => isWithinReceivedRange(message, filters))
-    .map(mapShopeeEmail)
+    .map((message) => mapShopeeEmail(message, baseConfig.shopCode))
     .filter((email) => extractEmailAddress(email.from) === SHOPEE_SENDER);
 
-  return {
+  const result = {
     emails,
     nextCursor: page.nextPageToken,
     source: SHOPEE_SENDER,
   };
+  if (baseConfig.shopCode) result.shopCode = baseConfig.shopCode;
+  return result;
 }
 
 function buildInboxCacheKey(baseConfig, filters) {
   return JSON.stringify([
+    baseConfig.mailboxAccount || "",
+    baseConfig.shopCode || "",
     baseConfig.gmailQuery || `from:${SHOPEE_SENDER}`,
     filters.category || "",
     filters.cursor || "",
@@ -177,7 +183,7 @@ function pruneInboxCache(now) {
 }
 
 async function listShopeeEmailInbox(filters = {}, dependencies = {}) {
-  const baseConfig = dependencies.config || readShopeeGmailConfig();
+  const baseConfig = dependencies.config || readShopeeGmailConfigForShop(filters.shopCode);
   if (dependencies.adapter || dependencies.disableCache) {
     return loadShopeeEmailInboxPage(
       filters,

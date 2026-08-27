@@ -17,8 +17,8 @@ function isGmailConfigured(config = readPharmcareGmailConfig()) {
 }
 
 // Real adapter backed by googleapis. Read-only by construction: the OAuth/JWT client is scoped
-// to gmail.readonly only, and the adapter exposes exactly three read operations
-// (messages.list / messages.get / attachments.get) — it has no code path that could send,
+// to gmail.readonly only, and the adapter exposes only read operations (plus the established
+// Gmail watch subscription used by PharmCare) — it has no code path that could send,
 // forward, delete, mark-read, or label a message, even if callers wanted it to.
 //
 // Auth modes (see docs/14 section 4.6), selected by SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE:
@@ -44,7 +44,7 @@ function createDefaultGmailClient(config) {
     auth.setCredentials({ refresh_token: config.refreshToken });
   } else {
     throw serviceUnavailable(
-      `Unsupported SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE: '${config.authMode}' (expected 'service_account' or 'oauth_refresh_token').`,
+      `Unsupported Gmail auth mode for ${config.credentialEnvPrefix || "the configured mailbox"}: '${config.authMode}' (expected 'service_account' or 'oauth_refresh_token').`,
     );
   }
 
@@ -56,6 +56,7 @@ function createGmailAdapter(configOverride, deps = {}) {
   // Injectable for tests: deps.createGmailClient(config) -> { users: { messages: {...} } }
   const createGmailClient = deps.createGmailClient || (() => createDefaultGmailClient(config));
   let gmailClient = null;
+  let verifiedClientPromise = null;
 
   function client() {
     if (!gmailClient) {
@@ -64,10 +65,28 @@ function createGmailAdapter(configOverride, deps = {}) {
     return gmailClient;
   }
 
+  async function verifiedClient() {
+    if (!verifiedClientPromise) {
+      verifiedClientPromise = (async () => {
+        const activeClient = client();
+        if (config.expectedMailbox) {
+          const { data } = await activeClient.users.getProfile({ userId: "me" });
+          if (data?.emailAddress !== config.expectedMailbox) {
+            throw serviceUnavailable(
+              "Gmail account identity check failed for the configured mailbox.",
+            );
+          }
+        }
+        return activeClient;
+      })();
+    }
+    return verifiedClientPromise;
+  }
+
   function assertConfigured() {
     if (!isGmailConfigured(config)) {
       throw serviceUnavailable(
-        "Gmail read-only adapter is not configured. Set SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE and its matching credential env vars.",
+        `Gmail read-only adapter is not configured. Set ${config.credentialEnvPrefix || "SEAMLESS_PHARMCARE_GMAIL"}_AUTH_MODE and its matching credential env vars.`,
       );
     }
   }
@@ -90,12 +109,13 @@ function createGmailAdapter(configOverride, deps = {}) {
 
   async function listCandidateMessageIds({ after, maxResults = 500 } = {}) {
     assertConfigured();
+    const activeClient = await verifiedClient();
 
     const messageIds = [];
     let pageToken;
     do {
       // eslint-disable-next-line no-await-in-loop
-      const { data } = await client().users.messages.list({
+      const { data } = await activeClient.users.messages.list({
         userId: "me",
         q: buildQuery(after),
         maxResults: 100,
@@ -113,11 +133,12 @@ function createGmailAdapter(configOverride, deps = {}) {
   // needs user-driven pagination and therefore must preserve Gmail's nextPageToken.
   async function listMessagePage({ after, maxResults = 25, pageToken } = {}) {
     assertConfigured();
+    const activeClient = await verifiedClient();
 
     const safeLimit = Number.isFinite(Number(maxResults))
       ? Math.min(Math.max(Number(maxResults), 1), 100)
       : 25;
-    const { data } = await client().users.messages.list(
+    const { data } = await activeClient.users.messages.list(
       {
         userId: "me",
         q: buildQuery(after),
@@ -135,8 +156,9 @@ function createGmailAdapter(configOverride, deps = {}) {
 
   async function getMessage(messageId) {
     assertConfigured();
+    const activeClient = await verifiedClient();
 
-    const { data } = await client().users.messages.get({
+    const { data } = await activeClient.users.messages.get({
       format: "full",
       id: messageId,
       userId: "me",
@@ -150,8 +172,9 @@ function createGmailAdapter(configOverride, deps = {}) {
   // established PharmCare ingestion behavior of getMessage().
   async function getMessageBounded(messageId) {
     assertConfigured();
+    const activeClient = await verifiedClient();
 
-    const { data } = await client().users.messages.get(
+    const { data } = await activeClient.users.messages.get(
       {
         format: "full",
         id: messageId,
@@ -167,8 +190,9 @@ function createGmailAdapter(configOverride, deps = {}) {
   // never downloads message bodies it will not return or display.
   async function getMessageMetadata(messageId) {
     assertConfigured();
+    const activeClient = await verifiedClient();
 
-    const { data } = await client().users.messages.get(
+    const { data } = await activeClient.users.messages.get(
       {
         fields: "id,threadId,internalDate,labelIds,payload(headers)",
         format: "metadata",
@@ -183,8 +207,9 @@ function createGmailAdapter(configOverride, deps = {}) {
 
   async function getAttachment(messageId, attachmentId) {
     assertConfigured();
+    const activeClient = await verifiedClient();
 
-    const { data } = await client().users.messages.attachments.get({
+    const { data } = await activeClient.users.messages.attachments.get({
       id: attachmentId,
       messageId,
       userId: "me",
@@ -200,8 +225,9 @@ function createGmailAdapter(configOverride, deps = {}) {
   // acts on the mailbox. Expires in <= 7 days; callers must re-call this periodically.
   async function watchMailbox(topicName) {
     assertConfigured();
+    const activeClient = await verifiedClient();
 
-    const { data } = await client().users.watch({
+    const { data } = await activeClient.users.watch({
       requestBody: { labelIds: ["INBOX"], topicName },
       userId: "me",
     });

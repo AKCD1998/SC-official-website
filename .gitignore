@@ -3,6 +3,7 @@ node_modules/
 
 # Secrets
 backend/.env
+backend/**/client_secret*.json
 
 # Local upload fallback files
 backend/uploads/

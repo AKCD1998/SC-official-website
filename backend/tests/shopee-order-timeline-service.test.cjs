@@ -160,3 +160,36 @@ test("does not call Gmail when the cross-request mailbox lock is busy", async ()
   expect(adapter.getMessage).not.toHaveBeenCalled();
   expect(repository.upsertOrderEvent).not.toHaveBeenCalled();
 });
+
+test("derives dr-morepen shop identity from the selected GlucoOne mailbox config", async () => {
+  const adapter = {
+    getMessageBounded: jest.fn(async () => rawMessage({
+      id: "dr-message",
+      subject: "ถึงเวลาจัดส่งสินค้าหมายเลข #26082476830R2P แล้ว!",
+      body: "<div>หมายเลขคำสั่งซื้อ:</div><div>#26082476830R2P</div>",
+    })),
+    listMessagePage: jest.fn(async () => ({ messageIds: ["dr-message"], nextPageToken: null })),
+  };
+  const repository = repositoryWithSyncLock({
+    upsertOrderEvent: jest.fn(async () => ({ eventCreated: true })),
+  });
+
+  const result = await syncShopeeOrderPage({}, {
+    adapter,
+    config: {
+      gmailQuery: "from:info@mail.shopee.co.th",
+      mailboxAccount: "scgroup1989.glucooneshop@gmail.com",
+      shopCode: "dr-morepen",
+    },
+    repository,
+  });
+
+  expect(result.shopCode).toBe("dr-morepen");
+  expect(repository.upsertOrderEvent).toHaveBeenCalledWith(expect.objectContaining({
+    event: expect.objectContaining({
+      mailboxAccount: "scgroup1989.glucooneshop@gmail.com",
+      shopCode: "dr-morepen",
+    }),
+    order: expect.objectContaining({ shopCode: "dr-morepen" }),
+  }));
+});

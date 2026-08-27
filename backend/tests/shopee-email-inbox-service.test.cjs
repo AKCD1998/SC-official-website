@@ -107,6 +107,28 @@ test("listShopeeEmailInbox returns a Gmail page, classifies rows, and excludes a
   expect(adapter.getMessageMetadata).toHaveBeenCalledTimes(2);
 });
 
+test("tags GlucoOne mailbox rows as dr-morepen from config identity", async () => {
+  const adapter = {
+    listMessagePage: jest.fn(async () => ({ messageIds: ["dr-message"], nextPageToken: null })),
+    getMessageMetadata: jest.fn(async () => rawMessage({
+      id: "dr-message",
+      subject: "ถึงเวลาจัดส่งสินค้าหมายเลข #26082471YK8C02 แล้ว!",
+    })),
+  };
+
+  const result = await listShopeeEmailInbox({}, {
+    adapter,
+    config: {
+      gmailQuery: "from:info@mail.shopee.co.th",
+      mailboxAccount: "scgroup1989.glucooneshop@gmail.com",
+      shopCode: "dr-morepen",
+    },
+  });
+
+  expect(result.shopCode).toBe("dr-morepen");
+  expect(result.emails[0].shopCode).toBe("dr-morepen");
+});
+
 test("listShopeeEmailInbox enforces exact inclusive/exclusive date bounds after the broad Gmail query", async () => {
   const receivedFrom = "2026-08-23T17:00:00.000Z";
   const receivedTo = "2026-08-24T17:00:00.000Z";
@@ -208,4 +230,39 @@ test("listShopeeEmailInbox reuses a successful page for the short cache TTL", as
   expect(createAdapter).toHaveBeenCalledTimes(1);
   expect(adapter.listMessagePage).toHaveBeenCalledTimes(1);
   expect(adapter.getMessageMetadata).toHaveBeenCalledTimes(1);
+});
+
+test("keeps cached pages isolated when two mailboxes use the same Shopee query", async () => {
+  function adapterFor(id) {
+    return {
+      listMessagePage: jest.fn(async () => ({ messageIds: [id], nextPageToken: null })),
+      getMessageMetadata: jest.fn(async () => rawMessage({
+        id,
+        subject: `ถึงเวลาจัดส่งสินค้าหมายเลข #${id.toUpperCase()}12345 แล้ว!`,
+      })),
+    };
+  }
+  const adminAdapter = adapterFor("admin");
+  const drAdapter = adapterFor("drmorepen");
+
+  const admin = await listShopeeEmailInbox({}, {
+    config: {
+      gmailQuery: "from:info@mail.shopee.co.th",
+      mailboxAccount: "admin@scgroup1989.com",
+    },
+    createAdapter: () => adminAdapter,
+  });
+  const drMorepen = await listShopeeEmailInbox({}, {
+    config: {
+      gmailQuery: "from:info@mail.shopee.co.th",
+      mailboxAccount: "scgroup1989.glucooneshop@gmail.com",
+      shopCode: "dr-morepen",
+    },
+    createAdapter: () => drAdapter,
+  });
+
+  expect(admin.emails[0].id).toBe("admin");
+  expect(drMorepen.emails[0].id).toBe("drmorepen");
+  expect(adminAdapter.listMessagePage).toHaveBeenCalledTimes(1);
+  expect(drAdapter.listMessagePage).toHaveBeenCalledTimes(1);
 });
