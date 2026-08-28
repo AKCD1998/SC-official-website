@@ -205,6 +205,25 @@ function createGmailAdapter(configOverride, deps = {}) {
     return data;
   }
 
+  // Legacy shop reconciliation needs routing evidence only. Keeping this separate from the
+  // inbox metadata reader ensures an admin review never requests or exposes Subject/body data.
+  async function getMessageRoutingMetadata(messageId) {
+    assertConfigured();
+    const activeClient = await verifiedClient();
+
+    const { data } = await activeClient.users.messages.get(
+      {
+        fields: "id,internalDate,payload(headers)",
+        format: "metadata",
+        id: messageId,
+        metadataHeaders: ["From", "To"],
+        userId: "me",
+      },
+      { retry: false, timeout: GMAIL_INBOX_REQUEST_TIMEOUT_MS },
+    );
+    return data;
+  }
+
   async function getAttachment(messageId, attachmentId) {
     assertConfigured();
     const activeClient = await verifiedClient();
@@ -239,6 +258,7 @@ function createGmailAdapter(configOverride, deps = {}) {
     getMessage,
     getMessageBounded,
     getMessageMetadata,
+    getMessageRoutingMetadata,
     listCandidateMessageIds,
     listMessagePage,
     watchMailbox,
@@ -278,6 +298,10 @@ function createMockGmailAdapter(fixtureMessages = []) {
     return getMessage(messageId);
   }
 
+  async function getMessageRoutingMetadata(messageId) {
+    return getMessage(messageId);
+  }
+
   async function getAttachment(messageId, attachmentId) {
     const message = messagesById.get(messageId);
     const attachment = message?.attachments?.find((item) => item.attachmentId === attachmentId);
@@ -296,6 +320,7 @@ function createMockGmailAdapter(fixtureMessages = []) {
     getMessage,
     getMessageBounded,
     getMessageMetadata,
+    getMessageRoutingMetadata,
     listCandidateMessageIds,
     listMessagePage,
     watchMailbox,

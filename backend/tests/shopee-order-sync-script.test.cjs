@@ -14,7 +14,7 @@ test("scheduled sync CLI resolves the production database module", () => {
   expect(() => require.resolve("../db")).not.toThrow();
 });
 
-test("production schedule invokes the CLI with an explicit shop", () => {
+test("production schedule invokes isolated CLI jobs for both explicit shops", () => {
   const workflow = fs.readFileSync(
     path.join(__dirname, "..", "..", ".github", "workflows", "shopee-order-sync.yml"),
     "utf8",
@@ -22,6 +22,12 @@ test("production schedule invokes the CLI with an explicit shop", () => {
   expect(workflow).toContain(
     "npm run seamless:shopee:sync -- --shop-code=sc-drug-store",
   );
+  expect(workflow).toContain(
+    "npm run seamless:shopee:sync -- --shop-code=dr-morepen",
+  );
+  expect(workflow).toContain("SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_REFRESH_TOKEN");
+  expect(workflow.match(/SHOPEE_SCHEDULE_ENABLED/g)).toHaveLength(2);
+  expect(workflow).toContain("github.event_name == 'workflow_dispatch'");
 });
 
 function page(overrides = {}) {

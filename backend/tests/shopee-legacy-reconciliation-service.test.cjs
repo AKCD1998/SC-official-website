@@ -1,0 +1,109 @@
+jest.mock("../src/modules/seamless/db/shopeeLegacyReconciliationRepository", () => ({}));
+
+const {
+  listLegacyReconciliationPage,
+  resolveLegacyRoutingEvidence,
+  reviewLegacyOrder,
+} = require("../src/modules/seamless/services/shopeeLegacyReconciliationService");
+
+const ORDER_NUMBER = "26082471YK8C02";
+const configs = [{
+  expectedMailbox: "admin@sc.example",
+  mailboxAccount: "legacy@archive.example",
+  shopCode: "sc-drug-store",
+}, {
+  expectedMailbox: "orders@morepen.example",
+  mailboxAccount: "morepen@archive.example",
+  shopCode: "dr-morepen",
+}];
+
+function message(id, to, from = "Shopee <info@mail.shopee.co.th>") {
+  return {
+    id,
+    internalDate: "1787549837000",
+    payload: { headers: [
+      { name: "From", value: from },
+      { name: "To", value: to },
+    ] },
+  };
+}
+
+function legacyOrder(events = [{
+  gmailMessageId: "gmail-private-id",
+  mailboxAccount: "legacy@archive.example",
+}]) {
+  return {
+    currentStatus: "shipment_due",
+    decision: null,
+    eventCount: events.length,
+    firstEventAt: "2026-08-24T02:00:00.000Z",
+    lastEventAt: "2026-08-24T03:00:00.000Z",
+    orderNumber: ORDER_NUMBER,
+    sourceEvents: events,
+  };
+}
+
+test("suggests a shop from live From/To metadata without returning raw routing identifiers", async () => {
+  const order = legacyOrder();
+  const evidence = await resolveLegacyRoutingEvidence(order, {
+    configs,
+    createAdapter: () => ({
+      getMessageRoutingMetadata: async () => message(
+        "gmail-private-id",
+        "DR Orders <orders@morepen.example>",
+      ),
+    }),
+  });
+
+  expect(evidence).toEqual({
+    evidenceStatus: "recipient_match",
+    matchedEventCount: 1,
+    suggestedShopCode: "dr-morepen",
+    totalEventCount: 1,
+  });
+
+  const repository = { listLegacyOrders: jest.fn(async () => ({ hasMore: false, orders: [order] })) };
+  const page = await listLegacyReconciliationPage({ limit: 10 }, {
+    configs,
+    createAdapter: () => ({
+      getMessageRoutingMetadata: async () => message("gmail-private-id", "admin@sc.example"),
+    }),
+    repository,
+  });
+  expect(page.orders[0].evidence.suggestedShopCode).toBe("sc-drug-store");
+  expect(JSON.stringify(page)).not.toMatch(/gmail-private-id|archive\.example|admin@sc\.example/iu);
+});
+
+test("fails closed on conflicting recipient evidence but still permits an explicit admin choice", async () => {
+  const order = legacyOrder([{ gmailMessageId: "one", mailboxAccount: "legacy@archive.example" }, {
+    gmailMessageId: "two",
+    mailboxAccount: "legacy@archive.example",
+  }]);
+  const routing = {
+    one: message("one", "admin@sc.example"),
+    two: message("two", "orders@morepen.example"),
+  };
+  const saveDecision = jest.fn(async (decision) => ({ ...decision, decisionStatus: "reviewed" }));
+  const result = await reviewLegacyOrder({
+    orderNumber: ORDER_NUMBER,
+    selectedShopCode: "sc-drug-store",
+  }, {
+    configs,
+    createAdapter: () => ({ getMessageRoutingMetadata: async (id) => routing[id] }),
+    repository: {
+      getLegacyOrder: jest.fn(async () => order),
+      saveDecision,
+    },
+  });
+
+  expect(result.reviewOnly).toBe(true);
+  expect(result.evidence).toMatchObject({
+    evidenceStatus: "recipient_conflict",
+    suggestedShopCode: null,
+  });
+  expect(saveDecision).toHaveBeenCalledWith(expect.objectContaining({
+    evidenceStatus: "recipient_conflict",
+    selectedShopCode: "sc-drug-store",
+    suggestedShopCode: null,
+  }));
+});
