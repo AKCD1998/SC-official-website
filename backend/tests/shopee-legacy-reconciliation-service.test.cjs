@@ -3,6 +3,7 @@ jest.mock("../src/modules/seamless/db/shopeeLegacyReconciliationRepository", () 
 const {
   combineLegacyEvidence,
   listLegacyReconciliationPage,
+  resolveLegacyMailboxEvidence,
   resolveLegacyProductEvidence,
   resolveLegacyRoutingEvidence,
   reviewLegacyOrder,
@@ -16,6 +17,15 @@ const configs = [{
 }, {
   expectedMailbox: "orders@morepen.example",
   mailboxAccount: "morepen@archive.example",
+  shopCode: "dr-morepen",
+}];
+const pinnedConfigs = [{
+  expectedMailbox: "admin@sc.example",
+  mailboxAccount: "admin@sc.example",
+  shopCode: "sc-drug-store",
+}, {
+  expectedMailbox: "orders@morepen.example",
+  mailboxAccount: "orders@morepen.example",
   shopCode: "dr-morepen",
 }];
 
@@ -162,6 +172,102 @@ test("keeps partial or ambiguous product evidence review-only", () => {
   expect(productEvidence).toMatchObject({
     candidateShopCode: "dr-morepen",
     evidenceStatus: "product_partial",
+    suggestedShopCode: null,
+  });
+});
+
+test("auto-classifies an order when every source event comes from one pinned mailbox", () => {
+  const mailboxEvidence = resolveLegacyMailboxEvidence(legacyOrder([{
+    gmailMessageId: "one",
+    mailboxAccount: "orders@morepen.example",
+  }, {
+    gmailMessageId: "two",
+    mailboxAccount: "ORDERS@MOREPEN.EXAMPLE",
+  }]), { configs: pinnedConfigs });
+
+  expect(mailboxEvidence).toEqual({
+    distinctShopCount: 1,
+    evidenceStatus: "mailbox_match",
+    matchedEventCount: 2,
+    suggestedShopCode: "dr-morepen",
+    totalEventCount: 2,
+  });
+
+  const combined = combineLegacyEvidence({
+    evidenceStatus: "recipient_unknown",
+    matchedEventCount: 0,
+    suggestedShopCode: null,
+    totalEventCount: 2,
+  }, {
+    candidateShopCode: null,
+    evidenceStatus: "product_unknown",
+    suggestedShopCode: null,
+  }, mailboxEvidence);
+
+  expect(combined).toMatchObject({
+    classification: {
+      reasonCode: "trusted_mailbox",
+      requiresConfirmation: false,
+      shopCode: "dr-morepen",
+      status: "auto_classified",
+    },
+    recommendationStatus: "auto_classified",
+    suggestedShopCode: "dr-morepen",
+  });
+  expect(JSON.stringify(combined)).not.toMatch(/orders@morepen\.example/iu);
+});
+
+test("requires manual review when source events span both pinned mailboxes", () => {
+  const mailboxEvidence = resolveLegacyMailboxEvidence(legacyOrder([{
+    gmailMessageId: "one",
+    mailboxAccount: "admin@sc.example",
+  }, {
+    gmailMessageId: "two",
+    mailboxAccount: "orders@morepen.example",
+  }]), { configs: pinnedConfigs });
+  const combined = combineLegacyEvidence({
+    evidenceStatus: "recipient_unknown",
+    suggestedShopCode: null,
+  }, {
+    evidenceStatus: "product_unknown",
+    suggestedShopCode: null,
+  }, mailboxEvidence);
+
+  expect(mailboxEvidence).toMatchObject({
+    evidenceStatus: "mailbox_conflict",
+    suggestedShopCode: null,
+  });
+  expect(combined).toMatchObject({
+    classification: {
+      reasonCode: "evidence_conflict",
+      requiresConfirmation: true,
+      shopCode: null,
+      status: "manual_review",
+    },
+    suggestedShopCode: null,
+  });
+});
+
+test("fails closed when partial product evidence points away from the pinned mailbox", () => {
+  const combined = combineLegacyEvidence({
+    evidenceStatus: "recipient_unknown",
+    suggestedShopCode: null,
+  }, {
+    candidateShopCode: "dr-morepen",
+    evidenceStatus: "product_partial",
+    suggestedShopCode: null,
+  }, {
+    evidenceStatus: "mailbox_match",
+    suggestedShopCode: "sc-drug-store",
+  });
+
+  expect(combined).toMatchObject({
+    classification: {
+      reasonCode: "evidence_conflict",
+      requiresConfirmation: true,
+      status: "manual_review",
+    },
+    recommendationStatus: "evidence_conflict",
     suggestedShopCode: null,
   });
 });
