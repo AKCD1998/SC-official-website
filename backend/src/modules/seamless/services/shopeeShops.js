@@ -13,6 +13,8 @@ const SHOPEE_SHOP_PROFILES = Object.freeze({
   }),
 });
 
+const SHOPEE_ALL_SHOPS_SCOPE = "all";
+
 const SHOP_CODE_ALIASES = Object.freeze({
   "sc-drug-store": "sc-drug-store",
   "sc-drugstore": "sc-drug-store",
@@ -35,6 +37,12 @@ function getShopeeShopProfile(value) {
   return shopCode ? SHOPEE_SHOP_PROFILES[shopCode] : null;
 }
 
+function normalizeShopeeShopScope(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === SHOPEE_ALL_SHOPS_SCOPE) return SHOPEE_ALL_SHOPS_SCOPE;
+  return normalizeShopeeShopCode(value);
+}
+
 function requireShopeeShopCode(value) {
   if (!String(value || "").trim()) {
     throw badRequest("กรุณาเลือกร้าน Shopee", {
@@ -55,9 +63,34 @@ function requireShopeeShopCode(value) {
   return profile.code;
 }
 
+function requireShopeeShopScope(value) {
+  if (!String(value || "").trim()) {
+    throw badRequest("กรุณาเลือกร้าน Shopee", {
+      code: "SHOPEE_SHOP_REQUIRED",
+      supportedShopCodes: Object.keys(SHOPEE_SHOP_PROFILES),
+      supportedShopScopes: [SHOPEE_ALL_SHOPS_SCOPE, ...Object.keys(SHOPEE_SHOP_PROFILES)],
+    });
+  }
+
+  const scope = normalizeShopeeShopScope(value);
+  if (!scope) {
+    throw badRequest("ร้าน Shopee ที่เลือกไม่รองรับ", {
+      code: "SHOPEE_SHOP_UNSUPPORTED",
+      shopCode: value,
+      supportedShopCodes: Object.keys(SHOPEE_SHOP_PROFILES),
+      supportedShopScopes: [SHOPEE_ALL_SHOPS_SCOPE, ...Object.keys(SHOPEE_SHOP_PROFILES)],
+    });
+  }
+
+  return scope;
+}
+
 module.exports = {
+  SHOPEE_ALL_SHOPS_SCOPE,
   SHOPEE_SHOP_PROFILES,
   getShopeeShopProfile,
   normalizeShopeeShopCode,
+  normalizeShopeeShopScope,
   requireShopeeShopCode,
+  requireShopeeShopScope,
 };

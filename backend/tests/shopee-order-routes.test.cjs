@@ -102,6 +102,41 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
   expect(replay.body.error.message).toContain("cursor");
 });
 
+test("lists both supported shops without allowing an all-shops cursor to cross scopes", async () => {
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/orders?shopCode=all&limit=10",
+  );
+
+  expect(response.status).toBe(200);
+  expect(response.body.shopCode).toBe("all");
+  expect(response.body.nextCursor).toEqual(expect.any(String));
+  expect(listOrdersMock).toHaveBeenCalledWith({
+    cursor: null,
+    limit: 10,
+    shopCode: "all",
+    status: null,
+  });
+
+  const replay = await request(buildApp()).get(
+    `/api/app/shopee/orders?shopCode=all&cursor=${response.body.nextCursor}`,
+  );
+  expect(replay.status).toBe(200);
+  expect(listOrdersMock).toHaveBeenLastCalledWith(expect.objectContaining({
+    cursor: expect.objectContaining({
+      orderNumber: orderRow.orderNumber,
+      rowShopCode: "sc-drug-store",
+      shopCode: "all",
+    }),
+    shopCode: "all",
+  }));
+
+  const crossScopeReplay = await request(buildApp()).get(
+    `/api/app/shopee/orders?shopCode=sc-drug-store&cursor=${response.body.nextCursor}`,
+  );
+  expect(crossScopeReplay.status).toBe(400);
+  expect(crossScopeReplay.body.error.message).toContain("cursor");
+});
+
 test("returns the latest completed cycle and configured next accounting cycle", async () => {
   const response = await request(buildApp()).get("/api/app/shopee/accounting-cycle");
 
@@ -163,6 +198,23 @@ test("routes an admin DR.Morepen sync to the dedicated mailbox config", async ()
     limit: 10,
     shopCode: "dr-morepen",
   });
+});
+
+test("keeps all-shops scope read-only and rejects it for detail and sync", async () => {
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
+
+  const [detail, sync] = await Promise.all([
+    request(buildApp()).get(`/api/app/shopee/orders/${orderRow.orderNumber}?shopCode=all`),
+    request(buildApp())
+      .post("/api/app/shopee/orders/sync")
+      .auth("admin001", "admin-password")
+      .send({ limit: 10, shopCode: "all" }),
+  ]);
+
+  expect(detail.status).toBe(400);
+  expect(sync.status).toBe(400);
+  expect(syncShopeeOrderPageMock).not.toHaveBeenCalled();
 });
 
 test("returns a non-blocking conflict when the mailbox sync lock is busy", async () => {

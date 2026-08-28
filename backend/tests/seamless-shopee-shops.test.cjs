@@ -2,7 +2,9 @@ const { findSourceUploadByChecksum } = require("../src/modules/seamless/db/gener
 const {
   getShopeeShopProfile,
   normalizeShopeeShopCode,
+  normalizeShopeeShopScope,
   requireShopeeShopCode,
+  requireShopeeShopScope,
 } = require("../src/modules/seamless/services/shopeeShops");
 
 test("normalizes supported Shopee shop aliases to stable audit codes", () => {
@@ -11,11 +13,15 @@ test("normalizes supported Shopee shop aliases to stable audit codes", () => {
   expect(getShopeeShopProfile("dr-morepen")).toEqual(
     expect.objectContaining({ displayName: "DR.Morepen", outputSlug: "dr-morepen" }),
   );
+  expect(normalizeShopeeShopScope("ALL")).toBe("all");
+  expect(requireShopeeShopScope("all")).toBe("all");
 });
 
 test("Shopee shop selection fails closed when missing or unsupported", () => {
   expect(() => requireShopeeShopCode("")).toThrow("กรุณาเลือกร้าน Shopee");
   expect(() => requireShopeeShopCode("unknown-shop")).toThrow("ร้าน Shopee ที่เลือกไม่รองรับ");
+  expect(() => requireShopeeShopCode("all")).toThrow("ร้าน Shopee ที่เลือกไม่รองรับ");
+  expect(() => requireShopeeShopScope("unknown-shop")).toThrow("ร้าน Shopee ที่เลือกไม่รองรับ");
 });
 
 test("source duplicate lookup scopes Shopee checks by shop and treats legacy rows as DR.Morepen", async () => {
