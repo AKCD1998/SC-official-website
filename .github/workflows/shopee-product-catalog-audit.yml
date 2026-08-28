@@ -1,0 +1,38 @@
+name: Audit Shopee product catalog against ERP
+
+on:
+  schedule:
+    - cron: "19 3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: shopee-product-catalog-readonly-audit
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.SHOPEE_PRODUCT_CATALOG_AUDIT_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Verify approved Shopee mappings against ERP master
+        working-directory: backend
+        env:
+          SC_ERP_PRODUCT_CATALOG_RESOLVE_URL: ${{ vars.SC_ERP_PRODUCT_CATALOG_RESOLVE_URL || secrets.SC_ERP_PRODUCT_CATALOG_RESOLVE_URL }}
+          SC_ERP_PRODUCT_CATALOG_TOKEN: ${{ secrets.SC_ERP_PRODUCT_CATALOG_TOKEN }}
+        run: node ./scripts/verify-shopee-erp-product-catalog.cjs

@@ -1,0 +1,2784 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "shopee-company-sku-2026-08-28",
+  "ownerDecisionDate": "2026-08-28",
+  "sources": [
+    {
+      "shopCode": "dr-morepen",
+      "filename": "mass_update_sales_info_1766281115_drmorepen.xlsx",
+      "sha256": "3fcdb038f511593dd831bebf1d682e8ef6ec37c67aa740107a4456e5f9686100",
+      "worksheet": "Sheet1",
+      "firstDataRow": 7,
+      "lastDataRow": 21
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "filename": "mass_update_sales_info_1763530749_20260825192156.xlsx",
+      "sha256": "01d65d9358d992bf734b2189c9a812571c8f20d261bb436f1bb3e593e566c2b1",
+      "worksheet": "Sheet1",
+      "firstDataRow": 7,
+      "lastDataRow": 218
+    }
+  ],
+  "records": [
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 7,
+      "productId": "56215934993",
+      "variationId": "292872606621",
+      "productName": "Dr.Morepen Pregnancy Test Kit ชุดตรวจการตั้งครรภ์ ที่ตรวจครรภ์ HCG แบบปัสสาวะ รู้ผลใน 5 นาที 25 Tests/กล่อง",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005998"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 8,
+      "productId": "54559472820",
+      "variationId": "287663535927",
+      "productName": "Gluco One แผ่นตรวจน้ำตาลในเลือด Dr.Morepen  BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 25 3 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003478"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 9,
+      "productId": "54559472820",
+      "variationId": "310838372282",
+      "productName": "Gluco One แผ่นตรวจน้ำตาลในเลือด Dr.Morepen  BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 25 1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003478"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 10,
+      "productId": "54559472820",
+      "variationId": "310838372283",
+      "productName": "Gluco One แผ่นตรวจน้ำตาลในเลือด Dr.Morepen  BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 50 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003232"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 11,
+      "productId": "54559472820",
+      "variationId": "431093010169",
+      "productName": "Gluco One แผ่นตรวจน้ำตาลในเลือด Dr.Morepen  BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "เครื่อง + แผ่นตรวจ25",
+      "match": {
+        "status": "bundle",
+        "components": [
+          {
+            "companySku": "IC-003230",
+            "quantityPerSale": null
+          },
+          {
+            "companySku": "IC-003478",
+            "quantityPerSale": null
+          }
+        ],
+        "quantityRuleStatus": "requires_validation"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 12,
+      "productId": "53707038704",
+      "variationId": "325628858799",
+      "productName": "Dr.Morepen Gluco One BG-03 Blood Glucose Meter เครื่องตรวจน้ำตาล พร้อมแผ่นตรวจ 25 / 50 แผ่น",
+      "variant": "เครื่อง+แถบ25ชิิ้น",
+      "match": {
+        "status": "bundle",
+        "components": [
+          {
+            "companySku": "IC-003230",
+            "quantityPerSale": null
+          },
+          {
+            "companySku": "IC-003478",
+            "quantityPerSale": null
+          }
+        ],
+        "quantityRuleStatus": "requires_validation"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 13,
+      "productId": "53707038704",
+      "variationId": "350673885877",
+      "productName": "Dr.Morepen Gluco One BG-03 Blood Glucose Meter เครื่องตรวจน้ำตาล พร้อมแผ่นตรวจ 25 / 50 แผ่น",
+      "variant": "เครื่อง+แถบ50ชิิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003233"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 14,
+      "productId": "53707038704",
+      "variationId": "350673885878",
+      "productName": "Dr.Morepen Gluco One BG-03 Blood Glucose Meter เครื่องตรวจน้ำตาล พร้อมแผ่นตรวจ 25 / 50 แผ่น",
+      "variant": "แถบตรวจ 25 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003478"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 15,
+      "productId": "53707038704",
+      "variationId": "350673885879",
+      "productName": "Dr.Morepen Gluco One BG-03 Blood Glucose Meter เครื่องตรวจน้ำตาล พร้อมแผ่นตรวจ 25 / 50 แผ่น",
+      "variant": "แถบตรวจ 50 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003232"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 16,
+      "productId": "53707038704",
+      "variationId": "325628858798",
+      "productName": "Dr.Morepen Gluco One BG-03 Blood Glucose Meter เครื่องตรวจน้ำตาล พร้อมแผ่นตรวจ 25 / 50 แผ่น",
+      "variant": "เครื่องเท่านั้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003230"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 17,
+      "productId": "48907603916",
+      "variationId": "365676085095",
+      "productName": "หูฟังแพทย์ Stethoscope Dr.Morepen ST-01A หัวคู่ สแตนเลส ซิลิโคน 100% เสียงชัด",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004912"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 18,
+      "productId": "41882204225",
+      "variationId": "331145177320",
+      "productName": "เจลประคบร้อนและเย็นสำหรับหัวเข่า ข้อมือ ข้อศอก Cool Sleeve | ACE+MED",
+      "variant": "สำหรับข้อศอก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005527"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 19,
+      "productId": "41882204225",
+      "variationId": "331145177318",
+      "productName": "เจลประคบร้อนและเย็นสำหรับหัวเข่า ข้อมือ ข้อศอก Cool Sleeve | ACE+MED",
+      "variant": "สำหรับหัวเข่า",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005528"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 20,
+      "productId": "41882204225",
+      "variationId": "331145177319",
+      "productName": "เจลประคบร้อนและเย็นสำหรับหัวเข่า ข้อมือ ข้อศอก Cool Sleeve | ACE+MED",
+      "variant": "สำหรับข้อมือ",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005526"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "sourceRow": 21,
+      "productId": "41580368745",
+      "variationId": "307569008049",
+      "productName": "หูฟังแพทย์ Dr. Morepen ST-07A รุ่นพรีเมียม ฟังเสียงชัดสูง วัสดุสแตนเลสแท้",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005661"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 7,
+      "productId": "57966329574",
+      "variationId": "386392304232",
+      "productName": "โฟมล้างหน้า Vitara Facial Cleansing Foam Mousse 100mL สูตรอ่อนโยน ปราศจากน้ำหอม สำหรับผิวบอบบาง",
+      "variant": "bottle",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005462"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 8,
+      "productId": "57915402004",
+      "variationId": "206419875239",
+      "productName": "Durex Protect ถุงยางอนามัยดูเร็กซ์ โพรเทคท์ 52.5 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "3 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002111"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 9,
+      "productId": "57915402004",
+      "variationId": "198862786729",
+      "productName": "Durex Protect ถุงยางอนามัยดูเร็กซ์ โพรเทคท์ 52.5 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002111"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 10,
+      "productId": "57864044159",
+      "variationId": "346213004098",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 14 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "2 แพ๊ค",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001928"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 11,
+      "productId": "57864044159",
+      "variationId": "346213004099",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 14 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "3 แพ๊ค",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001928"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 12,
+      "productId": "57864044159",
+      "variationId": "346213004097",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 14 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "1 แพ๊ค",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001928"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 13,
+      "productId": "57766329791",
+      "variationId": "386392360955",
+      "productName": "สเปรย์ปาก Zigaless 15ml ลดความอยากบุหรี่และกลิ่นปาก",
+      "variant": "15 ml",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002892"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 14,
+      "productId": "57666141262",
+      "variationId": "381376701014",
+      "productName": "Propoliz Lozenge ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอ ระคายคอ มี 2 รส ส้ม Vit C / มะนาว-ขิง 8 เม็ด/ซอง",
+      "variant": "1 ซอง ส้ม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003569"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 15,
+      "productId": "57666141262",
+      "variationId": "381376701015",
+      "productName": "Propoliz Lozenge ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอ ระคายคอ มี 2 รส ส้ม Vit C / มะนาว-ขิง 8 เม็ด/ซอง",
+      "variant": "1 ซอง น้ำผึ้งมะนาว",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002080"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 16,
+      "productId": "57515793147",
+      "variationId": "411349708578",
+      "productName": "1 กล่อง 20 แผง แผงละ 2 เม็ด FESDRA เฟสดรา ยาเม็ดแก้เมารถเมาเรือ ไดเมนไฮดริเนท Dimenhydrinate 50mg BLHUA ยาสามัญประจำบ้าน",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002928"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 17,
+      "productId": "57515692979",
+      "variationId": "446341698205",
+      "productName": "One Gerd วันเกิร์ด ยาน้ำลดกรด แก้กรดไหลย้อน แสบร้อนกลางอก อาหารไม่ย่อย รสมินท์ ปราศจากน้ำตาล 1 ซอง x 10 มล.",
+      "variant": "1 ซอง 10 มล",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002441"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 18,
+      "productId": "56961305766",
+      "variationId": "365983976845",
+      "productName": "Biotin Plus Zinc Deeday วิตามินบำรุงผม ไบโอติน ซิงค์ ลดผมร่วง ผมบาง เล็บเปราะ",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005369"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 19,
+      "productId": "56915205110",
+      "variationId": "396303161034",
+      "productName": "Polar Spray โพลาร์สเปรย์ ยูคาลิปตัส Eucalyptus Oil Plus Activ สเปรย์ปรับอากาศ 280 มล.",
+      "variant": "ยูคาลิปตัส 280 มล.",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002462"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 20,
+      "productId": "56915205110",
+      "variationId": "401364788462",
+      "productName": "Polar Spray โพลาร์สเปรย์ ยูคาลิปตัส Eucalyptus Oil Plus Activ สเปรย์ปรับอากาศ 280 มล.",
+      "variant": "อินโนเซนส์ 80 มล.",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005557"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 21,
+      "productId": "56915205110",
+      "variationId": "401364788461",
+      "productName": "Polar Spray โพลาร์สเปรย์ ยูคาลิปตัส Eucalyptus Oil Plus Activ สเปรย์ปรับอากาศ 280 มล.",
+      "variant": "ยูคาลิปตัส 80 มล.",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-006023"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 22,
+      "productId": "56915205110",
+      "variationId": "386303205620",
+      "productName": "Polar Spray โพลาร์สเปรย์ ยูคาลิปตัส Eucalyptus Oil Plus Activ สเปรย์ปรับอากาศ 280 มล.",
+      "variant": "อินโนเซนส์ 280 มล.",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005185"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 23,
+      "productId": "56712181022",
+      "variationId": "282696554927",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด ส้ม 30 เม็ด | Vitamin C Tablet Orange Flavour",
+      "variant": "24+1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002516"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 24,
+      "productId": "56712181022",
+      "variationId": "282696554928",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด ส้ม 30 เม็ด | Vitamin C Tablet Orange Flavour",
+      "variant": "50 ซอง (1 กล่อง)",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002516"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 25,
+      "productId": "56712181022",
+      "variationId": "282696554925",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด ส้ม 30 เม็ด | Vitamin C Tablet Orange Flavour",
+      "variant": "6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002516"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 26,
+      "productId": "56712181022",
+      "variationId": "282696554926",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด ส้ม 30 เม็ด | Vitamin C Tablet Orange Flavour",
+      "variant": "12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002516"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 27,
+      "productId": "56665551712",
+      "variationId": "316330259295",
+      "productName": "Biotin Zinc by Chula PharTech ไบโอติน ซิงค์ ซิงค์อะมิโนแอซิดคีเลต 30 เม็ด/ 90 เม็ดผมร่วง ผมบาง เล็บเปราะ บำรุงผมและเล็บ",
+      "variant": "30 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005994"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 28,
+      "productId": "56665551712",
+      "variationId": "316330259296",
+      "productName": "Biotin Zinc by Chula PharTech ไบโอติน ซิงค์ ซิงค์อะมิโนแอซิดคีเลต 30 เม็ด/ 90 เม็ดผมร่วง ผมบาง เล็บเปราะ บำรุงผมและเล็บ",
+      "variant": "90 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005993"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 29,
+      "productId": "56615697470",
+      "variationId": "307861351619",
+      "productName": "One Gerd วันเกิร์ด ยาน้ำลดกรด แก้กรดไหลย้อน แสบร้อนกลางอก อาหารไม่ย่อย รสมินท์ ปราศจากน้ำตาล 12 ซอง x 10 มล.",
+      "variant": "1 กล่อง 12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002441"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 30,
+      "productId": "56562339508",
+      "variationId": "406070928077",
+      "productName": "BIOPHARM Entrasol Platinum 400g เอนทราซอล แพลตินั่ม โปรตีนสูง ไฟเบอร์สูง ผงชงดื่ม กลิ่นวานิลลา 400 กรัม",
+      "variant": "3 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003143"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 31,
+      "productId": "56562339508",
+      "variationId": "406070928075",
+      "productName": "BIOPHARM Entrasol Platinum 400g เอนทราซอล แพลตินั่ม โปรตีนสูง ไฟเบอร์สูง ผงชงดื่ม กลิ่นวานิลลา 400 กรัม",
+      "variant": "1 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003143"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 32,
+      "productId": "56562339508",
+      "variationId": "406070928076",
+      "productName": "BIOPHARM Entrasol Platinum 400g เอนทราซอล แพลตินั่ม โปรตีนสูง ไฟเบอร์สูง ผงชงดื่ม กลิ่นวานิลลา 400 กรัม",
+      "variant": "2 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003143"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 33,
+      "productId": "56562041161",
+      "variationId": "436046531380",
+      "productName": "Vita-C วิตามินซี กัมมี่ 3 รสชาติ (ส้ม แอปเปิ้ล องุ่น) | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "variant": "12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001849"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 34,
+      "productId": "56562041161",
+      "variationId": "436046531381",
+      "productName": "Vita-C วิตามินซี กัมมี่ 3 รสชาติ (ส้ม แอปเปิ้ล องุ่น) | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "variant": "24 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001849"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 35,
+      "productId": "56562041161",
+      "variationId": "436046531379",
+      "productName": "Vita-C วิตามินซี กัมมี่ 3 รสชาติ (ส้ม แอปเปิ้ล องุ่น) | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "variant": "6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001849"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 36,
+      "productId": "56415784030",
+      "variationId": "416349483516",
+      "productName": "คลอเฟนิรามีน มาลีเอท 2mg ยาแก้แพ้ ลดน้ำมูก แก้คัดจมูก กล่อง 10 แผง ยาสามัญประจำบ้าน Chlorpheniramine Maleate BLHUA",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000665"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 37,
+      "productId": "56315788413",
+      "variationId": "371349646110",
+      "productName": "1 ซอง 6 เม็ด ยาถ่ายพยาธิ มีเบนดาโซล Mebendazole 100mg พยาธิตัวกลม เข็มหมุด ไส้เดือน ปากขอ แส้ม้า BLHUA ยาสามัญประจำบ้าน",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004199"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 38,
+      "productId": "56212039029",
+      "variationId": "426047027372",
+      "productName": "วิตามินซีอัดเม็ด Vita-C วิตามินซี กลิ่นองุ่น 25 มก. เม็ดอม 30 เม็ด Vitamin C Tablet Grape Flavour อร่อย เคี้ยวได้ อมได้",
+      "variant": "50 ซอง (1 กล่อง)",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002353"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 39,
+      "productId": "56212039029",
+      "variationId": "426047027369",
+      "productName": "วิตามินซีอัดเม็ด Vita-C วิตามินซี กลิ่นองุ่น 25 มก. เม็ดอม 30 เม็ด Vitamin C Tablet Grape Flavour อร่อย เคี้ยวได้ อมได้",
+      "variant": "6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002353"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 40,
+      "productId": "56212039029",
+      "variationId": "426047027370",
+      "productName": "วิตามินซีอัดเม็ด Vita-C วิตามินซี กลิ่นองุ่น 25 มก. เม็ดอม 30 เม็ด Vitamin C Tablet Grape Flavour อร่อย เคี้ยวได้ อมได้",
+      "variant": "12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002353"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 41,
+      "productId": "56212039029",
+      "variationId": "426047027371",
+      "productName": "วิตามินซีอัดเม็ด Vita-C วิตามินซี กลิ่นองุ่น 25 มก. เม็ดอม 30 เม็ด Vitamin C Tablet Grape Flavour อร่อย เคี้ยวได้ อมได้",
+      "variant": "24+1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002353"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 42,
+      "productId": "56164616372",
+      "variationId": "302811779934",
+      "productName": "EXXE Phytocell Anti-Aging and Whitening Facial Serum เซรั่มบำรุงผิวหน้า 30g ของแท้100%",
+      "variant": "1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005547"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 43,
+      "productId": "56164616372",
+      "variationId": "302811779935",
+      "productName": "EXXE Phytocell Anti-Aging and Whitening Facial Serum เซรั่มบำรุงผิวหน้า 30g ของแท้100%",
+      "variant": "2 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005547"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 44,
+      "productId": "56015382644",
+      "variationId": "307847352823",
+      "productName": "Durex Sensation ถุงยางอนามัย ดูเร็กซ์ เซนเซชั่น ผิวไม่เรียบ แบบปุ่ม ขนาด 52 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000129"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 45,
+      "productId": "56015382644",
+      "variationId": "307847352822",
+      "productName": "Durex Sensation ถุงยางอนามัย ดูเร็กซ์ เซนเซชั่น ผิวไม่เรียบ แบบปุ่ม ขนาด 52 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "3 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000129"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 46,
+      "productId": "55815800400",
+      "variationId": "411349891569",
+      "productName": "GHP NasiCare Nasal Washer ขวดล้างจมูก ชนิดอัตโนมัติ ปุ่มกด On/Off ขนาด 300ml ใช้ได้กับน้ำเกลือ",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004143"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 47,
+      "productId": "55712403509",
+      "variationId": "411075700784",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นสตรอว์เบอร์รี่ 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสสตรอว์เบอร์รี่ กระปุกใหญ่",
+      "variant": "3 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002913"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 48,
+      "productId": "55712403509",
+      "variationId": "411075700782",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นสตรอว์เบอร์รี่ 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสสตรอว์เบอร์รี่ กระปุกใหญ่",
+      "variant": "1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002913"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 49,
+      "productId": "55712403509",
+      "variationId": "411075700783",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นสตรอว์เบอร์รี่ 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสสตรอว์เบอร์รี่ กระปุกใหญ่",
+      "variant": "2 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002913"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 50,
+      "productId": "55662773608",
+      "variationId": "361109425247",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "ส้ม 6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002516"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 51,
+      "productId": "55662773608",
+      "variationId": "361109425250",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "เลมอน 6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002484"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 52,
+      "productId": "55662773608",
+      "variationId": "426113260219",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สับปะรด 1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002300"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 53,
+      "productId": "55662773608",
+      "variationId": "426113260217",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สตรอฯ 1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002485"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 54,
+      "productId": "55662773608",
+      "variationId": "361109425246",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สตรอว์เบอร์รี่ 6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002485"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 55,
+      "productId": "55662773608",
+      "variationId": "361109425248",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สับปะรด 6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002300"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 56,
+      "productId": "55662773608",
+      "variationId": "426113260216",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "องุ่น 1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002353"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 57,
+      "productId": "55662773608",
+      "variationId": "361109425249",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "องุ่น 6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002353"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 58,
+      "productId": "55662773608",
+      "variationId": "426113260218",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "ส้ม 1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002516"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 59,
+      "productId": "55412352111",
+      "variationId": "431071039899",
+      "productName": "BIOPHARM Entrasol Platinum 800g เอนทราซอล แพลตินั่ม โปรตีนสูง ไฟเบอร์สูง ผงชงดื่ม กลิ่นวานิลลา 800 กรัม",
+      "variant": "3 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005014"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 60,
+      "productId": "55412352111",
+      "variationId": "431071039897",
+      "productName": "BIOPHARM Entrasol Platinum 800g เอนทราซอล แพลตินั่ม โปรตีนสูง ไฟเบอร์สูง ผงชงดื่ม กลิ่นวานิลลา 800 กรัม",
+      "variant": "1 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005014"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 61,
+      "productId": "55412352111",
+      "variationId": "431071039898",
+      "productName": "BIOPHARM Entrasol Platinum 800g เอนทราซอล แพลตินั่ม โปรตีนสูง ไฟเบอร์สูง ผงชงดื่ม กลิ่นวานิลลา 800 กรัม",
+      "variant": "2 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005014"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 62,
+      "productId": "55265784653",
+      "variationId": "446349643902",
+      "productName": "1 กล่อง 5 ซอง ยาถ่ายพยาธิ มีเบนดาโซล Mebendazole 100mg พยาธิตัวกลม เข็มหมุด ไส้เดือน ปากขอ แส้ม้า BLHUA ยาสามัญประจำบ้าน",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004199"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 63,
+      "productId": "55165385287",
+      "variationId": "234730387695",
+      "productName": "เจลหล่อลื่น Durex Play กลิ่นสตรอเบอร์รี 50 มล. สูตรน้ำ ไม่เหนียวเหนอะหนะ",
+      "variant": "strawberry",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002113"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 64,
+      "productId": "54814603839",
+      "variationId": "341256385064",
+      "productName": "EXXE Phytocell Facial Cleansing Milk คลีนซิ่งมิลค์ล้างหน้า 100g เนื้อครีมน้ำนม ของแท้100%",
+      "variant": "1 หลอด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005546"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 65,
+      "productId": "54615386798",
+      "variationId": "371317678811",
+      "productName": "ดูเร็กซ์ ถุงยางอนามัย เลิฟ 1 กล่อง บรรจุ 3 ชิ้น Durex Love Condom 1 box 3's",
+      "variant": "3 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003387"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 66,
+      "productId": "54615386798",
+      "variationId": "371317678810",
+      "productName": "ดูเร็กซ์ ถุงยางอนามัย เลิฟ 1 กล่อง บรรจุ 3 ชิ้น Durex Love Condom 1 box 3's",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003387"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 67,
+      "productId": "54164731217",
+      "variationId": "401266133066",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ ลดสิว ผิวหน้า ผิวกาย ลดกลิ่นตัว ขนาด 30g / 80g ของแท้ 100%",
+      "variant": "80 กรัม 1 ก้อน",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003493"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 68,
+      "productId": "54164731217",
+      "variationId": "401266133065",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ ลดสิว ผิวหน้า ผิวกาย ลดกลิ่นตัว ขนาด 30g / 80g ของแท้ 100%",
+      "variant": "30 กรัม 1 ก้อน",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003560"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 69,
+      "productId": "54065406308",
+      "variationId": "406380915495",
+      "productName": "เจลหล่อลื่นสูตรน้ำ KY ไม่เหนียวเหนอะหนะ ขนาด 25ml และ 50g",
+      "variant": "50 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000246"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 70,
+      "productId": "54065406308",
+      "variationId": "396319050963",
+      "productName": "เจลหล่อลื่นสูตรน้ำ KY ไม่เหนียวเหนอะหนะ ขนาด 25ml และ 50g",
+      "variant": "15 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000245"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 71,
+      "productId": "53816141800",
+      "variationId": "371376847728",
+      "productName": "Propoliz Lozenge ลูกอมโพรโพลิส แก้เจ็บคอ มี 2 สูตร X กานพลู-มะนาว / Extherb มะขามป้อม-สมอ 8 เม็ด",
+      "variant": "extherb 1 แผง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004857"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 72,
+      "productId": "53816141800",
+      "variationId": "371376847729",
+      "productName": "Propoliz Lozenge ลูกอมโพรโพลิส แก้เจ็บคอ มี 2 สูตร X กานพลู-มะนาว / Extherb มะขามป้อม-สมอ 8 เม็ด",
+      "variant": "x 1 แผง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004601"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 73,
+      "productId": "53716331903",
+      "variationId": "411391372983",
+      "productName": "Klean&Kare ชุดล้างจมูก ไซริงค์ล้างจมูก 20 มล. พร้อมจุกล้างจมูก Nasal Kit สำหรับเด็กและผู้ใหญ่",
+      "variant": "กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005845"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 74,
+      "productId": "53365792879",
+      "variationId": "421349610182",
+      "productName": "50 ซอง Oreda RO ผงเกลือแร่ รสส้ม 5.5 กรัม บรรเทาอาการท้องเสีย",
+      "variant": "10Pcs",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004371"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 75,
+      "productId": "53364027865",
+      "variationId": "346211850398",
+      "productName": "เข็มเจาะเลือด Sinocare สำหรับปากกาเจาะเลือด",
+      "variant": "3 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001230"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 76,
+      "productId": "53364027865",
+      "variationId": "346211850399",
+      "productName": "เข็มเจาะเลือด Sinocare สำหรับปากกาเจาะเลือด",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001230"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 77,
+      "productId": "53364027865",
+      "variationId": "346211850400",
+      "productName": "เข็มเจาะเลือด Sinocare สำหรับปากกาเจาะเลือด",
+      "variant": "2 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001230"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 78,
+      "productId": "53361659593",
+      "variationId": "356013262666",
+      "productName": "Deeday วิตามินเด็ก Omega-3 L-Lysine มัลติวิตามิน บำรุงสมอง เจริญอาหาร เพิ่มความอยากอาหาร รสส้ม",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005439"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 79,
+      "productId": "53165692767",
+      "variationId": "351341635689",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "รสส้ม,1 แผง 10 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "630010147"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 80,
+      "productId": "53165692767",
+      "variationId": "351341635687",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "รสมะนาว,1 แผง 10 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000023"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 81,
+      "productId": "53165692767",
+      "variationId": "351341635688",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "รสมิ้นต์,1 แผง 10 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "630010148"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 82,
+      "productId": "53066142081",
+      "variationId": "292881803078",
+      "productName": "Udea ยูเดีย ครีมทาผิวแห้ง คัน ผิวหนังอักเสบ สะเก็ดเงิน Urea 10%/20% Dexpanthenol Na-PCA 30g",
+      "variant": "ยูเรีย 10%",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002717"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 83,
+      "productId": "53066142081",
+      "variationId": "292881803079",
+      "productName": "Udea ยูเดีย ครีมทาผิวแห้ง คัน ผิวหนังอักเสบ สะเก็ดเงิน Urea 10%/20% Dexpanthenol Na-PCA 30g",
+      "variant": "ยูเรีย 20%",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001395"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 84,
+      "productId": "53065797110",
+      "variationId": "426349476058",
+      "productName": "คลอเฟนิรามีน มาลีเอท 2mg ยาแก้แพ้ ลดน้ำมูก แก้คัดจมูก แผง 10 เม็ด ยาสามัญประจำบ้าน Chlorpheniramine Maleate BLHUA",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000665"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 85,
+      "productId": "52965946016",
+      "variationId": "356361227679",
+      "productName": "12 ซอง Biopharm Gummy เสริมสร้างสุขภาพ รสชาติอร่อย ทานง่าย",
+      "variant": "Orange Flavor",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000178"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 86,
+      "productId": "52564345285",
+      "variationId": "361235054874",
+      "productName": "บีแพนเธน ออยเมนต์ 30 กรัม Bepanthen Ointment ดูแลผิวใต้ผ้าอ้อม ป้องกันผื่นผ้าอ้อม",
+      "variant": "30 กรัม 1 หลอด",
+      "match": {
+        "status": "matched",
+        "companySku": "630010188"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 87,
+      "productId": "52116134593",
+      "variationId": "297881622956",
+      "productName": "Dente Propoliz Wash น้ำยาบ้วนปาก โพรโพลิส สารสกัดจากรังผึ้ง ปราศจากแอลกอฮอล์ ไม่มีน้ำตาล กลิ่นมิ้นท์ 150ml",
+      "variant": "natural mint",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001886"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 88,
+      "productId": "51866324101",
+      "variationId": "446391655719",
+      "productName": "Klean&Kare จุกล้างจมูก อุปกรณ์ล้างจมูก Nasal Adaptor มีแบบธรรมดาและแบบนุ่มนุ่ม ใช้งานง่าย เด็กและผู้ใหญ่",
+      "variant": "พลาสติก 2 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "630010206"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 89,
+      "productId": "51866324101",
+      "variationId": "446391655718",
+      "productName": "Klean&Kare จุกล้างจมูก อุปกรณ์ล้างจมูก Nasal Adaptor มีแบบธรรมดาและแบบนุ่มนุ่ม ใช้งานง่าย เด็กและผู้ใหญ่",
+      "variant": "ซิลิโคนนุ่ม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001984"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 90,
+      "productId": "51815546929",
+      "variationId": "208868052033",
+      "productName": "Erbatop เออบาท๊อป Urea Cream ครีมยูเรีย 9% คงความชุ่มชื้น 50 กรัม ผิวแห้งมาก ผิวแตกลอก ฟื้นฟูเกราะป้องกันผิว",
+      "variant": "1 หลอด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005480"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 91,
+      "productId": "51662177470",
+      "variationId": "431057872361",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสัปปะรด 30 เม็ด | Vitamin C Tablet Pineapple Flavour",
+      "variant": "6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002300"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 92,
+      "productId": "51662177470",
+      "variationId": "431057872362",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสัปปะรด 30 เม็ด | Vitamin C Tablet Pineapple Flavour",
+      "variant": "12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002300"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 93,
+      "productId": "51662177470",
+      "variationId": "431057872363",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสัปปะรด 30 เม็ด | Vitamin C Tablet Pineapple Flavour",
+      "variant": "24+1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002300"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 94,
+      "productId": "51662177470",
+      "variationId": "431057872364",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสัปปะรด 30 เม็ด | Vitamin C Tablet Pineapple Flavour",
+      "variant": "50 ซอง (1 กล่อง)",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002300"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 95,
+      "productId": "51565820850",
+      "variationId": "326351700521",
+      "productName": "Absorba แอปซอบา ผ้าอ้อมผู้ใหญ่ แบบกางเกง Afina Dry ซึมซับสูง สำหรับผู้สูงอายุ ผู้ป่วยติดเตียง ไซส์ M/L/XL",
+      "variant": "XL",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005531"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 96,
+      "productId": "51565820850",
+      "variationId": "326351700519",
+      "productName": "Absorba แอปซอบา ผ้าอ้อมผู้ใหญ่ แบบกางเกง Afina Dry ซึมซับสูง สำหรับผู้สูงอายุ ผู้ป่วยติดเตียง ไซส์ M/L/XL",
+      "variant": "M",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005529"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 97,
+      "productId": "51565820850",
+      "variationId": "326351700520",
+      "productName": "Absorba แอปซอบา ผ้าอ้อมผู้ใหญ่ แบบกางเกง Afina Dry ซึมซับสูง สำหรับผู้สูงอายุ ผู้ป่วยติดเตียง ไซส์ M/L/XL",
+      "variant": "L",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005530"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 98,
+      "productId": "51416334357",
+      "variationId": "431392260355",
+      "productName": "Burnova Gel Plus เบอร์นโนว่า เจล พลัส เจลว่านหางจระเข้ บำรุงผิวหลังออกแดด เติมความชุ่มชื้น 25 / 70 กรัม**",
+      "variant": "70 g",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000304"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 99,
+      "productId": "51416334357",
+      "variationId": "431392260356",
+      "productName": "Burnova Gel Plus เบอร์นโนว่า เจล พลัส เจลว่านหางจระเข้ บำรุงผิวหลังออกแดด เติมความชุ่มชื้น 25 / 70 กรัม**",
+      "variant": "25 g",
+      "match": {
+        "status": "matched",
+        "companySku": "630010253"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 100,
+      "productId": "51315697309",
+      "variationId": "366341634058",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว 1 กล่อง 50 แผง",
+      "variant": "รสมะนาว,1 กล่อง 50 แผง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000023"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 101,
+      "productId": "51315697309",
+      "variationId": "366341634056",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว 1 กล่อง 50 แผง",
+      "variant": "รสมิ้นต์,1 กล่อง 50 แผง",
+      "match": {
+        "status": "matched",
+        "companySku": "630010148"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 102,
+      "productId": "51315697309",
+      "variationId": "366341634057",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว 1 กล่อง 50 แผง",
+      "variant": "รสส้ม,1 กล่อง 50 แผง",
+      "match": {
+        "status": "matched",
+        "companySku": "630010147"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 103,
+      "productId": "51315194451",
+      "variationId": "287872690522",
+      "productName": "โคลอชัวร์ อาหารเสริมโปรตีนสูง กลิ่นวนิลลา 800 กรัม 400 กรัม โปรตีนสูง ไม่เติมน้ำตาล ไขมันต่ำ",
+      "variant": "กระป๋อง 400 g",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005104"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 104,
+      "productId": "51315194451",
+      "variationId": "287872690523",
+      "productName": "โคลอชัวร์ อาหารเสริมโปรตีนสูง กลิ่นวนิลลา 800 กรัม 400 กรัม โปรตีนสูง ไม่เติมน้ำตาล ไขมันต่ำ",
+      "variant": "กล่อง 800 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005483"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 105,
+      "productId": "51062566910",
+      "variationId": "356091214252",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นสับปะรด 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสสับปะรด กระปุกใหญ่",
+      "variant": "1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002912"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 106,
+      "productId": "51062566910",
+      "variationId": "356091214253",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นสับปะรด 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสสับปะรด กระปุกใหญ่",
+      "variant": "2 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002912"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 107,
+      "productId": "51062566910",
+      "variationId": "356091214254",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นสับปะรด 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสสับปะรด กระปุกใหญ่",
+      "variant": "3 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002912"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 108,
+      "productId": "51061217819",
+      "variationId": "436035018971",
+      "productName": "Deeday Bio C Powder วิตามินซี 500mg ชนิดผง ดูดซึมไว บำรุงผิว เสริมภูมิคุ้มกัน",
+      "variant": "EXP ปกติ 1 bx",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005372"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 109,
+      "productId": "51061217819",
+      "variationId": "436035018972",
+      "productName": "Deeday Bio C Powder วิตามินซี 500mg ชนิดผง ดูดซึมไว บำรุงผิว เสริมภูมิคุ้มกัน",
+      "variant": "EXP 11/2026 ลดราคา",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005372"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 110,
+      "productId": "51061217819",
+      "variationId": "436035018973",
+      "productName": "Deeday Bio C Powder วิตามินซี 500mg ชนิดผง ดูดซึมไว บำรุงผิว เสริมภูมิคุ้มกัน",
+      "variant": "EXP ปกติ 3 bx",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005372"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 111,
+      "productId": "50915445005",
+      "variationId": "366321905460",
+      "productName": "Cybele Scagel ซีเบล สกาเจล ลบรอยแผลเป็น หลอดขนาด 4 กรัม 9 กรัม 19 กรัม",
+      "variant": "9 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "630010025"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 112,
+      "productId": "50915445005",
+      "variationId": "366321905461",
+      "productName": "Cybele Scagel ซีเบล สกาเจล ลบรอยแผลเป็น หลอดขนาด 4 กรัม 9 กรัม 19 กรัม",
+      "variant": "19 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003211"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 113,
+      "productId": "50915445005",
+      "variationId": "366321905459",
+      "productName": "Cybele Scagel ซีเบล สกาเจล ลบรอยแผลเป็น หลอดขนาด 4 กรัม 9 กรัม 19 กรัม",
+      "variant": "4 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "630010026"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 114,
+      "productId": "50614350644",
+      "variationId": "356235288350",
+      "productName": "Fairymed Silicone Stomach Tube 16Fr 125cm แฟร์เมด สายให้อาหารซิลิโคน NG Tube สเตอร์ไรด์",
+      "variant": "16 fr 1 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004872"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 115,
+      "productId": "50413596743",
+      "variationId": "361176445084",
+      "productName": "Vita-C Propoliz Candy Pop อมยิ้มวิตามินซี โพรโพลิซ แคนดี้ป๊อป ไม่มีน้ำตาล Sugar Free เลือกรสได้ 1 ซอง / เซ็ตรวม 3 รส",
+      "variant": "คละรสละ 1 ซอง",
+      "match": {
+        "status": "bundle",
+        "sellerBundleKey": "SC-BND-CANDYPOP-MIX3-V1",
+        "components": [
+          {
+            "companySku": "IC-005598",
+            "quantityPerSale": 1
+          },
+          {
+            "companySku": "IC-005323",
+            "quantityPerSale": 1
+          },
+          {
+            "companySku": "IC-005294",
+            "quantityPerSale": 1
+          }
+        ],
+        "quantityRuleStatus": "verified"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 116,
+      "productId": "50413596743",
+      "variationId": "361176445081",
+      "productName": "Vita-C Propoliz Candy Pop อมยิ้มวิตามินซี โพรโพลิซ แคนดี้ป๊อป ไม่มีน้ำตาล Sugar Free เลือกรสได้ 1 ซอง / เซ็ตรวม 3 รส",
+      "variant": "แอปเปิ้ลเขียว 1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005598"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 117,
+      "productId": "50413596743",
+      "variationId": "361176445082",
+      "productName": "Vita-C Propoliz Candy Pop อมยิ้มวิตามินซี โพรโพลิซ แคนดี้ป๊อป ไม่มีน้ำตาล Sugar Free เลือกรสได้ 1 ซอง / เซ็ตรวม 3 รส",
+      "variant": "ส้ม 1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005323"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 118,
+      "productId": "50413596743",
+      "variationId": "361176445083",
+      "productName": "Vita-C Propoliz Candy Pop อมยิ้มวิตามินซี โพรโพลิซ แคนดี้ป๊อป ไม่มีน้ำตาล Sugar Free เลือกรสได้ 1 ซอง / เซ็ตรวม 3 รส",
+      "variant": "น้ำผึ้งมะนาว 1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005294"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 119,
+      "productId": "50312561896",
+      "variationId": "361091243529",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นองุ่น 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสองุ่น กระปุกใหญ่",
+      "variant": "1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002911"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 120,
+      "productId": "50312561896",
+      "variationId": "361091243530",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นองุ่น 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสองุ่น กระปุกใหญ่",
+      "variant": "2 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002911"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 121,
+      "productId": "50312561896",
+      "variationId": "361091243531",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นองุ่น 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสองุ่น กระปุกใหญ่",
+      "variant": "3 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002911"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 122,
+      "productId": "49965435783",
+      "variationId": "406318994125",
+      "productName": "ดูเร็กซ์ เจลหล่อลื่น เพลย์ คลาสสิค 50 มล. Durex Play Classic Lubricant Gel 50ml",
+      "variant": "50 มล.",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002112"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 123,
+      "productId": "49816353658",
+      "variationId": "287890560360",
+      "productName": "เจลลดรอยแผลเป็น Dermatix Ultra ขนาด 5 กรัม 9 กรัม และ 15 กรัม",
+      "variant": "5 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "630010261"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 124,
+      "productId": "49816353658",
+      "variationId": "287890560361",
+      "productName": "เจลลดรอยแผลเป็น Dermatix Ultra ขนาด 5 กรัม 9 กรัม และ 15 กรัม",
+      "variant": "9 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001998"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 125,
+      "productId": "49816353658",
+      "variationId": "287890560362",
+      "productName": "เจลลดรอยแผลเป็น Dermatix Ultra ขนาด 5 กรัม 9 กรัม และ 15 กรัม",
+      "variant": "15 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000626"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 126,
+      "productId": "49616356991",
+      "variationId": "381391693453",
+      "productName": "Clinigel เจลหล่อลื่นทางการแพทย์ 50 กรัม ล้างออกง่าย ไม่เหนียวเหนอะหนะ ใช้กับอุปกรณ์การแพทย์ และใช้ได้กับถุงยางอนามัย",
+      "variant": "50 g",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004446"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 127,
+      "productId": "49616354144",
+      "variationId": "426392196490",
+      "productName": "Vitara E Cream วิตาร่า อี ครีมบำรุงผิว วิตามินอี ผสมว่านหางจระเข้และโจโจบาออยล์ 25g / 50g",
+      "variant": "25 g",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000357"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 128,
+      "productId": "49616354144",
+      "variationId": "426392196491",
+      "productName": "Vitara E Cream วิตาร่า อี ครีมบำรุงผิว วิตามินอี ผสมว่านหางจระเข้และโจโจบาออยล์ 25g / 50g",
+      "variant": "50 g",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004903"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 129,
+      "productId": "49616160913",
+      "variationId": "446376557773",
+      "productName": "สเปรย์ช่องปาก Propoliz Kids 10 มล. สำหรับเด็ก ลดอาการเจ็บคอและระคายเคือง",
+      "variant": "1 ขวด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002893"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 130,
+      "productId": "49515813072",
+      "variationId": "206422090964",
+      "productName": "1 แผง 2 เม็ด FESDRA เฟสดรา ยาเม็ดแก้เมารถเมาเรือ ไดเมนไฮดริเนท Dimenhydrinate 50mg BLHUA ยาสามัญประจำบ้าน",
+      "variant": "3 แผง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002928"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 131,
+      "productId": "49515813072",
+      "variationId": "206422090963",
+      "productName": "1 แผง 2 เม็ด FESDRA เฟสดรา ยาเม็ดแก้เมารถเมาเรือ ไดเมนไฮดริเนท Dimenhydrinate 50mg BLHUA ยาสามัญประจำบ้าน",
+      "variant": "6 แผง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002928"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 132,
+      "productId": "49463620257",
+      "variationId": "282765149031",
+      "productName": "Vita-C Candy Pop วิต้าซี แคนดี้ป๊อป อมยิ้มวิตามินซี กลิ่นแอปเปิ้ลเขียว ไม่มีน้ำตาล Sugar Free 7 กรัม",
+      "variant": "กล่อง 10 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005598"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 133,
+      "productId": "49463620257",
+      "variationId": "411176133511",
+      "productName": "Vita-C Candy Pop วิต้าซี แคนดี้ป๊อป อมยิ้มวิตามินซี กลิ่นแอปเปิ้ลเขียว ไม่มีน้ำตาล Sugar Free 7 กรัม",
+      "variant": "5 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005598"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 134,
+      "productId": "49361233449",
+      "variationId": "396035206825",
+      "productName": "Deeday Fiber Fiber ดีเดย์ ไฟเบอร์ ไฟเบอร์สูง พรีไบโอติก ช่วยขับถ่าย ลำไส้ ดื่มง่าย 0% ไขมัน",
+      "variant": "EXP ปกติ 3 bx",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005371"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 135,
+      "productId": "49361233449",
+      "variationId": "396035206827",
+      "productName": "Deeday Fiber Fiber ดีเดย์ ไฟเบอร์ ไฟเบอร์สูง พรีไบโอติก ช่วยขับถ่าย ลำไส้ ดื่มง่าย 0% ไขมัน",
+      "variant": "EXP ปกติ 1 bx",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005371"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 136,
+      "productId": "49315394404",
+      "variationId": "436317038767",
+      "productName": "กล่อง 3 ชิ้น ถุงยางอนามัย Durex Comfort ขนาดใหญ่พิเศษ 56 มม.",
+      "variant": "3 กล่อง,56 มม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002570"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 137,
+      "productId": "49315394404",
+      "variationId": "436317038766",
+      "productName": "กล่อง 3 ชิ้น ถุงยางอนามัย Durex Comfort ขนาดใหญ่พิเศษ 56 มม.",
+      "variant": "1 กล่อง,56 มม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002570"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 138,
+      "productId": "49262211242",
+      "variationId": "316058447039",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด เลม่อน 30 เม็ด | Vitamin C Tablet Lemon Flavour",
+      "variant": "12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002484"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 139,
+      "productId": "49262211242",
+      "variationId": "316058447036",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด เลม่อน 30 เม็ด | Vitamin C Tablet Lemon Flavour",
+      "variant": "24+1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002484"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 140,
+      "productId": "49262211242",
+      "variationId": "316058447037",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด เลม่อน 30 เม็ด | Vitamin C Tablet Lemon Flavour",
+      "variant": "50 ซอง (1 กล่อง)",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002484"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 141,
+      "productId": "49262211242",
+      "variationId": "316058447038",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด เลม่อน 30 เม็ด | Vitamin C Tablet Lemon Flavour",
+      "variant": "6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002484"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 142,
+      "productId": "49065709735",
+      "variationId": "381341732992",
+      "productName": "แชมพูผสมครีมนวด เฮอร์บัล ฮาฟิฟ 2in1 สูตรสมุนไพรกำจัดเหา 50 มล.",
+      "variant": "Green,50ml",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005804"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 143,
+      "productId": "48416162709",
+      "variationId": "351377104481",
+      "productName": "15 เม็ด โพรโพลิซ มิกซ์ ชนิดเม็ดอม ชุ่มคอ ไม่มีน้ำตาล ผสมไซลิทอล",
+      "variant": "1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004251"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 144,
+      "productId": "47816175508",
+      "variationId": "331377100881",
+      "productName": "Propoliz Chewy Vit C เม็ดเคี้ยวโพรโพลิส วิตามินซี มะขามป้อม น้ำผึ้ง ส้ม ขิง เคี้ยวง่าย ชื่นใจ 8 เม็ด",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003840"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 145,
+      "productId": "47815220174",
+      "variationId": "406302695477",
+      "productName": "ลูกอมสมุนไพรไอ-เฮิร์บ 18 เม็ด บรรเทาอาการไอ ขับเสมหะ ไม่มีน้ำตาล",
+      "variant": "1 ซอง 18 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005056"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 146,
+      "productId": "47763569681",
+      "variationId": "336173414889",
+      "productName": "Vita-C Candy Pop อมยิ้มวิตามินซี รสส้ม ไม่มีน้ำตาล 0% Sugar 100 มก. 7 กรัม | 1 ซอง / 1 กล่อง 10 ซอง",
+      "variant": "กล่อง 10 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005323"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 147,
+      "productId": "47763569681",
+      "variationId": "431176128464",
+      "productName": "Vita-C Candy Pop อมยิ้มวิตามินซี รสส้ม ไม่มีน้ำตาล 0% Sugar 100 มก. 7 กรัม | 1 ซอง / 1 กล่อง 10 ซอง",
+      "variant": "5 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005323"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 148,
+      "productId": "47462014654",
+      "variationId": "297687889187",
+      "productName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "variant": "24 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001510"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 149,
+      "productId": "47462014654",
+      "variationId": "297687889188",
+      "productName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "variant": "6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001510"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 150,
+      "productId": "47462014654",
+      "variationId": "297687889186",
+      "productName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "variant": "12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001510"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 151,
+      "productId": "47115220232",
+      "variationId": "292838781903",
+      "productName": "I-HERB OTC ยาน้ำแก้ไอ ตราไอ-เฮิร์บ โอทีซี 60 มล. บรรเทาอาการไอ ขับเสมหะ 0% Alcohol",
+      "variant": "1 ขวด 100 มล.",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005465"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 152,
+      "productId": "47115220232",
+      "variationId": "406302747989",
+      "productName": "I-HERB OTC ยาน้ำแก้ไอ ตราไอ-เฮิร์บ โอทีซี 60 มล. บรรเทาอาการไอ ขับเสมหะ 0% Alcohol",
+      "variant": "1 ขวด 60 มล",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004261"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 153,
+      "productId": "46965962590",
+      "variationId": "416360397047",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ (แพ็ค 6 ก้อน) 30g / 80g ของแท้ 100%",
+      "variant": "30 กรัม 6 ก้อน",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003560"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 154,
+      "productId": "46965962590",
+      "variationId": "416360397048",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ (แพ็ค 6 ก้อน) 30g / 80g ของแท้ 100%",
+      "variant": "80 กรัม 6 ก้อน",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003493"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 155,
+      "productId": "46666167210",
+      "variationId": "366376948792",
+      "productName": "Comfy Lozenge เม็ดอมคอมฟีร์ ขิง แก้เมารถ เมาเรือ คลื่นไส้ อาเจียน ท้องอืด ท้องเฟ้อ ไม่ง่วง รสน้ำผึ้งมะนาวมิ้นท์ 8 เม็ด",
+      "variant": "8Pcs",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004642"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 156,
+      "productId": "46611245180",
+      "variationId": "316035732188",
+      "productName": "Deeday Fish Oil Plus Astaxanthin น้ำมันปลา Omega 3 แอสต้าแซนธิน บำรุงสมอง หัวใจ ตาแห้ง 1 กล่อง 30 แคปซูล",
+      "variant": "EXP 12/2026 ลดราคา",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005169"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 157,
+      "productId": "46611245180",
+      "variationId": "316035732189",
+      "productName": "Deeday Fish Oil Plus Astaxanthin น้ำมันปลา Omega 3 แอสต้าแซนธิน บำรุงสมอง หัวใจ ตาแห้ง 1 กล่อง 30 แคปซูล",
+      "variant": "EXP ปกติ 1 bx",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005169"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 158,
+      "productId": "46611245180",
+      "variationId": "316035732190",
+      "productName": "Deeday Fish Oil Plus Astaxanthin น้ำมันปลา Omega 3 แอสต้าแซนธิน บำรุงสมอง หัวใจ ตาแห้ง 1 กล่อง 30 แคปซูล",
+      "variant": "EXP ปกติ 3 bx",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005169"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 159,
+      "productId": "46565576120",
+      "variationId": "262887386090",
+      "productName": "ผมร่วง สิว เล็บเปราะ บำรุงผิว ผม เล็บ Biopharm Zinc Plus ซิงค์ อะมิโนแอซิดคีเลต 60 เม็ด เพิ่มภูมิต้านทาน นำเข้าจาก USA",
+      "variant": "1 กล่อง 60 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001359"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 160,
+      "productId": "46363576906",
+      "variationId": "228313197131",
+      "productName": "Propoliz Candy Pop อมยิ้มโพรโพลิซ รสน้ำผึ้งมะนาว ไม่มีน้ำตาล 0% Sugar 7 กรัม | 1 ซอง / 1 กล่อง 10 ซอง",
+      "variant": "กล่อง 10 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005294"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 161,
+      "productId": "46363576906",
+      "variationId": "366176219039",
+      "productName": "Propoliz Candy Pop อมยิ้มโพรโพลิซ รสน้ำผึ้งมะนาว ไม่มีน้ำตาล 0% Sugar 7 กรัม | 1 ซอง / 1 กล่อง 10 ซอง",
+      "variant": "5 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005294"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 162,
+      "productId": "46114572752",
+      "variationId": "351258526940",
+      "productName": "EXXE Glutathione Body Lotion โลชั่นทาผิวกลูต้าไธโอน ผิวขาวกระจ่างใส ของแท้100%",
+      "variant": "200 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000343"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 163,
+      "productId": "46114572752",
+      "variationId": "351258526941",
+      "productName": "EXXE Glutathione Body Lotion โลชั่นทาผิวกลูต้าไธโอน ผิวขาวกระจ่างใส ของแท้100%",
+      "variant": "50 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005510"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 164,
+      "productId": "46066159377",
+      "variationId": "351376537400",
+      "productName": "Propoliz Mouth Spray สเปรย์พ่นปากและคอ โพรโพลิซ พรอพอลิส เจ็บคอ แผลในปาก กลิ่นปาก ปราศจากน้ำตาล",
+      "variant": "1 ขวด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001292"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 165,
+      "productId": "45916170060",
+      "variationId": "321376798048",
+      "productName": "Propoliz Plus extherb สเปรย์พ่นคอ โพรโพลิส สมุนไพร เจ็บคอ ระคายคอ แอนตี้เซพติค Antiseptic ปากและลำคอ 15ml",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000711"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 166,
+      "productId": "45915570305",
+      "variationId": "321329325900",
+      "productName": "Cybele Scagel Plus Advance 10g - เจลลดรอยแผลเป็น ซิลิ โคนแท้ Allium Cepa",
+      "variant": "10 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004051"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 167,
+      "productId": "45666159990",
+      "variationId": "326376723748",
+      "productName": "Propoliz Lozenge ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอ ระคายคอ ยกกล่อง 10 ซอง มี 2 รส ส้ม Vit C / มะนาว-ขิง",
+      "variant": "10 ซอง ส้ม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003569"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 168,
+      "productId": "45666159990",
+      "variationId": "326376723747",
+      "productName": "Propoliz Lozenge ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอ ระคายคอ ยกกล่อง 10 ซอง มี 2 รส ส้ม Vit C / มะนาว-ขิง",
+      "variant": "10 ซอง มะนาว",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002080"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 169,
+      "productId": "45612097006",
+      "variationId": "234702707232",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสตรอเบอร์รี่ 30 เม็ด | Vitamin C Tablet Strawberry Flavour",
+      "variant": "50 ซอง (1 กล่อง)",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002485"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 170,
+      "productId": "45612097006",
+      "variationId": "234702707229",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสตรอเบอร์รี่ 30 เม็ด | Vitamin C Tablet Strawberry Flavour",
+      "variant": "6 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002485"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 171,
+      "productId": "45612097006",
+      "variationId": "234702707230",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสตรอเบอร์รี่ 30 เม็ด | Vitamin C Tablet Strawberry Flavour",
+      "variant": "12 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002485"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 172,
+      "productId": "45612097006",
+      "variationId": "234702707231",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด กลิ่นสตรอเบอร์รี่ 30 เม็ด | Vitamin C Tablet Strawberry Flavour",
+      "variant": "24+1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002485"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 173,
+      "productId": "45215562923",
+      "variationId": "421391589810",
+      "productName": "ตาแห้ง ตาล้า จอประสาทตาเสื่อม บำรุงสายตา Biopharm Optamin Pro อ๊อปตามิน โปร แอสตาแซนธิน ลูทีน บิลเบอร์รี่ 30 แคปซูล",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004860"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 174,
+      "productId": "45214626391",
+      "variationId": "282811741207",
+      "productName": "EXXE Clearasoft Acne Facial Moisturizer มอยส์เจอไรเซอร์ลดสิว 30g ผิวมันเป็นสิว ของแท้100%",
+      "variant": "1 หลอด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005549"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 175,
+      "productId": "45014072066",
+      "variationId": "336213086175",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 12 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "1 แพ๊ค",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004177"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 176,
+      "productId": "45014072066",
+      "variationId": "336213086176",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 12 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "2 แพ๊ค",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004177"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 177,
+      "productId": "45014072066",
+      "variationId": "336213086177",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 12 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "3 แพ๊ค",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004177"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 178,
+      "productId": "44865577116",
+      "variationId": "351329740876",
+      "productName": "ผมร่วง ผมบาง เล็บเปราะ ผิวไม่แข็งแรง บำรุงผม Biotin Zinc Plus by CU Phar ไบโอติน ซิงค์ เซเลเนียม 30 เม็ด / 90 เม็ด",
+      "variant": "30 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005992"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 179,
+      "productId": "44865577116",
+      "variationId": "351329740877",
+      "productName": "ผมร่วง ผมบาง เล็บเปราะ ผิวไม่แข็งแรง บำรุงผม Biotin Zinc Plus by CU Phar ไบโอติน ซิงค์ เซเลเนียม 30 เม็ด / 90 เม็ด",
+      "variant": "90 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005991"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 180,
+      "productId": "44761257830",
+      "variationId": "410978681481",
+      "productName": "Deeday BioMag Plus Vitamins Magnesium Chelate แมกนีเซียม วิตามินบี ลดตะคริว คลายเครียด 1 กล่อง 30 เม็ด",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005370"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 181,
+      "productId": "44483159777",
+      "variationId": "321303027448",
+      "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
+      "variant": "ออริจินอล แดง 8 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "630010038"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 182,
+      "productId": "44483159777",
+      "variationId": "436322123081",
+      "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
+      "variant": "เลมอน ไม่มีน้ำตาล",
+      "match": {
+        "status": "visibility_only",
+        "reasonCode": "never_sold_visibility_listing"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 183,
+      "productId": "44483159777",
+      "variationId": "321303027445",
+      "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
+      "variant": "ส้ม 8 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "630010065"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 184,
+      "productId": "44483159777",
+      "variationId": "321303027446",
+      "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
+      "variant": "คลู ฟ้า 8 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "630010040"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 185,
+      "productId": "44483159777",
+      "variationId": "321303027447",
+      "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
+      "variant": "น้ำผึ้งมะนาว 8 เม็ด",
+      "match": {
+        "status": "matched",
+        "companySku": "630010066"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 186,
+      "productId": "44131798156",
+      "variationId": "376075107032",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นส้ม 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสส้ม กระปุกใหญ่",
+      "variant": "1 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002910"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 187,
+      "productId": "44131798156",
+      "variationId": "376075107033",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นส้ม 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสส้ม กระปุกใหญ่",
+      "variant": "2 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002910"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 188,
+      "productId": "44131798156",
+      "variationId": "376075107034",
+      "productName": "Vita-C วิตามินซี เม็ดอม กลิ่นส้ม 1000 เม็ด 400 กรัม Vitamin C 25mg เม็ดเคี้ยว รสส้ม กระปุกใหญ่",
+      "variant": "3 กระปุก",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002910"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 189,
+      "productId": "44083456824",
+      "variationId": "386349549384",
+      "productName": "10 ซอง Oreda RO ผงเกลือแร่ รสส้ม 5.5 กรัม บรรเทาอาการท้องเสีย",
+      "variant": "10Pcs",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004371"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 190,
+      "productId": "43533290825",
+      "variationId": "366321949322",
+      "productName": "DETTOL น้ำยาฆ่าเชื้ออเนกประสงค์ เดทตอล มงกุฏ คลอโรโซลีนอล 1 ขวด 500 มล - Classic 500 ml",
+      "variant": "500 ml",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001270"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 191,
+      "productId": "42533323821",
+      "variationId": "386329373826",
+      "productName": "บำรุงสายตา ผิวพรรณ DEEDAY Luti-Berry Mixed 30 Cap - ดีเดย์ ลูติ-เบอร์รี่ มิกซ์ 30 แคปซูล ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005995"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 192,
+      "productId": "42333707904",
+      "variationId": "421391494896",
+      "productName": "Klean&Kare หัวต่อล้างจมูก Nasal Connect ข้อต่อติดขวดน้ำเกลือ ล้างจมูกง่ายไม่ต้องใช้ไซริงค์",
+      "variant": "1 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003676"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 193,
+      "productId": "42283259402",
+      "variationId": "311319376995",
+      "productName": "Durex ดูเร็กซ์ เพอร์ฟอร์มา ถุงยางอนามัยลดความไวต่อความรู้สึกสัมผัส ผิวเรียบ ขนาด 52.5 มม.1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "1 กล่อง 10 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-002109"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 194,
+      "productId": "42283259402",
+      "variationId": "311319376996",
+      "productName": "Durex ดูเร็กซ์ เพอร์ฟอร์มา ถุงยางอนามัยลดความไวต่อความรู้สึกสัมผัส ผิวเรียบ ขนาด 52.5 มม.1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "1 กล่อง 3 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000067"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 195,
+      "productId": "41632573693",
+      "variationId": "297783606509",
+      "productName": "INTRASITE 25g อินทราไซต์ไฮโดรเจล สำหรับแผลกดทับ เบาหวาน และแผลเรื้อรัง",
+      "variant": "3 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000330"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 196,
+      "productId": "41632573693",
+      "variationId": "297783606508",
+      "productName": "INTRASITE 25g อินทราไซต์ไฮโดรเจล สำหรับแผลกดทับ เบาหวาน และแผลเรื้อรัง",
+      "variant": "1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000330"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 197,
+      "productId": "41332896197",
+      "variationId": "356258546591",
+      "productName": "กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon",
+      "variant": "ชมพู 1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003778"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 198,
+      "productId": "41332896197",
+      "variationId": "356258546589",
+      "productName": "กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon",
+      "variant": "เขียว 1 ขวด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000398"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 199,
+      "productId": "41332896197",
+      "variationId": "356258546590",
+      "productName": "กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon",
+      "variant": "เขียว 1 กล่อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001048"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 200,
+      "productId": "41283620692",
+      "variationId": "356376563668",
+      "productName": "Propoliz X Mouth Spray โพรโพลิซ เอ็กซ์ มาท์สเปรย์ สเปรย์พ่นปากคอ กระชาย หญ้าดอกขาว เจ็บคอ กลิ่นปาก ไม่มีน้ำตาล 15ml",
+      "variant": "15 ml",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004453"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 201,
+      "productId": "41133288862",
+      "variationId": "186420214527",
+      "productName": "ครีมบำรุงผิวหน้าและผิวกาย Erbatop 50 กรัม เออบาท๊อป สำหรับผิวแห้งและระคายเคือง",
+      "variant": "50 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004055"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 202,
+      "productId": "41082881065",
+      "variationId": "446256112547",
+      "productName": "Clena EX ครีมแต้มฝ้า Anti Melasma 15g ลดเลือนฝ้า กระ จุดด่างดำ สเตียรอยด์ฟรี ของแท้100%",
+      "variant": "1 หลอด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-004787"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 203,
+      "productId": "40681353012",
+      "variationId": "320998615557",
+      "productName": "Deeday Bio C Multivitamin Plus Elderberry วิตามินซี เอลเดอร์เบอร์รี่ เสริมภูมิ วิตามินรวม รสมิกซ์เบอร์รี่",
+      "variant": "",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005438"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 204,
+      "productId": "40633333726",
+      "variationId": "361391781674",
+      "productName": "ผิวแห้ง ผิวแพ้ง่าย Erbatop เออบาท๊อป 75 มล. Advance Intensive Lotion 75 mL เซราไมด์ โลชั่นบำรุงผิวหน้า-ผิวกาย",
+      "variant": "1 หลอด",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-005600"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 205,
+      "productId": "40483166601",
+      "variationId": "441302625673",
+      "productName": "I-Herb Sugar Free Herbal Lozenges เม็ดอมสมุนไพร ไอเฮิร์บ สูตรปราศจากน้ำตาล ชุ่มคอ 8 เม็ด",
+      "variant": "1 ซอง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-003652"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 206,
+      "productId": "40133266305",
+      "variationId": "426318672876",
+      "productName": "Durex Kingtex ถุงยางอนามัย ดูเร็กซ์ คิงเท็ค ขนาด 49 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "3 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000066"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 207,
+      "productId": "40133266305",
+      "variationId": "426318672875",
+      "productName": "Durex Kingtex ถุงยางอนามัย ดูเร็กซ์ คิงเท็ค ขนาด 49 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "1 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000066"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 208,
+      "productId": "40132752375",
+      "variationId": "218856728687",
+      "productName": "BOOST Optimum 800g วานิลลา | เนสท์เล่ เฮลท์ ไซเอนซ์ โปรไบโอติก นมผู้สูงอายุ เก็บเงินปลายทาง อาหารทางการแพทย์",
+      "variant": "วานิลลา 3 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001612"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 209,
+      "productId": "40132752375",
+      "variationId": "218856728685",
+      "productName": "BOOST Optimum 800g วานิลลา | เนสท์เล่ เฮลท์ ไซเอนซ์ โปรไบโอติก นมผู้สูงอายุ เก็บเงินปลายทาง อาหารทางการแพทย์",
+      "variant": "วานิลลา 1 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001612"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 210,
+      "productId": "40132752375",
+      "variationId": "218856728686",
+      "productName": "BOOST Optimum 800g วานิลลา | เนสท์เล่ เฮลท์ ไซเอนซ์ โปรไบโอติก นมผู้สูงอายุ เก็บเงินปลายทาง อาหารทางการแพทย์",
+      "variant": "วานิลลา 2 กระป๋อง",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-001612"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 211,
+      "productId": "40083721832",
+      "variationId": "396391334428",
+      "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+      "variant": "1000ml ดัมเบล",
+      "match": {
+        "status": "matched",
+        "companySku": "630020295"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 212,
+      "productId": "40083721832",
+      "variationId": "396391334425",
+      "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+      "variant": "100ml",
+      "match": {
+        "status": "matched",
+        "companySku": "630020298"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 213,
+      "productId": "40083721832",
+      "variationId": "396391334426",
+      "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+      "variant": "500ml แหลม",
+      "match": {
+        "status": "matched",
+        "companySku": "630020296"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 214,
+      "productId": "40083721832",
+      "variationId": "396391334427",
+      "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+      "variant": "1000ml แหลม",
+      "match": {
+        "status": "matched",
+        "companySku": "630020297"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 215,
+      "productId": "27095485313",
+      "variationId": "436317400815",
+      "productName": "Durex Fetherlite ถุงยางอนามัย ดูเร็กซ์ เฟเธอร์ไลท์ ขนาด 52.5 มม. บรรจุ 3 ชิ้น",
+      "variant": "1 กล่อง 12 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000068"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 216,
+      "productId": "27095485313",
+      "variationId": "436317400816",
+      "productName": "Durex Fetherlite ถุงยางอนามัย ดูเร็กซ์ เฟเธอร์ไลท์ ขนาด 52.5 มม. บรรจุ 3 ชิ้น",
+      "variant": "1 กล่อง 3 ชิ้น",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000068"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 217,
+      "productId": "25248387181",
+      "variationId": "446319068016",
+      "productName": "เจลหล่อลื่น K-Y เจลใสสูตรน้ำ ไม่เหนียวเหนอะหนะ ใช้งานได้หลากหลาย",
+      "variant": "42 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000213"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "sourceRow": 218,
+      "productId": "25248387181",
+      "variationId": "446319068015",
+      "productName": "เจลหล่อลื่น K-Y เจลใสสูตรน้ำ ไม่เหนียวเหนอะหนะ ใช้งานได้หลากหลาย",
+      "variant": "82 กรัม",
+      "match": {
+        "status": "matched",
+        "companySku": "IC-000214"
+      }
+    }
+  ]
+}

@@ -11,6 +11,10 @@ const {
   SHOPEE_SENDER,
 } = require("./shopeeEmailInboxService");
 const { requireShopeeShopCode, SHOPEE_SHOP_PROFILES } = require("./shopeeShops");
+const {
+  getShopeeProductCatalogSummary,
+  matchShopeeProduct,
+} = require("./shopeeProductMatcher");
 
 const ROUTING_METADATA_CONCURRENCY = 5;
 
@@ -23,6 +27,102 @@ function publicOrder(order, evidence) {
     firstEventAt: order.firstEventAt,
     lastEventAt: order.lastEventAt,
     orderNumber: order.orderNumber,
+  };
+}
+
+function publicProductMatch(match) {
+  const output = {
+    status: match.status,
+  };
+  if (match.companySku) output.companySku = match.companySku;
+  if (Array.isArray(match.components)) {
+    output.components = match.components.map((component) => ({
+      companySku: component.companySku,
+      quantityPerSale: component.quantityPerSale,
+    }));
+  }
+  if (match.quantityRuleStatus) output.quantityRuleStatus = match.quantityRuleStatus;
+  if (match.reasonCode) output.reasonCode = match.reasonCode;
+  return output;
+}
+
+function resolveLegacyProductEvidence(order, dependencies = {}) {
+  const matcher = dependencies.matchProduct || matchShopeeProduct;
+  const items = Array.isArray(order.items) ? order.items : [];
+  const shopCodes = Object.keys(SHOPEE_SHOP_PROFILES);
+  const itemEvidence = items.map((item) => ({
+    name: String(item?.name || "").trim(),
+    variant: String(item?.variant || "").trim(),
+    matches: shopCodes.map((shopCode) => ({
+      shopCode,
+      ...publicProductMatch(matcher(shopCode, item)),
+    })),
+  }));
+  const shops = shopCodes.map((shopCode) => {
+    const matches = itemEvidence.map((item) => (
+      item.matches.find((match) => match.shopCode === shopCode)
+    ));
+    const recognizedItems = matches.filter((match) => match?.status !== "unmapped").length;
+    const manualReviewRequired = matches.some((match) => (
+      match?.status === "unmapped"
+      || match?.status === "visibility_only"
+      || (match?.status === "bundle" && match.quantityRuleStatus !== "verified")
+    ));
+    return {
+      shopCode,
+      recognizedItems,
+      totalItems: items.length,
+      coverageComplete: items.length > 0 && recognizedItems === items.length,
+      manualReviewRequired,
+    };
+  });
+  const complete = shops.filter((shop) => shop.coverageComplete);
+  const partial = shops.filter((shop) => shop.recognizedItems > 0);
+  let evidenceStatus = "product_unknown";
+  let suggestedShopCode = null;
+  let candidateShopCode = null;
+  if (complete.length === 1) {
+    evidenceStatus = "product_match";
+    suggestedShopCode = complete[0].shopCode;
+  } else if (complete.length > 1 || partial.length > 1) {
+    evidenceStatus = "product_conflict";
+  } else if (partial.length === 1) {
+    evidenceStatus = "product_partial";
+    candidateShopCode = partial[0].shopCode;
+  }
+
+  return {
+    catalogVersion: getShopeeProductCatalogSummary().catalogVersion,
+    candidateShopCode,
+    evidenceStatus,
+    items: itemEvidence,
+    shops,
+    suggestedShopCode,
+  };
+}
+
+function combineLegacyEvidence(recipientEvidence, productEvidence) {
+  const recipientShop = recipientEvidence.suggestedShopCode;
+  const productShop = productEvidence.suggestedShopCode;
+  let recommendationStatus = "unknown";
+  let suggestedShopCode = null;
+  if (recipientShop && productShop && recipientShop !== productShop) {
+    recommendationStatus = "evidence_conflict";
+  } else if (recipientShop && productShop) {
+    recommendationStatus = "evidence_agrees";
+    suggestedShopCode = recipientShop;
+  } else if (recipientShop) {
+    recommendationStatus = "recipient_only";
+    suggestedShopCode = recipientShop;
+  } else if (productShop) {
+    recommendationStatus = "product_only";
+    suggestedShopCode = productShop;
+  }
+  return {
+    ...recipientEvidence,
+    productEvidence,
+    recommendationStatus,
+    suggestedShopCode,
   };
 }
 
@@ -118,7 +218,9 @@ async function listLegacyReconciliationPage(filters = {}, dependencies = {}) {
     metadataConcurrency: 1,
   };
   const orders = await mapWithConcurrency(result.orders, async (order) => {
-    const evidence = await resolveLegacyRoutingEvidence(order, evidenceDependencies);
+    const recipientEvidence = await resolveLegacyRoutingEvidence(order, evidenceDependencies);
+    const productEvidence = resolveLegacyProductEvidence(order, dependencies);
+    const evidence = combineLegacyEvidence(recipientEvidence, productEvidence);
     return publicOrder(order, evidence);
   });
   return { ...result, orders };
@@ -128,7 +230,9 @@ async function reviewLegacyOrder({ orderNumber, selectedShopCode }, dependencies
   const activeRepository = dependencies.repository || repository;
   const shopCode = requireShopeeShopCode(selectedShopCode);
   const order = await activeRepository.getLegacyOrder(orderNumber);
-  const evidence = await resolveLegacyRoutingEvidence(order, dependencies);
+  const recipientEvidence = await resolveLegacyRoutingEvidence(order, dependencies);
+  const productEvidence = resolveLegacyProductEvidence(order, dependencies);
+  const evidence = combineLegacyEvidence(recipientEvidence, productEvidence);
   const decision = await activeRepository.saveDecision({
     evidenceStatus: evidence.evidenceStatus,
     orderNumber,
@@ -147,6 +251,8 @@ module.exports = {
   ROUTING_METADATA_CONCURRENCY,
   listLegacyReconciliationPage,
   mapWithConcurrency,
+  combineLegacyEvidence,
+  resolveLegacyProductEvidence,
   resolveLegacyRoutingEvidence,
   reviewLegacyOrder,
 };

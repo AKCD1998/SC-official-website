@@ -4,6 +4,7 @@ jest.mock("../db", () => ({
 }));
 
 const pool = require("../db");
+const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.json");
 const {
   getOrderTimeline,
   listOrders,
@@ -15,6 +16,7 @@ const {
 
 const CANONICAL_KEY = `sha256:${"a".repeat(64)}`;
 const ORDER_NUMBER = "26082471YK8C02";
+const CATALOG_VERSION = "shopee-company-sku-2026-08-28";
 const databaseOrder = {
   current_status: "shipment_due",
   delivery_method: "Standard Delivery - ส่งธรรมดาในประเทศ",
@@ -83,10 +85,27 @@ test("maps PostgreSQL values to the bounded, shop-scoped public timeline contrac
     firstEventAt: "2026-08-24T02:00:00.000Z",
     itemCount: 1,
     itemSubtotal: 70,
-    items: databaseOrder.items,
+    items: [{
+      ...databaseOrder.items[0],
+      productMatch: {
+        catalogVersion: CATALOG_VERSION,
+        status: "unmapped",
+        reasonCode: "catalog_identity_not_found",
+      },
+    }],
     lastEventAt: "2026-08-24T03:00:00.000Z",
     orderedAt: "2026-08-24T01:00:00.000Z",
     orderNumber: ORDER_NUMBER,
+    productMapping: {
+      catalogVersion: CATALOG_VERSION,
+      totalItems: 1,
+      matchedItems: 0,
+      bundleItems: 0,
+      visibilityOnlyItems: 0,
+      unmappedItems: 1,
+      coverageComplete: false,
+      manualReviewRequired: true,
+    },
     shippingDeadline: "2026-08-30",
     shippingFee: 38,
     shopCode: "sc-drug-store",
@@ -130,9 +149,45 @@ test("strips unexpected JSONB fields at the repository egress boundary", () => {
     shop_code: "sc-drug-store",
   });
 
-  expect(mappedOrder.items).toEqual(databaseOrder.items);
+  expect(mappedOrder.items).toEqual([{
+    ...databaseOrder.items[0],
+    productMatch: {
+      catalogVersion: CATALOG_VERSION,
+      status: "unmapped",
+      reasonCode: "catalog_identity_not_found",
+    },
+  }]);
   expect(mappedEvent.details).toEqual({ cancellationReasonCode: "shipping_deadline_missed" });
   expect(JSON.stringify({ mappedEvent, mappedOrder })).not.toMatch(/private|subject|recipient|rawBody/iu);
+});
+
+test("enriches persisted email items with the corrected Company SKU at API egress", () => {
+  const catalogRecord = catalog.records.find((record) => (
+    record.shopCode === "sc-drug-store" && record.sourceRow === 33
+  ));
+  const mappedOrder = mapOrder({
+    ...databaseOrder,
+    items: [{
+      name: catalogRecord.productName,
+      quantity: 6,
+      unitPrice: 90,
+      variant: catalogRecord.variant,
+    }],
+  });
+
+  expect(mappedOrder.items[0].productMatch).toMatchObject({
+    catalogVersion: CATALOG_VERSION,
+    status: "matched",
+    companySku: "IC-001849",
+    listingProductId: "56562041161",
+    listingVariationId: "436046531380",
+  });
+  expect(mappedOrder.productMapping).toMatchObject({
+    totalItems: 1,
+    matchedItems: 1,
+    coverageComplete: true,
+    manualReviewRequired: false,
+  });
 });
 
 test.each([
