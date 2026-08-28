@@ -26,3 +26,21 @@ test("legacy apply migration adds audit snapshots without moving production rows
   expect(sql).not.toMatch(/UPDATE\s+shopee_(orders|order_events)/iu);
   expect(sql).not.toMatch(/DELETE\s+FROM\s+shopee_(orders|order_events)/iu);
 });
+
+test("production migration workflow is manual, exact-confirmation gated, and read-only after apply", () => {
+  const workflow = fs.readFileSync(path.join(
+    __dirname,
+    "../../.github/workflows/seamless-production-migrate.yml",
+  ), "utf8");
+  const verifier = fs.readFileSync(path.join(
+    __dirname,
+    "../scripts/verify-seamless-production-migration.cjs",
+  ), "utf8");
+
+  expect(workflow).toContain("workflow_dispatch:");
+  expect(workflow).not.toMatch(/\b(push|schedule):/u);
+  expect(workflow).toContain("APPLY_011_SHOPEE_LEGACY_AUDIT");
+  expect(workflow).toContain("secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL");
+  expect(verifier).toContain("011_shopee_legacy_reconciliation_apply_audit.sql");
+  expect(verifier).not.toMatch(/\b(INSERT|UPDATE|DELETE|ALTER|DROP|CREATE)\b/iu);
+});
