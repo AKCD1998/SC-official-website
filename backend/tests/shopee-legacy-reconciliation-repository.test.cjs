@@ -73,3 +73,23 @@ test("saves a review-only shop choice without updating legacy order/event tables
   expect(sql).not.toMatch(/UPDATE\s+[^\n]*shopee_(orders|order_events)/iu);
   expect(sql).toContain("o.shop_code = $1");
 });
+
+test("dry-runs target collisions without changing order or event rows", async () => {
+  pool.query.mockResolvedValueOnce({ rows: [{
+    order_number: ORDER_NUMBER,
+    target_shop_code: "sc-drug-store",
+  }] });
+
+  const result = await repository.inspectLegacyApplyTargets([{
+    orderNumber: ORDER_NUMBER,
+    targetShopCode: "sc-drug-store",
+  }]);
+
+  expect(result).toEqual([{
+    orderNumber: ORDER_NUMBER,
+    targetShopCode: "sc-drug-store",
+  }]);
+  const [sql] = pool.query.mock.calls[0];
+  expect(sql).toMatch(/JOIN\s+"[^"]+"\."shopee_orders"\s+target/iu);
+  expect(sql).not.toMatch(/\b(INSERT|UPDATE|DELETE)\b/iu);
+});

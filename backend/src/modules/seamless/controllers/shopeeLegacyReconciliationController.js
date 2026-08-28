@@ -4,7 +4,10 @@ const {
   SHOPEE_ORDER_NUMBER_PATTERN,
 } = require("../shopeeOrderValidation");
 const {
+  applyLegacyPlan,
+  buildLegacyApplyPlan,
   listLegacyReconciliationPage,
+  publicLegacyApplyPlan,
   reviewLegacyOrder,
 } = require("../services/shopeeLegacyReconciliationService");
 
@@ -78,8 +81,28 @@ async function saveLegacyReview(req, res) {
   }));
 }
 
+async function getLegacyApplyPlan(req, res) {
+  requireAdmin(req);
+  const plan = await buildLegacyApplyPlan();
+  res.json({
+    dryRun: true,
+    ...publicLegacyApplyPlan(plan),
+  });
+}
+
+async function applyLegacyReviews(req, res) {
+  requireAdmin(req);
+  const planDigest = String(req.body?.planDigest || "").trim().toLowerCase();
+  if (!/^[a-f0-9]{64}$/u.test(planDigest)) {
+    throw badRequest("A valid legacy apply plan digest is required.");
+  }
+  res.json(await applyLegacyPlan({ planDigest }));
+}
+
 module.exports = {
+  applyLegacyReviews,
   encodeCursor,
+  getLegacyApplyPlan,
   listLegacyReviews,
   parseCursor,
   saveLegacyReview,

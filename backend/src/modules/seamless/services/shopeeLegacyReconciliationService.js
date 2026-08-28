@@ -1,5 +1,7 @@
+const crypto = require("node:crypto");
 const { readShopeeGmailConfigForShop } = require("../config");
 const repository = require("../db/shopeeLegacyReconciliationRepository");
+const orderRepository = require("../db/shopeeOrderRepository");
 const {
   createGmailAdapter,
   normalizeGmailMessage,
@@ -17,6 +19,7 @@ const {
 } = require("./shopeeProductMatcher");
 
 const ROUTING_METADATA_CONCURRENCY = 5;
+const LEGACY_APPLY_PLAN_LIMIT = 10_000;
 
 function publicOrder(order, evidence) {
   return {
@@ -333,10 +336,157 @@ async function reviewLegacyOrder({ orderNumber, selectedShopCode }, dependencies
   };
 }
 
+function createApplyPlanDigest(attributions) {
+  const stable = attributions.map((attribution) => ({
+    decisionSource: attribution.decisionSource,
+    evidenceStatus: attribution.evidenceStatus,
+    eventCount: attribution.eventCount,
+    lastEventAt: attribution.lastEventAt,
+    orderNumber: attribution.orderNumber,
+    targetShopCode: attribution.targetShopCode,
+    targetOrderExisted: attribution.targetOrderExisted,
+  })).sort((left, right) => left.orderNumber.localeCompare(right.orderNumber));
+  return crypto.createHash("sha256").update(JSON.stringify(stable)).digest("hex");
+}
+
+async function buildLegacyApplyPlan(dependencies = {}) {
+  const activeRepository = dependencies.repository || repository;
+  const result = await activeRepository.listLegacyOrders({
+    limit: LEGACY_APPLY_PLAN_LIMIT,
+    status: "all",
+  });
+  if (result.hasMore) throw new Error("Legacy apply plan exceeded the bounded order limit.");
+
+  const attributions = [];
+  const byShop = {};
+  let automaticCount = 0;
+  let reviewedCount = 0;
+  let eventCount = 0;
+  result.orders.forEach((order) => {
+    const mailboxEvidence = resolveLegacyMailboxEvidence(order, dependencies);
+    const productEvidence = resolveLegacyProductEvidence(order, dependencies);
+    const evidence = combineLegacyEvidence({
+      evidenceStatus: "recipient_unknown",
+      matchedEventCount: 0,
+      suggestedShopCode: null,
+      totalEventCount: order.eventCount,
+    }, productEvidence, mailboxEvidence);
+    let attribution = null;
+    if (evidence.classification.status === "auto_classified") {
+      automaticCount += 1;
+      attribution = {
+        decisionSource: "automatic",
+        evidenceStatus: "mailbox_match",
+        eventCount: Number(order.eventCount || 0),
+        lastEventAt: order.lastEventAt,
+        orderNumber: order.orderNumber,
+        targetShopCode: evidence.classification.shopCode,
+      };
+    } else if (order.decision?.decisionStatus === "reviewed") {
+      reviewedCount += 1;
+      attribution = {
+        decisionSource: "manual",
+        evidenceStatus: order.decision.evidenceStatus || "recipient_unknown",
+        eventCount: Number(order.eventCount || 0),
+        lastEventAt: order.lastEventAt,
+        orderNumber: order.orderNumber,
+        targetShopCode: order.decision.selectedShopCode,
+      };
+    }
+    if (!attribution) return;
+    attributions.push(attribution);
+    byShop[attribution.targetShopCode] = (byShop[attribution.targetShopCode] || 0) + 1;
+    eventCount += Number(order.eventCount || 0);
+  });
+
+  const manualReviewRequiredCount = result.orders.length - attributions.length;
+  const existingTargets = await activeRepository.inspectLegacyApplyTargets(attributions);
+  const existingTargetKeys = new Set(existingTargets.map((target) => (
+    `${target.targetShopCode}:${target.orderNumber}`
+  )));
+  attributions.forEach((attribution) => {
+    attribution.targetOrderExisted = existingTargetKeys.has(
+      `${attribution.targetShopCode}:${attribution.orderNumber}`,
+    );
+  });
+  const targetExistingOrderCount = existingTargets.length;
+  return {
+    attributions,
+    automaticCount,
+    byShop,
+    eventCount,
+    legacyOrderCount: result.orders.length,
+    manualReviewRequiredCount,
+    planDigest: createApplyPlanDigest(attributions),
+    readyToApply: result.orders.length > 0 && manualReviewRequiredCount === 0,
+    reviewedCount,
+    targetExistingOrderCount,
+    targetNewOrderCount: attributions.length - targetExistingOrderCount,
+  };
+}
+
+function publicLegacyApplyPlan(plan) {
+  return {
+    automaticCount: plan.automaticCount,
+    byShop: plan.byShop,
+    eventCount: plan.eventCount,
+    legacyOrderCount: plan.legacyOrderCount,
+    manualReviewRequiredCount: plan.manualReviewRequiredCount,
+    planDigest: plan.planDigest,
+    readyToApply: plan.readyToApply,
+    reviewedCount: plan.reviewedCount,
+    targetExistingOrderCount: plan.targetExistingOrderCount,
+    targetNewOrderCount: plan.targetNewOrderCount,
+  };
+}
+
+async function withApplyShopLocks(attributions, callback, dependencies = {}) {
+  const withSyncLock = dependencies.withSyncLock || orderRepository.withShopeeOrderSyncLock;
+  const shops = [...new Set(attributions.map((attribution) => attribution.targetShopCode))].sort();
+  async function acquire(index) {
+    if (index >= shops.length) return callback();
+    const shopCode = shops[index];
+    const config = readShopeeGmailConfigForShop(shopCode);
+    return withSyncLock(shopCode, config.mailboxAccount, () => acquire(index + 1));
+  }
+  return acquire(0);
+}
+
+async function applyLegacyPlan({ planDigest }, dependencies = {}) {
+  const activeRepository = dependencies.repository || repository;
+  const plan = await buildLegacyApplyPlan({ ...dependencies, repository: activeRepository });
+  if (!plan.legacyOrderCount) {
+    return {
+      alreadyApplied: true,
+      eventCount: 0,
+      orderCount: 0,
+      planDigest: plan.planDigest,
+    };
+  }
+  if (!plan.readyToApply) {
+    const error = new Error("Legacy orders still require manual review before timeline apply.");
+    error.statusCode = 409;
+    error.details = publicLegacyApplyPlan(plan);
+    throw error;
+  }
+  if (String(planDigest || "").trim().toLowerCase() !== plan.planDigest) {
+    const error = new Error("Legacy apply plan changed; run a new dry-run before applying.");
+    error.statusCode = 409;
+    throw error;
+  }
+  return withApplyShopLocks(plan.attributions, () => activeRepository.applyLegacyAttributions({
+    attributions: plan.attributions,
+    planDigest: plan.planDigest,
+  }), dependencies);
+}
+
 module.exports = {
   ROUTING_METADATA_CONCURRENCY,
+  applyLegacyPlan,
+  buildLegacyApplyPlan,
   listLegacyReconciliationPage,
   mapWithConcurrency,
+  publicLegacyApplyPlan,
   combineLegacyEvidence,
   resolveLegacyProductEvidence,
   resolveLegacyMailboxEvidence,
