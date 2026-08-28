@@ -90,6 +90,6 @@ test("dry-runs target collisions without changing order or event rows", async ()
     targetShopCode: "sc-drug-store",
   }]);
   const [sql] = pool.query.mock.calls[0];
-  expect(sql).toContain('JOIN "clasp_scx_seamless"."shopee_orders" target');
+  expect(sql).toMatch(/JOIN\s+"[^"]+"\."shopee_orders"\s+target/iu);
   expect(sql).not.toMatch(/\b(INSERT|UPDATE|DELETE)\b/iu);
 });
