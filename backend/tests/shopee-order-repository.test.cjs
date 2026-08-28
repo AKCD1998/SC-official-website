@@ -236,6 +236,43 @@ test("list/detail SQL binds shopCode in every order and event lookup", async () 
   expect(pool.query.mock.calls[2][1]).toEqual(["sc-drug-store", ORDER_NUMBER]);
 });
 
+test("all-shops list includes only supported shops and paginates by composite identity", async () => {
+  pool.query.mockClear();
+  pool.query
+    .mockResolvedValueOnce({ rows: [databaseOrder] })
+    .mockResolvedValueOnce({ rows: [] });
+
+  await listOrders({ limit: 25, shopCode: "all" });
+  await listOrders({
+    cursor: {
+      lastEventAt: "2026-08-24T03:00:00.000Z",
+      orderNumber: ORDER_NUMBER,
+      rowShopCode: "sc-drug-store",
+      shopCode: "all",
+    },
+    limit: 10,
+    shopCode: "all",
+    status: "shipment_due",
+  });
+
+  const [firstSql, firstParams] = pool.query.mock.calls[0];
+  expect(firstSql).toContain("o.shop_code = ANY($1::text[])");
+  expect(firstSql).toContain("ORDER BY o.last_event_at DESC, o.shop_code DESC, o.order_number DESC");
+  expect(firstParams[0]).toEqual(["sc-drug-store", "dr-morepen"]);
+  expect(firstParams).not.toContain("legacy-unattributed");
+
+  const [pageSql, pageParams] = pool.query.mock.calls[1];
+  expect(pageSql).toContain("(o.last_event_at, o.shop_code, o.order_number) <");
+  expect(pageParams).toEqual([
+    ["sc-drug-store", "dr-morepen"],
+    "shipment_due",
+    "2026-08-24T03:00:00.000Z",
+    "sc-drug-store",
+    ORDER_NUMBER,
+    11,
+  ]);
+});
+
 test("uses a non-blocking shop+mailbox lock and rejects a concurrent same-shop sync", async () => {
   let enterFirstSync;
   const firstStarted = new Promise((resolve) => { enterFirstSync = resolve; });

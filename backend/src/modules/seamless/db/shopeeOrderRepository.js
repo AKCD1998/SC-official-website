@@ -5,7 +5,11 @@ const {
   sanitizeShopeeOrderEventDetails,
   sanitizeShopeeOrderItems,
 } = require("../shopeeOrderValidation");
-const { normalizeShopeeShopCode } = require("../services/shopeeShops");
+const {
+  SHOPEE_ALL_SHOPS_SCOPE,
+  SHOPEE_SHOP_PROFILES,
+  normalizeShopeeShopCode,
+} = require("../services/shopeeShops");
 const { getTables } = require("../tables");
 
 const SHOPEE_ORDER_SYNC_LOCK_PREFIX = "shopee-order-timeline-sync";
@@ -63,6 +67,11 @@ function requirePersistenceShopCode(value) {
   const shopCode = normalizeShopeeShopCode(value);
   if (!shopCode) throw new Error("A supported shopCode is required for Shopee order persistence.");
   return shopCode;
+}
+
+function requireListShopScope(value) {
+  if (value === SHOPEE_ALL_SHOPS_SCOPE) return SHOPEE_ALL_SHOPS_SCOPE;
+  return requirePersistenceShopCode(value);
 }
 
 async function runTransaction(callback, providedClient = null) {
@@ -273,17 +282,21 @@ async function upsertOrderEvent(parsed, providedClient = null) {
 }
 
 async function listOrders({ cursor = null, limit = 25, shopCode: shopCodeValue, status = null } = {}) {
-  const shopCode = requirePersistenceShopCode(shopCodeValue);
+  const shopCode = requireListShopScope(shopCodeValue);
   const tables = getTables();
-  const params = [shopCode];
-  const where = ["o.shop_code = $1"];
+  const isAllShops = shopCode === SHOPEE_ALL_SHOPS_SCOPE;
+  const params = [isAllShops ? Object.keys(SHOPEE_SHOP_PROFILES) : shopCode];
+  const where = [isAllShops ? "o.shop_code = ANY($1::text[])" : "o.shop_code = $1"];
   if (status) {
     params.push(status);
     where.push(`o.current_status = $${params.length}`);
   }
   if (cursor) {
-    params.push(cursor.lastEventAt, cursor.orderNumber);
-    where.push(`(o.last_event_at, o.order_number) < ($${params.length - 1}, $${params.length})`);
+    params.push(cursor.lastEventAt, cursor.rowShopCode || shopCode, cursor.orderNumber);
+    where.push(
+      `(o.last_event_at, o.shop_code, o.order_number) < `
+      + `($${params.length - 2}, $${params.length - 1}, $${params.length})`,
+    );
   }
   params.push(limit + 1);
 
@@ -295,7 +308,7 @@ async function listOrders({ cursor = null, limit = 25, shopCode: shopCodeValue, 
           WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
       FROM ${tables.shopeeOrders} o
       ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY o.last_event_at DESC, o.order_number DESC
+      ORDER BY o.last_event_at DESC, o.shop_code DESC, o.order_number DESC
       LIMIT $${params.length}
     `,
     params,

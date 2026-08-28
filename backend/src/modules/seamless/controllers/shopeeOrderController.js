@@ -6,7 +6,12 @@ const {
 } = require("../shopeeOrderValidation");
 const { TIMELINE_EVENT_TYPES } = require("../services/shopeeOrderEmailParser");
 const { syncShopeeOrderPage } = require("../services/shopeeOrderTimelineService");
-const { requireShopeeShopCode } = require("../services/shopeeShops");
+const {
+  SHOPEE_ALL_SHOPS_SCOPE,
+  normalizeShopeeShopCode,
+  requireShopeeShopCode,
+  requireShopeeShopScope,
+} = require("../services/shopeeShops");
 
 function parseLimit(value) {
   if (value === undefined || value === "") return 25;
@@ -17,22 +22,27 @@ function parseLimit(value) {
   return parsed;
 }
 
-function parseOpaqueCursor(value, expectedShopCode) {
+function parseOpaqueCursor(value, expectedShopScope) {
   if (value === undefined || value === "") return null;
   if (String(value).length > 2048) throw badRequest("cursor is too long.");
   try {
     const decoded = JSON.parse(Buffer.from(String(value), "base64url").toString("utf8"));
     if (
       !decoded ||
-      decoded.shopCode !== expectedShopCode ||
+      decoded.shopCode !== expectedShopScope ||
       Number.isNaN(new Date(decoded.lastEventAt).getTime()) ||
       !SHOPEE_ORDER_NUMBER_PATTERN.test(String(decoded.orderNumber || ""))
     ) {
       throw new Error("invalid cursor payload");
     }
+    const rowShopCode = expectedShopScope === SHOPEE_ALL_SHOPS_SCOPE
+      ? normalizeShopeeShopCode(decoded.rowShopCode)
+      : expectedShopScope;
+    if (!rowShopCode) throw new Error("invalid cursor shop");
     return {
       lastEventAt: decoded.lastEventAt,
       orderNumber: decoded.orderNumber,
+      rowShopCode,
       shopCode: decoded.shopCode,
     };
   } catch (error) {
@@ -40,12 +50,14 @@ function parseOpaqueCursor(value, expectedShopCode) {
   }
 }
 
-function encodeCursor(order) {
-  return Buffer.from(JSON.stringify({
+function encodeCursor(order, shopScope = order.shopCode) {
+  const payload = {
     lastEventAt: order.lastEventAt,
     orderNumber: order.orderNumber,
-    shopCode: order.shopCode,
-  })).toString("base64url");
+    shopCode: shopScope,
+  };
+  if (shopScope === SHOPEE_ALL_SHOPS_SCOPE) payload.rowShopCode = order.shopCode;
+  return Buffer.from(JSON.stringify(payload)).toString("base64url");
 }
 
 function parseStatus(value) {
@@ -65,7 +77,7 @@ function parseOrderNumber(value) {
 }
 
 async function listOrders(req, res) {
-  const shopCode = requireShopeeShopCode(req.query?.shopCode);
+  const shopCode = requireShopeeShopScope(req.query?.shopCode);
   const limit = parseLimit(req.query?.limit);
   const result = await repository.listOrders({
     cursor: parseOpaqueCursor(req.query?.cursor, shopCode),
@@ -75,7 +87,7 @@ async function listOrders(req, res) {
   });
   const lastOrder = result.orders[result.orders.length - 1];
   res.json({
-    nextCursor: result.hasMore && lastOrder ? encodeCursor(lastOrder) : null,
+    nextCursor: result.hasMore && lastOrder ? encodeCursor(lastOrder, shopCode) : null,
     orders: result.orders,
     shopCode,
   });

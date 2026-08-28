@@ -91,9 +91,10 @@ describePostgres("Shopee order shop-isolation PostgreSQL integration", () => {
       shopCode: "dr-morepen",
     }));
 
-    const [scList, drList, scDetail, drDetail] = await Promise.all([
+    const [scList, drList, allList, scDetail, drDetail] = await Promise.all([
       repository.listOrders({ shopCode: "sc-drug-store" }),
       repository.listOrders({ shopCode: "dr-morepen" }),
+      repository.listOrders({ shopCode: "all" }),
       repository.getOrderTimeline("sc-drug-store", orderNumber),
       repository.getOrderTimeline("dr-morepen", orderNumber),
     ]);
@@ -102,6 +103,11 @@ describePostgres("Shopee order shop-isolation PostgreSQL integration", () => {
       .toContainEqual(["sc-drug-store", orderNumber]);
     expect(drList.orders.map((order) => [order.shopCode, order.orderNumber]))
       .toContainEqual(["dr-morepen", orderNumber]);
+    expect(allList.orders.map((order) => [order.shopCode, order.orderNumber]))
+      .toEqual(expect.arrayContaining([
+        ["sc-drug-store", orderNumber],
+        ["dr-morepen", orderNumber],
+      ]));
     expect(scDetail.order.shopCode).toBe("sc-drug-store");
     expect(drDetail.order.shopCode).toBe("dr-morepen");
     expect(scDetail.events.every((event) => event.shopCode === "sc-drug-store")).toBe(true);
