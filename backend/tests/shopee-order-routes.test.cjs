@@ -15,7 +15,7 @@ const orderRow = {
   totalQuantity: 1,
 };
 
-const listOrdersMock = jest.fn(async () => ({ hasMore: true, orders: [orderRow] }));
+const listOrdersMock = jest.fn(async () => ({ hasMore: true, orders: [orderRow], totalCount: 51 }));
 const getOrderTimelineMock = jest.fn(async () => ({
   events: [{ details: {}, eventType: "shipment_due", id: "event-1", occurredAt: orderRow.lastEventAt }],
   order: orderRow,
@@ -91,7 +91,10 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
   expect(listOrdersMock).toHaveBeenCalledWith({
     cursor: null,
     limit: 10,
+    page: null,
     shopCode: "sc-drug-store",
+    sortBy: "lastEventAt",
+    sortOrder: "desc",
     status: "shipment_due",
   });
 
@@ -113,7 +116,10 @@ test("lists both supported shops without allowing an all-shops cursor to cross s
   expect(listOrdersMock).toHaveBeenCalledWith({
     cursor: null,
     limit: 10,
+    page: null,
     shopCode: "all",
+    sortBy: "lastEventAt",
+    sortOrder: "desc",
     status: null,
   });
 
@@ -135,6 +141,33 @@ test("lists both supported shops without allowing an all-shops cursor to cross s
   );
   expect(crossScopeReplay.status).toBe(400);
   expect(crossScopeReplay.body.error.message).toContain("cursor");
+});
+
+test("lists a numbered page with bounded database sorting and total metadata", async () => {
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/orders?shopCode=all&page=2&limit=25&sortBy=orderNumber&sortOrder=asc",
+  );
+
+  expect(response.status).toBe(200);
+  expect(response.body).toMatchObject({
+    nextCursor: null,
+    page: 2,
+    pageSize: 25,
+    shopCode: "all",
+    sortBy: "orderNumber",
+    sortOrder: "asc",
+    totalCount: 51,
+    totalPages: 3,
+  });
+  expect(listOrdersMock).toHaveBeenCalledWith({
+    cursor: null,
+    limit: 25,
+    page: 2,
+    shopCode: "all",
+    sortBy: "orderNumber",
+    sortOrder: "asc",
+    status: null,
+  });
 });
 
 test("returns the latest completed cycle and configured next accounting cycle", async () => {
@@ -237,6 +270,10 @@ test("returns a non-blocking conflict when the mailbox sync lock is busy", async
 test.each([
   ["/api/app/shopee/orders?shopCode=sc-drug-store&status=unknown", "status"],
   ["/api/app/shopee/orders?shopCode=sc-drug-store&limit=26", "limit"],
+  ["/api/app/shopee/orders?shopCode=sc-drug-store&page=0", "page"],
+  ["/api/app/shopee/orders?shopCode=sc-drug-store&sortBy=buyer", "sortBy"],
+  ["/api/app/shopee/orders?shopCode=sc-drug-store&sortOrder=sideways", "sortOrder"],
+  ["/api/app/shopee/orders?shopCode=sc-drug-store&page=2&cursor=broken", "cursor and page"],
   ["/api/app/shopee/orders?shopCode=sc-drug-store&cursor=broken", "cursor"],
   ["/api/app/shopee/orders/SHORT?shopCode=sc-drug-store", "orderNumber"],
   ["/api/app/shopee/orders/not-valid!?shopCode=sc-drug-store", "orderNumber"],

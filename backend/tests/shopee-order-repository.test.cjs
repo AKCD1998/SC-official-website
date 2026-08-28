@@ -328,6 +328,31 @@ test("all-shops list includes only supported shops and paginates by composite id
   ]);
 });
 
+test("numbered pagination returns a total and applies allowlisted document sorting", async () => {
+  pool.query.mockClear();
+  pool.query.mockResolvedValueOnce({
+    rows: [{ ...databaseOrder, total_count: "51" }],
+  });
+
+  const result = await listOrders({
+    limit: 25,
+    page: 2,
+    shopCode: "all",
+    sortBy: "orderNumber",
+    sortOrder: "asc",
+  });
+
+  expect(result).toMatchObject({ hasMore: true, totalCount: 51 });
+  expect(result.orders).toHaveLength(1);
+  const [sql, params] = pool.query.mock.calls[0];
+  expect(sql).toContain("WITH total AS");
+  expect(sql).toContain("LEFT JOIN page_rows ON TRUE");
+  expect(sql).toContain("ORDER BY o.order_number ASC, o.shop_code ASC, o.last_event_at ASC");
+  expect(sql).toContain("LIMIT $2");
+  expect(sql).toContain("OFFSET $3");
+  expect(params).toEqual([["sc-drug-store", "dr-morepen"], 25, 25]);
+});
+
 test("uses a non-blocking shop+mailbox lock and rejects a concurrent same-shop sync", async () => {
   let enterFirstSync;
   const firstStarted = new Promise((resolve) => { enterFirstSync = resolve; });
