@@ -18,6 +18,8 @@ const rx1011Routes = require("./src/modules/rx1011/lazyRouter.cjs");
 const reactNJobRoutes = require("./src/modules/reactnjob");
 const digitalPjkRoutes = require("./src/modules/digitalpjk/lazyRouter.cjs");
 const scGlamLiffRoutes = require("./src/modules/scglamliff/lazyRouter.cjs");
+const { runMigrations: runSeamlessMigrations } = require("./src/modules/seamless/db/migrate");
+const { startServerAfterMigrations } = require("./src/startServerAfterMigrations");
 
 
 // ==== ENV CHECK ====
@@ -191,4 +193,11 @@ if (process.env.NODE_ENV === "production") {
   app.get("/", (req, res) => res.send("Server is running"));
 }
 
-app.listen(port, () => console.log(`Server is running on port ${port}`));
+startServerAfterMigrations({
+  app,
+  port,
+  runMigrations: runSeamlessMigrations,
+}).catch((error) => {
+  console.error("Server startup failed before listening:", error.message);
+  process.exitCode = 1;
+});
