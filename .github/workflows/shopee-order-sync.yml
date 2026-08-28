@@ -15,7 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  sync:
+  sync_sc_drug_store:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.SHOPEE_SCHEDULE_ENABLED == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -41,3 +42,31 @@ jobs:
           SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET }}
           SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN }}
         run: npm run seamless:shopee:sync -- --shop-code=sc-drug-store
+
+  sync_dr_morepen:
+    if: ${{ github.event_name == 'workflow_dispatch' || vars.SHOPEE_SCHEDULE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Persist new DR.Morepen Shopee order events
+        working-directory: backend
+        env:
+          NODE_ENV: production
+          SC_OFFICIAL_SUPABASE_DATABASE_URL: ${{ secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_AUTH_MODE: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_AUTH_MODE }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_ID: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_ID }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_SECRET: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_SECRET }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_REFRESH_TOKEN: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_REFRESH_TOKEN }}
+        run: npm run seamless:shopee:sync -- --shop-code=dr-morepen

@@ -320,6 +320,25 @@ describe("createGmailAdapter (real, googleapis-backed with injected fake client)
     expect(getCall.options.timeout).toBe(10000);
   });
 
+  test("getMessageRoutingMetadata requests From/To only and never requests Subject or body", async () => {
+    const fake = makeFakeGmailClient({
+      messages: [{ id: "m1", internalDate: "1787549837000", payload: { headers: [] } }],
+    });
+    const adapter = createGmailAdapter(SERVICE_ACCOUNT_CONFIG, { createGmailClient: () => fake });
+
+    await adapter.getMessageRoutingMetadata("m1");
+
+    const getCall = fake.calls.find((call) => call.method === "get");
+    expect(getCall.params).toMatchObject({
+      fields: "id,internalDate,payload(headers)",
+      format: "metadata",
+      id: "m1",
+      metadataHeaders: ["From", "To"],
+      userId: "me",
+    });
+    expect(JSON.stringify(getCall.params)).not.toMatch(/Subject|body/iu);
+  });
+
   test("getMessageBounded fetches full MIME content without retry and with a timeout", async () => {
     const fake = makeFakeGmailClient({
       messages: [{ id: "m1", internalDate: "1787549837000", payload: { headers: [] } }],

@@ -29,6 +29,9 @@ function getTables() {
     processingRecordBranchCodes: qualifyTable("processing_record_branch_codes"),
     processingRecords: qualifyTable("processing_records"),
     schemaMigrations: qualifyTable("schema_migrations"),
+    shopeeLegacyReconciliationDecisions: qualifyTable(
+      "shopee_legacy_reconciliation_decisions",
+    ),
     shopeeOrderEvents: qualifyTable("shopee_order_events"),
     shopeeOrders: qualifyTable("shopee_orders"),
     pharmcareSyncRuns: qualifyTable("pharmcare_sync_runs"),
