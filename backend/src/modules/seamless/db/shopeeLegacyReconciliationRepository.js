@@ -25,6 +25,11 @@ function mapLegacyRow(row) {
     firstEventAt: toIso(row.first_event_at),
     lastEventAt: toIso(row.last_event_at),
     orderNumber: normalizeShopeeOrderNumber(row.order_number),
+    items: (Array.isArray(row.items) ? row.items : []).map((item) => ({
+      name: String(item?.name || "").trim(),
+      variant: String(item?.variant || "").trim(),
+      quantity: Number.isFinite(Number(item?.quantity)) ? Number(item.quantity) : null,
+    })),
     sourceEvents: (row.source_events || []).map((event) => ({
       eventType: event.eventType,
       gmailMessageId: event.gmailMessageId,
@@ -68,6 +73,7 @@ async function listLegacyOrders({ cursor = null, limit = 10, status = "pending" 
         o.current_status,
         o.first_event_at,
         o.last_event_at,
+        o.items,
         COUNT(e.id) AS event_count,
         jsonb_agg(
           jsonb_build_object(
@@ -93,6 +99,7 @@ async function listLegacyOrders({ cursor = null, limit = 10, status = "pending" 
         o.current_status,
         o.first_event_at,
         o.last_event_at,
+        o.items,
         d.selected_shop_code,
         d.suggested_shop_code,
         d.evidence_status,
@@ -118,6 +125,7 @@ async function getLegacyOrder(orderNumber) {
         o.current_status,
         o.first_event_at,
         o.last_event_at,
+        o.items,
         COUNT(e.id) AS event_count,
         jsonb_agg(
           jsonb_build_object(
@@ -143,6 +151,7 @@ async function getLegacyOrder(orderNumber) {
         o.current_status,
         o.first_event_at,
         o.last_event_at,
+        o.items,
         d.selected_shop_code,
         d.suggested_shop_code,
         d.evidence_status,

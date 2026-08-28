@@ -1,7 +1,9 @@
 jest.mock("../src/modules/seamless/db/shopeeLegacyReconciliationRepository", () => ({}));
 
 const {
+  combineLegacyEvidence,
   listLegacyReconciliationPage,
+  resolveLegacyProductEvidence,
   resolveLegacyRoutingEvidence,
   reviewLegacyOrder,
 } = require("../src/modules/seamless/services/shopeeLegacyReconciliationService");
@@ -106,4 +108,60 @@ test("fails closed on conflicting recipient evidence but still permits an explic
     selectedShopCode: "sc-drug-store",
     suggestedShopCode: null,
   }));
+});
+
+test("uses complete exact product coverage as a shop suggestion without applying a decision", () => {
+  const productEvidence = resolveLegacyProductEvidence({
+    items: [{ name: "SC-only product", variant: "80 g" }],
+  }, {
+    matchProduct: (shopCode) => shopCode === "sc-drug-store"
+      ? { status: "matched", companySku: "IC-000001" }
+      : { status: "unmapped", reasonCode: "catalog_identity_not_found" },
+  });
+
+  expect(productEvidence).toMatchObject({
+    evidenceStatus: "product_match",
+    suggestedShopCode: "sc-drug-store",
+    shops: expect.arrayContaining([
+      expect.objectContaining({ shopCode: "sc-drug-store", coverageComplete: true }),
+      expect.objectContaining({ shopCode: "dr-morepen", coverageComplete: false }),
+    ]),
+  });
+  expect(productEvidence.items[0]).toMatchObject({
+    name: "SC-only product",
+    matches: expect.arrayContaining([
+      expect.objectContaining({ companySku: "IC-000001", shopCode: "sc-drug-store" }),
+    ]),
+  });
+});
+
+test("does not recommend a shop when recipient and product evidence conflict", () => {
+  const combined = combineLegacyEvidence({
+    evidenceStatus: "recipient_match",
+    matchedEventCount: 1,
+    suggestedShopCode: "dr-morepen",
+    totalEventCount: 1,
+  }, {
+    evidenceStatus: "product_match",
+    suggestedShopCode: "sc-drug-store",
+  });
+  expect(combined).toMatchObject({
+    recommendationStatus: "evidence_conflict",
+    suggestedShopCode: null,
+  });
+});
+
+test("keeps partial or ambiguous product evidence review-only", () => {
+  const productEvidence = resolveLegacyProductEvidence({
+    items: [{ name: "known", variant: "" }, { name: "unknown", variant: "" }],
+  }, {
+    matchProduct: (shopCode, item) => shopCode === "dr-morepen" && item.name === "known"
+      ? { status: "matched", companySku: "IC-000002" }
+      : { status: "unmapped", reasonCode: "catalog_identity_not_found" },
+  });
+  expect(productEvidence).toMatchObject({
+    candidateShopCode: "dr-morepen",
+    evidenceStatus: "product_partial",
+    suggestedShopCode: null,
+  });
 });

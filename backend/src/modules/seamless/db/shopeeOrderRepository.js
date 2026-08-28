@@ -10,6 +10,10 @@ const {
   SHOPEE_SHOP_PROFILES,
   normalizeShopeeShopCode,
 } = require("../services/shopeeShops");
+const {
+  enrichShopeeOrderItems,
+  summarizeShopeeProductMatches,
+} = require("../services/shopeeProductMatcher");
 const { getTables } = require("../tables");
 
 const SHOPEE_ORDER_SYNC_LOCK_PREFIX = "shopee-order-timeline-sync";
@@ -33,6 +37,8 @@ function toNumber(value) {
 
 function mapOrder(row) {
   if (!row) return null;
+  const shopCode = normalizeShopeeShopCode(row.shop_code);
+  const items = enrichShopeeOrderItems(shopCode, sanitizeShopeeOrderItems(row.items));
   return {
     currentStatus: row.current_status,
     deliveryMethod: row.delivery_method || "",
@@ -40,13 +46,14 @@ function mapOrder(row) {
     firstEventAt: toIso(row.first_event_at),
     itemCount: Number(row.item_count || 0),
     itemSubtotal: toNumber(row.item_subtotal),
-    items: sanitizeShopeeOrderItems(row.items),
+    items,
     lastEventAt: toIso(row.last_event_at),
     orderedAt: toIso(row.ordered_at),
     orderNumber: normalizeShopeeOrderNumber(row.order_number),
     shippingDeadline: toDateOnly(row.shipping_deadline),
     shippingFee: toNumber(row.shipping_fee),
-    shopCode: normalizeShopeeShopCode(row.shop_code),
+    productMapping: summarizeShopeeProductMatches(items),
+    shopCode,
     totalAmount: toNumber(row.total_amount),
     totalQuantity: Number(row.total_quantity || 0),
   };
