@@ -46,6 +46,48 @@ function publicProductMatch(match) {
   return output;
 }
 
+function normalizeMailbox(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function resolveLegacyMailboxEvidence(order, dependencies = {}) {
+  const configs = routingConfigs(dependencies);
+  const shopByTrustedMailbox = new Map();
+  configs.forEach((config) => {
+    const mailboxAccount = normalizeMailbox(config.mailboxAccount);
+    const expectedMailbox = normalizeMailbox(config.expectedMailbox);
+    if (
+      mailboxAccount
+      && expectedMailbox
+      && mailboxAccount === expectedMailbox
+      && config.shopCode
+    ) {
+      shopByTrustedMailbox.set(mailboxAccount, config.shopCode);
+    }
+  });
+
+  const events = Array.isArray(order.sourceEvents) ? order.sourceEvents : [];
+  const matchedShopCodes = events.map((event) => (
+    shopByTrustedMailbox.get(normalizeMailbox(event.mailboxAccount)) || null
+  ));
+  const candidates = new Set(matchedShopCodes.filter(Boolean));
+  const matchedEventCount = matchedShopCodes.filter(Boolean).length;
+  const hasUnknownMailbox = matchedEventCount !== events.length;
+  let evidenceStatus = "mailbox_unknown";
+  if (candidates.size > 1) evidenceStatus = "mailbox_conflict";
+  else if (events.length && !hasUnknownMailbox && candidates.size === 1) {
+    evidenceStatus = "mailbox_match";
+  }
+
+  return {
+    distinctShopCount: candidates.size,
+    evidenceStatus,
+    matchedEventCount,
+    suggestedShopCode: evidenceStatus === "mailbox_match" ? [...candidates][0] : null,
+    totalEventCount: events.length,
+  };
+}
+
 function resolveLegacyProductEvidence(order, dependencies = {}) {
   const matcher = dependencies.matchProduct || matchShopeeProduct;
   const items = Array.isArray(order.items) ? order.items : [];
@@ -101,13 +143,53 @@ function resolveLegacyProductEvidence(order, dependencies = {}) {
   };
 }
 
-function combineLegacyEvidence(recipientEvidence, productEvidence) {
+function combineLegacyEvidence(recipientEvidence, productEvidence, mailboxEvidence = {}) {
+  const mailboxShop = mailboxEvidence.suggestedShopCode;
   const recipientShop = recipientEvidence.suggestedShopCode;
   const productShop = productEvidence.suggestedShopCode;
+  const productCandidateShop = productEvidence.candidateShopCode;
+  const strongCandidates = new Set([
+    mailboxShop,
+    recipientShop,
+    productShop,
+  ].filter(Boolean));
+  const productCandidateConflicts = Boolean(
+    productCandidateShop
+    && [...strongCandidates].some((shopCode) => shopCode !== productCandidateShop),
+  );
+  const hasConflict = (
+    strongCandidates.size > 1
+    || productCandidateConflicts
+    || mailboxEvidence.evidenceStatus === "mailbox_conflict"
+    || recipientEvidence.evidenceStatus === "recipient_conflict"
+    || productEvidence.evidenceStatus === "product_conflict"
+  );
   let recommendationStatus = "unknown";
   let suggestedShopCode = null;
-  if (recipientShop && productShop && recipientShop !== productShop) {
+  let classification = {
+    reasonCode: "trusted_mailbox_unavailable",
+    requiresConfirmation: true,
+    shopCode: null,
+    status: "manual_review",
+  };
+
+  if (hasConflict) {
     recommendationStatus = "evidence_conflict";
+    classification = {
+      reasonCode: "evidence_conflict",
+      requiresConfirmation: true,
+      shopCode: null,
+      status: "manual_review",
+    };
+  } else if (mailboxShop) {
+    recommendationStatus = "auto_classified";
+    suggestedShopCode = mailboxShop;
+    classification = {
+      reasonCode: "trusted_mailbox",
+      requiresConfirmation: false,
+      shopCode: mailboxShop,
+      status: "auto_classified",
+    };
   } else if (recipientShop && productShop) {
     recommendationStatus = "evidence_agrees";
     suggestedShopCode = recipientShop;
@@ -120,6 +202,8 @@ function combineLegacyEvidence(recipientEvidence, productEvidence) {
   }
   return {
     ...recipientEvidence,
+    classification,
+    mailboxEvidence,
     productEvidence,
     recommendationStatus,
     suggestedShopCode,
@@ -218,9 +302,10 @@ async function listLegacyReconciliationPage(filters = {}, dependencies = {}) {
     metadataConcurrency: 1,
   };
   const orders = await mapWithConcurrency(result.orders, async (order) => {
+    const mailboxEvidence = resolveLegacyMailboxEvidence(order, evidenceDependencies);
     const recipientEvidence = await resolveLegacyRoutingEvidence(order, evidenceDependencies);
     const productEvidence = resolveLegacyProductEvidence(order, dependencies);
-    const evidence = combineLegacyEvidence(recipientEvidence, productEvidence);
+    const evidence = combineLegacyEvidence(recipientEvidence, productEvidence, mailboxEvidence);
     return publicOrder(order, evidence);
   });
   return { ...result, orders };
@@ -230,9 +315,10 @@ async function reviewLegacyOrder({ orderNumber, selectedShopCode }, dependencies
   const activeRepository = dependencies.repository || repository;
   const shopCode = requireShopeeShopCode(selectedShopCode);
   const order = await activeRepository.getLegacyOrder(orderNumber);
+  const mailboxEvidence = resolveLegacyMailboxEvidence(order, dependencies);
   const recipientEvidence = await resolveLegacyRoutingEvidence(order, dependencies);
   const productEvidence = resolveLegacyProductEvidence(order, dependencies);
-  const evidence = combineLegacyEvidence(recipientEvidence, productEvidence);
+  const evidence = combineLegacyEvidence(recipientEvidence, productEvidence, mailboxEvidence);
   const decision = await activeRepository.saveDecision({
     evidenceStatus: evidence.evidenceStatus,
     orderNumber,
@@ -253,6 +339,7 @@ module.exports = {
   mapWithConcurrency,
   combineLegacyEvidence,
   resolveLegacyProductEvidence,
+  resolveLegacyMailboxEvidence,
   resolveLegacyRoutingEvidence,
   reviewLegacyOrder,
 };
