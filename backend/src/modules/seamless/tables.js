@@ -32,6 +32,12 @@ function getTables() {
     shopeeLegacyReconciliationDecisions: qualifyTable(
       "shopee_legacy_reconciliation_decisions",
     ),
+    shopeeLegacyReconciliationApplyBatches: qualifyTable(
+      "shopee_legacy_reconciliation_apply_batches",
+    ),
+    shopeeLegacyReconciliationApplyItems: qualifyTable(
+      "shopee_legacy_reconciliation_apply_items",
+    ),
     shopeeOrderEvents: qualifyTable("shopee_order_events"),
     shopeeOrders: qualifyTable("shopee_orders"),
     pharmcareSyncRuns: qualifyTable("pharmcare_sync_runs"),

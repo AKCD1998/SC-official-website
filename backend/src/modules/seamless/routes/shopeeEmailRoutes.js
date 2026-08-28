@@ -4,6 +4,8 @@ const {
 } = require("../controllers/shopeeAccountingCycleController");
 const { listInbox } = require("../controllers/shopeeEmailController");
 const {
+  applyLegacyReviews,
+  getLegacyApplyPlan,
   listLegacyReviews,
   saveLegacyReview,
 } = require("../controllers/shopeeLegacyReconciliationController");
@@ -22,6 +24,14 @@ router.get("/accounting-cycle", asyncHandler(getAccountingCycleStatus));
 router.get("/inbox", asyncHandler(listInbox));
 router.get("/orders", asyncHandler(listOrders));
 router.get("/orders/legacy-reconciliation", asyncHandler(listLegacyReviews));
+router.get(
+  "/orders/legacy-reconciliation/apply-plan",
+  asyncHandler(getLegacyApplyPlan),
+);
+router.post(
+  "/orders/legacy-reconciliation/apply",
+  asyncHandler(applyLegacyReviews),
+);
 router.post(
   "/orders/legacy-reconciliation/:orderNumber",
   asyncHandler(saveLegacyReview),

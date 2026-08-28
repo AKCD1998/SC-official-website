@@ -23,9 +23,29 @@ const reviewMock = jest.fn(async ({ orderNumber, selectedShopCode }) => ({
   orderNumber,
   reviewOnly: true,
 }));
+const planMock = jest.fn(async () => ({
+  attributions: [{ orderNumber: ORDER_NUMBER, targetShopCode: "dr-morepen" }],
+  automaticCount: 1,
+  byShop: { "dr-morepen": 1 },
+  eventCount: 1,
+  legacyOrderCount: 1,
+  manualReviewRequiredCount: 0,
+  planDigest: "a".repeat(64),
+  readyToApply: true,
+  reviewedCount: 0,
+  targetExistingOrderCount: 0,
+  targetNewOrderCount: 1,
+}));
+const applyMock = jest.fn(async ({ planDigest }) => ({ orderCount: 1, planDigest }));
 
 jest.mock("../src/modules/seamless/services/shopeeLegacyReconciliationService", () => ({
+  applyLegacyPlan: (...args) => applyMock(...args),
+  buildLegacyApplyPlan: (...args) => planMock(...args),
   listLegacyReconciliationPage: (...args) => listMock(...args),
+  publicLegacyApplyPlan: (plan) => {
+    const { attributions, ...publicPlan } = plan;
+    return publicPlan;
+  },
   reviewLegacyOrder: (...args) => reviewMock(...args),
 }));
 
@@ -77,4 +97,50 @@ test("regular app users cannot view or change legacy attribution decisions", asy
     .auth("staff", "staff-password");
   expect(response.status).toBe(403);
   expect(listMock).not.toHaveBeenCalled();
+});
+
+test("regular app users cannot dry-run or apply a legacy timeline plan", async () => {
+  process.env.SEAMLESS_APP_BASIC_USER = "staff";
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "staff-password";
+  const app = buildApp();
+  const plan = await request(app)
+    .get("/api/app/shopee/orders/legacy-reconciliation/apply-plan")
+    .auth("staff", "staff-password");
+  const apply = await request(app)
+    .post("/api/app/shopee/orders/legacy-reconciliation/apply")
+    .auth("staff", "staff-password")
+    .send({ planDigest: "a".repeat(64) });
+
+  expect(plan.status).toBe(403);
+  expect(apply.status).toBe(403);
+  expect(planMock).not.toHaveBeenCalled();
+  expect(applyMock).not.toHaveBeenCalled();
+});
+
+test("admin can dry-run and apply the exact legacy timeline plan digest", async () => {
+  const app = buildApp();
+  const plan = await request(app)
+    .get("/api/app/shopee/orders/legacy-reconciliation/apply-plan");
+  expect(plan.status).toBe(200);
+  expect(plan.body).toMatchObject({
+    dryRun: true,
+    legacyOrderCount: 1,
+    planDigest: "a".repeat(64),
+    readyToApply: true,
+  });
+  expect(plan.body.attributions).toBeUndefined();
+
+  const apply = await request(app)
+    .post("/api/app/shopee/orders/legacy-reconciliation/apply")
+    .send({ planDigest: "a".repeat(64) });
+  expect(apply.status).toBe(200);
+  expect(applyMock).toHaveBeenCalledWith({ planDigest: "a".repeat(64) });
+});
+
+test("legacy timeline apply rejects malformed digests before the service runs", async () => {
+  const response = await request(buildApp())
+    .post("/api/app/shopee/orders/legacy-reconciliation/apply")
+    .send({ planDigest: "not-a-digest" });
+  expect(response.status).toBe(400);
+  expect(applyMock).not.toHaveBeenCalled();
 });

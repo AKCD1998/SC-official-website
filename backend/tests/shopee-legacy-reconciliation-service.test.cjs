@@ -1,6 +1,8 @@
 jest.mock("../src/modules/seamless/db/shopeeLegacyReconciliationRepository", () => ({}));
 
 const {
+  applyLegacyPlan,
+  buildLegacyApplyPlan,
   combineLegacyEvidence,
   listLegacyReconciliationPage,
   resolveLegacyMailboxEvidence,
@@ -270,4 +272,132 @@ test("fails closed when partial product evidence points away from the pinned mai
     recommendationStatus: "evidence_conflict",
     suggestedShopCode: null,
   });
+});
+
+test("builds a digest-gated apply plan for fully attributed legacy orders", async () => {
+  const order = {
+    ...legacyOrder([{
+      gmailMessageId: "one",
+      mailboxAccount: "admin@sc.example",
+    }]),
+    items: [{ name: "SC-only product", variant: "80 g" }],
+  };
+  const repository = {
+    inspectLegacyApplyTargets: jest.fn(async () => []),
+    listLegacyOrders: jest.fn(async () => ({ hasMore: false, orders: [order] })),
+  };
+  const plan = await buildLegacyApplyPlan({
+    configs: pinnedConfigs,
+    matchProduct: (shopCode) => shopCode === "sc-drug-store"
+      ? { status: "matched", companySku: "IC-000001" }
+      : { status: "unmapped", reasonCode: "catalog_identity_not_found" },
+    repository,
+  });
+
+  expect(plan).toMatchObject({
+    automaticCount: 1,
+    byShop: { "sc-drug-store": 1 },
+    eventCount: 1,
+    legacyOrderCount: 1,
+    manualReviewRequiredCount: 0,
+    readyToApply: true,
+    reviewedCount: 0,
+  });
+  expect(plan.planDigest).toMatch(/^[a-f0-9]{64}$/u);
+  expect(plan.attributions).toEqual([{
+    decisionSource: "automatic",
+    evidenceStatus: "mailbox_match",
+    eventCount: 1,
+    lastEventAt: "2026-08-24T03:00:00.000Z",
+    orderNumber: ORDER_NUMBER,
+    targetShopCode: "sc-drug-store",
+    targetOrderExisted: false,
+  }]);
+});
+
+test("keeps a trusted-mailbox order out of the apply plan when product evidence conflicts", async () => {
+  const order = {
+    ...legacyOrder([{
+      gmailMessageId: "one",
+      mailboxAccount: "admin@sc.example",
+    }]),
+    items: [{ name: "Morepen-only product", variant: "1 box" }],
+  };
+  const repository = {
+    inspectLegacyApplyTargets: jest.fn(async () => []),
+    listLegacyOrders: jest.fn(async () => ({ hasMore: false, orders: [order] })),
+  };
+  const plan = await buildLegacyApplyPlan({
+    configs: pinnedConfigs,
+    matchProduct: (shopCode) => shopCode === "dr-morepen"
+      ? { status: "matched", companySku: "IC-003230" }
+      : { status: "unmapped", reasonCode: "catalog_identity_not_found" },
+    repository,
+  });
+
+  expect(plan).toMatchObject({
+    automaticCount: 0,
+    legacyOrderCount: 1,
+    manualReviewRequiredCount: 1,
+    readyToApply: false,
+  });
+  expect(plan.attributions).toEqual([]);
+});
+
+test("rechecks the plan, takes the shop sync lock, and applies the exact digest", async () => {
+  const order = {
+    ...legacyOrder([{
+      gmailMessageId: "one",
+      mailboxAccount: "admin@sc.example",
+    }]),
+    items: [],
+  };
+  const applyLegacyAttributions = jest.fn(async ({ attributions, planDigest }) => ({
+    orderCount: attributions.length,
+    planDigest,
+  }));
+  const repository = {
+    applyLegacyAttributions,
+    inspectLegacyApplyTargets: jest.fn(async () => []),
+    listLegacyOrders: jest.fn(async () => ({ hasMore: false, orders: [order] })),
+  };
+  const withSyncLock = jest.fn(async (shopCode, mailboxAccount, callback) => callback());
+  const dependencies = {
+    configs: pinnedConfigs,
+    matchProduct: () => ({ status: "unmapped", reasonCode: "catalog_identity_not_found" }),
+    repository,
+    withSyncLock,
+  };
+  const plan = await buildLegacyApplyPlan(dependencies);
+  const result = await applyLegacyPlan({ planDigest: plan.planDigest }, dependencies);
+
+  expect(result).toMatchObject({ orderCount: 1, planDigest: plan.planDigest });
+  expect(withSyncLock).toHaveBeenCalledWith(
+    "sc-drug-store",
+    expect.any(String),
+    expect.any(Function),
+  );
+  expect(applyLegacyAttributions).toHaveBeenCalledWith({
+    attributions: plan.attributions,
+    planDigest: plan.planDigest,
+  });
+});
+
+test("rejects a stale digest before any legacy rows are changed", async () => {
+  const order = legacyOrder([{
+    gmailMessageId: "one",
+    mailboxAccount: "admin@sc.example",
+  }]);
+  const repository = {
+    applyLegacyAttributions: jest.fn(),
+    inspectLegacyApplyTargets: jest.fn(async () => []),
+    listLegacyOrders: jest.fn(async () => ({ hasMore: false, orders: [order] })),
+  };
+
+  await expect(applyLegacyPlan({ planDigest: "0".repeat(64) }, {
+    configs: pinnedConfigs,
+    matchProduct: () => ({ status: "unmapped", reasonCode: "catalog_identity_not_found" }),
+    repository,
+  })).rejects.toMatchObject({ statusCode: 409 });
+  expect(repository.applyLegacyAttributions).not.toHaveBeenCalled();
 });

@@ -131,7 +131,13 @@ async function verifyMigrations() {
       throw new Error(`Missing Seamless migrations: ${missingFiles.join(", ")}`);
     }
 
-    for (const tableName of ["shopee_orders", "shopee_order_events"]) {
+    for (const tableName of [
+      "shopee_orders",
+      "shopee_order_events",
+      "shopee_legacy_reconciliation_decisions",
+      "shopee_legacy_reconciliation_apply_batches",
+      "shopee_legacy_reconciliation_apply_items",
+    ]) {
       // eslint-disable-next-line no-await-in-loop
       const result = await client.query("SELECT to_regclass($1) AS relation", [
         `${schemaName}.${tableName}`,
