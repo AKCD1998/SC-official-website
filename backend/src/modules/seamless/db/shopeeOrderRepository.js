@@ -288,10 +288,23 @@ async function upsertOrderEvent(parsed, providedClient = null) {
   }, providedClient);
 }
 
-async function listOrders({ cursor = null, limit = 25, shopCode: shopCodeValue, status = null } = {}) {
+async function listOrders({
+  cursor = null,
+  limit = 25,
+  page = null,
+  shopCode: shopCodeValue,
+  sortBy = "lastEventAt",
+  sortOrder = "desc",
+  status = null,
+} = {}) {
   const shopCode = requireListShopScope(shopCodeValue);
   const tables = getTables();
   const isAllShops = shopCode === SHOPEE_ALL_SHOPS_SCOPE;
+  const isNumberedPage = Number.isInteger(page);
+  const direction = sortOrder === "asc" ? "ASC" : "DESC";
+  const orderBy = sortBy === "orderNumber"
+    ? `o.order_number ${direction}, o.shop_code ${direction}, o.last_event_at ${direction}`
+    : `o.last_event_at ${direction}, o.shop_code ${direction}, o.order_number ${direction}`;
   const params = [isAllShops ? Object.keys(SHOPEE_SHOP_PROFILES) : shopCode];
   const where = [isAllShops ? "o.shop_code = ANY($1::text[])" : "o.shop_code = $1"];
   if (status) {
@@ -305,25 +318,54 @@ async function listOrders({ cursor = null, limit = 25, shopCode: shopCodeValue, 
       + `($${params.length - 2}, $${params.length - 1}, $${params.length})`,
     );
   }
-  params.push(limit + 1);
+  params.push(isNumberedPage ? limit : limit + 1);
+  const limitParameter = params.length;
+  if (isNumberedPage) params.push((page - 1) * limit);
 
   const result = await pool.query(
-    `
-      SELECT
-        o.*,
-        (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
-          WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
-      FROM ${tables.shopeeOrders} o
-      ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      ORDER BY o.last_event_at DESC, o.shop_code DESC, o.order_number DESC
-      LIMIT $${params.length}
-    `,
+    isNumberedPage
+      ? `
+        WITH total AS (
+          SELECT COUNT(*) AS total_count
+          FROM ${tables.shopeeOrders} o
+          ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+        ), page_rows AS (
+          SELECT
+            o.*,
+            (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
+              WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
+          FROM ${tables.shopeeOrders} o
+          ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+          ORDER BY ${orderBy}
+          LIMIT $${limitParameter}
+          OFFSET $${params.length}
+        )
+        SELECT page_rows.*, total.total_count
+        FROM total
+        LEFT JOIN page_rows ON TRUE
+      `
+      : `
+        SELECT
+          o.*,
+          (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
+            WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
+        FROM ${tables.shopeeOrders} o
+        ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+        ORDER BY ${orderBy}
+        LIMIT $${limitParameter}
+      `,
     params,
   );
 
-  const hasMore = result.rows.length > limit;
-  const rows = hasMore ? result.rows.slice(0, limit) : result.rows;
-  return { hasMore, orders: rows.map(mapOrder) };
+  const totalCount = isNumberedPage ? Number(result.rows[0]?.total_count || 0) : null;
+  const hasMore = isNumberedPage
+    ? page * limit < totalCount
+    : result.rows.length > limit;
+  const pageRows = isNumberedPage
+    ? result.rows.filter((row) => row.order_number)
+    : result.rows;
+  const rows = !isNumberedPage && hasMore ? pageRows.slice(0, limit) : pageRows;
+  return { hasMore, orders: rows.map(mapOrder), totalCount };
 }
 
 async function getOrderTimeline(shopCodeValue, orderNumber) {

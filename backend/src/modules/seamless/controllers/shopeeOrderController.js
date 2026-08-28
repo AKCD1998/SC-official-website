@@ -22,6 +22,31 @@ function parseLimit(value) {
   return parsed;
 }
 
+function parsePage(value) {
+  if (value === undefined || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1 || parsed > 10000) {
+    throw badRequest("page must be an integer from 1 to 10000.");
+  }
+  return parsed;
+}
+
+function parseSortBy(value) {
+  if (value === undefined || value === "") return "lastEventAt";
+  if (!["lastEventAt", "orderNumber"].includes(value)) {
+    throw badRequest("sortBy must be lastEventAt or orderNumber.");
+  }
+  return value;
+}
+
+function parseSortOrder(value) {
+  if (value === undefined || value === "") return "desc";
+  if (!["asc", "desc"].includes(value)) {
+    throw badRequest("sortOrder must be asc or desc.");
+  }
+  return value;
+}
+
 function parseOpaqueCursor(value, expectedShopScope) {
   if (value === undefined || value === "") return null;
   if (String(value).length > 2048) throw badRequest("cursor is too long.");
@@ -79,17 +104,37 @@ function parseOrderNumber(value) {
 async function listOrders(req, res) {
   const shopCode = requireShopeeShopScope(req.query?.shopCode);
   const limit = parseLimit(req.query?.limit);
+  const page = parsePage(req.query?.page);
+  const sortBy = parseSortBy(req.query?.sortBy);
+  const sortOrder = parseSortOrder(req.query?.sortOrder);
+  if (req.query?.cursor && page) {
+    throw badRequest("cursor and page cannot be used together.");
+  }
+  if (req.query?.cursor && (sortBy !== "lastEventAt" || sortOrder !== "desc")) {
+    throw badRequest("cursor pagination supports only lastEventAt descending sort.");
+  }
   const result = await repository.listOrders({
     cursor: parseOpaqueCursor(req.query?.cursor, shopCode),
     limit,
+    page,
     shopCode,
+    sortBy,
+    sortOrder,
     status: parseStatus(req.query?.status),
   });
   const lastOrder = result.orders[result.orders.length - 1];
   res.json({
-    nextCursor: result.hasMore && lastOrder ? encodeCursor(lastOrder, shopCode) : null,
+    nextCursor: !page && result.hasMore && lastOrder ? encodeCursor(lastOrder, shopCode) : null,
     orders: result.orders,
+    ...(page ? {
+      page,
+      pageSize: limit,
+      totalCount: result.totalCount,
+      totalPages: Math.ceil(result.totalCount / limit),
+    } : {}),
     shopCode,
+    sortBy,
+    sortOrder,
   });
 }
 
@@ -120,5 +165,8 @@ module.exports = {
   getOrder,
   listOrders,
   parseOpaqueCursor,
+  parsePage,
+  parseSortBy,
+  parseSortOrder,
   syncOrders,
 };
