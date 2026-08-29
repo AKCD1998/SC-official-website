@@ -46,6 +46,8 @@ jobs:
       SC_OFFICIAL_SUPABASE_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/seamless_ci
       SEAMLESS_DB_SCHEMA: clasp_scx_seamless_ci
       SEAMLESS_MIGRATION_SMOKE: "1"
+      SEAMLESS_MIGRATION_TEST_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/seamless_ci
+      SEAMLESS_MIGRATION_TEST_SCHEMA: clasp_scx_seamless_review_ci
     defaults:
       run:
         working-directory: backend
