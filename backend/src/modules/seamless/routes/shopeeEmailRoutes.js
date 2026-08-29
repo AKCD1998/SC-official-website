@@ -2,6 +2,10 @@ const express = require("express");
 const {
   getAccountingCycleStatus,
 } = require("../controllers/shopeeAccountingCycleController");
+const {
+  confirmDryRunQueue,
+  createValidationPreview,
+} = require("../controllers/adaSmartShopeeController");
 const { listInbox } = require("../controllers/shopeeEmailController");
 const {
   applyLegacyReviews,
@@ -21,6 +25,8 @@ const router = express.Router();
 
 router.use(appAuth);
 router.get("/accounting-cycle", asyncHandler(getAccountingCycleStatus));
+router.post("/adasmart/validation-preview", asyncHandler(createValidationPreview));
+router.post("/adasmart/confirm", asyncHandler(confirmDryRunQueue));
 router.get("/inbox", asyncHandler(listInbox));
 router.get("/orders", asyncHandler(listOrders));
 router.get("/orders/legacy-reconciliation", asyncHandler(listLegacyReviews));

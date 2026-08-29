@@ -1,6 +1,10 @@
 const ExcelJS = require('exceljs');
 const { badRequest } = require('../errors');
-const { resolveCycleProfile } = require('./shopeeAccountingCycles');
+const {
+  CYCLE_CONTRACT_REVISION,
+  resolveCycleProfile,
+} = require('./shopeeAccountingCycles');
+const { buildIncludedRowsManifest } = require('./shopeeIncludedRowsManifest');
 const { applyDefaultFont, DEFAULT_FONT } = require('./xlsxDefaultFont');
 
 // ---------------------------------------------------------------------------
@@ -683,6 +687,7 @@ function buildMetadata(profile, cycle, sourceSheetName, filenamePeriod) {
     // Extended accounting-cycle keys
     cycleKey: profile.cycleKey,
     cycleLabel: profile.cycleLabel,
+    cycleContractRevision: CYCLE_CONTRACT_REVISION,
     rawRows: cycle.rawRows,
     blankSkipped: cycle.blankSkipped,
     cancelledExcluded: cycle.cancelledExcluded,
@@ -709,6 +714,7 @@ function buildMetadata(profile, cycle, sourceSheetName, filenamePeriod) {
         ? 'ready_with_rows'
         : 'review_required_empty',
     checkpointEligible: included.length > 0 && cycle.pendingCompletionExcluded === 0,
+    includedRowsManifest: buildIncludedRowsManifest(included),
     weeklyCounts,
     weeklyNetTotals,
     sheets: [profile.masterSheetName, ...profile.weeks.map((week) => week.name)],

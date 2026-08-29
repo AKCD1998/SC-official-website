@@ -33,6 +33,7 @@ function resetState() {
   state.branchCodes = {
     "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa": ["001"],
   };
+  state.nextRecordNumber = 1;
 }
 
 resetState();
@@ -98,7 +99,9 @@ async function mockQuery(sql, params = []) {
   if (text.startsWith("INSERT INTO \"clasp_scx_seamless\".\"processing_records\"")) {
     const offset = params.length === 18 ? 1 : 0;
     const row = {
-      id: offset ? params[0] : "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      id: offset
+        ? params[0]
+        : `bbbbbbbb-bbbb-4bbb-8bbb-${String(state.nextRecordNumber++).padStart(12, "0")}`,
       legacy_registry_id: params[0 + offset],
       report_date_key: params[1 + offset],
       report_date: params[2 + offset],
@@ -184,6 +187,9 @@ jest.mock("../db", () => ({
 }));
 
 const router = require("../routes/seamlessProcessingRecords");
+const {
+  createProcessingRecordFromPreview,
+} = require("../src/modules/seamless/processingRecords");
 
 function createApp() {
   const app = express();
@@ -282,6 +288,30 @@ describe("seamless processing records routes", () => {
         uploadedBy: "gas-user",
       }),
     );
+  });
+
+  test("creates distinct immutable source identities for a two-file Shopee batch", async () => {
+    const common = {
+      branchCodes: "004",
+      filename: "Preview-shopee-dr-morepen-multi-20260828-120000.xlsx",
+      reportDate: "20260828",
+      reportType: "shopee",
+    };
+    const first = await createProcessingRecordFromPreview({
+      ...common,
+      metadata: { uploadId: "upload-1" },
+      sourceUploadName: "Order.all.20260824_20260913-A.xlsx",
+    });
+    const second = await createProcessingRecordFromPreview({
+      ...common,
+      metadata: { uploadId: "upload-2" },
+      sourceUploadName: "Order.all.20260824_20260913-B.xlsx",
+    });
+
+    expect(first.record.id).not.toBe(second.record.id);
+    expect(first.record.metadata.uploadId).toBe("upload-1");
+    expect(second.record.metadata.uploadId).toBe("upload-2");
+    expect(state.records.filter((record) => record.filename === common.filename)).toHaveLength(2);
   });
 
   test("reports database context for seamless route debugging", async () => {

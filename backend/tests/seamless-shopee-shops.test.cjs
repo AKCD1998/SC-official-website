@@ -1,4 +1,7 @@
-const { findSourceUploadByChecksum } = require("../src/modules/seamless/db/generatedFileRepository");
+const {
+  findSourceUploadByChecksum,
+  findSourceUploadByProcessingRecordId,
+} = require("../src/modules/seamless/db/generatedFileRepository");
 const {
   getShopeeShopProfile,
   normalizeShopeeShopCode,
@@ -40,4 +43,16 @@ test("source duplicate lookup scopes Shopee checks by shop and treats legacy row
   expect(sql).toContain("gf.metadata ->> 'shopCode'");
   expect(sql).toContain("'dr-morepen'");
   expect(params).toEqual([checksum, "shopee", "sc-drug-store"]);
+});
+
+test("source lookup requires both generated file and upload to own the requested processing record", async () => {
+  const client = { query: jest.fn().mockResolvedValue({ rows: [] }) };
+  const processingRecordId = "11111111-1111-4111-8111-111111111111";
+
+  await findSourceUploadByProcessingRecordId(processingRecordId, client);
+
+  const [sql, params] = client.query.mock.calls[0];
+  expect(sql).toContain("gf.processing_record_id = $1");
+  expect(sql).toContain("wu.processing_record_id = $1");
+  expect(params).toEqual([processingRecordId]);
 });

@@ -103,6 +103,18 @@ function readStorageDir() {
   return String(process.env.SEAMLESS_STORAGE_DIR || "storage/seamless").trim();
 }
 
+function readAdaSmartShopeeConfig() {
+  return {
+    queueEnabled: ["1", "true", "yes", "on"].includes(
+      String(process.env.ADASMART_SHOPEE_QUEUE_ENABLED || "false").trim().toLowerCase(),
+    ),
+    erpProductCatalogResolveUrl: String(
+      process.env.SC_ERP_PRODUCT_CATALOG_RESOLVE_URL || "",
+    ).trim(),
+    erpProductCatalogToken: String(process.env.SC_ERP_PRODUCT_CATALOG_TOKEN || "").trim(),
+  };
+}
+
 // Falls back to Render's own auto-injected RENDER_EXTERNAL_URL (e.g.
 // https://sc-official-website.onrender.com) so download/view URLs come out as absolute links
 // without needing a new Render env var — required now that the client is a separate Static Site
@@ -265,6 +277,7 @@ function readEmailConfig() {
 }
 
 module.exports = {
+  readAdaSmartShopeeConfig,
   readAppAdminBasicCredentials,
   readAppBasicCredentials,
   readAutoPrintSince,
