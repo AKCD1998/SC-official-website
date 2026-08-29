@@ -95,33 +95,14 @@ async function verifyShopeeCatalogAgainstErp({
   resolveUrl,
   timeoutMs = 15_000,
 } = {}) {
-  const endpoint = String(resolveUrl || "").trim();
-  const token = String(internalToken || "").trim();
-  if (!/^https:\/\//iu.test(endpoint)) throw new Error("ERP product catalog URL must use HTTPS.");
-  if (!token) throw new Error("ERP product catalog token is required.");
-  if (typeof fetchImpl !== "function") throw new Error("A fetch implementation is required.");
-
   const companySkus = collectShopeeCompanySkus(catalog);
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  let response;
-  try {
-    response = await fetchImpl(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-internal-token": token,
-      },
-      body: JSON.stringify({ companySkus }),
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
-  if (!response.ok) {
-    throw new Error(`ERP product catalog request failed with HTTP ${response.status}.`);
-  }
-  const verified = validateErpResponse(await response.json(), companySkus);
+  const verified = await resolveCompanySkusAgainstErp({
+    companySkus,
+    fetchImpl,
+    internalToken,
+    resolveUrl,
+    timeoutMs,
+  });
   if (verified.missingCompanySkus.length) {
     const error = new Error("Shopee catalog references Company SKUs missing from ERP master.");
     error.code = "ERP_SKUS_MISSING";
@@ -136,10 +117,53 @@ async function verifyShopeeCatalogAgainstErp({
   };
 }
 
+async function resolveCompanySkusAgainstErp({
+  companySkus,
+  fetchImpl = global.fetch,
+  internalToken,
+  resolveUrl,
+  timeoutMs = 15_000,
+} = {}) {
+  const endpoint = String(resolveUrl || "").trim();
+  const token = String(internalToken || "").trim();
+  if (!/^https:\/\//iu.test(endpoint)) throw new Error("ERP product catalog URL must use HTTPS.");
+  if (!token) throw new Error("ERP product catalog token is required.");
+  if (typeof fetchImpl !== "function") throw new Error("A fetch implementation is required.");
+
+  const normalizedCompanySkus = [...new Set((Array.isArray(companySkus) ? companySkus : [])
+    .map(normalizeCompanySku)
+    .filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right, "en"));
+  if (!normalizedCompanySkus.length || normalizedCompanySkus.length > MAX_RESOLVE_SKUS) {
+    throw new Error(`ERP resolution requires between 1 and ${MAX_RESOLVE_SKUS} Company SKUs.`);
+  }
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  let response;
+  try {
+    response = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-token": token,
+      },
+      body: JSON.stringify({ companySkus: normalizedCompanySkus }),
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+  if (!response.ok) {
+    throw new Error(`ERP product catalog request failed with HTTP ${response.status}.`);
+  }
+  return validateErpResponse(await response.json(), normalizedCompanySkus);
+}
+
 module.exports = {
   MAX_RESOLVE_SKUS,
   checksumRecords,
   collectShopeeCompanySkus,
+  resolveCompanySkusAgainstErp,
   validateErpResponse,
   verifyShopeeCatalogAgainstErp,
 };

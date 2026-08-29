@@ -506,6 +506,35 @@ async function upsertProcessingRecordFromPreview(options, client = null) {
   };
 }
 
+// Shopee uploads must keep one immutable source identity per workbook even when several files
+// share the same preview workbook/filename. Unlike the legacy preview history path, this never
+// searches by filename and therefore can never merge two uploads into one processing record.
+async function createProcessingRecordFromPreview(options, client = null) {
+  const filename = requireString(options && options.filename, "Preview filename is required.");
+  const reportType = parseFormatterMode(options.reportType, { allowEmpty: false });
+  const reportDate = coerceReportDateKey(options.reportDate, filename, options.sourceUploadName);
+  const record = await createProcessingRecord(
+    {
+      reportDate,
+      reportType,
+      filename,
+      driveFileId: options.driveFileId,
+      driveFileUrl: options.driveFileUrl,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: options.uploadedBy,
+      printed: false,
+      sourceUploadName: options.sourceUploadName,
+      notes: options.notes,
+      branchCodes: options.branchCodes,
+      lastAction: "uploaded_created",
+      metadata: options.metadata,
+    },
+    client,
+  );
+
+  return { ok: true, action: "created", reason: "", filename, record };
+}
+
 async function markPrinted(id, printedBy, client = null) {
   const record = await updateProcessingRecord(
     id,
@@ -617,6 +646,7 @@ function createRouteHandler(handler) {
 }
 
 module.exports = {
+  createProcessingRecordFromPreview,
   createProcessingRecord,
   createRouteHandler,
   findProcessingRecordByFilename,

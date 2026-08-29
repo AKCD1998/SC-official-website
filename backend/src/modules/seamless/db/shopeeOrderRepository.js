@@ -403,7 +403,34 @@ async function getOrderTimeline(shopCodeValue, orderNumber) {
   };
 }
 
+async function findOrdersForAdaSmartValidation(shopCodeValue, orderNumbers) {
+  const shopCode = requirePersistenceShopCode(shopCodeValue);
+  const normalizedOrderNumbers = [...new Set((Array.isArray(orderNumbers) ? orderNumbers : [])
+    .map(normalizeShopeeOrderNumber)
+    .filter(Boolean))]
+    .sort();
+  if (!normalizedOrderNumbers.length) return [];
+
+  const tables = getTables();
+  const result = await pool.query(
+    `
+      SELECT
+        o.*,
+        (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
+          WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
+      FROM ${tables.shopeeOrders} o
+      WHERE o.shop_code = $1
+        AND o.order_number = ANY($2::text[])
+      ORDER BY o.order_number ASC
+    `,
+    [shopCode, normalizedOrderNumbers],
+  );
+
+  return result.rows.map(mapOrder);
+}
+
 module.exports = {
+  findOrdersForAdaSmartValidation,
   getOrderTimeline,
   listOrders,
   mapEvent,

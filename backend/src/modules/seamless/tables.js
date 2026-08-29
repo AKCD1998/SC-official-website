@@ -18,6 +18,8 @@ function getTables() {
   const qualifyTable = (tableName) => `${schemaSql}.${quoteIdentifier(tableName, "table")}`;
 
   return {
+    adaSmartShopeeJobEvents: qualifyTable("adasmart_shopee_job_events"),
+    adaSmartShopeeJobs: qualifyTable("adasmart_shopee_jobs"),
     generatedFiles: qualifyTable("generated_files"),
     operationLogs: qualifyTable("operation_logs"),
     pharmcareDocuments: qualifyTable("pharmcare_documents"),

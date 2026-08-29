@@ -43,7 +43,7 @@ async function login(req, res) {
     timingSafeEqualStrings(username, appAdminUser) &&
     timingSafeEqualStrings(password, appAdminPassword)
   ) {
-    setSessionCookie(res, "admin");
+    setSessionCookie(res, "admin", username);
     res.json({ ok: true, role: "admin" });
     return;
   }
@@ -52,7 +52,7 @@ async function login(req, res) {
     throw unauthorized("Incorrect username or password.");
   }
 
-  setSessionCookie(res, "user");
+  setSessionCookie(res, "user", username);
   res.json({ ok: true, role: "user" });
 }
 

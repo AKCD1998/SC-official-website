@@ -1,3 +1,4 @@
+const crypto = require("node:crypto");
 const catalog = require("../data/shopeeProductCatalog.v1.json");
 const { normalizeShopeeShopCode } = require("./shopeeShops");
 
@@ -178,8 +179,13 @@ function getShopeeProductCatalogSummary() {
   };
 }
 
+function getShopeeProductCatalogDigest() {
+  return crypto.createHash("sha256").update(JSON.stringify(catalog)).digest("hex");
+}
+
 module.exports = {
   enrichShopeeOrderItems,
+  getShopeeProductCatalogDigest,
   getShopeeProductCatalogSummary,
   matchShopeeProduct,
   normalizeShopeeProductText,

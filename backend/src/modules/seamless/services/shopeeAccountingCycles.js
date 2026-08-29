@@ -5,6 +5,12 @@ const DAYS_PER_WEEK = 7;
 const WEEKS_PER_CYCLE = 4;
 const DAYS_PER_CYCLE = DAYS_PER_WEEK * WEEKS_PER_CYCLE;
 
+// Bump this immutable value whenever cycle membership or boundary semantics change. AdaSmart
+// validation plans persist and digest the revision so a confirmation cannot silently reuse a
+// preview produced under different accounting rules.
+const CYCLE_CONTRACT_REVISION = 'shopee-order-created-cycle-v1-2026-08-24';
+const SHOPEE_CANCELLED_STATUS = 'ยกเลิกแล้ว';
+
 // Historical reports through 2026-08-23 use four-week blocks anchored to the verified June
 // workbook. Accounting reset the active cycle to a three-week period on 2026-08-24 so that it
 // closes on 2026-09-13; standard four-week periods resume from 2026-09-14. Both membership and
@@ -34,7 +40,7 @@ const WEEKLY_DATE_FILLS = [
 ];
 
 const SHARED_PROFILE = {
-  cancelledStatus: 'ยกเลิกแล้ว',
+  cancelledStatus: SHOPEE_CANCELLED_STATUS,
   weeklyHeaderFill: 'FFC0E6F5',
   weeklyDateFills: WEEKLY_DATE_FILLS,
   comments: {
@@ -256,10 +262,12 @@ function toPublicCycle(profile) {
 
 module.exports = {
   CYCLE_ANCHOR_START,
+  CYCLE_CONTRACT_REVISION,
   DAYS_PER_CYCLE,
   MONTH_PROFILES,
   NEXT_STANDARD_CYCLE_START,
   OPERATIONAL_CYCLE_START,
+  SHOPEE_CANCELLED_STATUS,
   WEEKS_PER_CYCLE,
   addDays,
   buildCycleProfile,

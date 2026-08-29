@@ -12,6 +12,7 @@ const {
 } = require("../db/generatedFileRepository");
 const { logOperation } = require("../db/operationLogRepository");
 const {
+  createProcessingRecordFromPreview,
   findProcessingRecordByFilename,
   upsertProcessingRecordFromPreview,
 } = require("../processingRecords");
@@ -340,7 +341,7 @@ async function processSingleWorkbook({
       client,
     );
 
-    await createGeneratedFile(
+    let sourceFile = await createGeneratedFile(
       {
         batchId: activeBatchId,
         uploadId: upload.id,
@@ -408,38 +409,45 @@ async function processSingleWorkbook({
       sourceWorksheet: transformResult.worksheet,
       writeOptions: shopeeStorageOptions,
     });
-    const existingRecord = await findProcessingRecordByFilename(previewResult.previewFile.filename, client);
+    const existingRecord = requestedVariant === "shopee"
+      ? null
+      : await findProcessingRecordByFilename(previewResult.previewFile.filename, client);
     const branchCodes = mergeBranchCodes(existingRecord && existingRecord.branchCodes, filenameResult.branchCode);
-    const registryResult = await upsertProcessingRecordFromPreview(
-      {
-        filename: previewResult.previewFile.filename,
-        reportDate: reportDateForRecord(filenameResult, outputFilename),
-        reportType: requestedVariant,
-        driveFileId: previewResult.previewFile.id,
-        driveFileUrl: previewResult.previewFile.viewUrl || previewResult.previewFile.downloadUrl,
-        sourceUploadName: originalFilename,
-        notes: "Created by PERN workbook processing.",
-        branchCodes,
-        metadata: {
-          batchId: activeBatchId,
-          uploadId: upload.id,
-          previewFileId: previewResult.previewFile.id,
-          outputFileId: processedFile.id,
-          outputFilename,
-          shopCode: resolvedShopCode || undefined,
-          outputDownloadUrl: processedFile.downloadUrl,
-          detectedVariant: transformResult.detectedVariant,
-          effectiveVariant: transformResult.effectiveVariant,
-          parsedDate: filenameResult.parsedDate || "",
-          rawDateSource: filenameResult.rawDateSource || "",
-          rawBranchSource: filenameResult.rawBranchSource || "",
-          printPolicy: transformResult.metadata?.printPolicy || "auto",
-          transformSummary: transformResult.metadata || {},
-        },
+    const processingRecordInput = {
+      filename: previewResult.previewFile.filename,
+      reportDate: reportDateForRecord(filenameResult, outputFilename),
+      reportType: requestedVariant,
+      driveFileId: previewResult.previewFile.id,
+      driveFileUrl: previewResult.previewFile.viewUrl || previewResult.previewFile.downloadUrl,
+      sourceUploadName: originalFilename,
+      notes: "Created by PERN workbook processing.",
+      branchCodes,
+      metadata: {
+        batchId: activeBatchId,
+        uploadId: upload.id,
+        previewFileId: previewResult.previewFile.id,
+        outputFileId: processedFile.id,
+        outputFilename,
+        shopCode: resolvedShopCode || undefined,
+        outputDownloadUrl: processedFile.downloadUrl,
+        detectedVariant: transformResult.detectedVariant,
+        effectiveVariant: transformResult.effectiveVariant,
+        parsedDate: filenameResult.parsedDate || "",
+        rawDateSource: filenameResult.rawDateSource || "",
+        rawBranchSource: filenameResult.rawBranchSource || "",
+        printPolicy: transformResult.metadata?.printPolicy || "auto",
+        transformSummary: transformResult.metadata || {},
       },
+    };
+    const registryResult = requestedVariant === "shopee"
+      ? await createProcessingRecordFromPreview(processingRecordInput, client)
+      : await upsertProcessingRecordFromPreview(processingRecordInput, client);
+
+    sourceFile = await updateGeneratedFile(
+      sourceFile.id,
+      { processingRecordId: registryResult.record.id },
       client,
     );
-
     await updateGeneratedFile(processedFile.id, { processingRecordId: registryResult.record.id }, client);
     await updateWorkbookUpload(
       upload.id,

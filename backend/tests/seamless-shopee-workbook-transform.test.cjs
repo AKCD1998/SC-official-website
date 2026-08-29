@@ -426,6 +426,15 @@ test('3. excludes cancelled and June 29-30 carryover rows from all sheets', asyn
   assert.equal(result.metadata.cancelledExcluded, 1);
   assert.equal(result.metadata.carryoverExcluded, 2);
   assert.equal(result.metadata.finalRows, includedRows(rows).length);
+  assert.equal(result.metadata.includedRowsManifest.rowCount, includedRows(rows).length);
+  const excludedSourceRows = rows
+    .map((row, index) => ({ id: row[HEADERS.orderNumber], sourceRowNumber: index + 2 }))
+    .filter((row) => excludedIds.includes(row.id))
+    .map((row) => row.sourceRowNumber);
+  excludedSourceRows.forEach((sourceRowNumber) => {
+    assert.ok(!result.metadata.includedRowsManifest.sourceRowNumbers.includes(sourceRowNumber));
+  });
+  assert.match(result.metadata.includedRowsManifest.contentDigestSha256, /^[a-f0-9]{64}$/u);
 });
 
 // ---------------------------------------------------------------------------

@@ -4,6 +4,9 @@ const request = require("supertest");
 const workbookRoutes = require("../src/modules/seamless/routes/workbookRoutes");
 const sessionRoutes = require("../src/modules/seamless/routes/sessionRoutes");
 const { errorHandler } = require("../src/modules/seamless/middleware/errorHandler");
+const {
+  createAdaSmartShopeeController,
+} = require("../src/modules/seamless/controllers/adaSmartShopeeController");
 
 describe("seamless appAuth middleware", () => {
   function buildApp() {
@@ -33,7 +36,12 @@ describe("seamless appAuth middleware", () => {
     app.use(express.json());
     app.use(cookieParser());
     app.use("/api/app/session", sessionRoutes);
-    app.get("/protected", appAuth, (req, res) => res.json({ ok: true }));
+    app.get("/protected", appAuth, (req, res) => res.json({
+      actor: req.appActor,
+      authSource: req.appAuthSource,
+      ok: true,
+      role: req.appRole,
+    }));
     app.use(errorHandler);
     return app;
   }
@@ -91,6 +99,42 @@ describe("seamless appAuth middleware", () => {
       .get("/protected")
       .set("Authorization", "Bearer agent-token");
     expect(response.status).toBe(200);
+  });
+
+  test("internal Bearer auth cannot call either AdaSmart human review endpoint", async () => {
+    process.env.SEAMLESS_APP_BASIC_USER = "staff";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "staff-secret";
+    process.env.SEAMLESS_INTERNAL_API_TOKEN = "agent-token";
+    delete require.cache[require.resolve("../src/modules/seamless/middleware/appAuth")];
+    const { appAuth } = require("../src/modules/seamless/middleware/appAuth");
+    const service = {
+      confirmDryRunQueue: jest.fn(),
+      createValidationPreview: jest.fn(),
+    };
+    const controller = createAdaSmartShopeeController(service);
+    const app = express();
+    app.use(express.json());
+    app.use(appAuth);
+    app.post("/api/app/shopee/adasmart/validation-preview", controller.createValidationPreview);
+    app.post("/api/app/shopee/adasmart/confirm", controller.confirmDryRunQueue);
+    app.use(errorHandler);
+
+    const preview = await request(app)
+      .post("/api/app/shopee/adasmart/validation-preview")
+      .set("Authorization", "Bearer agent-token")
+      .send({ processingRecordId: "11111111-1111-4111-8111-111111111111" });
+    const confirm = await request(app)
+      .post("/api/app/shopee/adasmart/confirm")
+      .set("Authorization", "Bearer agent-token")
+      .send({
+        planDigest: "a".repeat(64),
+        processingRecordId: "11111111-1111-4111-8111-111111111111",
+      });
+
+    expect(preview.status).toBe(403);
+    expect(confirm.status).toBe(403);
+    expect(service.createValidationPreview).not.toHaveBeenCalled();
+    expect(service.confirmDryRunQueue).not.toHaveBeenCalled();
   });
 
   test("POST /api/workbooks/process rejects requests without credentials before upload handling", async () => {
@@ -169,6 +213,11 @@ describe("seamless appAuth middleware", () => {
 
     const protectedResponse = await request(app).get("/protected").set("Cookie", cookie);
     expect(protectedResponse.status).toBe(200);
+    expect(protectedResponse.body).toMatchObject({
+      actor: "admin",
+      authSource: "session",
+      role: "user",
+    });
 
     const sessionResponse = await request(app).get("/api/app/session").set("Cookie", cookie);
     expect(sessionResponse.body).toEqual({ authenticated: true, role: "user" });
@@ -226,15 +275,27 @@ describe("seamless appAuth middleware", () => {
 
     const app = express();
     app.use(appAuth);
-    app.get("/protected", (req, res) => res.json({ role: req.appRole }));
+    app.get("/protected", (req, res) => res.json({
+      actor: req.appActor,
+      authSource: req.appAuthSource,
+      role: req.appRole,
+    }));
 
     const adminResponse = await request(app).get("/protected").auth("root", "root-secret");
     expect(adminResponse.status).toBe(200);
-    expect(adminResponse.body).toEqual({ role: "admin" });
+    expect(adminResponse.body).toEqual({
+      actor: "root",
+      authSource: "admin_basic",
+      role: "admin",
+    });
 
     const userResponse = await request(app).get("/protected").auth("admin", "secret");
     expect(userResponse.status).toBe(200);
-    expect(userResponse.body).toEqual({ role: "user" });
+    expect(userResponse.body).toEqual({
+      actor: "admin",
+      authSource: "basic_user",
+      role: "user",
+    });
 
     delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
     delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;

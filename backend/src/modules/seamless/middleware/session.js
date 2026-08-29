@@ -8,18 +8,20 @@ function sign(payload) {
   return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
-// Session token is a plain `<expiresAtMs>:<role>.<hmac>` — there is no per-user identity to
-// carry (still one shared login per role), but a role now rides along stateless-signed so
-// appAuth doesn't need to re-derive it from the original Basic credentials on every request.
-function createSessionToken(role = "user") {
+function normalizeSessionActor(value) {
+  return String(value || "").normalize("NFKC").trim();
+}
+
+// The signed payload carries the login username as an audit identity. Older role-only tokens
+// remain valid but have an empty actor and therefore cannot confirm a queued AdaSmart plan.
+function createSessionToken(role = "user", actor = "") {
   const expiresAt = Date.now() + readSessionCookieMaxAgeMs();
-  const payload = `${expiresAt}:${role}`;
+  const actorSegment = Buffer.from(normalizeSessionActor(actor), "utf8").toString("base64url");
+  const payload = `${expiresAt}:${role}:${actorSegment}`;
   return `${payload}.${sign(payload)}`;
 }
 
-// Returns the session's role ("admin" | "user") when the token is valid, or null when it's
-// missing/tampered/expired. Callers that only care about validity can check truthiness.
-function verifySessionToken(token) {
+function verifySessionIdentity(token) {
   const text = String(token || "");
   const separatorIndex = text.lastIndexOf(".");
 
@@ -42,18 +44,29 @@ function verifySessionToken(token) {
     return null;
   }
 
-  const separatorPos = payload.indexOf(":");
-  // Tokens minted before the role field existed have no ":" — treat those as "user" so
-  // sessions issued right before a deploy don't get silently logged out.
-  const expiresAtText = separatorPos === -1 ? payload : payload.slice(0, separatorPos);
-  const role = separatorPos === -1 ? "user" : payload.slice(separatorPos + 1) || "user";
+  const segments = payload.split(":");
+  // Tokens minted before role/actor fields remain readable. They are intentionally actor-less.
+  const expiresAtText = segments[0];
+  const role = segments.length < 2 ? "user" : segments[1] || "user";
+  let actor = "";
+  if (segments.length >= 3 && segments[2]) {
+    try {
+      actor = normalizeSessionActor(Buffer.from(segments[2], "base64url").toString("utf8"));
+    } catch (_error) {
+      return null;
+    }
+  }
 
   const expiresAt = Number(expiresAtText);
   if (!Number.isFinite(expiresAt) || Date.now() >= expiresAt) {
     return null;
   }
 
-  return role === "admin" ? "admin" : "user";
+  return { actor, role: role === "admin" ? "admin" : "user" };
+}
+
+function verifySessionToken(token) {
+  return verifySessionIdentity(token)?.role || null;
 }
 
 function cookieOptions() {
@@ -73,8 +86,8 @@ function cookieOptions() {
   };
 }
 
-function setSessionCookie(res, role = "user") {
-  res.cookie(COOKIE_NAME, createSessionToken(role), cookieOptions());
+function setSessionCookie(res, role = "user", actor = "") {
+  res.cookie(COOKIE_NAME, createSessionToken(role, actor), cookieOptions());
 }
 
 function clearSessionCookie(res) {
@@ -85,11 +98,15 @@ function clearSessionCookie(res) {
 // distinct from "no session" so callers can tell "not logged in" from "logged in as a regular
 // user" without a separate boolean check.
 function getSessionRole(req) {
+  return getSessionIdentity(req)?.role || null;
+}
+
+function getSessionIdentity(req) {
   const token = req.cookies && req.cookies[COOKIE_NAME];
   if (!token) {
     return null;
   }
-  return verifySessionToken(token);
+  return verifySessionIdentity(token);
 }
 
 function hasValidSessionCookie(req) {
@@ -99,6 +116,7 @@ function hasValidSessionCookie(req) {
 module.exports = {
   COOKIE_NAME,
   clearSessionCookie,
+  getSessionIdentity,
   getSessionRole,
   hasValidSessionCookie,
   setSessionCookie,

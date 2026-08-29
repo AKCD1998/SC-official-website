@@ -190,6 +190,46 @@ async function findSourceUploadByChecksum(checksumSha256, options = {}, client =
   };
 }
 
+async function findSourceUploadByProcessingRecordId(processingRecordId, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `
+      SELECT
+        gf.*,
+        wu.processing_record_id AS upload_processing_record_id,
+        wu.requested_variant AS upload_requested_variant,
+        wu.status AS upload_status,
+        wu.transform_summary AS upload_transform_summary
+      FROM ${tables.generatedFiles} gf
+      INNER JOIN ${tables.workbookUploads} wu ON wu.id = gf.upload_id
+      WHERE gf.file_kind = 'source_upload'
+        AND gf.processing_record_id = $1
+        AND wu.processing_record_id = $1
+      ORDER BY gf.created_at DESC
+      LIMIT 2
+    `,
+    [processingRecordId],
+  );
+
+  if (!result.rows.length) return null;
+  if (result.rows.length !== 1) {
+    const error = new Error("Processing record resolves to more than one source upload.");
+    error.statusCode = 409;
+    error.code = "SOURCE_UPLOAD_AMBIGUOUS";
+    throw error;
+  }
+
+  const row = result.rows[0];
+  return {
+    ...mapGeneratedFile(row),
+    uploadProcessingRecordId: row.upload_processing_record_id || "",
+    uploadRequestedVariant: row.upload_requested_variant || "",
+    uploadStatus: row.upload_status || "",
+    uploadTransformSummary: row.upload_transform_summary || {},
+  };
+}
+
 async function updateGeneratedFile(id, patch, client = null) {
   const db = executor(client);
   const tables = getTables();
@@ -227,6 +267,7 @@ async function updateGeneratedFile(id, patch, client = null) {
 module.exports = {
   createGeneratedFile,
   findLatestPrintableFileByProcessingRecordId,
+  findSourceUploadByProcessingRecordId,
   findSourceUploadByChecksum,
   getGeneratedFileById,
   mapGeneratedFile,

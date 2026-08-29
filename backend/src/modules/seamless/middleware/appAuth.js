@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 const { readAppAdminBasicCredentials, readAppBasicCredentials, readInternalApiToken } = require("../config");
 const { unauthorized } = require("../errors");
-const { getSessionRole } = require("./session");
+const { getSessionIdentity } = require("./session");
 
 // Unlike ClaspSCxSeamless's own appAuth (which wraps the ENTIRE standalone app), this shared
 // backend serves many public, unrelated features. This middleware must only be mounted on the
@@ -65,13 +65,17 @@ function appAuth(req, res, next) {
     // Default-open (no credentials configured at all, e.g. local dev) — everyone gets admin so
     // nothing is hidden while poking around locally.
     req.appRole = "admin";
+    req.appAuthSource = "local_default_open";
+    req.appActor = "";
     next();
     return;
   }
 
-  const sessionRole = getSessionRole(req);
-  if (sessionRole) {
-    req.appRole = sessionRole;
+  const sessionIdentity = getSessionIdentity(req);
+  if (sessionIdentity) {
+    req.appRole = sessionIdentity.role;
+    req.appAuthSource = "session";
+    req.appActor = sessionIdentity.actor;
     next();
     return;
   }
@@ -83,6 +87,8 @@ function appAuth(req, res, next) {
     // Internal server-to-server callers (print-agent, cron scripts) are trusted, not
     // role-restricted — they don't hit the admin-gated UI routes anyway.
     req.appRole = "admin";
+    req.appAuthSource = "internal_token";
+    req.appActor = "";
     next();
     return;
   }
@@ -98,6 +104,8 @@ function appAuth(req, res, next) {
     timingSafeEqualStrings(basicCredentials.password, appAdminPassword)
   ) {
     req.appRole = "admin";
+    req.appAuthSource = "admin_basic";
+    req.appActor = basicCredentials.username;
     next();
     return;
   }
@@ -108,6 +116,8 @@ function appAuth(req, res, next) {
     timingSafeEqualStrings(basicCredentials.password, appBasicPassword)
   ) {
     req.appRole = "user";
+    req.appAuthSource = "basic_user";
+    req.appActor = basicCredentials.username;
     next();
     return;
   }
