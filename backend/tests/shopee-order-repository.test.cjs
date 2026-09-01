@@ -8,6 +8,7 @@ const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.js
 const {
   getOrderTimeline,
   listOrders,
+  listOrdersForSalesSummary,
   mapEvent,
   mapOrder,
   upsertOrderEvent,
@@ -351,6 +352,29 @@ test("numbered pagination returns a total and applies allowlisted document sorti
   expect(sql).toContain("LIMIT $2");
   expect(sql).toContain("OFFSET $3");
   expect(params).toEqual([["sc-drug-store", "dr-morepen"], 25, 25]);
+});
+
+test("sales summary query uses inclusive Bangkok dates and excludes cancelled or returned orders", async () => {
+  pool.query.mockClear();
+  pool.query.mockResolvedValueOnce({ rows: [databaseOrder] });
+
+  const orders = await listOrdersForSalesSummary({
+    endDate: "2026-08-25",
+    shopCode: "all",
+    startDate: "2026-08-24",
+  });
+
+  expect(orders).toHaveLength(1);
+  const [sql, params] = pool.query.mock.calls[0];
+  expect(sql).toContain("o.shop_code = ANY($1::text[])");
+  expect(sql).toContain("AT TIME ZONE 'Asia/Bangkok'");
+  expect(sql).toContain("o.current_status IN ('order_confirmed', 'shipment_due')");
+  expect(sql).toContain("jsonb_array_length(o.items) > 0");
+  expect(params).toEqual([
+    ["sc-drug-store", "dr-morepen"],
+    "2026-08-24",
+    "2026-08-25",
+  ]);
 });
 
 test("uses a non-blocking shop+mailbox lock and rejects a concurrent same-shop sync", async () => {

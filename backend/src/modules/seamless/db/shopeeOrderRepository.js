@@ -368,6 +368,33 @@ async function listOrders({
   return { hasMore, orders: rows.map(mapOrder), totalCount };
 }
 
+async function listOrdersForSalesSummary({
+  endDate,
+  shopCode: shopCodeValue,
+  startDate,
+} = {}) {
+  const shopCode = requireListShopScope(shopCodeValue);
+  const tables = getTables();
+  const isAllShops = shopCode === SHOPEE_ALL_SHOPS_SCOPE;
+  const shopScope = isAllShops ? Object.keys(SHOPEE_SHOP_PROFILES) : shopCode;
+
+  const result = await pool.query(
+    `
+      SELECT o.*, 0::bigint AS event_count
+      FROM ${tables.shopeeOrders} o
+      WHERE ${isAllShops ? "o.shop_code = ANY($1::text[])" : "o.shop_code = $1"}
+        AND o.ordered_at >= ($2::date::timestamp AT TIME ZONE 'Asia/Bangkok')
+        AND o.ordered_at < (($3::date::timestamp + INTERVAL '1 day') AT TIME ZONE 'Asia/Bangkok')
+        AND o.current_status IN ('order_confirmed', 'shipment_due')
+        AND jsonb_array_length(o.items) > 0
+      ORDER BY o.ordered_at DESC, o.shop_code ASC, o.order_number ASC
+    `,
+    [shopScope, startDate, endDate],
+  );
+
+  return result.rows.map(mapOrder);
+}
+
 async function getOrderTimeline(shopCodeValue, orderNumber) {
   const shopCode = requirePersistenceShopCode(shopCodeValue);
   const tables = getTables();
@@ -433,6 +460,7 @@ module.exports = {
   findOrdersForAdaSmartValidation,
   getOrderTimeline,
   listOrders,
+  listOrdersForSalesSummary,
   mapEvent,
   mapOrder,
   upsertOrderEvent,

@@ -6,6 +6,7 @@ const {
 } = require("../shopeeOrderValidation");
 const { TIMELINE_EVENT_TYPES } = require("../services/shopeeOrderEmailParser");
 const { syncShopeeOrderPage } = require("../services/shopeeOrderTimelineService");
+const { getShopeeSalesSummary } = require("../services/shopeeSalesSummaryService");
 const {
   SHOPEE_ALL_SHOPS_SCOPE,
   normalizeShopeeShopCode,
@@ -138,6 +139,39 @@ async function listOrders(req, res) {
   });
 }
 
+function parseDateOnly(value, label) {
+  const normalized = String(value || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(normalized)) {
+    throw badRequest(`${label} must use YYYY-MM-DD format.`);
+  }
+  const parsed = new Date(`${normalized}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== normalized) {
+    throw badRequest(`${label} is invalid.`);
+  }
+  return normalized;
+}
+
+async function listSalesSummary(req, res) {
+  const shopCode = requireShopeeShopScope(req.query?.shopCode);
+  const startDate = parseDateOnly(req.query?.startDate, "startDate");
+  const endDate = req.query?.endDate
+    ? parseDateOnly(req.query.endDate, "endDate")
+    : startDate;
+  if (endDate < startDate) {
+    throw badRequest("endDate must be on or after startDate.");
+  }
+
+  const summary = await getShopeeSalesSummary({ endDate, shopCode, startDate });
+  res.json({
+    ...summary,
+    endDate,
+    excludedStatuses: ["order_cancelled", "seller_return_delivery"],
+    shopCode,
+    startDate,
+    timezone: "Asia/Bangkok",
+  });
+}
+
 async function getOrder(req, res) {
   const shopCode = requireShopeeShopCode(req.query?.shopCode);
   res.json(await repository.getOrderTimeline(
@@ -163,6 +197,7 @@ async function syncOrders(req, res) {
 module.exports = {
   encodeCursor,
   getOrder,
+  listSalesSummary,
   listOrders,
   parseOpaqueCursor,
   parsePage,

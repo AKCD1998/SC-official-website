@@ -8,6 +8,7 @@ const orderRow = {
   itemCount: 1,
   items: [{ name: "สินค้าทดสอบ", quantity: 1, unitPrice: 70, variant: "1 ขวด" }],
   lastEventAt: "2026-08-24T03:00:00.000Z",
+  orderedAt: "2026-08-24T01:00:00.000Z",
   orderNumber: "26082471YK8C02",
   shippingDeadline: "2026-08-30",
   shopCode: "sc-drug-store",
@@ -16,6 +17,7 @@ const orderRow = {
 };
 
 const listOrdersMock = jest.fn(async () => ({ hasMore: true, orders: [orderRow], totalCount: 51 }));
+const listOrdersForSalesSummaryMock = jest.fn(async () => [orderRow]);
 const getOrderTimelineMock = jest.fn(async () => ({
   events: [{ details: {}, eventType: "shipment_due", id: "event-1", occurredAt: orderRow.lastEventAt }],
   order: orderRow,
@@ -47,6 +49,7 @@ const getShopeeAccountingCycleStatusMock = jest.fn(async () => ({
 jest.mock("../src/modules/seamless/db/shopeeOrderRepository", () => ({
   getOrderTimeline: (...args) => getOrderTimelineMock(...args),
   listOrders: (...args) => listOrdersMock(...args),
+  listOrdersForSalesSummary: (...args) => listOrdersForSalesSummaryMock(...args),
 }));
 
 jest.mock("../src/modules/seamless/services/shopeeOrderTimelineService", () => ({
@@ -190,6 +193,47 @@ test("returns one order and its chronological event timeline", async () => {
   expect(response.body.order.orderNumber).toBe("26082471YK8C02");
   expect(response.body.events[0].eventType).toBe("shipment_due");
   expect(getOrderTimelineMock).toHaveBeenCalledWith("sc-drug-store", "26082471YK8C02");
+});
+
+test("summarizes sold products by order date and defaults a blank end date to start date", async () => {
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/orders/sales-summary?shopCode=all&startDate=2026-08-24",
+  );
+
+  expect(response.status).toBe(200);
+  expect(response.body).toMatchObject({
+    endDate: "2026-08-24",
+    excludedStatuses: ["order_cancelled", "seller_return_delivery"],
+    orderCount: 1,
+    productCount: 1,
+    shopCode: "all",
+    startDate: "2026-08-24",
+    timezone: "Asia/Bangkok",
+    totalQuantity: 1,
+  });
+  expect(response.body.products[0]).toMatchObject({
+    name: "สินค้าทดสอบ",
+    orderCount: 1,
+    totalQuantity: 1,
+    variant: "1 ขวด",
+  });
+  expect(listOrdersForSalesSummaryMock).toHaveBeenCalledWith({
+    endDate: "2026-08-24",
+    shopCode: "all",
+    startDate: "2026-08-24",
+  });
+});
+
+test.each([
+  ["shopCode=all", "startDate"],
+  ["shopCode=all&startDate=2026-02-30", "startDate"],
+  ["shopCode=all&startDate=2026-08-24&endDate=2026-08-23", "endDate"],
+])("rejects invalid sales-summary dates: %s", async (query, messagePart) => {
+  const response = await request(buildApp()).get(`/api/app/shopee/orders/sales-summary?${query}`);
+
+  expect(response.status).toBe(400);
+  expect(response.body.error.message).toContain(messagePart);
+  expect(listOrdersForSalesSummaryMock).not.toHaveBeenCalled();
 });
 
 test("allows only an admin session to sync full Gmail bodies into the timeline", async () => {
