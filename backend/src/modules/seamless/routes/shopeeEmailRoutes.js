@@ -16,6 +16,7 @@ const {
 const {
   getOrder,
   listOrders,
+  listSalesSummary,
   syncOrders,
 } = require("../controllers/shopeeOrderController");
 const { appAuth } = require("../middleware/appAuth");
@@ -29,6 +30,7 @@ router.post("/adasmart/validation-preview", asyncHandler(createValidationPreview
 router.post("/adasmart/confirm", asyncHandler(confirmDryRunQueue));
 router.get("/inbox", asyncHandler(listInbox));
 router.get("/orders", asyncHandler(listOrders));
+router.get("/orders/sales-summary", asyncHandler(listSalesSummary));
 router.get("/orders/legacy-reconciliation", asyncHandler(listLegacyReviews));
 router.get(
   "/orders/legacy-reconciliation/apply-plan",

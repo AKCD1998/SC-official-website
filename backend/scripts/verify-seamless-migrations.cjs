@@ -453,7 +453,7 @@ async function verifyMigrations(env = process.env) {
     }
 
     console.log(
-      `[seamless:migrate:verify] Verified ${expectedFiles.length} migrations, including 012, in local ${target.databaseName}/${target.schemaName}.`,
+      `[seamless:migrate:verify] Verified ${expectedFiles.length} migrations through ${expectedFiles.at(-1)}, in local ${target.databaseName}/${target.schemaName}.`,
     );
   } finally {
     client.release();
