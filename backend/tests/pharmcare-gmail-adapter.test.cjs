@@ -373,6 +373,7 @@ describe("createGmailAdapter (real, googleapis-backed with injected fake client)
     const watchCall = fake.calls.find((c) => c.method === "watch");
     expect(watchCall.params.userId).toBe("me");
     expect(watchCall.params.requestBody).toEqual({
+      labelFilterBehavior: "INCLUDE",
       labelIds: ["INBOX"],
       topicName: "projects/my-project/topics/pharmcare-gmail-notifications",
     });

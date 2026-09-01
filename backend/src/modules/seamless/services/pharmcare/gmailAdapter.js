@@ -247,7 +247,11 @@ function createGmailAdapter(configOverride, deps = {}) {
     const activeClient = await verifiedClient();
 
     const { data } = await activeClient.users.watch({
-      requestBody: { labelIds: ["INBOX"], topicName },
+      requestBody: {
+        labelFilterBehavior: "INCLUDE",
+        labelIds: ["INBOX"],
+        topicName,
+      },
       userId: "me",
     });
     return { expiration: data.expiration, historyId: data.historyId };

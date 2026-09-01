@@ -3,6 +3,7 @@ const {
   readShopeeDrMorepenGmailConfig,
   readShopeeGmailConfig,
   readShopeeGmailConfigForShop,
+  readShopeeGmailPushConfig,
 } = require("../src/modules/seamless/config");
 const {
   createGmailAdapter,
@@ -15,13 +16,18 @@ const ENV_NAMES = [
   "SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID",
   "SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET",
   "SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN",
+  "SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC",
   "SEAMLESS_SHOPEE_GMAIL_QUERY",
+  "SEAMLESS_SHOPEE_SC_GMAIL_PUBSUB_TOPIC",
   "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_MAILBOX",
   "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_AUTH_MODE",
   "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_ID",
   "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_SECRET",
   "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_REFRESH_TOKEN",
   "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_QUERY",
+  "SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_PUBSUB_TOPIC",
+  "SEAMLESS_SHOPEE_GMAIL_PUSH_AUDIENCE",
+  "SEAMLESS_SHOPEE_GMAIL_PUSH_SERVICE_ACCOUNT_EMAIL",
 ];
 const originalEnv = Object.fromEntries(ENV_NAMES.map((name) => [name, process.env[name]]));
 
@@ -32,12 +38,20 @@ function setCompleteConfigs() {
   process.env.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET = "admin-secret-placeholder";
   process.env.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN = "admin-refresh-placeholder";
   process.env.SEAMLESS_SHOPEE_GMAIL_QUERY = "from:info@mail.shopee.co.th";
+  process.env.SEAMLESS_SHOPEE_SC_GMAIL_PUBSUB_TOPIC =
+    "projects/example/topics/gmail-admin-updates";
   process.env.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_MAILBOX = "scgroup1989.glucooneshop@gmail.com";
   process.env.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_AUTH_MODE = "oauth_refresh_token";
   process.env.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_ID = "dr-client-placeholder";
   process.env.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_SECRET = "dr-secret-placeholder";
   process.env.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_REFRESH_TOKEN = "dr-refresh-placeholder";
   process.env.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_QUERY = "from:info@mail.shopee.co.th";
+  process.env.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_PUBSUB_TOPIC =
+    "projects/example/topics/gmail-drmorepen-updates";
+  process.env.SEAMLESS_SHOPEE_GMAIL_PUSH_AUDIENCE =
+    "https://sc-official-website.onrender.com/api/shopee-webhooks/gmail";
+  process.env.SEAMLESS_SHOPEE_GMAIL_PUSH_SERVICE_ACCOUNT_EMAIL =
+    "pubsub-push-shopee@example-project.iam.gserviceaccount.com";
 }
 
 beforeEach(() => {
@@ -69,6 +83,7 @@ test("keeps the existing PharmCare and admin Shopee credential behavior unchange
     expectedMailbox: "admin@scgroup1989.com",
     gmailQuery: "from:info@mail.shopee.co.th",
     mailboxAccount: "admin@scgroup1989.com",
+    pubsubTopicName: "projects/example/topics/gmail-admin-updates",
     refreshToken: pharmcare.refreshToken,
   });
 });
@@ -109,6 +124,7 @@ test("reads DR.Morepen from a completely separate credential namespace", () => {
     expectedMailbox: "scgroup1989.glucooneshop@gmail.com",
     gmailQuery: "from:info@mail.shopee.co.th",
     mailboxAccount: "scgroup1989.glucooneshop@gmail.com",
+    pubsubTopicName: "projects/example/topics/gmail-drmorepen-updates",
     refreshToken: "dr-refresh-placeholder",
     shopCode: "dr-morepen",
   });
@@ -134,4 +150,25 @@ test("fails safely when DR.Morepen credentials are missing instead of falling ba
   expect(drMorepen.refreshToken).toBe("");
   expect(isGmailConfigured(drMorepen)).toBe(false);
   expect(drMorepen.clientId).not.toBe(readShopeeGmailConfig().clientId);
+});
+
+test("reads the exact OIDC audience and keyless push service-account identity", () => {
+  setCompleteConfigs();
+
+  expect(readShopeeGmailPushConfig()).toEqual({
+    audience: "https://sc-official-website.onrender.com/api/shopee-webhooks/gmail",
+    serviceAccountEmail: "pubsub-push-shopee@example-project.iam.gserviceaccount.com",
+  });
+});
+
+test("lets SC Drug Store reuse the admin PharmCare topic when no Shopee override is set", () => {
+  setCompleteConfigs();
+  delete process.env.SEAMLESS_SHOPEE_SC_GMAIL_PUBSUB_TOPIC;
+  process.env.SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC =
+    "projects/example/topics/shared-admin-mailbox";
+
+  expect(readShopeeGmailConfigForShop("sc-drug-store").pubsubTopicName)
+    .toBe("projects/example/topics/shared-admin-mailbox");
+
+  delete process.env.SEAMLESS_PHARMCARE_GMAIL_PUBSUB_TOPIC;
 });

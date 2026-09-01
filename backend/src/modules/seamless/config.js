@@ -186,6 +186,11 @@ function readShopeeGmailConfig() {
       process.env.SEAMLESS_SHOPEE_GMAIL_QUERY || "from:info@mail.shopee.co.th",
     ).trim(),
     mailboxAccount: SHOPEE_SC_DRUG_STORE_MAILBOX,
+    pubsubTopicName: String(
+      process.env.SEAMLESS_SHOPEE_SC_GMAIL_PUBSUB_TOPIC ||
+        sharedMailboxConfig.pubsubTopicName ||
+        "",
+    ).trim(),
   };
 }
 
@@ -231,8 +236,21 @@ function readShopeeDrMorepenGmailConfig() {
       process.env[`${envPrefix}_MAILBOX`],
       SHOPEE_DRMOREPEN_MAILBOX,
     ),
+    pubsubTopicName: String(process.env[`${envPrefix}_PUBSUB_TOPIC`] || "").trim(),
     refreshToken: String(process.env[`${envPrefix}_REFRESH_TOKEN`] || "").trim(),
     shopCode: "dr-morepen",
+  };
+}
+
+// Pub/Sub signs push requests with a short-lived Google OIDC ID token. Both values are pinned
+// by deployment configuration so the public webhook accepts only the intended subscription
+// audience and the dedicated keyless push service account.
+function readShopeeGmailPushConfig() {
+  return {
+    audience: String(process.env.SEAMLESS_SHOPEE_GMAIL_PUSH_AUDIENCE || "").trim(),
+    serviceAccountEmail: String(
+      process.env.SEAMLESS_SHOPEE_GMAIL_PUSH_SERVICE_ACCOUNT_EMAIL || "",
+    ).trim().toLowerCase(),
   };
 }
 
@@ -277,6 +295,8 @@ function readEmailConfig() {
 }
 
 module.exports = {
+  SHOPEE_DRMOREPEN_MAILBOX,
+  SHOPEE_SC_DRUG_STORE_MAILBOX,
   readAdaSmartShopeeConfig,
   readAppAdminBasicCredentials,
   readAppBasicCredentials,
@@ -294,5 +314,6 @@ module.exports = {
   readShopeeDrMorepenGmailConfig,
   readShopeeGmailConfig,
   readShopeeGmailConfigForShop,
+  readShopeeGmailPushConfig,
   readStorageDir,
 };

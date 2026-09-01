@@ -8,6 +8,7 @@ const pharmcareRoutes = require("./pharmcareRoutes");
 const pharmcareWebhookRoutes = require("./pharmcareWebhookRoutes");
 const sessionRoutes = require("./sessionRoutes");
 const shopeeEmailRoutes = require("./shopeeEmailRoutes");
+const shopeeWebhookRoutes = require("./shopeeWebhookRoutes");
 const workbookRoutes = require("./workbookRoutes");
 const { errorHandler } = require("../middleware/errorHandler");
 
@@ -22,6 +23,7 @@ router.use("/line", lineRoutes);
 router.use("/app/pharmcare", pharmcareRoutes);
 router.use("/app/shopee", shopeeEmailRoutes);
 router.use("/pharmcare-webhooks", pharmcareWebhookRoutes);
+router.use("/shopee-webhooks", shopeeWebhookRoutes);
 router.use("/workbooks", workbookRoutes);
 
 // Scoped to just these seamless routes — does not affect error handling for the rest of

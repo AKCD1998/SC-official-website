@@ -1,0 +1,83 @@
+name: Renew Shopee Gmail watches
+
+on:
+  schedule:
+    # Gmail watches expire within seven days. A daily renewal tolerates delayed GitHub cron runs.
+    - cron: "20 3 * * *"
+  workflow_dispatch:
+    inputs:
+      shop:
+        description: Gmail watch to renew
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - sc-drug-store
+          - dr-morepen
+
+permissions:
+  contents: read
+
+jobs:
+  renew_sc_drug_store:
+    if: >-
+      ${{
+        (github.event_name == 'schedule' && vars.SHOPEE_SC_GMAIL_PUSH_ENABLED == 'true') ||
+        (github.event_name == 'workflow_dispatch' && (inputs.shop == 'all' || inputs.shop == 'sc-drug-store'))
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Renew SC Drug Store Gmail watch
+        working-directory: backend
+        env:
+          SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE }}
+          SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID }}
+          SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET }}
+          SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN: ${{ secrets.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN }}
+          SEAMLESS_SHOPEE_SC_GMAIL_PUBSUB_TOPIC: ${{ secrets.SEAMLESS_SHOPEE_SC_GMAIL_PUBSUB_TOPIC }}
+        run: npm run seamless:shopee:watch -- --shop-code=sc-drug-store
+
+  renew_dr_morepen:
+    if: >-
+      ${{
+        (github.event_name == 'schedule' && vars.SHOPEE_DRMOREPEN_GMAIL_PUSH_ENABLED == 'true') ||
+        (github.event_name == 'workflow_dispatch' && (inputs.shop == 'all' || inputs.shop == 'dr-morepen'))
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "24.x"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Renew DR.Morepen Gmail watch
+        working-directory: backend
+        env:
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_AUTH_MODE: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_AUTH_MODE }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_ID: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_ID }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_SECRET: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_CLIENT_SECRET }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_REFRESH_TOKEN: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_REFRESH_TOKEN }}
+          SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_PUBSUB_TOPIC: ${{ secrets.SEAMLESS_SHOPEE_DRMOREPEN_GMAIL_PUBSUB_TOPIC }}
+        run: npm run seamless:shopee:watch -- --shop-code=dr-morepen
