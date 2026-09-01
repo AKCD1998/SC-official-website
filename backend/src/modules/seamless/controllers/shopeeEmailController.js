@@ -3,7 +3,10 @@ const {
   CATEGORY_QUERIES,
   listShopeeEmailInbox,
 } = require("../services/shopeeEmailInboxService");
-const { requireShopeeShopCode } = require("../services/shopeeShops");
+const {
+  SHOPEE_ALL_SHOPS_SCOPE,
+  requireShopeeShopScope,
+} = require("../services/shopeeShops");
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -90,7 +93,7 @@ async function listInbox(req, res) {
     limit: parseLimit(limit),
     receivedFrom: fromDate ? toIctMidnightIso(fromDate) : undefined,
     receivedTo: toDate ? toNextIctMidnightIso(toDate) : undefined,
-    shopCode: requireShopeeShopCode(shopCode),
+    shopCode: requireShopeeShopScope(shopCode || SHOPEE_ALL_SHOPS_SCOPE),
   });
   res.json({
     ...result,
