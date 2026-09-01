@@ -138,11 +138,17 @@ describe("Shopee email inbox API", () => {
     expect(lastFilters).toBeNull();
   });
 
-  test("requires an explicit shop before selecting a Gmail mailbox", async () => {
+  test("defaults to the all-shops inbox when shopCode is omitted", async () => {
     const response = await request(buildApp()).get("/api/app/shopee/inbox");
 
-    expect(response.status).toBe(400);
-    expect(response.body.error.details.code).toBe("SHOPEE_SHOP_REQUIRED");
-    expect(lastFilters).toBeNull();
+    expect(response.status).toBe(200);
+    expect(lastFilters.shopCode).toBe("all");
+  });
+
+  test("accepts the explicit all-shops inbox scope", async () => {
+    const response = await request(buildApp()).get("/api/app/shopee/inbox?shopCode=all");
+
+    expect(response.status).toBe(200);
+    expect(lastFilters.shopCode).toBe("all");
   });
 });

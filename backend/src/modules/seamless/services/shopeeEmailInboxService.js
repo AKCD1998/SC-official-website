@@ -3,8 +3,14 @@ const {
   createGmailAdapter,
   normalizeGmailMessage,
 } = require("./pharmcare/gmailAdapter");
+const { badRequest } = require("../errors");
+const {
+  SHOPEE_ALL_SHOPS_SCOPE,
+  SHOPEE_SHOP_PROFILES,
+} = require("./shopeeShops");
 
 const SHOPEE_SENDER = "info@mail.shopee.co.th";
+const ALL_SHOPS_CURSOR_PREFIX = "all-v1.";
 const MESSAGE_FETCH_CONCURRENCY = 5;
 const INBOX_CACHE_TTL_MS = 15000;
 const INBOX_CACHE_MAX_ENTRIES = 100;
@@ -199,7 +205,61 @@ function pruneInboxCache(now) {
   }
 }
 
-async function listShopeeEmailInbox(filters = {}, dependencies = {}) {
+function encodeAllShopsCursor(cursors = {}) {
+  const normalizedCursors = Object.fromEntries(
+    Object.keys(SHOPEE_SHOP_PROFILES).map((shopCode) => [
+      shopCode,
+      typeof cursors[shopCode] === "string" && cursors[shopCode]
+        ? cursors[shopCode]
+        : null,
+    ]),
+  );
+  if (!Object.values(normalizedCursors).some(Boolean)) return null;
+  return `${ALL_SHOPS_CURSOR_PREFIX}${Buffer.from(JSON.stringify({
+    cursors: normalizedCursors,
+    version: 1,
+  })).toString("base64url")}`;
+}
+
+function decodeAllShopsCursor(cursor) {
+  if (!cursor) return null;
+  const invalidCursor = () => badRequest("cursor is invalid for the all-shops inbox.");
+  if (!String(cursor).startsWith(ALL_SHOPS_CURSOR_PREFIX)) throw invalidCursor();
+
+  let payload;
+  try {
+    payload = JSON.parse(
+      Buffer.from(String(cursor).slice(ALL_SHOPS_CURSOR_PREFIX.length), "base64url").toString("utf8"),
+    );
+  } catch (_error) {
+    throw invalidCursor();
+  }
+
+  if (payload?.version !== 1 || !payload.cursors || typeof payload.cursors !== "object") {
+    throw invalidCursor();
+  }
+  const cursors = {};
+  Object.keys(SHOPEE_SHOP_PROFILES).forEach((shopCode) => {
+    const value = payload.cursors[shopCode];
+    if (value !== null && (typeof value !== "string" || !value || value.length > 2048)) {
+      throw invalidCursor();
+    }
+    cursors[shopCode] = value;
+  });
+  return cursors;
+}
+
+function sortShopeeEmailsNewestFirst(left, right) {
+  const leftReceivedAt = Date.parse(left?.receivedAt || "") || 0;
+  const rightReceivedAt = Date.parse(right?.receivedAt || "") || 0;
+  return (
+    rightReceivedAt - leftReceivedAt ||
+    String(left?.shopCode || "").localeCompare(String(right?.shopCode || "")) ||
+    String(left?.id || "").localeCompare(String(right?.id || ""))
+  );
+}
+
+async function listSingleShopEmailInbox(filters = {}, dependencies = {}) {
   const baseConfig = dependencies.config || readShopeeGmailConfigForShop(filters.shopCode);
   if (dependencies.adapter || dependencies.disableCache) {
     return loadShopeeEmailInboxPage(
@@ -234,12 +294,60 @@ async function listShopeeEmailInbox(filters = {}, dependencies = {}) {
   }
 }
 
+async function listAllShopsEmailInbox(filters = {}, dependencies = {}) {
+  const shopCodes = Object.keys(SHOPEE_SHOP_PROFILES);
+  const cursorByShop = decodeAllShopsCursor(filters.cursor) || Object.fromEntries(
+    shopCodes.map((shopCode) => [shopCode, undefined]),
+  );
+  const {
+    adapter: _adapter,
+    adaptersByShop = {},
+    config: _config,
+    configsByShop = {},
+    ...sharedDependencies
+  } = dependencies;
+
+  const pages = await Promise.all(shopCodes.map(async (shopCode) => {
+    if (cursorByShop[shopCode] === null) {
+      return { emails: [], nextCursor: null, shopCode, source: SHOPEE_SENDER };
+    }
+    return listSingleShopEmailInbox({
+      ...filters,
+      cursor: cursorByShop[shopCode] || undefined,
+      shopCode,
+    }, {
+      ...sharedDependencies,
+      adapter: adaptersByShop[shopCode],
+      config: configsByShop[shopCode],
+    });
+  }));
+
+  return {
+    emails: pages.flatMap((page) => page.emails || []).sort(sortShopeeEmailsNewestFirst),
+    nextCursor: encodeAllShopsCursor(Object.fromEntries(
+      pages.map((page) => [page.shopCode, page.nextCursor || null]),
+    )),
+    shopCode: SHOPEE_ALL_SHOPS_SCOPE,
+    source: SHOPEE_SENDER,
+  };
+}
+
+async function listShopeeEmailInbox(filters = {}, dependencies = {}) {
+  if (filters.shopCode === SHOPEE_ALL_SHOPS_SCOPE) {
+    return listAllShopsEmailInbox(filters, dependencies);
+  }
+  return listSingleShopEmailInbox(filters, dependencies);
+}
+
 module.exports = {
+  ALL_SHOPS_CURSOR_PREFIX,
   CATEGORY_QUERIES,
   INBOX_CACHE_TTL_MS,
   SHOPEE_SENDER,
   buildShopeeGmailQuery,
   classifyShopeeSubject,
+  decodeAllShopsCursor,
+  encodeAllShopsCursor,
   extractEmailAddress,
   extractHeaderEmailAddresses,
   extractOrderNumber,

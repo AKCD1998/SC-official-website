@@ -1,6 +1,7 @@
 const {
   buildShopeeGmailQuery,
   classifyShopeeSubject,
+  decodeAllShopsCursor,
   extractOrderNumber,
   listShopeeEmailInbox,
 } = require("../src/modules/seamless/services/shopeeEmailInboxService");
@@ -32,6 +33,11 @@ const ADMIN_CONFIG = Object.freeze({
   gmailQuery: "from:info@mail.shopee.co.th",
   mailboxAccount: "admin@scgroup1989.com",
   shopCode: "sc-drug-store",
+});
+const DR_MOREPEN_CONFIG = Object.freeze({
+  gmailQuery: "from:info@mail.shopee.co.th",
+  mailboxAccount: "scgroup1989.glucooneshop@gmail.com",
+  shopCode: "dr-morepen",
 });
 
 function gmailError(status) {
@@ -135,6 +141,80 @@ test("tags GlucoOne mailbox rows as dr-morepen from config identity", async () =
 
   expect(result.shopCode).toBe("dr-morepen");
   expect(result.emails[0].shopCode).toBe("dr-morepen");
+});
+
+test("all-shops inbox merges both mailbox pages newest-first and keeps per-shop cursors", async () => {
+  const scListMessagePage = jest.fn(async ({ pageToken }) => (
+    pageToken === "sc-next"
+      ? { messageIds: ["sc-message-2"], nextPageToken: null }
+      : { messageIds: ["sc-message"], nextPageToken: "sc-next" }
+  ));
+  const drListMessagePage = jest.fn(async () => ({
+    messageIds: ["dr-message"],
+    nextPageToken: null,
+  }));
+  const adaptersByShop = {
+    "sc-drug-store": {
+      listMessagePage: scListMessagePage,
+      getMessageMetadata: jest.fn(async (id) => rawMessage({
+        id,
+        internalDate: String(Date.parse("2026-09-01T06:00:00.000Z")),
+        subject: "ถึงเวลาจัดส่งสินค้าหมายเลข #SCORDER123 แล้ว!",
+      })),
+    },
+    "dr-morepen": {
+      listMessagePage: drListMessagePage,
+      getMessageMetadata: jest.fn(async () => rawMessage({
+        id: "dr-message",
+        internalDate: String(Date.parse("2026-09-01T05:00:00.000Z")),
+        subject: "ถึงเวลาจัดส่งสินค้าหมายเลข #DRORDER123 แล้ว!",
+        to: DR_MOREPEN_CONFIG.mailboxAccount,
+      })),
+    },
+  };
+
+  const result = await listShopeeEmailInbox({ shopCode: "all" }, {
+    adaptersByShop,
+    configsByShop: {
+      "sc-drug-store": ADMIN_CONFIG,
+      "dr-morepen": DR_MOREPEN_CONFIG,
+    },
+    disableCache: true,
+  });
+
+  expect(result.shopCode).toBe("all");
+  expect(result.emails.map((email) => [email.shopCode, email.id])).toEqual([
+    ["sc-drug-store", "sc-message"],
+    ["dr-morepen", "dr-message"],
+  ]);
+  expect(decodeAllShopsCursor(result.nextCursor)).toEqual({
+    "sc-drug-store": "sc-next",
+    "dr-morepen": null,
+  });
+
+  const nextPage = await listShopeeEmailInbox({
+    cursor: result.nextCursor,
+    shopCode: "all",
+  }, {
+    adaptersByShop,
+    configsByShop: {
+      "sc-drug-store": ADMIN_CONFIG,
+      "dr-morepen": DR_MOREPEN_CONFIG,
+    },
+    disableCache: true,
+  });
+
+  expect(nextPage.emails.map((email) => email.id)).toEqual(["sc-message-2"]);
+  expect(nextPage.nextCursor).toBeNull();
+  expect(scListMessagePage).toHaveBeenLastCalledWith({ maxResults: 25, pageToken: "sc-next" });
+  expect(drListMessagePage).toHaveBeenCalledTimes(1);
+});
+
+test("all-shops inbox rejects a cursor that was not issued for the combined scope", async () => {
+  await expect(listShopeeEmailInbox({
+    cursor: "single-mailbox-page-token",
+    shopCode: "all",
+  })).rejects.toMatchObject({ statusCode: 400 });
 });
 
 test("does not label a forwarded DR.Morepen copy in the admin mailbox as sc-drug-store", async () => {
