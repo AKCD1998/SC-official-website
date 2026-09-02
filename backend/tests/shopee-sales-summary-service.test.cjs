@@ -90,6 +90,38 @@ test("keeps variants separate, sorts by quantity, and ignores non-positive lines
     ]);
 });
 
+test("expands verified bundle quantities into inventory units for totals and drilldown", () => {
+  const summary = summarizeSalesByProduct([{
+    ...BASE_ORDER,
+    items: [{
+      name: "Gluco One BG-03 Test Strip",
+      productMatch: {
+        status: "bundle",
+        quantityRuleStatus: "verified",
+        components: [{ companySku: "IC-003478", quantityPerSale: 3 }],
+      },
+      quantity: 2,
+      variant: "แผ่นตรวจ 25 3 กล่อง",
+    }],
+    shopCode: "dr-morepen",
+  }]);
+
+  expect(summary).toMatchObject({ orderCount: 1, productCount: 1, totalQuantity: 6 });
+  expect(summary.products[0]).toMatchObject({
+    companySkus: ["IC-003478"],
+    totalQuantity: 6,
+    unitsPerSale: 3,
+  });
+  expect(summary.products[0].orders).toEqual([{
+    listingQuantity: 2,
+    orderNumber: BASE_ORDER.orderNumber,
+    orderedAt: BASE_ORDER.orderedAt,
+    quantity: 6,
+    shopCode: "dr-morepen",
+    unitsPerSale: 3,
+  }]);
+});
+
 test("loads only the requested shop and date range before summarizing", async () => {
   listOrdersForSalesSummaryMock.mockResolvedValueOnce([{ ...BASE_ORDER, items: [] }]);
 

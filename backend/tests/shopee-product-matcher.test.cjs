@@ -9,13 +9,13 @@ const {
 
 test("loads the complete hash-verified Shopee product catalog", () => {
   expect(getShopeeProductCatalogSummary()).toEqual({
-    catalogVersion: "shopee-company-sku-2026-08-28",
-    ownerDecisionDate: "2026-08-28",
+    catalogVersion: "shopee-company-sku-2026-09-02",
+    ownerDecisionDate: "2026-09-02",
     recordCount: 227,
     sourceCount: 2,
   });
-  expect(catalog.records.filter((record) => record.match.status === "matched")).toHaveLength(223);
-  expect(catalog.records.filter((record) => record.match.status === "bundle")).toHaveLength(3);
+  expect(catalog.records.filter((record) => record.match.status === "matched")).toHaveLength(222);
+  expect(catalog.records.filter((record) => record.match.status === "bundle")).toHaveLength(4);
   expect(catalog.records.filter((record) => record.match.status === "visibility_only")).toHaveLength(1);
 });
 
@@ -92,6 +92,24 @@ test("returns component mappings and keeps unverified bundle quantities in manua
     coverageComplete: true,
     manualReviewRequired: true,
     unmappedItems: 0,
+  });
+});
+
+test("expands the DR.Morepen three-box variation to three units of the same Company SKU", () => {
+  const drThreeBoxBundle = catalog.records.find((candidate) => (
+    candidate.shopCode === "dr-morepen" && candidate.sourceRow === 8
+  ));
+  const item = enrichShopeeOrderItems(drThreeBoxBundle.shopCode, [{
+    name: drThreeBoxBundle.productName,
+    quantity: 1,
+    variant: drThreeBoxBundle.variant,
+  }])[0];
+
+  expect(item.productMatch).toMatchObject({
+    status: "bundle",
+    sellerBundleKey: "DR-BND-BG03-STRIP25-X3-V1",
+    quantityRuleStatus: "verified",
+    components: [{ companySku: "IC-003478", quantityPerSale: 3 }],
   });
 });
 

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "shopee-company-sku-2026-08-28",
-  "ownerDecisionDate": "2026-08-28",
+  "catalogVersion": "shopee-company-sku-2026-09-02",
+  "ownerDecisionDate": "2026-09-02",
   "sources": [
     {
       "shopCode": "dr-morepen",
@@ -41,8 +41,15 @@
       "productName": "Gluco One แผ่นตรวจน้ำตาลในเลือด Dr.Morepen  BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
       "variant": "แผ่นตรวจ 25 3 กล่อง",
       "match": {
-        "status": "matched",
-        "companySku": "IC-003478"
+        "status": "bundle",
+        "sellerBundleKey": "DR-BND-BG03-STRIP25-X3-V1",
+        "components": [
+          {
+            "companySku": "IC-003478",
+            "quantityPerSale": 3
+          }
+        ],
+        "quantityRuleStatus": "verified"
       }
     },
     {

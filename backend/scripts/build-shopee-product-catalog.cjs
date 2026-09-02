@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const ExcelJS = require("exceljs");
 
-const CATALOG_VERSION = "shopee-company-sku-2026-08-28";
+const CATALOG_VERSION = "shopee-company-sku-2026-09-02";
 
 function addSkuRows(overrides, companySku, rows) {
   rows.forEach((rowNumber) => {
@@ -15,11 +15,18 @@ function buildDrMorepenOverrides() {
   const overrides = new Map();
   addSkuRows(overrides, "IC-005998", [7]);
   addSkuRows(overrides, "IC-003233", [13]);
-  addSkuRows(overrides, "IC-003478", [14]);
   addSkuRows(overrides, "IC-003232", [15]);
   addSkuRows(overrides, "IC-003230", [16]);
   addSkuRows(overrides, "IC-004912", [17]);
   addSkuRows(overrides, "IC-005661", [21]);
+  overrides.set(14, {
+    status: "bundle",
+    sellerBundleKey: "DR-BND-BG03-STRIP25-X3-V1",
+    components: [
+      { companySku: "IC-003478", quantityPerSale: 3 },
+    ],
+    quantityRuleStatus: "verified",
+  });
   [11, 12].forEach((rowNumber) => {
     overrides.set(rowNumber, {
       status: "bundle",
@@ -244,7 +251,7 @@ async function main() {
   const catalog = {
     schemaVersion: 1,
     catalogVersion: CATALOG_VERSION,
-    ownerDecisionDate: "2026-08-28",
+    ownerDecisionDate: "2026-09-02",
     sources: results.map((result) => result.source),
     records,
   };

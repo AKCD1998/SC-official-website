@@ -1,4 +1,5 @@
 const repository = require("../db/shopeeOrderRepository");
+const { getVerifiedBundleUnitsPerSale } = require("./shopeeProductMatcher");
 
 function normalizeProductText(value) {
   return String(value || "")
@@ -20,6 +21,16 @@ function collectCompanySkus(productMatch) {
   return [];
 }
 
+function resolveSalesQuantity(item) {
+  const listingQuantity = Number(item?.quantity);
+  if (!Number.isSafeInteger(listingQuantity) || listingQuantity <= 0) return null;
+  const unitsPerSale = getVerifiedBundleUnitsPerSale(item?.productMatch);
+  if (!unitsPerSale) return { listingQuantity, quantity: listingQuantity, unitsPerSale: 1 };
+  const quantity = listingQuantity * unitsPerSale;
+  if (!Number.isSafeInteger(quantity)) return null;
+  return { listingQuantity, quantity, unitsPerSale };
+}
+
 function summarizeSalesByProduct(orders = []) {
   const productsByKey = new Map();
   const contributingOrders = new Set();
@@ -27,8 +38,9 @@ function summarizeSalesByProduct(orders = []) {
 
   orders.forEach((order) => {
     (order.items || []).forEach((item) => {
-      const quantity = Number(item.quantity);
-      if (!Number.isInteger(quantity) || quantity <= 0) return;
+      const quantityResolution = resolveSalesQuantity(item);
+      if (!quantityResolution) return;
+      const { listingQuantity, quantity, unitsPerSale } = quantityResolution;
 
       const name = String(item.name || "").trim();
       const variant = String(item.variant || "").trim();
@@ -42,6 +54,7 @@ function summarizeSalesByProduct(orders = []) {
           name,
           ordersByKey: new Map(),
           totalQuantity: 0,
+          ...(unitsPerSale > 1 ? { unitsPerSale } : {}),
           variant,
         };
         productsByKey.set(productKey, product);
@@ -55,8 +68,10 @@ function summarizeSalesByProduct(orders = []) {
       const existingOrder = product.ordersByKey.get(orderKey);
       if (existingOrder) {
         existingOrder.quantity += quantity;
+        if (unitsPerSale > 1) existingOrder.listingQuantity += listingQuantity;
       } else {
         product.ordersByKey.set(orderKey, {
+          ...(unitsPerSale > 1 ? { listingQuantity, unitsPerSale } : {}),
           orderNumber: order.orderNumber,
           orderedAt: order.orderedAt,
           quantity,
@@ -77,6 +92,7 @@ function summarizeSalesByProduct(orders = []) {
           || left.orderNumber.localeCompare(right.orderNumber)
       )),
       totalQuantity: product.totalQuantity,
+      ...(product.unitsPerSale > 1 ? { unitsPerSale: product.unitsPerSale } : {}),
       variant: product.variant,
     }))
     .sort((left, right) => (
@@ -102,5 +118,6 @@ async function getShopeeSalesSummary({ endDate, shopCode, startDate }) {
 module.exports = {
   getShopeeSalesSummary,
   normalizeProductText,
+  resolveSalesQuantity,
   summarizeSalesByProduct,
 };
