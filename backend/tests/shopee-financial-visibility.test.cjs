@@ -1,5 +1,4 @@
 const {
-  ADMIN_FINANCIAL_VISIBILITY,
   DEFAULT_USER_FINANCIAL_VISIBILITY,
   getViewerFinancialVisibility,
   sanitizeShopeeOrderFinancials,
@@ -25,11 +24,15 @@ test("regular-user defaults expose item subtotal only and remove hidden values s
   expect(order.items[0].unitPrice).toBe(90);
 });
 
-test("an admin always receives every financial field regardless of the user policy", () => {
+test("an admin receives the same default financial fields as every other account", () => {
   const visibility = getViewerFinancialVisibility("admin", DEFAULT_USER_FINANCIAL_VISIBILITY);
+  const safe = sanitizeShopeeOrderFinancials(order, visibility);
 
-  expect(visibility).toEqual(ADMIN_FINANCIAL_VISIBILITY);
-  expect(sanitizeShopeeOrderFinancials(order, visibility)).toEqual(order);
+  expect(visibility).toEqual(DEFAULT_USER_FINANCIAL_VISIBILITY);
+  expect(safe.itemSubtotal).toBe(90);
+  expect(safe).not.toHaveProperty("shippingFee");
+  expect(safe).not.toHaveProperty("totalAmount");
+  expect(safe.items[0]).not.toHaveProperty("unitPrice");
 });
 
 test("regular users receive only the extra fields explicitly enabled by an admin", () => {

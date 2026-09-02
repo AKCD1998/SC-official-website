@@ -5,7 +5,7 @@ const DEFAULT_USER_FINANCIAL_VISIBILITY = Object.freeze({
   unitPrice: false,
 });
 
-const ADMIN_FINANCIAL_VISIBILITY = Object.freeze({
+const ALL_FINANCIAL_VISIBILITY = Object.freeze({
   itemSubtotal: true,
   shippingFee: true,
   totalAmount: true,
@@ -21,10 +21,8 @@ function normalizeUserFinancialVisibility(value) {
   };
 }
 
-function getViewerFinancialVisibility(role, userVisibility) {
-  return role === "admin"
-    ? { ...ADMIN_FINANCIAL_VISIBILITY }
-    : normalizeUserFinancialVisibility(userVisibility);
+function getViewerFinancialVisibility(_role, userVisibility) {
+  return normalizeUserFinancialVisibility(userVisibility);
 }
 
 function sanitizeShopeeOrderFinancials(order, visibility) {
@@ -44,7 +42,7 @@ function sanitizeShopeeOrderFinancials(order, visibility) {
 }
 
 module.exports = {
-  ADMIN_FINANCIAL_VISIBILITY,
+  ALL_FINANCIAL_VISIBILITY,
   DEFAULT_USER_FINANCIAL_VISIBILITY,
   getViewerFinancialVisibility,
   normalizeUserFinancialVisibility,
