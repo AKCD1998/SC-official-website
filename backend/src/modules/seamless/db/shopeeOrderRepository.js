@@ -18,6 +18,27 @@ const { getTables } = require("../tables");
 
 const SHOPEE_ORDER_SYNC_LOCK_PREFIX = "shopee-order-timeline-sync";
 const CANONICAL_MESSAGE_KEY_PATTERN = /^sha256:[a-f0-9]{64}$/u;
+const SHOPEE_ORDER_STATUS_SEARCH_LABELS = Object.freeze({
+  order_confirmed: "ยืนยันคำสั่งซื้อ COD",
+  shipment_due: "ถึงเวลาจัดส่ง",
+  seller_return_delivery: "พัสดุส่งคืนผู้ขาย",
+  order_cancelled: "ยกเลิกคำสั่งซื้อ",
+});
+const SEARCH_DATE_TIME_FORMATTER = new Intl.DateTimeFormat("th-TH", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Asia/Bangkok",
+});
+const SEARCH_DATE_FORMATTER = new Intl.DateTimeFormat("th-TH", {
+  dateStyle: "medium",
+  timeZone: "Asia/Bangkok",
+});
+const SEARCH_MONEY_FORMATTER = new Intl.NumberFormat("th-TH", {
+  style: "currency",
+  currency: "THB",
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 2,
+});
 
 function toIso(value) {
   if (!value) return null;
@@ -33,6 +54,105 @@ function toNumber(value) {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? "")
+    .normalize("NFKC")
+    .toLocaleLowerCase("th-TH")
+    .replace(/\s+/gu, " ")
+    .trim();
+}
+
+function formatSearchDateTime(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : SEARCH_DATE_TIME_FORMATTER.format(date);
+}
+
+function formatSearchDate(value) {
+  if (!value) return "";
+  const date = new Date(`${value}T00:00:00+07:00`);
+  return Number.isNaN(date.getTime()) ? String(value) : SEARCH_DATE_FORMATTER.format(date);
+}
+
+function formatProductMatchSearchText(productMatch) {
+  if (productMatch?.status === "matched") {
+    return productMatch.companySku || "";
+  }
+  if (productMatch?.status === "bundle") {
+    const components = (productMatch.components || []).map((component) => (
+      component.quantityPerSale
+        ? `${component.companySku} ×${component.quantityPerSale}`
+        : component.companySku
+    ));
+    return `${components.join(" + ")} ชุดหลาย SKU`;
+  }
+  if (productMatch?.status === "visibility_only") return "สินค้าเพิ่มการมองเห็น";
+  if (productMatch?.status === "unmapped") return "รอตรวจสอบ SKU";
+  return "";
+}
+
+function buildShopeeOrderSearchText(order) {
+  const shopProfile = SHOPEE_SHOP_PROFILES[order?.shopCode];
+  const values = [
+    shopProfile?.displayName,
+    order?.shopCode,
+    order?.orderNumber,
+    order?.currentStatus,
+    SHOPEE_ORDER_STATUS_SEARCH_LABELS[order?.currentStatus],
+    order?.itemCount,
+    order?.itemCount > 1 ? `+${order.itemCount - 1}` : "",
+    order?.totalQuantity,
+    order?.totalAmount,
+    order?.totalAmount === null || order?.totalAmount === undefined
+      ? ""
+      : SEARCH_MONEY_FORMATTER.format(order.totalAmount),
+    order?.shippingDeadline,
+    formatSearchDate(order?.shippingDeadline),
+    order?.lastEventAt,
+    formatSearchDateTime(order?.lastEventAt),
+    order?.eventCount,
+    `ดู ${order?.eventCount || 0}`,
+    `เหตุการณ์ ${order?.eventCount || 0}`,
+  ];
+
+  (order?.items || []).forEach((item) => {
+    values.push(
+      item?.name,
+      item?.variant,
+      item?.quantity,
+      item?.unitPrice,
+      item?.unitPrice === null || item?.unitPrice === undefined
+        ? ""
+        : SEARCH_MONEY_FORMATTER.format(item.unitPrice),
+      formatProductMatchSearchText(item?.productMatch),
+    );
+  });
+
+  return normalizeSearchText(values.filter((value) => value !== null && value !== undefined).join(" "));
+}
+
+function matchesShopeeOrderSearch(order, search) {
+  const terms = normalizeSearchText(search).split(" ").filter(Boolean);
+  if (!terms.length) return true;
+  const haystack = buildShopeeOrderSearchText(order);
+  return terms.every((term) => haystack.includes(term));
+}
+
+function compareShopeeOrders(left, right, sortBy, sortOrder) {
+  const fields = sortBy === "orderNumber"
+    ? ["orderNumber", "shopCode", "lastEventAt"]
+    : ["lastEventAt", "shopCode", "orderNumber"];
+  const multiplier = sortOrder === "asc" ? 1 : -1;
+
+  for (const field of fields) {
+    const leftValue = String(left?.[field] || "");
+    const rightValue = String(right?.[field] || "");
+    if (leftValue < rightValue) return -1 * multiplier;
+    if (leftValue > rightValue) return 1 * multiplier;
+  }
+  return 0;
 }
 
 function mapOrder(row) {
@@ -292,6 +412,7 @@ async function listOrders({
   cursor = null,
   limit = 25,
   page = null,
+  search = null,
   shopCode: shopCodeValue,
   sortBy = "lastEventAt",
   sortOrder = "desc",
@@ -318,6 +439,31 @@ async function listOrders({
       + `($${params.length - 2}, $${params.length - 1}, $${params.length})`,
     );
   }
+
+  if (search) {
+    const searchResult = await pool.query(
+      `
+        SELECT
+          o.*,
+          (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
+            WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
+        FROM ${tables.shopeeOrders} o
+        ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+      `,
+      params,
+    );
+    const matchingOrders = searchResult.rows
+      .map(mapOrder)
+      .filter((order) => matchesShopeeOrderSearch(order, search))
+      .sort((left, right) => compareShopeeOrders(left, right, sortBy, sortOrder));
+    const offset = isNumberedPage ? (page - 1) * limit : 0;
+    return {
+      hasMore: offset + limit < matchingOrders.length,
+      orders: matchingOrders.slice(offset, offset + limit),
+      totalCount: isNumberedPage ? matchingOrders.length : null,
+    };
+  }
+
   params.push(isNumberedPage ? limit : limit + 1);
   const limitParameter = params.length;
   if (isNumberedPage) params.push((page - 1) * limit);
@@ -457,12 +603,14 @@ async function findOrdersForAdaSmartValidation(shopCodeValue, orderNumbers) {
 }
 
 module.exports = {
+  buildShopeeOrderSearchText,
   findOrdersForAdaSmartValidation,
   getOrderTimeline,
   listOrders,
   listOrdersForSalesSummary,
   mapEvent,
   mapOrder,
+  matchesShopeeOrderSearch,
   upsertOrderEvent,
   withShopeeOrderSyncLock,
 };
