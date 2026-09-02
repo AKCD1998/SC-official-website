@@ -28,6 +28,24 @@ function nameKey(shopCode, productName) {
   ]);
 }
 
+function getVerifiedBundleUnitsPerSale(productMatch) {
+  if (productMatch?.status !== "bundle" || productMatch.quantityRuleStatus !== "verified") {
+    return null;
+  }
+  const components = Array.isArray(productMatch.components) ? productMatch.components : [];
+  if (!components.length) return null;
+  let unitsPerSale = 0;
+  for (const component of components) {
+    if (!String(component?.companySku || "").trim()
+      || !Number.isSafeInteger(component?.quantityPerSale)
+      || component.quantityPerSale <= 0) {
+      return null;
+    }
+    unitsPerSale += component.quantityPerSale;
+  }
+  return Number.isSafeInteger(unitsPerSale) && unitsPerSale > 0 ? unitsPerSale : null;
+}
+
 function validateCatalogRecord(record) {
   if (!normalizeShopeeShopCode(record?.shopCode)) {
     throw new Error("Shopee product catalog contains an unsupported shop code.");
@@ -43,6 +61,11 @@ function validateCatalogRecord(record) {
   }
   if (record.match.status === "bundle" && !record.match.components?.length) {
     throw new Error(`Shopee product catalog row ${record.sourceRow} is missing bundle components.`);
+  }
+  if (record.match.status === "bundle"
+    && record.match.quantityRuleStatus === "verified"
+    && !getVerifiedBundleUnitsPerSale(record.match)) {
+    throw new Error(`Shopee product catalog row ${record.sourceRow} has invalid verified bundle quantities.`);
   }
 }
 
@@ -187,6 +210,7 @@ module.exports = {
   enrichShopeeOrderItems,
   getShopeeProductCatalogDigest,
   getShopeeProductCatalogSummary,
+  getVerifiedBundleUnitsPerSale,
   matchShopeeProduct,
   normalizeShopeeProductText,
   summarizeShopeeProductMatches,
