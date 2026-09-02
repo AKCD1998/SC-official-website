@@ -48,6 +48,19 @@ function parseSortOrder(value) {
   return value;
 }
 
+function parseSearch(value) {
+  if (value === undefined || value === "") return null;
+  const normalized = String(value)
+    .normalize("NFKC")
+    .replace(/\s+/gu, " ")
+    .trim();
+  if (!normalized) return null;
+  if (normalized.length > 120) {
+    throw badRequest("search must not exceed 120 characters.");
+  }
+  return normalized;
+}
+
 function parseOpaqueCursor(value, expectedShopScope) {
   if (value === undefined || value === "") return null;
   if (String(value).length > 2048) throw badRequest("cursor is too long.");
@@ -106,10 +119,14 @@ async function listOrders(req, res) {
   const shopCode = requireShopeeShopScope(req.query?.shopCode);
   const limit = parseLimit(req.query?.limit);
   const page = parsePage(req.query?.page);
+  const search = parseSearch(req.query?.search);
   const sortBy = parseSortBy(req.query?.sortBy);
   const sortOrder = parseSortOrder(req.query?.sortOrder);
   if (req.query?.cursor && page) {
     throw badRequest("cursor and page cannot be used together.");
+  }
+  if (req.query?.cursor && search) {
+    throw badRequest("cursor and search cannot be used together; use numbered pages.");
   }
   if (req.query?.cursor && (sortBy !== "lastEventAt" || sortOrder !== "desc")) {
     throw badRequest("cursor pagination supports only lastEventAt descending sort.");
@@ -118,6 +135,7 @@ async function listOrders(req, res) {
     cursor: parseOpaqueCursor(req.query?.cursor, shopCode),
     limit,
     page,
+    search,
     shopCode,
     sortBy,
     sortOrder,
@@ -134,6 +152,7 @@ async function listOrders(req, res) {
       totalPages: Math.ceil(result.totalCount / limit),
     } : {}),
     shopCode,
+    search: search || "",
     sortBy,
     sortOrder,
   });
@@ -201,6 +220,7 @@ module.exports = {
   listOrders,
   parseOpaqueCursor,
   parsePage,
+  parseSearch,
   parseSortBy,
   parseSortOrder,
   syncOrders,

@@ -6,11 +6,13 @@ jest.mock("../db", () => ({
 const pool = require("../db");
 const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.json");
 const {
+  buildShopeeOrderSearchText,
   getOrderTimeline,
   listOrders,
   listOrdersForSalesSummary,
   mapEvent,
   mapOrder,
+  matchesShopeeOrderSearch,
   upsertOrderEvent,
   withShopeeOrderSyncLock,
 } = require("../src/modules/seamless/db/shopeeOrderRepository");
@@ -191,6 +193,31 @@ test("enriches persisted email items with the corrected Company SKU at API egres
   });
 });
 
+test("global order search matches visible fields without choosing a column", () => {
+  const catalogRecord = catalog.records.find((record) => (
+    record.shopCode === "sc-drug-store" && record.sourceRow === 33
+  ));
+  const searchableOrder = mapOrder({
+    ...databaseOrder,
+    current_status: "order_cancelled",
+    event_count: "3",
+    item_count: 2,
+    items: [{
+      name: catalogRecord.productName,
+      quantity: 6,
+      unitPrice: 90,
+      variant: catalogRecord.variant,
+    }],
+  });
+
+  expect(matchesShopeeOrderSearch(searchableOrder, "SC Drug Store IC-001849")).toBe(true);
+  expect(matchesShopeeOrderSearch(searchableOrder, "ยกเลิก ฿108")).toBe(true);
+  expect(matchesShopeeOrderSearch(searchableOrder, "+1")).toBe(true);
+  expect(matchesShopeeOrderSearch(searchableOrder, "24 ส.ค. 2569 ดู 3")).toBe(true);
+  expect(matchesShopeeOrderSearch(searchableOrder, "DR.Morepen")).toBe(false);
+  expect(buildShopeeOrderSearchText(searchableOrder)).not.toMatch(/buyer|recipient|subject/iu);
+});
+
 test.each([
   "• ข้อมูลผู้ซื้อ: Private Buyer",
   "- ข้อมูลผู้รับ: Private Recipient",
@@ -352,6 +379,42 @@ test("numbered pagination returns a total and applies allowlisted document sorti
   expect(sql).toContain("LIMIT $2");
   expect(sql).toContain("OFFSET $3");
   expect(params).toEqual([["sc-drug-store", "dr-morepen"], 25, 25]);
+});
+
+test("global search filters the entire shop scope before numbered pagination", async () => {
+  const catalogRecord = catalog.records.find((record) => (
+    record.shopCode === "sc-drug-store" && record.sourceRow === 33
+  ));
+  pool.query.mockClear();
+  pool.query.mockResolvedValueOnce({
+    rows: [
+      {
+        ...databaseOrder,
+        items: [{
+          name: catalogRecord.productName,
+          quantity: 6,
+          unitPrice: 90,
+          variant: catalogRecord.variant,
+        }],
+      },
+      { ...databaseOrder, order_number: "26082471YK8C03" },
+    ],
+  });
+
+  const result = await listOrders({
+    limit: 25,
+    page: 1,
+    search: "IC-001849",
+    shopCode: "all",
+  });
+
+  expect(result).toMatchObject({ hasMore: false, totalCount: 1 });
+  expect(result.orders).toHaveLength(1);
+  expect(result.orders[0].items[0].productMatch.companySku).toBe("IC-001849");
+  const [sql, params] = pool.query.mock.calls[0];
+  expect(sql).not.toContain("LIMIT");
+  expect(sql).not.toContain("OFFSET");
+  expect(params).toEqual([["sc-drug-store", "dr-morepen"]]);
 });
 
 test("sales summary query uses inclusive Bangkok dates and excludes cancelled or returned orders", async () => {
