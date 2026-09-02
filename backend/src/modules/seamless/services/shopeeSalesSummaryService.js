@@ -21,6 +21,12 @@ function collectCompanySkus(productMatch) {
   return [];
 }
 
+function normalizeItemSubtotal(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const amount = Number(value);
+  return Number.isFinite(amount) && amount >= 0 ? Number(amount.toFixed(2)) : null;
+}
+
 function resolveSalesQuantity(item) {
   const listingQuantity = Number(item?.quantity);
   if (!Number.isSafeInteger(listingQuantity) || listingQuantity <= 0) return null;
@@ -46,6 +52,7 @@ function summarizeSalesByProduct(orders = []) {
   let totalQuantity = 0;
 
   orders.forEach((order) => {
+    const itemSubtotal = normalizeItemSubtotal(order.itemSubtotal);
     (order.items || []).forEach((item) => {
       const quantityResolution = resolveSalesQuantity(item);
       if (!quantityResolution) return;
@@ -98,6 +105,7 @@ function summarizeSalesByProduct(orders = []) {
         product.ordersByKey.set(orderKey, {
           ...(isBundle ? { isBundle: true, listingQuantity, quantityRuleStatus } : {}),
           ...(isBundle && quantityRuleStatus === "verified" ? { unitsPerSale } : {}),
+          itemSubtotal,
           orderNumber: order.orderNumber,
           orderedAt: order.orderedAt,
           quantity,
