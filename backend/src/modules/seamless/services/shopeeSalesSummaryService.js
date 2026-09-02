@@ -24,11 +24,20 @@ function collectCompanySkus(productMatch) {
 function resolveSalesQuantity(item) {
   const listingQuantity = Number(item?.quantity);
   if (!Number.isSafeInteger(listingQuantity) || listingQuantity <= 0) return null;
+  const isBundle = item?.productMatch?.status === "bundle";
   const unitsPerSale = getVerifiedBundleUnitsPerSale(item?.productMatch);
-  if (!unitsPerSale) return { listingQuantity, quantity: listingQuantity, unitsPerSale: 1 };
+  const bundleMetadata = isBundle
+    ? {
+      isBundle: true,
+      quantityRuleStatus: unitsPerSale ? "verified" : "requires_validation",
+    }
+    : {};
+  if (!unitsPerSale) {
+    return { listingQuantity, quantity: listingQuantity, unitsPerSale: 1, ...bundleMetadata };
+  }
   const quantity = listingQuantity * unitsPerSale;
   if (!Number.isSafeInteger(quantity)) return null;
-  return { listingQuantity, quantity, unitsPerSale };
+  return { listingQuantity, quantity, unitsPerSale, ...bundleMetadata };
 }
 
 function summarizeSalesByProduct(orders = []) {
@@ -40,7 +49,13 @@ function summarizeSalesByProduct(orders = []) {
     (order.items || []).forEach((item) => {
       const quantityResolution = resolveSalesQuantity(item);
       if (!quantityResolution) return;
-      const { listingQuantity, quantity, unitsPerSale } = quantityResolution;
+      const {
+        isBundle = false,
+        listingQuantity,
+        quantity,
+        quantityRuleStatus,
+        unitsPerSale,
+      } = quantityResolution;
 
       const name = String(item.name || "").trim();
       const variant = String(item.variant || "").trim();
@@ -54,10 +69,15 @@ function summarizeSalesByProduct(orders = []) {
           name,
           ordersByKey: new Map(),
           totalQuantity: 0,
-          ...(unitsPerSale > 1 ? { unitsPerSale } : {}),
+          ...(isBundle ? { isBundle: true, quantityRuleStatus } : {}),
+          ...(isBundle && quantityRuleStatus === "verified" ? { unitsPerSale } : {}),
           variant,
         };
         productsByKey.set(productKey, product);
+      } else if (isBundle) {
+        product.isBundle = true;
+        product.quantityRuleStatus = quantityRuleStatus;
+        if (quantityRuleStatus === "verified") product.unitsPerSale = unitsPerSale;
       }
 
       collectCompanySkus(item.productMatch).forEach((sku) => product.companySkus.add(sku));
@@ -68,10 +88,16 @@ function summarizeSalesByProduct(orders = []) {
       const existingOrder = product.ordersByKey.get(orderKey);
       if (existingOrder) {
         existingOrder.quantity += quantity;
-        if (unitsPerSale > 1) existingOrder.listingQuantity += listingQuantity;
+        if (isBundle) {
+          existingOrder.isBundle = true;
+          existingOrder.listingQuantity = (existingOrder.listingQuantity || 0) + listingQuantity;
+          existingOrder.quantityRuleStatus = quantityRuleStatus;
+          if (quantityRuleStatus === "verified") existingOrder.unitsPerSale = unitsPerSale;
+        }
       } else {
         product.ordersByKey.set(orderKey, {
-          ...(unitsPerSale > 1 ? { listingQuantity, unitsPerSale } : {}),
+          ...(isBundle ? { isBundle: true, listingQuantity, quantityRuleStatus } : {}),
+          ...(isBundle && quantityRuleStatus === "verified" ? { unitsPerSale } : {}),
           orderNumber: order.orderNumber,
           orderedAt: order.orderedAt,
           quantity,
@@ -92,7 +118,13 @@ function summarizeSalesByProduct(orders = []) {
           || left.orderNumber.localeCompare(right.orderNumber)
       )),
       totalQuantity: product.totalQuantity,
-      ...(product.unitsPerSale > 1 ? { unitsPerSale: product.unitsPerSale } : {}),
+      ...(product.isBundle ? {
+        isBundle: true,
+        quantityRuleStatus: product.quantityRuleStatus,
+      } : {}),
+      ...(product.isBundle && product.quantityRuleStatus === "verified"
+        ? { unitsPerSale: product.unitsPerSale }
+        : {}),
       variant: product.variant,
     }))
     .sort((left, right) => (

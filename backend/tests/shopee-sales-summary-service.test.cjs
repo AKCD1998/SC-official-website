@@ -109,17 +109,53 @@ test("expands verified bundle quantities into inventory units for totals and dri
   expect(summary).toMatchObject({ orderCount: 1, productCount: 1, totalQuantity: 6 });
   expect(summary.products[0]).toMatchObject({
     companySkus: ["IC-003478"],
+    isBundle: true,
+    quantityRuleStatus: "verified",
     totalQuantity: 6,
     unitsPerSale: 3,
   });
   expect(summary.products[0].orders).toEqual([{
+    isBundle: true,
     listingQuantity: 2,
     orderNumber: BASE_ORDER.orderNumber,
     orderedAt: BASE_ORDER.orderedAt,
     quantity: 6,
+    quantityRuleStatus: "verified",
     shopCode: "dr-morepen",
     unitsPerSale: 3,
   }]);
+});
+
+test("marks an unverified bundle without inventing an inventory multiplier", () => {
+  const summary = summarizeSalesByProduct([{
+    ...BASE_ORDER,
+    items: [{
+      name: "ชุดสินค้าที่ยังไม่ยืนยันจำนวน",
+      productMatch: {
+        status: "bundle",
+        quantityRuleStatus: "requires_validation",
+        components: [{ companySku: "IC-TEST" }],
+      },
+      quantity: 1,
+      variant: "3 กล่อง",
+    }],
+  }]);
+
+  expect(summary).toMatchObject({ orderCount: 1, productCount: 1, totalQuantity: 1 });
+  expect(summary.products[0]).toMatchObject({
+    companySkus: ["IC-TEST"],
+    isBundle: true,
+    quantityRuleStatus: "requires_validation",
+    totalQuantity: 1,
+  });
+  expect(summary.products[0]).not.toHaveProperty("unitsPerSale");
+  expect(summary.products[0].orders[0]).toMatchObject({
+    isBundle: true,
+    listingQuantity: 1,
+    quantity: 1,
+    quantityRuleStatus: "requires_validation",
+  });
+  expect(summary.products[0].orders[0]).not.toHaveProperty("unitsPerSale");
 });
 
 test("loads only the requested shop and date range before summarizing", async () => {
