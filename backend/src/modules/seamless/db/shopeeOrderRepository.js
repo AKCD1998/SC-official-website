@@ -16,7 +16,7 @@ const {
 } = require("../services/shopeeProductMatcher");
 const { getTables } = require("../tables");
 const {
-  ADMIN_FINANCIAL_VISIBILITY,
+  ALL_FINANCIAL_VISIBILITY,
   normalizeUserFinancialVisibility,
 } = require("../services/shopeeFinancialVisibilityService");
 
@@ -112,7 +112,7 @@ function deriveItemSubtotal(items) {
   return Number(subtotal.toFixed(2));
 }
 
-function buildShopeeOrderSearchText(order, visibility = ADMIN_FINANCIAL_VISIBILITY) {
+function buildShopeeOrderSearchText(order, visibility = ALL_FINANCIAL_VISIBILITY) {
   const shopProfile = SHOPEE_SHOP_PROFILES[order?.shopCode];
   const financialVisibility = normalizeUserFinancialVisibility(visibility);
   const values = [
@@ -161,7 +161,7 @@ function buildShopeeOrderSearchText(order, visibility = ADMIN_FINANCIAL_VISIBILI
   return normalizeSearchText(values.filter((value) => value !== null && value !== undefined).join(" "));
 }
 
-function matchesShopeeOrderSearch(order, search, visibility = ADMIN_FINANCIAL_VISIBILITY) {
+function matchesShopeeOrderSearch(order, search, visibility = ALL_FINANCIAL_VISIBILITY) {
   const terms = normalizeSearchText(search).split(" ").filter(Boolean);
   if (!terms.length) return true;
   const haystack = buildShopeeOrderSearchText(order, visibility);
@@ -441,7 +441,7 @@ async function listOrders({
   cursor = null,
   limit = 25,
   page = null,
-  financialVisibility = ADMIN_FINANCIAL_VISIBILITY,
+  financialVisibility = ALL_FINANCIAL_VISIBILITY,
   search = null,
   shopCode: shopCodeValue,
   sortBy = "lastEventAt",

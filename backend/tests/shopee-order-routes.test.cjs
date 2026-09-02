@@ -109,12 +109,15 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
   );
 
   expect(response.status).toBe(200);
-  expect(response.body.orders).toEqual([orderRow]);
+  expect(response.body.orders[0].itemSubtotal).toBe(70);
+  expect(response.body.orders[0]).not.toHaveProperty("shippingFee");
+  expect(response.body.orders[0]).not.toHaveProperty("totalAmount");
+  expect(response.body.orders[0].items[0]).not.toHaveProperty("unitPrice");
   expect(response.body.financialVisibility).toEqual({
     itemSubtotal: true,
-    shippingFee: true,
-    totalAmount: true,
-    unitPrice: true,
+    shippingFee: false,
+    totalAmount: false,
+    unitPrice: false,
   });
   expect(response.body.nextCursor).toEqual(expect.any(String));
   expect(response.body.shopCode).toBe("sc-drug-store");
@@ -122,9 +125,9 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
     cursor: null,
     financialVisibility: {
       itemSubtotal: true,
-      shippingFee: true,
-      totalAmount: true,
-      unitPrice: true,
+      shippingFee: false,
+      totalAmount: false,
+      unitPrice: false,
     },
     limit: 10,
     page: null,
@@ -154,9 +157,9 @@ test("lists both supported shops without allowing an all-shops cursor to cross s
     cursor: null,
     financialVisibility: {
       itemSubtotal: true,
-      shippingFee: true,
-      totalAmount: true,
-      unitPrice: true,
+      shippingFee: false,
+      totalAmount: false,
+      unitPrice: false,
     },
     limit: 10,
     page: null,
@@ -207,9 +210,9 @@ test("lists a numbered page with bounded database sorting and total metadata", a
     cursor: null,
     financialVisibility: {
       itemSubtotal: true,
-      shippingFee: true,
-      totalAmount: true,
-      unitPrice: true,
+      shippingFee: false,
+      totalAmount: false,
+      unitPrice: false,
     },
     limit: 25,
     page: 2,
@@ -237,9 +240,9 @@ test("passes one normalized global search term across the full numbered result s
     cursor: null,
     financialVisibility: {
       itemSubtotal: true,
-      shippingFee: true,
-      totalAmount: true,
-      unitPrice: true,
+      shippingFee: false,
+      totalAmount: false,
+      unitPrice: false,
     },
     limit: 25,
     page: 1,
@@ -262,7 +265,7 @@ test("returns the latest completed cycle and configured next accounting cycle", 
   expect(getShopeeAccountingCycleStatusMock).toHaveBeenCalledTimes(1);
 });
 
-test("returns one order and its chronological event timeline", async () => {
+test("returns one order with the shared default financial visibility", async () => {
   const response = await request(buildApp()).get(
     "/api/app/shopee/orders/26082471YK8C02?shopCode=sc-drug-store",
   );
@@ -270,7 +273,11 @@ test("returns one order and its chronological event timeline", async () => {
   expect(response.status).toBe(200);
   expect(response.body.order.orderNumber).toBe("26082471YK8C02");
   expect(response.body.events[0].eventType).toBe("shipment_due");
-  expect(response.body.financialVisibility.totalAmount).toBe(true);
+  expect(response.body.financialVisibility.totalAmount).toBe(false);
+  expect(response.body.order.itemSubtotal).toBe(70);
+  expect(response.body.order).not.toHaveProperty("shippingFee");
+  expect(response.body.order).not.toHaveProperty("totalAmount");
+  expect(response.body.order.items[0]).not.toHaveProperty("unitPrice");
   expect(getOrderTimelineMock).toHaveBeenCalledWith("sc-drug-store", "26082471YK8C02");
 });
 
