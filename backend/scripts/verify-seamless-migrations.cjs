@@ -79,6 +79,7 @@ function testTables(schemaName) {
     shopeeLegacyReconciliationApplyItems: qualify("shopee_legacy_reconciliation_apply_items"),
     shopeeLegacyReconciliationDecisions: qualify("shopee_legacy_reconciliation_decisions"),
     shopeeOrderEvents: qualify("shopee_order_events"),
+    shopeeFinancialVisibilitySettings: qualify("shopee_financial_visibility_settings"),
     shopeeOrders: qualify("shopee_orders"),
     workbookUploads: qualify("workbook_uploads"),
   };
@@ -430,6 +431,7 @@ async function verifyMigrations(env = process.env) {
     for (const tableName of [
       "shopee_orders",
       "shopee_order_events",
+      "shopee_financial_visibility_settings",
       "shopee_legacy_reconciliation_decisions",
       "shopee_legacy_reconciliation_apply_batches",
       "shopee_legacy_reconciliation_apply_items",

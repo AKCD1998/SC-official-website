@@ -2,7 +2,7 @@ const pool = require("../db");
 const { readSchemaName } = require("../src/modules/seamless/config");
 const { getTables } = require("../src/modules/seamless/tables");
 
-const APPROVED_MIGRATION = "011_shopee_legacy_reconciliation_apply_audit.sql";
+const APPROVED_MIGRATION = "014_shopee_financial_visibility_settings.sql";
 
 async function verify() {
   if (process.env.SEAMLESS_PRODUCTION_MIGRATION_VERIFY !== APPROVED_MIGRATION) {
@@ -22,15 +22,24 @@ async function verify() {
     throw new Error("Approved migration is not recorded in schema_migrations.");
   }
 
-  for (const tableName of [
-    "shopee_legacy_reconciliation_apply_batches",
-    "shopee_legacy_reconciliation_apply_items",
-  ]) {
-    // eslint-disable-next-line no-await-in-loop
-    const result = await pool.query("SELECT to_regclass($1) AS relation", [
-      `${schemaName}.${tableName}`,
-    ]);
-    if (!result.rows[0]?.relation) throw new Error(`Missing migrated table: ${tableName}`);
+  const tableName = "shopee_financial_visibility_settings";
+  const relation = await pool.query("SELECT to_regclass($1) AS relation", [
+    `${schemaName}.${tableName}`,
+  ]);
+  if (!relation.rows[0]?.relation) throw new Error(`Missing migrated table: ${tableName}`);
+
+  const settings = await pool.query(
+    `
+      SELECT
+        user_can_view_unit_price,
+        user_can_view_shipping_fee,
+        user_can_view_total_amount
+      FROM ${tables.shopeeFinancialVisibilitySettings}
+      WHERE setting_key = 'user'
+    `,
+  );
+  if (settings.rows.length !== 1) {
+    throw new Error("Shopee user financial visibility singleton is missing.");
   }
 
   console.log(`[seamless:production:migrate] Verified ${APPROVED_MIGRATION} in ${schemaName}.`);

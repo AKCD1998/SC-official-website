@@ -14,10 +14,12 @@ const {
   saveLegacyReview,
 } = require("../controllers/shopeeLegacyReconciliationController");
 const {
+  getFinancialVisibility,
   getOrder,
   listOrders,
   listSalesSummary,
   syncOrders,
+  updateFinancialVisibility,
 } = require("../controllers/shopeeOrderController");
 const { appAuth } = require("../middleware/appAuth");
 const { asyncHandler } = require("../utils/asyncHandler");
@@ -30,6 +32,8 @@ router.post("/adasmart/validation-preview", asyncHandler(createValidationPreview
 router.post("/adasmart/confirm", asyncHandler(confirmDryRunQueue));
 router.get("/inbox", asyncHandler(listInbox));
 router.get("/orders", asyncHandler(listOrders));
+router.get("/orders/financial-visibility", asyncHandler(getFinancialVisibility));
+router.put("/orders/financial-visibility", asyncHandler(updateFinancialVisibility));
 router.get("/orders/sales-summary", asyncHandler(listSalesSummary));
 router.get("/orders/legacy-reconciliation", asyncHandler(listLegacyReviews));
 router.get(

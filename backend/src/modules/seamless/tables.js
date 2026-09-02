@@ -41,6 +41,9 @@ function getTables() {
       "shopee_legacy_reconciliation_apply_items",
     ),
     shopeeOrderEvents: qualifyTable("shopee_order_events"),
+    shopeeFinancialVisibilitySettings: qualifyTable(
+      "shopee_financial_visibility_settings",
+    ),
     shopeeOrders: qualifyTable("shopee_orders"),
     pharmcareSyncRuns: qualifyTable("pharmcare_sync_runs"),
     pharmcareSyncState: qualifyTable("pharmcare_sync_state"),
