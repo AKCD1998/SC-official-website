@@ -11,6 +11,7 @@ const {
 
 const BASE_ORDER = {
   currentStatus: "shipment_due",
+  itemSubtotal: 120,
   items: [],
   orderedAt: "2026-09-01T01:00:00.000Z",
   orderNumber: "260901TEST001",
@@ -42,6 +43,7 @@ test("groups the same product and variant while preserving per-order drilldown",
     },
     {
       ...BASE_ORDER,
+      itemSubtotal: 99.5,
       orderedAt: "2026-09-01T03:00:00.000Z",
       orderNumber: "260901TEST002",
       shopCode: "dr-morepen",
@@ -59,12 +61,14 @@ test("groups the same product and variant while preserving per-order drilldown",
   });
   expect(summary.products[0].orders).toEqual([
     {
+      itemSubtotal: 99.5,
       orderNumber: "260901TEST002",
       orderedAt: "2026-09-01T03:00:00.000Z",
       quantity: 4,
       shopCode: "dr-morepen",
     },
     {
+      itemSubtotal: 120,
       orderNumber: "260901TEST001",
       orderedAt: "2026-09-01T01:00:00.000Z",
       quantity: 3,
@@ -116,6 +120,7 @@ test("expands verified bundle quantities into inventory units for totals and dri
   });
   expect(summary.products[0].orders).toEqual([{
     isBundle: true,
+    itemSubtotal: 120,
     listingQuantity: 2,
     orderNumber: BASE_ORDER.orderNumber,
     orderedAt: BASE_ORDER.orderedAt,
