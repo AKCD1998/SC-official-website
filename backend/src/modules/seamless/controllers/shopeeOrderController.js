@@ -1,4 +1,5 @@
 const repository = require("../db/shopeeOrderRepository");
+const financialVisibilityRepository = require("../db/shopeeFinancialVisibilityRepository");
 const { badRequest, forbidden } = require("../errors");
 const {
   normalizeShopeeOrderNumber,
@@ -7,6 +8,11 @@ const {
 const { TIMELINE_EVENT_TYPES } = require("../services/shopeeOrderEmailParser");
 const { syncShopeeOrderPage } = require("../services/shopeeOrderTimelineService");
 const { getShopeeSalesSummary } = require("../services/shopeeSalesSummaryService");
+const {
+  getViewerFinancialVisibility,
+  normalizeUserFinancialVisibility,
+  sanitizeShopeeOrderFinancials,
+} = require("../services/shopeeFinancialVisibilityService");
 const {
   SHOPEE_ALL_SHOPS_SCOPE,
   normalizeShopeeShopCode,
@@ -131,8 +137,15 @@ async function listOrders(req, res) {
   if (req.query?.cursor && (sortBy !== "lastEventAt" || sortOrder !== "desc")) {
     throw badRequest("cursor pagination supports only lastEventAt descending sort.");
   }
+  const userFinancialVisibility = await financialVisibilityRepository
+    .getUserFinancialVisibility();
+  const financialVisibility = getViewerFinancialVisibility(
+    req.appRole,
+    userFinancialVisibility,
+  );
   const result = await repository.listOrders({
     cursor: parseOpaqueCursor(req.query?.cursor, shopCode),
+    financialVisibility,
     limit,
     page,
     search,
@@ -144,7 +157,10 @@ async function listOrders(req, res) {
   const lastOrder = result.orders[result.orders.length - 1];
   res.json({
     nextCursor: !page && result.hasMore && lastOrder ? encodeCursor(lastOrder, shopCode) : null,
-    orders: result.orders,
+    financialVisibility,
+    orders: result.orders.map((order) => (
+      sanitizeShopeeOrderFinancials(order, financialVisibility)
+    )),
     ...(page ? {
       page,
       pageSize: limit,
@@ -193,10 +209,66 @@ async function listSalesSummary(req, res) {
 
 async function getOrder(req, res) {
   const shopCode = requireShopeeShopCode(req.query?.shopCode);
-  res.json(await repository.getOrderTimeline(
-    shopCode,
-    parseOrderNumber(req.params.orderNumber),
-  ));
+  const [timeline, userFinancialVisibility] = await Promise.all([
+    repository.getOrderTimeline(
+      shopCode,
+      parseOrderNumber(req.params.orderNumber),
+    ),
+    financialVisibilityRepository.getUserFinancialVisibility(),
+  ]);
+  const financialVisibility = getViewerFinancialVisibility(
+    req.appRole,
+    userFinancialVisibility,
+  );
+  res.json({
+    ...timeline,
+    financialVisibility,
+    order: sanitizeShopeeOrderFinancials(timeline.order, financialVisibility),
+  });
+}
+
+const HUMAN_ADMIN_AUTH_SOURCES = new Set(["session", "admin_basic", "local_default_open"]);
+const MUTABLE_FINANCIAL_VISIBILITY_FIELDS = ["shippingFee", "totalAmount", "unitPrice"];
+
+function requireFinancialVisibilityAdmin(req) {
+  if (req.appRole !== "admin" || !HUMAN_ADMIN_AUTH_SOURCES.has(req.appAuthSource)) {
+    throw forbidden("Only admin sessions can manage Shopee financial visibility.");
+  }
+}
+
+function parseFinancialVisibilitySettings(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw badRequest("Financial visibility settings are required.");
+  }
+  const keys = Object.keys(value);
+  const unknown = keys.filter((key) => !MUTABLE_FINANCIAL_VISIBILITY_FIELDS.includes(key));
+  if (unknown.length) {
+    throw badRequest(`Unsupported financial visibility setting: ${unknown.join(", ")}.`);
+  }
+  for (const field of MUTABLE_FINANCIAL_VISIBILITY_FIELDS) {
+    if (typeof value[field] !== "boolean") {
+      throw badRequest(`${field} must be a boolean.`);
+    }
+  }
+  return normalizeUserFinancialVisibility(value);
+}
+
+async function getFinancialVisibility(req, res) {
+  requireFinancialVisibilityAdmin(req);
+  res.json({
+    userFinancialVisibility: await financialVisibilityRepository
+      .getUserFinancialVisibility(),
+  });
+}
+
+async function updateFinancialVisibility(req, res) {
+  requireFinancialVisibilityAdmin(req);
+  const settings = parseFinancialVisibilitySettings(req.body);
+  const updated = await financialVisibilityRepository.updateUserFinancialVisibility(
+    settings,
+    req.appActor || "admin",
+  );
+  res.json({ userFinancialVisibility: updated });
 }
 
 async function syncOrders(req, res) {
@@ -215,13 +287,16 @@ async function syncOrders(req, res) {
 
 module.exports = {
   encodeCursor,
+  getFinancialVisibility,
   getOrder,
   listSalesSummary,
   listOrders,
   parseOpaqueCursor,
   parsePage,
+  parseFinancialVisibilitySettings,
   parseSearch,
   parseSortBy,
   parseSortOrder,
   syncOrders,
+  updateFinancialVisibility,
 };

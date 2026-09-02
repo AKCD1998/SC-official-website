@@ -7,6 +7,7 @@ const pool = require("../db");
 const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.json");
 const {
   buildShopeeOrderSearchText,
+  deriveItemSubtotal,
   getOrderTimeline,
   listOrders,
   listOrdersForSalesSummary,
@@ -216,6 +217,43 @@ test("global order search matches visible fields without choosing a column", () 
   expect(matchesShopeeOrderSearch(searchableOrder, "24 ส.ค. 2569 ดู 3")).toBe(true);
   expect(matchesShopeeOrderSearch(searchableOrder, "DR.Morepen")).toBe(false);
   expect(buildShopeeOrderSearchText(searchableOrder)).not.toMatch(/buyer|recipient|subject/iu);
+});
+
+test("derives a missing item subtotal from bounded item prices for legacy orders", () => {
+  const mapped = mapOrder({
+    ...databaseOrder,
+    item_subtotal: null,
+    items: [{ name: "Vitamin C Gummy", quantity: 1, unitPrice: 90 }],
+    order_number: "260612V6TNNMU2",
+    shipping_fee: "35.00",
+    total_amount: "125.00",
+  });
+
+  expect(deriveItemSubtotal(mapped.items)).toBe(90);
+  expect(mapped.itemSubtotal).toBe(90);
+  expect(deriveItemSubtotal([{ name: "Unknown price", quantity: 1, unitPrice: null }])).toBeNull();
+});
+
+test("regular-user search cannot infer disabled financial values", () => {
+  const searchableOrder = mapOrder({
+    ...databaseOrder,
+    item_subtotal: "90.00",
+    items: [{ name: "Vitamin C Gummy", quantity: 1, unitPrice: 77 }],
+    order_number: "260612V6TNNMU2",
+    shipping_fee: "35.00",
+    total_amount: "125.00",
+  });
+  const userVisibility = {
+    itemSubtotal: true,
+    shippingFee: false,
+    totalAmount: false,
+    unitPrice: false,
+  };
+
+  expect(matchesShopeeOrderSearch(searchableOrder, "฿90", userVisibility)).toBe(true);
+  expect(matchesShopeeOrderSearch(searchableOrder, "฿35", userVisibility)).toBe(false);
+  expect(matchesShopeeOrderSearch(searchableOrder, "฿125", userVisibility)).toBe(false);
+  expect(matchesShopeeOrderSearch(searchableOrder, "฿77", userVisibility)).toBe(false);
 });
 
 test.each([

@@ -6,11 +6,13 @@ const orderRow = {
   eventCount: 2,
   firstEventAt: "2026-08-24T02:00:00.000Z",
   itemCount: 1,
+  itemSubtotal: 70,
   items: [{ name: "สินค้าทดสอบ", quantity: 1, unitPrice: 70, variant: "1 ขวด" }],
   lastEventAt: "2026-08-24T03:00:00.000Z",
   orderedAt: "2026-08-24T01:00:00.000Z",
   orderNumber: "26082471YK8C02",
   shippingDeadline: "2026-08-30",
+  shippingFee: 38,
   shopCode: "sc-drug-store",
   totalAmount: 108,
   totalQuantity: 1,
@@ -21,6 +23,20 @@ const listOrdersForSalesSummaryMock = jest.fn(async () => [orderRow]);
 const getOrderTimelineMock = jest.fn(async () => ({
   events: [{ details: {}, eventType: "shipment_due", id: "event-1", occurredAt: orderRow.lastEventAt }],
   order: orderRow,
+}));
+const userFinancialVisibility = {
+  itemSubtotal: true,
+  shippingFee: false,
+  totalAmount: false,
+  unitPrice: false,
+  updatedAt: "2026-09-02T00:00:00.000Z",
+  updatedBy: "admin001",
+};
+const getUserFinancialVisibilityMock = jest.fn(async () => userFinancialVisibility);
+const updateUserFinancialVisibilityMock = jest.fn(async (settings, updatedBy) => ({
+  ...settings,
+  updatedAt: "2026-09-02T01:00:00.000Z",
+  updatedBy,
 }));
 const syncShopeeOrderPageMock = jest.fn(async () => ({
   deduplicatedEvents: 0,
@@ -50,6 +66,11 @@ jest.mock("../src/modules/seamless/db/shopeeOrderRepository", () => ({
   getOrderTimeline: (...args) => getOrderTimelineMock(...args),
   listOrders: (...args) => listOrdersMock(...args),
   listOrdersForSalesSummary: (...args) => listOrdersForSalesSummaryMock(...args),
+}));
+
+jest.mock("../src/modules/seamless/db/shopeeFinancialVisibilityRepository", () => ({
+  getUserFinancialVisibility: (...args) => getUserFinancialVisibilityMock(...args),
+  updateUserFinancialVisibility: (...args) => updateUserFinancialVisibilityMock(...args),
 }));
 
 jest.mock("../src/modules/seamless/services/shopeeOrderTimelineService", () => ({
@@ -89,10 +110,22 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
 
   expect(response.status).toBe(200);
   expect(response.body.orders).toEqual([orderRow]);
+  expect(response.body.financialVisibility).toEqual({
+    itemSubtotal: true,
+    shippingFee: true,
+    totalAmount: true,
+    unitPrice: true,
+  });
   expect(response.body.nextCursor).toEqual(expect.any(String));
   expect(response.body.shopCode).toBe("sc-drug-store");
   expect(listOrdersMock).toHaveBeenCalledWith({
     cursor: null,
+    financialVisibility: {
+      itemSubtotal: true,
+      shippingFee: true,
+      totalAmount: true,
+      unitPrice: true,
+    },
     limit: 10,
     page: null,
     search: null,
@@ -119,6 +152,12 @@ test("lists both supported shops without allowing an all-shops cursor to cross s
   expect(response.body.nextCursor).toEqual(expect.any(String));
   expect(listOrdersMock).toHaveBeenCalledWith({
     cursor: null,
+    financialVisibility: {
+      itemSubtotal: true,
+      shippingFee: true,
+      totalAmount: true,
+      unitPrice: true,
+    },
     limit: 10,
     page: null,
     search: null,
@@ -166,6 +205,12 @@ test("lists a numbered page with bounded database sorting and total metadata", a
   });
   expect(listOrdersMock).toHaveBeenCalledWith({
     cursor: null,
+    financialVisibility: {
+      itemSubtotal: true,
+      shippingFee: true,
+      totalAmount: true,
+      unitPrice: true,
+    },
     limit: 25,
     page: 2,
     search: null,
@@ -190,6 +235,12 @@ test("passes one normalized global search term across the full numbered result s
   expect(response.body.search).toBe("IC-001849 สินค้าทดสอบ");
   expect(listOrdersMock).toHaveBeenCalledWith({
     cursor: null,
+    financialVisibility: {
+      itemSubtotal: true,
+      shippingFee: true,
+      totalAmount: true,
+      unitPrice: true,
+    },
     limit: 25,
     page: 1,
     search: "IC-001849 สินค้าทดสอบ",
@@ -219,7 +270,110 @@ test("returns one order and its chronological event timeline", async () => {
   expect(response.status).toBe(200);
   expect(response.body.order.orderNumber).toBe("26082471YK8C02");
   expect(response.body.events[0].eventType).toBe("shipment_due");
+  expect(response.body.financialVisibility.totalAmount).toBe(true);
   expect(getOrderTimelineMock).toHaveBeenCalledWith("sc-drug-store", "26082471YK8C02");
+});
+
+test("regular users receive item subtotal only from list and detail APIs", async () => {
+  process.env.SEAMLESS_APP_BASIC_USER = "staff001";
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "staff-password";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
+
+  const [list, detail] = await Promise.all([
+    request(buildApp())
+      .get("/api/app/shopee/orders?shopCode=sc-drug-store&page=1")
+      .auth("staff001", "staff-password"),
+    request(buildApp())
+      .get(`/api/app/shopee/orders/${orderRow.orderNumber}?shopCode=sc-drug-store`)
+      .auth("staff001", "staff-password"),
+  ]);
+
+  for (const response of [list, detail]) {
+    expect(response.status).toBe(200);
+    expect(response.body.financialVisibility).toEqual({
+      itemSubtotal: true,
+      shippingFee: false,
+      totalAmount: false,
+      unitPrice: false,
+    });
+    const order = response.body.order || response.body.orders[0];
+    expect(order.itemSubtotal).toBe(70);
+    expect(order).not.toHaveProperty("shippingFee");
+    expect(order).not.toHaveProperty("totalAmount");
+    expect(order.items[0]).not.toHaveProperty("unitPrice");
+  }
+});
+
+test("regular users receive only financial fields enabled by the saved policy", async () => {
+  process.env.SEAMLESS_APP_BASIC_USER = "staff001";
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "staff-password";
+  getUserFinancialVisibilityMock.mockResolvedValueOnce({
+    ...userFinancialVisibility,
+    shippingFee: true,
+    unitPrice: true,
+  });
+
+  const response = await request(buildApp())
+    .get("/api/app/shopee/orders?shopCode=sc-drug-store&page=1")
+    .auth("staff001", "staff-password");
+
+  expect(response.status).toBe(200);
+  expect(response.body.orders[0].shippingFee).toBe(38);
+  expect(response.body.orders[0].items[0].unitPrice).toBe(70);
+  expect(response.body.orders[0]).not.toHaveProperty("totalAmount");
+});
+
+test("only an admin can read and update regular-user financial visibility", async () => {
+  process.env.SEAMLESS_APP_BASIC_USER = "staff001";
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "staff-password";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
+  const settingsPath = "/api/app/shopee/orders/financial-visibility";
+
+  const regular = await request(buildApp())
+    .get(settingsPath)
+    .auth("staff001", "staff-password");
+  expect(regular.status).toBe(403);
+
+  const adminRead = await request(buildApp())
+    .get(settingsPath)
+    .auth("admin001", "admin-password");
+  expect(adminRead.status).toBe(200);
+  expect(adminRead.body.userFinancialVisibility).toEqual(userFinancialVisibility);
+
+  const settings = { shippingFee: true, totalAmount: false, unitPrice: true };
+  const adminUpdate = await request(buildApp())
+    .put(settingsPath)
+    .auth("admin001", "admin-password")
+    .send(settings);
+  expect(adminUpdate.status).toBe(200);
+  expect(updateUserFinancialVisibilityMock).toHaveBeenCalledWith(
+    { itemSubtotal: true, ...settings },
+    "admin001",
+  );
+});
+
+test("financial visibility rejects incomplete or unknown settings", async () => {
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin001";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
+  const settingsPath = "/api/app/shopee/orders/financial-visibility";
+
+  const [incomplete, unknown] = await Promise.all([
+    request(buildApp())
+      .put(settingsPath)
+      .auth("admin001", "admin-password")
+      .send({ shippingFee: true, totalAmount: false }),
+    request(buildApp())
+      .put(settingsPath)
+      .auth("admin001", "admin-password")
+      .send({ shippingFee: true, totalAmount: false, unitPrice: false, buyer: true }),
+  ]);
+
+  expect(incomplete.status).toBe(400);
+  expect(incomplete.body.error.message).toContain("unitPrice");
+  expect(unknown.status).toBe(400);
+  expect(unknown.body.error.message).toContain("buyer");
 });
 
 test("summarizes sold products by order date and defaults a blank end date to start date", async () => {

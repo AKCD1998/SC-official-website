@@ -15,6 +15,10 @@ const {
   summarizeShopeeProductMatches,
 } = require("../services/shopeeProductMatcher");
 const { getTables } = require("../tables");
+const {
+  ADMIN_FINANCIAL_VISIBILITY,
+  normalizeUserFinancialVisibility,
+} = require("../services/shopeeFinancialVisibilityService");
 
 const SHOPEE_ORDER_SYNC_LOCK_PREFIX = "shopee-order-timeline-sync";
 const CANONICAL_MESSAGE_KEY_PATTERN = /^sha256:[a-f0-9]{64}$/u;
@@ -93,8 +97,24 @@ function formatProductMatchSearchText(productMatch) {
   return "";
 }
 
-function buildShopeeOrderSearchText(order) {
+function deriveItemSubtotal(items) {
+  if (!Array.isArray(items) || !items.length) return null;
+  let subtotal = 0;
+  for (const item of items) {
+    if (item?.unitPrice === null || item?.unitPrice === undefined) return null;
+    const quantity = Number(item?.quantity);
+    const unitPrice = Number(item?.unitPrice);
+    if (!Number.isFinite(quantity) || quantity < 0 || !Number.isFinite(unitPrice) || unitPrice < 0) {
+      return null;
+    }
+    subtotal += quantity * unitPrice;
+  }
+  return Number(subtotal.toFixed(2));
+}
+
+function buildShopeeOrderSearchText(order, visibility = ADMIN_FINANCIAL_VISIBILITY) {
   const shopProfile = SHOPEE_SHOP_PROFILES[order?.shopCode];
+  const financialVisibility = normalizeUserFinancialVisibility(visibility);
   const values = [
     shopProfile?.displayName,
     order?.shopCode,
@@ -104,10 +124,18 @@ function buildShopeeOrderSearchText(order) {
     order?.itemCount,
     order?.itemCount > 1 ? `+${order.itemCount - 1}` : "",
     order?.totalQuantity,
-    order?.totalAmount,
-    order?.totalAmount === null || order?.totalAmount === undefined
+    order?.itemSubtotal,
+    order?.itemSubtotal === null || order?.itemSubtotal === undefined
       ? ""
-      : SEARCH_MONEY_FORMATTER.format(order.totalAmount),
+      : SEARCH_MONEY_FORMATTER.format(order.itemSubtotal),
+    financialVisibility.shippingFee ? order?.shippingFee : "",
+    financialVisibility.shippingFee && order?.shippingFee !== null && order?.shippingFee !== undefined
+      ? SEARCH_MONEY_FORMATTER.format(order.shippingFee)
+      : "",
+    financialVisibility.totalAmount ? order?.totalAmount : "",
+    financialVisibility.totalAmount && order?.totalAmount !== null && order?.totalAmount !== undefined
+      ? SEARCH_MONEY_FORMATTER.format(order.totalAmount)
+      : "",
     order?.shippingDeadline,
     formatSearchDate(order?.shippingDeadline),
     order?.lastEventAt,
@@ -122,8 +150,8 @@ function buildShopeeOrderSearchText(order) {
       item?.name,
       item?.variant,
       item?.quantity,
-      item?.unitPrice,
-      item?.unitPrice === null || item?.unitPrice === undefined
+      financialVisibility.unitPrice ? item?.unitPrice : "",
+      !financialVisibility.unitPrice || item?.unitPrice === null || item?.unitPrice === undefined
         ? ""
         : SEARCH_MONEY_FORMATTER.format(item.unitPrice),
       formatProductMatchSearchText(item?.productMatch),
@@ -133,10 +161,10 @@ function buildShopeeOrderSearchText(order) {
   return normalizeSearchText(values.filter((value) => value !== null && value !== undefined).join(" "));
 }
 
-function matchesShopeeOrderSearch(order, search) {
+function matchesShopeeOrderSearch(order, search, visibility = ADMIN_FINANCIAL_VISIBILITY) {
   const terms = normalizeSearchText(search).split(" ").filter(Boolean);
   if (!terms.length) return true;
-  const haystack = buildShopeeOrderSearchText(order);
+  const haystack = buildShopeeOrderSearchText(order, visibility);
   return terms.every((term) => haystack.includes(term));
 }
 
@@ -159,13 +187,14 @@ function mapOrder(row) {
   if (!row) return null;
   const shopCode = normalizeShopeeShopCode(row.shop_code);
   const items = enrichShopeeOrderItems(shopCode, sanitizeShopeeOrderItems(row.items));
+  const storedItemSubtotal = toNumber(row.item_subtotal);
   return {
     currentStatus: row.current_status,
     deliveryMethod: row.delivery_method || "",
     eventCount: Number(row.event_count || 0),
     firstEventAt: toIso(row.first_event_at),
     itemCount: Number(row.item_count || 0),
-    itemSubtotal: toNumber(row.item_subtotal),
+    itemSubtotal: storedItemSubtotal ?? deriveItemSubtotal(items),
     items,
     lastEventAt: toIso(row.last_event_at),
     orderedAt: toIso(row.ordered_at),
@@ -412,6 +441,7 @@ async function listOrders({
   cursor = null,
   limit = 25,
   page = null,
+  financialVisibility = ADMIN_FINANCIAL_VISIBILITY,
   search = null,
   shopCode: shopCodeValue,
   sortBy = "lastEventAt",
@@ -454,7 +484,7 @@ async function listOrders({
     );
     const matchingOrders = searchResult.rows
       .map(mapOrder)
-      .filter((order) => matchesShopeeOrderSearch(order, search))
+      .filter((order) => matchesShopeeOrderSearch(order, search, financialVisibility))
       .sort((left, right) => compareShopeeOrders(left, right, sortBy, sortOrder));
     const offset = isNumberedPage ? (page - 1) * limit : 0;
     return {
@@ -604,6 +634,7 @@ async function findOrdersForAdaSmartValidation(shopCodeValue, orderNumbers) {
 
 module.exports = {
   buildShopeeOrderSearchText,
+  deriveItemSubtotal,
   findOrdersForAdaSmartValidation,
   getOrderTimeline,
   listOrders,

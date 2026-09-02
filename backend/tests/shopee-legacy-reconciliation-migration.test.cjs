@@ -27,6 +27,21 @@ test("legacy apply migration adds audit snapshots without moving production rows
   expect(sql).not.toMatch(/DELETE\s+FROM\s+shopee_(orders|order_events)/iu);
 });
 
+test("financial visibility migration defaults regular users to item subtotal only", () => {
+  const sql = fs.readFileSync(path.join(
+    __dirname,
+    "../src/modules/seamless/db/migrations/014_shopee_financial_visibility_settings.sql",
+  ), "utf8");
+
+  expect(sql).toContain("CREATE TABLE IF NOT EXISTS shopee_financial_visibility_settings");
+  expect(sql).toContain("user_can_view_unit_price boolean NOT NULL DEFAULT false");
+  expect(sql).toContain("user_can_view_shipping_fee boolean NOT NULL DEFAULT false");
+  expect(sql).toContain("user_can_view_total_amount boolean NOT NULL DEFAULT false");
+  expect(sql).toContain("VALUES ('user', false, false, false, 'migration-default')");
+  expect(sql).not.toMatch(/UPDATE\s+shopee_(orders|order_events)/iu);
+  expect(sql).not.toMatch(/DELETE\s+FROM\s+shopee_(orders|order_events)/iu);
+});
+
 test("production migration workflow is manual, exact-confirmation gated, and read-only after apply", () => {
   const workflow = fs.readFileSync(path.join(
     __dirname,
@@ -39,8 +54,8 @@ test("production migration workflow is manual, exact-confirmation gated, and rea
 
   expect(workflow).toContain("workflow_dispatch:");
   expect(workflow).not.toMatch(/\b(push|schedule):/u);
-  expect(workflow).toContain("APPLY_011_SHOPEE_LEGACY_AUDIT");
+  expect(workflow).toContain("APPLY_014_SHOPEE_FINANCIAL_VISIBILITY");
   expect(workflow).toContain("secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL");
-  expect(verifier).toContain("011_shopee_legacy_reconciliation_apply_audit.sql");
+  expect(verifier).toContain("014_shopee_financial_visibility_settings.sql");
   expect(verifier).not.toMatch(/\b(INSERT|UPDATE|DELETE|ALTER|DROP|CREATE)\b/iu);
 });

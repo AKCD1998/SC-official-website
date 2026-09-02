@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Type APPLY_011_SHOPEE_LEGACY_AUDIT to run the approved migration
+        description: Type APPLY_014_SHOPEE_FINANCIAL_VISIBILITY to run the approved migration
         required: true
         type: string
 
@@ -18,14 +18,14 @@ concurrency:
 jobs:
   migrate:
     name: Migrate and verify production schema
-    if: ${{ inputs.confirmation == 'APPLY_011_SHOPEE_LEGACY_AUDIT' }}
+    if: ${{ inputs.confirmation == 'APPLY_014_SHOPEE_FINANCIAL_VISIBILITY' }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     env:
       SC_OFFICIAL_SUPABASE_DATABASE_URL: ${{ secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL }}
-      SEAMLESS_PRODUCTION_MIGRATION_VERIFY: 011_shopee_legacy_reconciliation_apply_audit.sql
+      SEAMLESS_PRODUCTION_MIGRATION_VERIFY: 014_shopee_financial_visibility_settings.sql
     steps:
       - name: Checkout
         uses: actions/checkout@v5
