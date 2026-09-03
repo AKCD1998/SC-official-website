@@ -15,6 +15,7 @@ const {
 } = require("../controllers/shopeeLegacyReconciliationController");
 const {
   getFinancialVisibility,
+  getInboxOverview,
   getOrder,
   listOrders,
   listSalesSummary,
@@ -30,6 +31,7 @@ router.use(appAuth);
 router.get("/accounting-cycle", asyncHandler(getAccountingCycleStatus));
 router.post("/adasmart/validation-preview", asyncHandler(createValidationPreview));
 router.post("/adasmart/confirm", asyncHandler(confirmDryRunQueue));
+router.get("/inbox/overview", asyncHandler(getInboxOverview));
 router.get("/inbox", asyncHandler(listInbox));
 router.get("/orders", asyncHandler(listOrders));
 router.get("/orders/financial-visibility", asyncHandler(getFinancialVisibility));

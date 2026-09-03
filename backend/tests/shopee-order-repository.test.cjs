@@ -8,6 +8,7 @@ const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.js
 const {
   buildShopeeOrderSearchText,
   deriveItemSubtotal,
+  getInboxOperationsOverview,
   getOrderTimeline,
   listOrders,
   listOrdersForSalesSummary,
@@ -476,6 +477,40 @@ test("sales summary query uses inclusive Bangkok dates and excludes cancelled or
     "2026-08-24",
     "2026-08-25",
   ]);
+});
+
+test("inbox overview counts distinct order-status events within a Bangkok day", async () => {
+  pool.query.mockClear();
+  pool.query.mockResolvedValueOnce({
+    rows: [{
+      cancelled_today: "2",
+      confirmed_cod_today: "3",
+      last_updated_at: new Date("2026-09-03T01:15:00.000Z"),
+      orders_today: "7",
+      returned_today: "1",
+      shipment_due_today: "6",
+    }],
+  });
+
+  await expect(getInboxOperationsOverview({
+    date: "2026-09-03",
+    shopCode: "all",
+  })).resolves.toEqual({
+    cancelledToday: 2,
+    confirmedCodToday: 3,
+    lastUpdatedAt: "2026-09-03T01:15:00.000Z",
+    ordersToday: 7,
+    returnedToday: 1,
+    shipmentDueToday: 6,
+  });
+
+  const [sql, params] = pool.query.mock.calls[0];
+  expect(sql).toContain("AT TIME ZONE 'Asia/Bangkok'");
+  expect(sql).toContain("e.event_type = 'shipment_due'");
+  expect(sql).toContain("e.event_type = 'order_confirmed'");
+  expect(sql).toContain("e.event_type = 'order_cancelled'");
+  expect(sql).toContain("e.event_type = 'seller_return_delivery'");
+  expect(params).toEqual([["sc-drug-store", "dr-morepen"], "2026-09-03"]);
 });
 
 test("uses a non-blocking shop+mailbox lock and rejects a concurrent same-shop sync", async () => {
