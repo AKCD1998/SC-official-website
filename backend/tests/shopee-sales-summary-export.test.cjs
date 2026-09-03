@@ -194,6 +194,18 @@ test("exports owner-confirmed legacy identities with their ERP base units", () =
       )),
       quantity: 2,
     },
+    {
+      alias: productAliases.aliases.find((entry) => (
+        entry.reasonCode === "historical_single_box_variant_owner_confirmed"
+      )),
+      quantity: 2,
+    },
+    {
+      alias: productAliases.aliases.find((entry) => (
+        entry.reasonCode === "historical_single_unit_variant_owner_confirmed"
+      )),
+      quantity: 4,
+    },
   ];
   const result = buildShopeeSalesExportRows([{
     ...BASE_ORDER,
@@ -214,6 +226,8 @@ test("exports owner-confirmed legacy identities with their ERP base units", () =
     ["IC-002462", 3, "กระป๋อง"],
     ["IC-005104", 5, "กระป๋อง"],
     ["IC-005370", 2, "กล่อง"],
+    ["IC-005371", 20, "ซอง"],
+    ["IC-005372", 4, "กล่อง"],
   ]);
 });
 

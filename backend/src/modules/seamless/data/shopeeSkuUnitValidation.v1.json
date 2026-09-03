@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "validationVersion": "adasoft-base-unit-2026-09-03-v2",
+  "validationVersion": "adasoft-base-unit-2026-09-03-v3",
   "ownerDecisionDate": "2026-09-03",
   "source": {
     "system": "AdaSoft",
@@ -107,6 +107,27 @@
       "baseUnitLabel": "กล่อง",
       "baseFactor": 1,
       "barcodes": ["8859612214716", "9999900229851", "9999900229868"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-005371",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "packagingUnitFactors": {
+        "box": 10
+      },
+      "barcodes": ["8859612272143", "8859612275434", "9999900279634"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-005372",
+      "quantityUnit": "box",
+      "baseUnitCode": "003",
+      "baseUnitLabel": "กล่อง",
+      "baseFactor": 1,
+      "barcodes": ["8859612277759", "9999900229905", "9999900229912"]
     }
   ]
 }

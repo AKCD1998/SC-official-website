@@ -1,6 +1,6 @@
 const skuUnitValidation = require("../data/shopeeSkuUnitValidation.v1.json");
 
-const AUTOMATIC_QUANTITY_RULE_VERSION = "same-sku-anchor-or-erp-base-unit-v2";
+const AUTOMATIC_QUANTITY_RULE_VERSION = "same-sku-anchor-or-erp-unit-factor-v3";
 const MAX_AUTOMATIC_UNITS_PER_SALE = 100;
 
 const PACKAGING_UNIT_ALIASES = new Map([
@@ -98,7 +98,20 @@ function buildSkuUnitValidationIndex(validation = skuUnitValidation) {
     if (index.has(key)) {
       throw new Error("Shopee SKU unit validation contains a duplicate shop and Company SKU.");
     }
+    const packagingUnitFactors = {};
+    Object.entries(record?.packagingUnitFactors || {}).forEach(([unit, factor]) => {
+      if (
+        !supportedUnits.has(unit)
+        || unit === record.quantityUnit
+        || !Number.isSafeInteger(factor)
+        || factor <= 1
+      ) {
+        throw new Error("Shopee SKU unit validation contains an invalid packaging-unit factor.");
+      }
+      packagingUnitFactors[unit] = factor;
+    });
     index.set(key, Object.freeze({
+      packagingUnitFactors: Object.freeze(packagingUnitFactors),
       quantityUnit: record.quantityUnit,
       validationVersion: validation.validationVersion,
     }));
@@ -143,7 +156,6 @@ function buildAutomaticQuantityRules(records = []) {
 
   const rules = new Map();
   matchedGroups.forEach((group) => {
-    if (group.length < 2) return;
     const groupProfile = buildGroupQuantityProfile(group);
 
     group.forEach((record) => {
@@ -153,20 +165,32 @@ function buildAutomaticQuantityRules(records = []) {
 
       recordQuantities.forEach((quantities, unit) => {
         if (quantities.size !== 1) return;
-        const [quantityPerSale] = quantities;
+        const [packagingQuantity] = quantities;
         const hasCatalogAnchor = hasExplicitUnitAnchor(group, record, unit);
-        const hasValidatedBaseUnit = validatedSkuUnit?.quantityUnit === unit;
+        const validatedUnitFactor = validatedSkuUnit?.quantityUnit === unit
+          ? 1
+          : validatedSkuUnit?.packagingUnitFactors?.[unit];
+        const hasValidatedUnitFactor = Number.isSafeInteger(validatedUnitFactor)
+          && validatedUnitFactor > 0;
+        const quantityPerSale = packagingQuantity * (hasValidatedUnitFactor
+          ? validatedUnitFactor
+          : 1);
         if (
-          quantityPerSale <= 1
+          !Number.isSafeInteger(quantityPerSale)
+          || quantityPerSale <= 1
           || quantityPerSale > MAX_AUTOMATIC_UNITS_PER_SALE
-          || (!hasCatalogAnchor && !hasValidatedBaseUnit)
+          || (!hasCatalogAnchor && !hasValidatedUnitFactor)
         ) return;
         verifiedCandidates.push({
           quantityPerSale,
-          quantityRuleSource: hasCatalogAnchor
-            ? "catalog_same_sku_explicit_unit_anchor"
-            : "erp_validated_sku_base_unit",
-          quantityUnit: unit,
+          quantityRuleSource: hasValidatedUnitFactor && validatedUnitFactor > 1
+            ? "erp_validated_sku_unit_factor"
+            : hasCatalogAnchor
+              ? "catalog_same_sku_explicit_unit_anchor"
+              : "erp_validated_sku_base_unit",
+          quantityUnit: hasValidatedUnitFactor
+            ? validatedSkuUnit.quantityUnit
+            : unit,
         });
       });
 

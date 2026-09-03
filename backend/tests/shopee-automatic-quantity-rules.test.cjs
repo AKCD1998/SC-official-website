@@ -98,6 +98,25 @@ test("does not apply an ERP sachet validation to a different packaging unit", ()
   expect(rules.get(threeBoxes)).toMatchObject({ quantityRuleStatus: "requires_validation" });
 });
 
+test("converts a validated selling box into the ERP base sachet quantity", () => {
+  const oneBox = record(1, "IC-005371", "EXP ปกติ 1 bx");
+  const threeBoxes = record(2, "IC-005371", "EXP ปกติ 3 bx");
+  const rules = buildAutomaticQuantityRules([oneBox, threeBoxes]);
+
+  expect(rules.get(oneBox)).toEqual({
+    isMultipack: true,
+    quantityPerSale: 10,
+    quantityRuleSource: "erp_validated_sku_unit_factor",
+    quantityRuleStatus: "verified",
+    quantityUnit: "sachet",
+  });
+  expect(rules.get(threeBoxes)).toMatchObject({
+    quantityPerSale: 30,
+    quantityRuleSource: "erp_validated_sku_unit_factor",
+    quantityUnit: "sachet",
+  });
+});
+
 test("rejects incomplete or non-base ERP unit validation records", () => {
   expect(() => buildSkuUnitValidationIndex({
     schemaVersion: 1,
@@ -109,4 +128,15 @@ test("rejects incomplete or non-base ERP unit validation records", () => {
     validationVersion: "test-v1",
     records: [{ shopCode: "sc-drug-store", companySku: "IC-TEST", quantityUnit: "sachet", baseFactor: 12 }],
   })).toThrow(/invalid base-unit record/iu);
+  expect(() => buildSkuUnitValidationIndex({
+    schemaVersion: 1,
+    validationVersion: "test-v1",
+    records: [{
+      shopCode: "sc-drug-store",
+      companySku: "IC-TEST",
+      quantityUnit: "sachet",
+      baseFactor: 1,
+      packagingUnitFactors: { box: 0 },
+    }],
+  })).toThrow(/invalid packaging-unit factor/iu);
 });

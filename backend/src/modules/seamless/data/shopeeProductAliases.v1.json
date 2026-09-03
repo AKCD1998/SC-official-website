@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "aliasVersion": "shopee-product-aliases-2026-09-03-v4",
+  "aliasVersion": "shopee-product-aliases-2026-09-03-v5",
   "ownerDecisionDate": "2026-09-03",
   "aliases": [
     {
@@ -38,6 +38,22 @@
       "canonicalProductName": "Polar Spray โพลาร์สเปรย์ ยูคาลิปตัส Eucalyptus Oil Plus Activ สเปรย์ปรับอากาศ 280 มล.",
       "canonicalVariant": "ยูคาลิปตัส 280 มล.",
       "reasonCode": "historical_shortened_variant_owner_confirmed"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "aliasProductName": "Deeday Fiber Fiber ดีเดย์ ไฟเบอร์ ไฟเบอร์สูง พรีไบโอติก ช่วยขับถ่าย ลำไส้ ดื่มง่าย 0% ไขมัน",
+      "aliasVariant": "EXP 11/2026 ลดราคา",
+      "canonicalProductName": "Deeday Fiber Fiber ดีเดย์ ไฟเบอร์ ไฟเบอร์สูง พรีไบโอติก ช่วยขับถ่าย ลำไส้ ดื่มง่าย 0% ไขมัน",
+      "canonicalVariant": "EXP ปกติ 1 bx",
+      "reasonCode": "historical_single_box_variant_owner_confirmed"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "aliasProductName": "Deeday Bio C Powder วิตามินซี 500mg ชนิดผง ดูดซึมไว บำรุงผิว เสริมภูมิคุ้มกัน",
+      "aliasVariant": "EXP 10/2026 ลดราคา",
+      "canonicalProductName": "Deeday Bio C Powder วิตามินซี 500mg ชนิดผง ดูดซึมไว บำรุงผิว เสริมภูมิคุ้มกัน",
+      "canonicalVariant": "EXP ปกติ 1 bx",
+      "reasonCode": "historical_single_unit_variant_owner_confirmed"
     }
   ]
 }

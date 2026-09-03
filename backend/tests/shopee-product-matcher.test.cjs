@@ -11,8 +11,8 @@ const {
 test("loads the complete hash-verified Shopee product catalog", () => {
   expect(getShopeeProductCatalogSummary()).toEqual({
     automaticQuantityReviewCount: 4,
-    automaticQuantityRuleCount: 76,
-    automaticQuantityRuleVersion: "same-sku-anchor-or-erp-base-unit-v2",
+    automaticQuantityRuleCount: 77,
+    automaticQuantityRuleVersion: "same-sku-anchor-or-erp-unit-factor-v3",
     catalogVersion: "shopee-company-sku-2026-09-03",
     ownerDecisionDate: "2026-09-03",
     recordCount: 227,
@@ -301,6 +301,37 @@ test("maps the shortened historical Polar variant using its 280 ml product ident
     companySku: "IC-002462",
     matchSource: "catalog_identity_alias",
     quantityUnit: "can",
+  });
+});
+
+test("maps confirmed legacy Deeday expiry variants to their single selling packs", () => {
+  const fiberAlias = productAliases.aliases.find((candidate) => (
+    candidate.reasonCode === "historical_single_box_variant_owner_confirmed"
+  ));
+  const bioCAlias = productAliases.aliases.find((candidate) => (
+    candidate.reasonCode === "historical_single_unit_variant_owner_confirmed"
+  ));
+
+  expect(matchShopeeProduct(fiberAlias.shopCode, {
+    name: fiberAlias.aliasProductName,
+    variant: fiberAlias.aliasVariant,
+  })).toMatchObject({
+    status: "matched",
+    companySku: "IC-005371",
+    matchSource: "catalog_identity_alias",
+    quantityPerSale: 10,
+    quantityRuleSource: "erp_validated_sku_unit_factor",
+    quantityRuleStatus: "verified",
+    quantityUnit: "sachet",
+  });
+  expect(matchShopeeProduct(bioCAlias.shopCode, {
+    name: bioCAlias.aliasProductName,
+    variant: bioCAlias.aliasVariant,
+  })).toMatchObject({
+    status: "matched",
+    companySku: "IC-005372",
+    matchSource: "catalog_identity_alias",
+    quantityUnit: "box",
   });
 });
 
