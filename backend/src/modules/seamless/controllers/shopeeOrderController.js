@@ -207,6 +207,18 @@ async function listSalesSummary(req, res) {
   });
 }
 
+async function getInboxOverview(req, res) {
+  const shopCode = requireShopeeShopScope(req.query?.shopCode || SHOPEE_ALL_SHOPS_SCOPE);
+  const date = parseDateOnly(req.query?.date, "date");
+  res.json({
+    ...await repository.getInboxOperationsOverview({ date, shopCode }),
+    date,
+    shopCode,
+    source: "shopee_order_timeline",
+    timezone: "Asia/Bangkok",
+  });
+}
+
 async function getOrder(req, res) {
   const shopCode = requireShopeeShopCode(req.query?.shopCode);
   const [timeline, userFinancialVisibility] = await Promise.all([
@@ -288,6 +300,7 @@ async function syncOrders(req, res) {
 module.exports = {
   encodeCursor,
   getFinancialVisibility,
+  getInboxOverview,
   getOrder,
   listSalesSummary,
   listOrders,

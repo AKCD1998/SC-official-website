@@ -20,6 +20,14 @@ const orderRow = {
 
 const listOrdersMock = jest.fn(async () => ({ hasMore: true, orders: [orderRow], totalCount: 51 }));
 const listOrdersForSalesSummaryMock = jest.fn(async () => [orderRow]);
+const getInboxOperationsOverviewMock = jest.fn(async () => ({
+  cancelledToday: 2,
+  confirmedCodToday: 3,
+  lastUpdatedAt: "2026-09-03T01:15:00.000Z",
+  ordersToday: 7,
+  returnedToday: 1,
+  shipmentDueToday: 6,
+}));
 const getOrderTimelineMock = jest.fn(async () => ({
   events: [{ details: {}, eventType: "shipment_due", id: "event-1", occurredAt: orderRow.lastEventAt }],
   order: orderRow,
@@ -63,6 +71,7 @@ const getShopeeAccountingCycleStatusMock = jest.fn(async () => ({
 }));
 
 jest.mock("../src/modules/seamless/db/shopeeOrderRepository", () => ({
+  getInboxOperationsOverview: (...args) => getInboxOperationsOverviewMock(...args),
   getOrderTimeline: (...args) => getOrderTimelineMock(...args),
   listOrders: (...args) => listOrdersMock(...args),
   listOrdersForSalesSummary: (...args) => listOrdersForSalesSummaryMock(...args),
@@ -143,6 +152,39 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
   );
   expect(replay.status).toBe(400);
   expect(replay.body.error.message).toContain("cursor");
+});
+
+test("returns a shop-scoped Shopee inbox operations overview for a Bangkok date", async () => {
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/inbox/overview?shopCode=all&date=2026-09-03",
+  );
+
+  expect(response.status).toBe(200);
+  expect(response.body).toMatchObject({
+    cancelledToday: 2,
+    confirmedCodToday: 3,
+    date: "2026-09-03",
+    ordersToday: 7,
+    returnedToday: 1,
+    shopCode: "all",
+    source: "shopee_order_timeline",
+    shipmentDueToday: 6,
+    timezone: "Asia/Bangkok",
+  });
+  expect(getInboxOperationsOverviewMock).toHaveBeenCalledWith({
+    date: "2026-09-03",
+    shopCode: "all",
+  });
+});
+
+test("rejects an invalid Shopee inbox overview date", async () => {
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/inbox/overview?shopCode=all&date=2026-02-30",
+  );
+
+  expect(response.status).toBe(400);
+  expect(response.body.error.message).toContain("date");
+  expect(getInboxOperationsOverviewMock).not.toHaveBeenCalled();
 });
 
 test("lists both supported shops without allowing an all-shops cursor to cross scopes", async () => {

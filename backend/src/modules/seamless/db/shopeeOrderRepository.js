@@ -571,6 +571,70 @@ async function listOrdersForSalesSummary({
   return result.rows.map(mapOrder);
 }
 
+async function getInboxOperationsOverview({ date, shopCode: shopCodeValue } = {}) {
+  const shopCode = requireListShopScope(shopCodeValue);
+  const tables = getTables();
+  const isAllShops = shopCode === SHOPEE_ALL_SHOPS_SCOPE;
+  const shopScope = isAllShops ? Object.keys(SHOPEE_SHOP_PROFILES) : shopCode;
+  const orderScope = isAllShops ? "o.shop_code = ANY($1::text[])" : "o.shop_code = $1";
+  const eventScope = isAllShops ? "e.shop_code = ANY($1::text[])" : "e.shop_code = $1";
+
+  const result = await pool.query(
+    `
+      WITH bounds AS (
+        SELECT
+          ($2::date::timestamp AT TIME ZONE 'Asia/Bangkok') AS start_at,
+          (($2::date::timestamp + INTERVAL '1 day') AT TIME ZONE 'Asia/Bangkok') AS end_at
+      ),
+      scoped_orders AS (
+        SELECT o.*
+        FROM ${tables.shopeeOrders} o
+        WHERE ${orderScope}
+      ),
+      scoped_events AS (
+        SELECT e.*
+        FROM ${tables.shopeeOrderEvents} e
+        WHERE ${eventScope}
+      )
+      SELECT
+        (SELECT COUNT(*)
+         FROM scoped_orders o, bounds b
+         WHERE o.ordered_at >= b.start_at AND o.ordered_at < b.end_at) AS orders_today,
+        (SELECT COUNT(DISTINCT (e.shop_code, e.order_number))
+         FROM scoped_events e, bounds b
+         WHERE e.event_type = 'shipment_due'
+           AND e.occurred_at >= b.start_at AND e.occurred_at < b.end_at) AS shipment_due_today,
+        (SELECT COUNT(DISTINCT (e.shop_code, e.order_number))
+         FROM scoped_events e, bounds b
+         WHERE e.event_type = 'order_confirmed'
+           AND e.occurred_at >= b.start_at AND e.occurred_at < b.end_at) AS confirmed_cod_today,
+        (SELECT COUNT(DISTINCT (e.shop_code, e.order_number))
+         FROM scoped_events e, bounds b
+         WHERE e.event_type = 'order_cancelled'
+           AND e.occurred_at >= b.start_at AND e.occurred_at < b.end_at) AS cancelled_today,
+        (SELECT COUNT(DISTINCT (e.shop_code, e.order_number))
+         FROM scoped_events e, bounds b
+         WHERE e.event_type = 'seller_return_delivery'
+           AND e.occurred_at >= b.start_at AND e.occurred_at < b.end_at) AS returned_today,
+        GREATEST(
+          (SELECT MAX(o.last_event_at) FROM scoped_orders o),
+          (SELECT MAX(e.occurred_at) FROM scoped_events e)
+        ) AS last_updated_at
+    `,
+    [shopScope, date],
+  );
+
+  const row = result.rows[0] || {};
+  return {
+    cancelledToday: Number(row.cancelled_today || 0),
+    confirmedCodToday: Number(row.confirmed_cod_today || 0),
+    lastUpdatedAt: toIso(row.last_updated_at),
+    ordersToday: Number(row.orders_today || 0),
+    returnedToday: Number(row.returned_today || 0),
+    shipmentDueToday: Number(row.shipment_due_today || 0),
+  };
+}
+
 async function getOrderTimeline(shopCodeValue, orderNumber) {
   const shopCode = requirePersistenceShopCode(shopCodeValue);
   const tables = getTables();
@@ -636,6 +700,7 @@ module.exports = {
   buildShopeeOrderSearchText,
   deriveItemSubtotal,
   findOrdersForAdaSmartValidation,
+  getInboxOperationsOverview,
   getOrderTimeline,
   listOrders,
   listOrdersForSalesSummary,
