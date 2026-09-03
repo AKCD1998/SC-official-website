@@ -1,5 +1,9 @@
 const crypto = require("node:crypto");
 const catalog = require("../data/shopeeProductCatalog.v1.json");
+const {
+  AUTOMATIC_QUANTITY_RULE_VERSION,
+  buildAutomaticQuantityRules,
+} = require("./shopeeAutomaticQuantityRules");
 const { normalizeShopeeShopCode } = require("./shopeeShops");
 
 const SUPPORTED_MATCH_STATUSES = new Set(["matched", "bundle", "visibility_only"]);
@@ -44,6 +48,21 @@ function getVerifiedBundleUnitsPerSale(productMatch) {
     unitsPerSale += component.quantityPerSale;
   }
   return Number.isSafeInteger(unitsPerSale) && unitsPerSale > 0 ? unitsPerSale : null;
+}
+
+function getVerifiedMatchedUnitsPerSale(productMatch) {
+  if (
+    productMatch?.status !== "matched"
+    || productMatch.quantityRuleStatus !== "verified"
+    || !Number.isSafeInteger(productMatch.quantityPerSale)
+    || productMatch.quantityPerSale <= 1
+  ) return null;
+  return productMatch.quantityPerSale;
+}
+
+function getVerifiedUnitsPerSale(productMatch) {
+  return getVerifiedMatchedUnitsPerSale(productMatch)
+    || getVerifiedBundleUnitsPerSale(productMatch);
 }
 
 function validateCatalogRecord(record) {
@@ -92,7 +111,11 @@ function buildIndexes() {
     byName.set(productNameKey, records);
   });
 
-  return { exact, byName };
+  return {
+    automaticQuantityRules: buildAutomaticQuantityRules(catalog.records),
+    byName,
+    exact,
+  };
 }
 
 const indexes = buildIndexes();
@@ -106,7 +129,12 @@ function publicMatch(record, matchSource) {
     listingVariationId: String(record.variationId),
   };
   if (record.match.status === "matched") {
-    return { ...base, companySku: String(record.match.companySku) };
+    const automaticQuantityRule = indexes.automaticQuantityRules.get(record);
+    return {
+      ...base,
+      companySku: String(record.match.companySku),
+      ...(automaticQuantityRule || {}),
+    };
   }
   if (record.match.status === "bundle") {
     return {
@@ -175,8 +203,12 @@ function summarizeShopeeProductMatches(items) {
   (Array.isArray(items) ? items : []).forEach((item) => {
     summary.totalItems += 1;
     const match = item?.productMatch;
-    if (match?.status === "matched") summary.matchedItems += 1;
-    else if (match?.status === "bundle") {
+    if (match?.status === "matched") {
+      summary.matchedItems += 1;
+      if (match.quantityRuleStatus === "requires_validation") {
+        summary.manualReviewRequired = true;
+      }
+    } else if (match?.status === "bundle") {
       summary.bundleItems += 1;
       if (match.quantityRuleStatus !== "verified") summary.manualReviewRequired = true;
     } else if (match?.status === "visibility_only") {
@@ -194,7 +226,15 @@ function summarizeShopeeProductMatches(items) {
 }
 
 function getShopeeProductCatalogSummary() {
+  const automaticQuantityRules = [...indexes.automaticQuantityRules.values()];
   return {
+    automaticQuantityReviewCount: automaticQuantityRules.filter((rule) => (
+      rule.quantityRuleStatus === "requires_validation"
+    )).length,
+    automaticQuantityRuleCount: automaticQuantityRules.filter((rule) => (
+      rule.quantityRuleStatus === "verified"
+    )).length,
+    automaticQuantityRuleVersion: AUTOMATIC_QUANTITY_RULE_VERSION,
     catalogVersion: catalog.catalogVersion,
     ownerDecisionDate: catalog.ownerDecisionDate,
     recordCount: catalog.records.length,
@@ -203,7 +243,10 @@ function getShopeeProductCatalogSummary() {
 }
 
 function getShopeeProductCatalogDigest() {
-  return crypto.createHash("sha256").update(JSON.stringify(catalog)).digest("hex");
+  return crypto.createHash("sha256").update(JSON.stringify({
+    automaticQuantityRuleVersion: AUTOMATIC_QUANTITY_RULE_VERSION,
+    catalog,
+  })).digest("hex");
 }
 
 module.exports = {
@@ -211,6 +254,8 @@ module.exports = {
   getShopeeProductCatalogDigest,
   getShopeeProductCatalogSummary,
   getVerifiedBundleUnitsPerSale,
+  getVerifiedMatchedUnitsPerSale,
+  getVerifiedUnitsPerSale,
   matchShopeeProduct,
   normalizeShopeeProductText,
   summarizeShopeeProductMatches,

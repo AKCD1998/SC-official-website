@@ -1,5 +1,5 @@
 const repository = require("../db/shopeeOrderRepository");
-const { getVerifiedBundleUnitsPerSale } = require("./shopeeProductMatcher");
+const { getVerifiedUnitsPerSale } = require("./shopeeProductMatcher");
 
 function normalizeProductText(value) {
   return String(value || "")
@@ -30,12 +30,14 @@ function normalizeItemSubtotal(value) {
 function resolveSalesQuantity(item) {
   const listingQuantity = Number(item?.quantity);
   if (!Number.isSafeInteger(listingQuantity) || listingQuantity <= 0) return null;
-  const isBundle = item?.productMatch?.status === "bundle";
-  const unitsPerSale = getVerifiedBundleUnitsPerSale(item?.productMatch);
+  const productMatch = item?.productMatch;
+  const unitsPerSale = getVerifiedUnitsPerSale(productMatch);
+  const isBundle = productMatch?.status === "bundle" || productMatch?.isMultipack === true;
   const bundleMetadata = isBundle
     ? {
       isBundle: true,
-      quantityRuleStatus: unitsPerSale ? "verified" : "requires_validation",
+      quantityRuleStatus: productMatch?.quantityRuleStatus
+        || (unitsPerSale ? "verified" : "requires_validation"),
     }
     : {};
   if (!unitsPerSale) {

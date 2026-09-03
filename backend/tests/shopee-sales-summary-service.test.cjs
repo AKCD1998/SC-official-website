@@ -1,4 +1,5 @@
 const listOrdersForSalesSummaryMock = jest.fn();
+const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.json");
 
 jest.mock("../src/modules/seamless/db/shopeeOrderRepository", () => ({
   listOrdersForSalesSummary: (...args) => listOrdersForSalesSummaryMock(...args),
@@ -8,6 +9,9 @@ const {
   getShopeeSalesSummary,
   summarizeSalesByProduct,
 } = require("../src/modules/seamless/services/shopeeSalesSummaryService");
+const {
+  matchShopeeProduct,
+} = require("../src/modules/seamless/services/shopeeProductMatcher");
 
 const BASE_ORDER = {
   currentStatus: "shipment_due",
@@ -129,6 +133,64 @@ test("expands verified bundle quantities into inventory units for totals and dri
     shopCode: "dr-morepen",
     unitsPerSale: 3,
   }]);
+});
+
+test("expands automatically inferred same-SKU multipacks for historical orders", () => {
+  const record = catalog.records.find((candidate) => (
+    candidate.shopCode === "sc-drug-store" && candidate.sourceRow === 154
+  ));
+  const summary = summarizeSalesByProduct([{
+    ...BASE_ORDER,
+    items: [{
+      name: record.productName,
+      productMatch: matchShopeeProduct(record.shopCode, {
+        name: record.productName,
+        variant: record.variant,
+      }),
+      quantity: 2,
+      variant: record.variant,
+    }],
+  }]);
+
+  expect(summary).toMatchObject({ orderCount: 1, productCount: 1, totalQuantity: 12 });
+  expect(summary.products[0]).toMatchObject({
+    companySkus: ["IC-003493"],
+    isBundle: true,
+    quantityRuleStatus: "verified",
+    totalQuantity: 12,
+    unitsPerSale: 6,
+  });
+  expect(summary.products[0].orders[0]).toMatchObject({
+    listingQuantity: 2,
+    quantity: 12,
+    unitsPerSale: 6,
+  });
+});
+
+test("leaves an unanchored same-SKU pack unexpanded and marks it for validation", () => {
+  const record = catalog.records.find((candidate) => (
+    candidate.shopCode === "sc-drug-store" && candidate.sourceRow === 148
+  ));
+  const summary = summarizeSalesByProduct([{
+    ...BASE_ORDER,
+    items: [{
+      name: record.productName,
+      productMatch: matchShopeeProduct(record.shopCode, {
+        name: record.productName,
+        variant: record.variant,
+      }),
+      quantity: 2,
+      variant: record.variant,
+    }],
+  }]);
+
+  expect(summary).toMatchObject({ totalQuantity: 2 });
+  expect(summary.products[0]).toMatchObject({
+    isBundle: true,
+    quantityRuleStatus: "requires_validation",
+    totalQuantity: 2,
+  });
+  expect(summary.products[0]).not.toHaveProperty("unitsPerSale");
 });
 
 test("marks an unverified bundle without inventing an inventory multiplier", () => {

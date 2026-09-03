@@ -82,7 +82,12 @@ function formatSearchDate(value) {
 
 function formatProductMatchSearchText(productMatch) {
   if (productMatch?.status === "matched") {
-    return productMatch.companySku || "";
+    if (productMatch.quantityRuleStatus === "requires_validation") {
+      return `${productMatch.companySku || ""} ต้องตรวจจำนวนต่อชุด`;
+    }
+    return productMatch.quantityPerSale > 1
+      ? `${productMatch.companySku || ""} ×${productMatch.quantityPerSale}`
+      : productMatch.companySku || "";
   }
   if (productMatch?.status === "bundle") {
     const components = (productMatch.components || []).map((component) => (

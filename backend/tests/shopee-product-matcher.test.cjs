@@ -9,6 +9,9 @@ const {
 
 test("loads the complete hash-verified Shopee product catalog", () => {
   expect(getShopeeProductCatalogSummary()).toEqual({
+    automaticQuantityReviewCount: 35,
+    automaticQuantityRuleCount: 45,
+    automaticQuantityRuleVersion: "same-sku-explicit-unit-anchor-v1",
     catalogVersion: "shopee-company-sku-2026-09-02",
     ownerDecisionDate: "2026-09-02",
     recordCount: 227,
@@ -111,6 +114,71 @@ test("expands the DR.Morepen three-box variation to three units of the same Comp
     quantityRuleStatus: "verified",
     components: [{ companySku: "IC-003478", quantityPerSale: 3 }],
   });
+});
+
+test.each([
+  [154, "IC-003493", 6, "bar"],
+  [61, "IC-005014", 2, "can"],
+  [75, "IC-001230", 3, "box"],
+  [102, "630010147", 50, "blister"],
+  [62, "IC-004199", 5, "sachet"],
+])("infers a high-confidence same-SKU multipack for catalog row %s", (
+  sourceRow,
+  companySku,
+  quantityPerSale,
+  quantityUnit,
+) => {
+  const record = catalog.records.find((candidate) => (
+    candidate.shopCode === "sc-drug-store" && candidate.sourceRow === sourceRow
+  ));
+  const match = matchShopeeProduct(record.shopCode, {
+    name: record.productName,
+    variant: record.variant,
+  });
+
+  expect(match).toMatchObject({
+    status: "matched",
+    companySku,
+    isMultipack: true,
+    quantityPerSale,
+    quantityRuleSource: "catalog_same_sku_explicit_unit_anchor",
+    quantityRuleStatus: "verified",
+    quantityUnit,
+  });
+});
+
+test("does not guess Vita-C or other pack variations without an explicit one-unit anchor", () => {
+  const deferredRows = [24, 33, 148, 215];
+  deferredRows.forEach((sourceRow) => {
+    const record = catalog.records.find((candidate) => (
+      candidate.shopCode === "sc-drug-store" && candidate.sourceRow === sourceRow
+    ));
+    const match = matchShopeeProduct(record.shopCode, {
+      name: record.productName,
+      variant: record.variant,
+    });
+
+    expect(match).toMatchObject({
+      status: "matched",
+      isMultipack: true,
+      quantityRuleStatus: "requires_validation",
+    });
+    expect(match).not.toHaveProperty("quantityPerSale");
+  });
+});
+
+test("keeps the explicit one-unit anchor as an ordinary single-SKU match", () => {
+  const record = catalog.records.find((candidate) => (
+    candidate.shopCode === "sc-drug-store" && candidate.sourceRow === 67
+  ));
+  const match = matchShopeeProduct(record.shopCode, {
+    name: record.productName,
+    variant: record.variant,
+  });
+
+  expect(match).toMatchObject({ status: "matched", companySku: "IC-003493" });
+  expect(match).not.toHaveProperty("isMultipack");
+  expect(match).not.toHaveProperty("quantityPerSale");
 });
 
 test("returns the verified Candy Pop component expansion without fabricating one SKU", () => {

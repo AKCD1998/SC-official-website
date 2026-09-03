@@ -38,6 +38,10 @@ function publicProductMatch(match) {
     status: match.status,
   };
   if (match.companySku) output.companySku = match.companySku;
+  if (match.isMultipack) output.isMultipack = true;
+  if (match.quantityPerSale) output.quantityPerSale = match.quantityPerSale;
+  if (match.quantityRuleSource) output.quantityRuleSource = match.quantityRuleSource;
+  if (match.quantityUnit) output.quantityUnit = match.quantityUnit;
   if (Array.isArray(match.components)) {
     output.components = match.components.map((component) => ({
       companySku: component.companySku,
@@ -112,6 +116,7 @@ function resolveLegacyProductEvidence(order, dependencies = {}) {
       match?.status === "unmapped"
       || match?.status === "visibility_only"
       || (match?.status === "bundle" && match.quantityRuleStatus !== "verified")
+      || (match?.status === "matched" && match.quantityRuleStatus === "requires_validation")
     ));
     return {
       shopCode,

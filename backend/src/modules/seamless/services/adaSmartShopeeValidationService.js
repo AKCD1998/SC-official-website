@@ -21,6 +21,7 @@ const {
 const {
   getShopeeProductCatalogDigest,
   getShopeeProductCatalogSummary,
+  getVerifiedMatchedUnitsPerSale,
   matchShopeeProduct,
   normalizeShopeeProductText,
 } = require("./shopeeProductMatcher");
@@ -229,7 +230,9 @@ function groupSourceRows(rows) {
 }
 
 function matchSignature(match) {
-  if (match?.status === "matched") return `matched:${normalizeCompanySku(match.companySku)}`;
+  if (match?.status === "matched") {
+    return `matched:${normalizeCompanySku(match.companySku)}:${match.quantityRuleStatus || "single"}:${match.quantityPerSale || 1}`;
+  }
   if (match?.status === "bundle") {
     const components = (match.components || [])
       .map((component) => `${normalizeCompanySku(component.companySku)}:${component.quantityPerSale}`)
@@ -313,11 +316,19 @@ function analyzeProductContributions(order, shopCode) {
     }
 
     const companySku = normalizeCompanySku(match.companySku);
+    if (match.quantityRuleStatus === "requires_validation") {
+      addReason(order, "bundle_requires_validation");
+      return;
+    }
     if (row.excelSku && row.excelSku !== companySku) {
       addReason(order, "excel_catalog_sku_conflict");
       return;
     }
-    order._contributions.push({ companySku, quantity: row.quantity });
+    const quantityPerSale = getVerifiedMatchedUnitsPerSale(match) || 1;
+    order._contributions.push({
+      companySku,
+      quantity: row.quantity * quantityPerSale,
+    });
   });
 }
 

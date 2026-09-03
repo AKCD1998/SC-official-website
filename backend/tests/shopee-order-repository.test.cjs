@@ -191,7 +191,7 @@ test("enriches persisted email items with the corrected Company SKU at API egres
     totalItems: 1,
     matchedItems: 1,
     coverageComplete: true,
-    manualReviewRequired: false,
+    manualReviewRequired: true,
   });
 });
 

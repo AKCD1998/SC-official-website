@@ -31,6 +31,7 @@ const DR_PRODUCT = "Dr.Morepen Pregnancy Test Kit ชุดตรวจการ
 const DR_STRIP_PRODUCT = "Gluco One แผ่นตรวจน้ำตาลในเลือด Dr.Morepen  BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น";
 const SC_PRODUCT = "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด";
 const SC_VISIBILITY_PRODUCT = SC_PRODUCT;
+const SC_MYDA_MULTIPACK_PRODUCT = "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ (แพ็ค 6 ก้อน) 30g / 80g ของแท้ 100%";
 
 function hash(buffer) {
   return crypto.createHash("sha256").update(buffer).digest("hex");
@@ -245,6 +246,34 @@ test("groups a multi-line order and accepts blank Excel SKU when the catalog sup
     ["IC-003478", 1],
     ["IC-005998", 2],
   ]);
+});
+
+test("expands a verified same-SKU multipack before building AdaSmart safe lines", async () => {
+  const rows = [{
+    excelSku: "IC-003493",
+    name: SC_MYDA_MULTIPACK_PRODUCT,
+    orderNumber: ORDER_A,
+    quantity: 2,
+    variant: "80 กรัม 6 ก้อน",
+  }];
+  const harness = createHarness({
+    records: [erpRecord("IC-003493", ["8850000003493"])],
+    rows,
+    shopCode: "sc-drug-store",
+    timeline: [timelineOrder(ORDER_A, [{
+      name: SC_MYDA_MULTIPACK_PRODUCT,
+      quantity: 2,
+      variant: "80 กรัม 6 ก้อน",
+    }], { shopCode: "sc-drug-store" })],
+  });
+  const preview = await (await harness.ready).service.createValidationPreview(PROCESSING_RECORD_ID);
+
+  assert.equal(preview.orders[0].status, "ready");
+  assert.deepEqual(preview.orders[0].safeLines, [{
+    barcode: "8850000003493",
+    companySku: "IC-003493",
+    quantity: 12,
+  }]);
 });
 
 test("cancelled orders are never ready", async () => {
