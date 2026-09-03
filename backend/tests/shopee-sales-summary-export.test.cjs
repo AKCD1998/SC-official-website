@@ -1,4 +1,9 @@
 const ExcelJS = require("exceljs");
+const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.json");
+const productAliases = require("../src/modules/seamless/data/shopeeProductAliases.v1.json");
+const {
+  matchShopeeProduct,
+} = require("../src/modules/seamless/services/shopeeProductMatcher");
 const {
   buildShopeeSalesExportFilename,
   buildShopeeSalesExportRows,
@@ -69,7 +74,7 @@ test("splits a verified multi-SKU bundle into one automation row per component",
   ]);
 });
 
-test("keeps unvalidated multipacks and unmapped products off the automation sheet", () => {
+test("exports validated Vita-C packs and keeps unmapped products off the automation sheet", () => {
   const result = buildShopeeSalesExportRows([{
     ...BASE_ORDER,
     items: [
@@ -78,7 +83,10 @@ test("keeps unvalidated multipacks and unmapped products off the automation shee
         productMatch: {
           companySku: "IC-001510",
           isMultipack: true,
-          quantityRuleStatus: "requires_validation",
+          quantityPerSale: 24,
+          quantityRuleSource: "erp_validated_sku_base_unit",
+          quantityRuleStatus: "verified",
+          quantityUnit: "sachet",
           status: "matched",
         },
         quantity: 3,
@@ -93,16 +101,15 @@ test("keeps unvalidated multipacks and unmapped products off the automation shee
     ],
   }]);
 
-  expect(result.readyRows).toEqual([]);
-  expect(result.reviewRows).toHaveLength(2);
-  const vitaCRow = result.reviewRows.find((row) => row.companySku === "IC-001510");
+  expect(result.readyRows).toHaveLength(1);
+  expect(result.reviewRows).toHaveLength(1);
+  const vitaCRow = result.readyRows.find((row) => row.companySku === "IC-001510");
   const unmappedRow = result.reviewRows.find((row) => row.companySku === "-");
   expect(vitaCRow).toMatchObject({
     companySku: "IC-001510",
-    quantity: 3,
-    unit: "ชุดขาย (รอตรวจสอบ)",
+    quantity: 72,
+    unit: "ซอง",
   });
-  expect(vitaCRow.reason).toContain("ยังไม่ยืนยันตัวคูณ");
   expect(unmappedRow).toMatchObject({ companySku: "-", quantity: 1 });
 });
 
@@ -117,6 +124,47 @@ test("combines duplicate rows for the same order and SKU", () => {
 
   expect(result.readyRows).toHaveLength(1);
   expect(result.readyRows[0]).toMatchObject({ quantity: 4, unit: "กล่อง" });
+});
+
+test("exports historical Gummy EXP aliases and corrected Vita-C jars without review rows", () => {
+  const alias = productAliases.aliases[0];
+  const gummyRecord = catalog.records.find((record) => (
+    record.shopCode === alias.shopCode
+    && record.productName === alias.canonicalProductName
+    && record.variant === "6 ซอง"
+  ));
+  const jarRecord = catalog.records.find((record) => (
+    record.shopCode === "sc-drug-store" && record.sourceRow === 52
+  ));
+  const result = buildShopeeSalesExportRows([{
+    ...BASE_ORDER,
+    items: [
+      {
+        name: alias.aliasProductName,
+        productMatch: matchShopeeProduct(alias.shopCode, {
+          name: alias.aliasProductName,
+          variant: gummyRecord.variant,
+        }),
+        quantity: 2,
+        variant: gummyRecord.variant,
+      },
+      {
+        name: jarRecord.productName,
+        productMatch: matchShopeeProduct(jarRecord.shopCode, {
+          name: jarRecord.productName,
+          variant: jarRecord.variant,
+        }),
+        quantity: 3,
+        variant: jarRecord.variant,
+      },
+    ],
+  }]);
+
+  expect(result.reviewRows).toEqual([]);
+  expect(result.readyRows.map((row) => [row.companySku, row.quantity, row.unit])).toEqual([
+    ["IC-001510", 12, "ซอง"],
+    ["IC-002912", 3, "กระปุก"],
+  ]);
 });
 
 test("writes the exact automation columns and a separate review worksheet", async () => {

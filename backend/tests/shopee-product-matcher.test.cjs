@@ -1,4 +1,5 @@
 const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.json");
+const productAliases = require("../src/modules/seamless/data/shopeeProductAliases.v1.json");
 const {
   enrichShopeeOrderItems,
   getShopeeProductCatalogSummary,
@@ -9,11 +10,11 @@ const {
 
 test("loads the complete hash-verified Shopee product catalog", () => {
   expect(getShopeeProductCatalogSummary()).toEqual({
-    automaticQuantityReviewCount: 35,
-    automaticQuantityRuleCount: 45,
-    automaticQuantityRuleVersion: "same-sku-explicit-unit-anchor-v1",
-    catalogVersion: "shopee-company-sku-2026-09-02",
-    ownerDecisionDate: "2026-09-02",
+    automaticQuantityReviewCount: 4,
+    automaticQuantityRuleCount: 76,
+    automaticQuantityRuleVersion: "same-sku-anchor-or-erp-base-unit-v2",
+    catalogVersion: "shopee-company-sku-2026-09-03",
+    ownerDecisionDate: "2026-09-03",
     recordCount: 227,
     sourceCount: 2,
   });
@@ -147,9 +148,87 @@ test.each([
   });
 });
 
-test("does not guess Vita-C or other pack variations without an explicit one-unit anchor", () => {
-  const deferredRows = [24, 33, 148, 215];
-  deferredRows.forEach((sourceRow) => {
+test("expands every validated Vita-C sachet variation into base sachet units", () => {
+  const validatedSkus = new Set([
+    "IC-001510",
+    "IC-001849",
+    "IC-002300",
+    "IC-002353",
+    "IC-002484",
+    "IC-002485",
+    "IC-002516",
+  ]);
+  const records = catalog.records.filter((candidate) => (
+    candidate.shopCode === "sc-drug-store"
+    && candidate.match.status === "matched"
+    && validatedSkus.has(candidate.match.companySku)
+  ));
+
+  expect(records).toHaveLength(31);
+  records.forEach((record) => {
+    const match = matchShopeeProduct(record.shopCode, {
+      name: record.productName,
+      variant: record.variant,
+    });
+    const expectedQuantity = record.variant.includes("24+1")
+      ? 25
+      : Number(record.variant.match(/\d+/u)?.[0]);
+    expect(match).toMatchObject({
+      status: "matched",
+      companySku: record.match.companySku,
+      isMultipack: true,
+      quantityPerSale: expectedQuantity,
+      quantityRuleSource: "erp_validated_sku_base_unit",
+      quantityRuleStatus: "verified",
+      quantityUnit: "sachet",
+    });
+  });
+});
+
+test("maps mixed Vita-C jar variations to the dedicated bottle SKUs", () => {
+  const expectedSkus = new Map([
+    [52, "IC-002912"],
+    [53, "IC-002913"],
+    [56, "IC-002911"],
+    [58, "IC-002910"],
+  ]);
+
+  expectedSkus.forEach((companySku, sourceRow) => {
+    const record = catalog.records.find((candidate) => (
+      candidate.shopCode === "sc-drug-store" && candidate.sourceRow === sourceRow
+    ));
+    expect(matchShopeeProduct(record.shopCode, {
+      name: record.productName,
+      variant: record.variant,
+    })).toMatchObject({ status: "matched", companySku });
+  });
+});
+
+test("matches the historical Vita-C Gummy EXP title through its canonical name alias", () => {
+  const alias = productAliases.aliases[0];
+  const canonicalRecords = catalog.records.filter((candidate) => (
+    candidate.shopCode === alias.shopCode
+    && candidate.productName === alias.canonicalProductName
+  ));
+
+  expect(canonicalRecords).toHaveLength(3);
+  canonicalRecords.forEach((record) => {
+    const match = matchShopeeProduct(alias.shopCode, {
+      name: alias.aliasProductName,
+      variant: record.variant,
+    });
+    expect(match).toMatchObject({
+      status: "matched",
+      companySku: "IC-001510",
+      matchSource: "catalog_name_alias",
+      quantityRuleStatus: "verified",
+      quantityUnit: "sachet",
+    });
+  });
+});
+
+test("keeps unrelated unvalidated pack units in manual review", () => {
+  [130, 131, 215, 216].forEach((sourceRow) => {
     const record = catalog.records.find((candidate) => (
       candidate.shopCode === "sc-drug-store" && candidate.sourceRow === sourceRow
     ));
@@ -157,7 +236,6 @@ test("does not guess Vita-C or other pack variations without an explicit one-uni
       name: record.productName,
       variant: record.variant,
     });
-
     expect(match).toMatchObject({
       status: "matched",
       isMultipack: true,

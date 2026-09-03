@@ -1,4 +1,6 @@
-const AUTOMATIC_QUANTITY_RULE_VERSION = "same-sku-explicit-unit-anchor-v1";
+const skuUnitValidation = require("../data/shopeeSkuUnitValidation.v1.json");
+
+const AUTOMATIC_QUANTITY_RULE_VERSION = "same-sku-anchor-or-erp-base-unit-v2";
 const MAX_AUTOMATIC_UNITS_PER_SALE = 100;
 
 const PACKAGING_UNIT_ALIASES = new Map([
@@ -60,11 +62,51 @@ function packagingQuantitiesForRecord(record) {
 }
 
 function matchedSkuGroupKey(record) {
+  return skuGroupKey(record?.shopCode, record?.match?.companySku);
+}
+
+function skuGroupKey(shopCode, companySku) {
   return JSON.stringify([
-    String(record?.shopCode || "").trim().toLowerCase(),
-    String(record?.match?.companySku || "").trim().toUpperCase(),
+    String(shopCode || "").trim().toLowerCase(),
+    String(companySku || "").trim().toUpperCase(),
   ]);
 }
+
+function buildSkuUnitValidationIndex(validation = skuUnitValidation) {
+  if (
+    validation?.schemaVersion !== 1
+    || !validation?.validationVersion
+    || !Array.isArray(validation?.records)
+  ) {
+    throw new Error("Shopee SKU unit validation schema is invalid.");
+  }
+
+  const supportedUnits = new Set(PACKAGING_UNIT_ALIASES.values());
+  const index = new Map();
+  validation.records.forEach((record) => {
+    const shopCode = String(record?.shopCode || "").trim().toLowerCase();
+    const companySku = String(record?.companySku || "").trim().toUpperCase();
+    const key = skuGroupKey(shopCode, companySku);
+    if (
+      !shopCode
+      || !companySku
+      || !supportedUnits.has(record?.quantityUnit)
+      || record?.baseFactor !== 1
+    ) {
+      throw new Error("Shopee SKU unit validation contains an invalid base-unit record.");
+    }
+    if (index.has(key)) {
+      throw new Error("Shopee SKU unit validation contains a duplicate shop and Company SKU.");
+    }
+    index.set(key, Object.freeze({
+      quantityUnit: record.quantityUnit,
+      validationVersion: validation.validationVersion,
+    }));
+  });
+  return index;
+}
+
+const validatedSkuUnits = buildSkuUnitValidationIndex();
 
 function hasExplicitUnitAnchor(records, targetRecord, unit) {
   return records.some((record) => (
@@ -102,24 +144,33 @@ function buildAutomaticQuantityRules(records = []) {
 
     group.forEach((record) => {
       const recordQuantities = packagingQuantitiesForRecord(record);
+      const validatedSkuUnit = validatedSkuUnits.get(matchedSkuGroupKey(record));
       const verifiedCandidates = [];
 
       recordQuantities.forEach((quantities, unit) => {
         if (quantities.size !== 1) return;
         const [quantityPerSale] = quantities;
+        const hasCatalogAnchor = hasExplicitUnitAnchor(group, record, unit);
+        const hasValidatedBaseUnit = validatedSkuUnit?.quantityUnit === unit;
         if (
           quantityPerSale <= 1
           || quantityPerSale > MAX_AUTOMATIC_UNITS_PER_SALE
-          || !hasExplicitUnitAnchor(group, record, unit)
+          || (!hasCatalogAnchor && !hasValidatedBaseUnit)
         ) return;
-        verifiedCandidates.push({ quantityPerSale, quantityUnit: unit });
+        verifiedCandidates.push({
+          quantityPerSale,
+          quantityRuleSource: hasCatalogAnchor
+            ? "catalog_same_sku_explicit_unit_anchor"
+            : "erp_validated_sku_base_unit",
+          quantityUnit: unit,
+        });
       });
 
       if (verifiedCandidates.length === 1) {
         rules.set(record, Object.freeze({
           isMultipack: true,
           quantityPerSale: verifiedCandidates[0].quantityPerSale,
-          quantityRuleSource: "catalog_same_sku_explicit_unit_anchor",
+          quantityRuleSource: verifiedCandidates[0].quantityRuleSource,
           quantityRuleStatus: "verified",
           quantityUnit: verifiedCandidates[0].quantityUnit,
         }));
@@ -148,6 +199,7 @@ function buildAutomaticQuantityRules(records = []) {
 module.exports = {
   AUTOMATIC_QUANTITY_RULE_VERSION,
   MAX_AUTOMATIC_UNITS_PER_SALE,
+  buildSkuUnitValidationIndex,
   buildAutomaticQuantityRules,
   extractPackagingQuantities,
   normalizeQuantityText,

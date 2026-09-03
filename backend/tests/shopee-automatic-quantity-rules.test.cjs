@@ -1,5 +1,6 @@
 const {
   buildAutomaticQuantityRules,
+  buildSkuUnitValidationIndex,
   extractPackagingQuantities,
 } = require("../src/modules/seamless/services/shopeeAutomaticQuantityRules");
 
@@ -66,4 +67,46 @@ test("fails closed when pack sizes vary without an explicit one-unit anchor", ()
     quantityRuleStatus: "requires_validation",
   });
   expect(rules.get(sixSachets)).not.toHaveProperty("quantityPerSale");
+});
+
+test("uses an ERP-validated SKU base unit when the catalog has no one-unit anchor", () => {
+  const sixSachets = record(1, "IC-002353", "6 ซอง");
+  const bonusPack = record(2, "IC-002353", "24+1 ซอง");
+  const rules = buildAutomaticQuantityRules([sixSachets, bonusPack]);
+
+  expect(rules.get(sixSachets)).toEqual({
+    isMultipack: true,
+    quantityPerSale: 6,
+    quantityRuleSource: "erp_validated_sku_base_unit",
+    quantityRuleStatus: "verified",
+    quantityUnit: "sachet",
+  });
+  expect(rules.get(bonusPack)).toMatchObject({
+    quantityPerSale: 25,
+    quantityRuleSource: "erp_validated_sku_base_unit",
+    quantityRuleStatus: "verified",
+    quantityUnit: "sachet",
+  });
+});
+
+test("does not apply an ERP sachet validation to a different packaging unit", () => {
+  const twoBoxes = record(1, "IC-002353", "2 กล่อง");
+  const threeBoxes = record(2, "IC-002353", "3 กล่อง");
+  const rules = buildAutomaticQuantityRules([twoBoxes, threeBoxes]);
+
+  expect(rules.get(twoBoxes)).toMatchObject({ quantityRuleStatus: "requires_validation" });
+  expect(rules.get(threeBoxes)).toMatchObject({ quantityRuleStatus: "requires_validation" });
+});
+
+test("rejects incomplete or non-base ERP unit validation records", () => {
+  expect(() => buildSkuUnitValidationIndex({
+    schemaVersion: 1,
+    validationVersion: "test-v1",
+    records: [{ shopCode: "sc-drug-store", companySku: "", quantityUnit: "sachet", baseFactor: 1 }],
+  })).toThrow(/invalid base-unit record/iu);
+  expect(() => buildSkuUnitValidationIndex({
+    schemaVersion: 1,
+    validationVersion: "test-v1",
+    records: [{ shopCode: "sc-drug-store", companySku: "IC-TEST", quantityUnit: "sachet", baseFactor: 12 }],
+  })).toThrow(/invalid base-unit record/iu);
 });

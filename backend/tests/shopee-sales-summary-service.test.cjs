@@ -167,7 +167,7 @@ test("expands automatically inferred same-SKU multipacks for historical orders",
   });
 });
 
-test("leaves an unanchored same-SKU pack unexpanded and marks it for validation", () => {
+test("expands an ERP-validated Vita-C pack into base sachets", () => {
   const record = catalog.records.find((candidate) => (
     candidate.shopCode === "sc-drug-store" && candidate.sourceRow === 148
   ));
@@ -184,13 +184,18 @@ test("leaves an unanchored same-SKU pack unexpanded and marks it for validation"
     }],
   }]);
 
-  expect(summary).toMatchObject({ totalQuantity: 2 });
+  expect(summary).toMatchObject({ totalQuantity: 48 });
   expect(summary.products[0]).toMatchObject({
     isBundle: true,
-    quantityRuleStatus: "requires_validation",
-    totalQuantity: 2,
+    quantityRuleStatus: "verified",
+    totalQuantity: 48,
+    unitsPerSale: 24,
   });
-  expect(summary.products[0]).not.toHaveProperty("unitsPerSale");
+  expect(summary.products[0].orders[0]).toMatchObject({
+    listingQuantity: 2,
+    quantity: 48,
+    unitsPerSale: 24,
+  });
 });
 
 test("marks an unverified bundle without inventing an inventory multiplier", () => {

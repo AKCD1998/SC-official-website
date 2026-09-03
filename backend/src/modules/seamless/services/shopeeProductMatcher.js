@@ -1,5 +1,7 @@
 const crypto = require("node:crypto");
 const catalog = require("../data/shopeeProductCatalog.v1.json");
+const productAliases = require("../data/shopeeProductAliases.v1.json");
+const skuUnitValidation = require("../data/shopeeSkuUnitValidation.v1.json");
 const {
   AUTOMATIC_QUANTITY_RULE_VERSION,
   buildAutomaticQuantityRules,
@@ -111,10 +113,40 @@ function buildIndexes() {
     byName.set(productNameKey, records);
   });
 
+  if (
+    productAliases?.schemaVersion !== 1
+    || !productAliases?.aliasVersion
+    || !Array.isArray(productAliases?.aliases)
+  ) {
+    throw new Error("Shopee product alias schema is invalid.");
+  }
+  const nameAliases = new Map();
+  productAliases.aliases.forEach((alias) => {
+    const shopCode = normalizeShopeeShopCode(alias?.shopCode);
+    const aliasProductName = normalizeShopeeProductText(alias?.aliasProductName);
+    const canonicalProductName = normalizeShopeeProductText(alias?.canonicalProductName);
+    if (!shopCode || !aliasProductName || !canonicalProductName || aliasProductName === canonicalProductName) {
+      throw new Error("Shopee product alias contains invalid identity data.");
+    }
+    const aliasKey = nameKey(shopCode, aliasProductName);
+    const canonicalKey = nameKey(shopCode, canonicalProductName);
+    if (byName.has(aliasKey)) {
+      throw new Error("Shopee product alias overlaps a canonical catalog product name.");
+    }
+    if (!byName.has(canonicalKey)) {
+      throw new Error("Shopee product alias points to a missing canonical product name.");
+    }
+    if (nameAliases.has(aliasKey)) {
+      throw new Error("Shopee product alias contains a duplicate normalized name.");
+    }
+    nameAliases.set(aliasKey, canonicalProductName);
+  });
+
   return {
     automaticQuantityRules: buildAutomaticQuantityRules(catalog.records),
     byName,
     exact,
+    nameAliases,
   };
 }
 
@@ -170,8 +202,15 @@ function matchShopeeProduct(shopCodeValue, item) {
   const exactRecord = indexes.exact.get(identityKey(shopCode, productName, variant));
   if (exactRecord) return publicMatch(exactRecord, "exact_name_variant");
 
+  const aliasedProductName = indexes.nameAliases.get(nameKey(shopCode, productName));
+  if (aliasedProductName) {
+    const aliasedRecord = indexes.exact.get(identityKey(shopCode, aliasedProductName, variant));
+    if (aliasedRecord) return publicMatch(aliasedRecord, "catalog_name_alias");
+  }
+
   if (!variant) {
-    const sameNameRecords = indexes.byName.get(nameKey(shopCode, productName)) || [];
+    const resolvedProductName = aliasedProductName || productName;
+    const sameNameRecords = indexes.byName.get(nameKey(shopCode, resolvedProductName)) || [];
     if (sameNameRecords.length === 1) {
       return publicMatch(sameNameRecords[0], "unique_name");
     }
@@ -246,6 +285,8 @@ function getShopeeProductCatalogDigest() {
   return crypto.createHash("sha256").update(JSON.stringify({
     automaticQuantityRuleVersion: AUTOMATIC_QUANTITY_RULE_VERSION,
     catalog,
+    productAliases,
+    skuUnitValidation,
   })).digest("hex");
 }
 

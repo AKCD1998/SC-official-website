@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "validationVersion": "adasoft-base-unit-2026-09-03",
+  "ownerDecisionDate": "2026-09-03",
+  "source": {
+    "system": "AdaSoft",
+    "productTable": "TCNMPdt",
+    "unitTable": "TCNMPdtUnit",
+    "evidence": "Read-only product-master lookup through SC-StockDay-Ordering"
+  },
+  "records": [
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-001510",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "barcodes": ["8856513008963", "8856513008956", "9999900245653"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-001849",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "barcodes": ["8856513008949", "8856513008932", "9999900247930"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-002300",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "barcodes": ["8857121535223", "8856513004736", "8857121535704"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-002353",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "barcodes": ["8857121535056", "8856513004743", "8857121535698"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-002484",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "barcodes": ["8856513005573", "9999900162431", "8856513006303"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-002485",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "barcodes": ["8857121535858", "9999900162455", "8856513003470"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-002516",
+      "quantityUnit": "sachet",
+      "baseUnitCode": "002",
+      "baseUnitLabel": "ซอง",
+      "baseFactor": 1,
+      "barcodes": ["8856513000127", "8856513006365", "8856513003289"]
+    }
+  ]
+}

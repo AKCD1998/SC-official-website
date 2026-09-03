@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "aliasVersion": "shopee-product-name-aliases-2026-09-03",
+  "ownerDecisionDate": "2026-09-03",
+  "aliases": [
+    {
+      "shopCode": "sc-drug-store",
+      "aliasProductName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ 3 รสชาติ (ส้ม แอปเปิ้ล องุ่น) | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "canonicalProductName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+      "reasonCode": "historical_listing_title"
+    }
+  ]
+}

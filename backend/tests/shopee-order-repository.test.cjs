@@ -21,7 +21,7 @@ const {
 
 const CANONICAL_KEY = `sha256:${"a".repeat(64)}`;
 const ORDER_NUMBER = "26082471YK8C02";
-const CATALOG_VERSION = "shopee-company-sku-2026-09-02";
+const CATALOG_VERSION = "shopee-company-sku-2026-09-03";
 const databaseOrder = {
   current_status: "shipment_due",
   delivery_method: "Standard Delivery - ส่งธรรมดาในประเทศ",
@@ -191,7 +191,7 @@ test("enriches persisted email items with the corrected Company SKU at API egres
     totalItems: 1,
     matchedItems: 1,
     coverageComplete: true,
-    manualReviewRequired: true,
+    manualReviewRequired: false,
   });
 });
 

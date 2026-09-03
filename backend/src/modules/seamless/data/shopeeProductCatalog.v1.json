@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "shopee-company-sku-2026-09-02",
-  "ownerDecisionDate": "2026-09-02",
+  "catalogVersion": "shopee-company-sku-2026-09-03",
+  "ownerDecisionDate": "2026-09-03",
   "sources": [
     {
       "shopCode": "dr-morepen",
@@ -14,7 +14,7 @@
     {
       "shopCode": "sc-drug-store",
       "filename": "mass_update_sales_info_1763530749_20260825192156.xlsx",
-      "sha256": "01d65d9358d992bf734b2189c9a812571c8f20d261bb436f1bb3e593e566c2b1",
+      "sha256": "6b32c90db585abcd1766bb8e3cc90b06940793c22378052409a2e9ec8997e1ec",
       "worksheet": "Sheet1",
       "firstDataRow": 7,
       "lastDataRow": 218
@@ -777,7 +777,7 @@
       "variant": "สับปะรด 1 กระปุก",
       "match": {
         "status": "matched",
-        "companySku": "IC-002300"
+        "companySku": "IC-002912"
       }
     },
     {
@@ -789,7 +789,7 @@
       "variant": "สตรอฯ 1 กระปุก",
       "match": {
         "status": "matched",
-        "companySku": "IC-002485"
+        "companySku": "IC-002913"
       }
     },
     {
@@ -825,7 +825,7 @@
       "variant": "องุ่น 1 กระปุก",
       "match": {
         "status": "matched",
-        "companySku": "IC-002353"
+        "companySku": "IC-002911"
       }
     },
     {
@@ -849,7 +849,7 @@
       "variant": "ส้ม 1 กระปุก",
       "match": {
         "status": "matched",
-        "companySku": "IC-002516"
+        "companySku": "IC-002910"
       }
     },
     {

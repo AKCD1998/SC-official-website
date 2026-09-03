@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const ExcelJS = require("exceljs");
 
-const CATALOG_VERSION = "shopee-company-sku-2026-09-02";
+const CATALOG_VERSION = "shopee-company-sku-2026-09-03";
 
 function addSkuRows(overrides, companySku, rows) {
   rows.forEach((rowNumber) => {
@@ -15,11 +15,12 @@ function buildDrMorepenOverrides() {
   const overrides = new Map();
   addSkuRows(overrides, "IC-005998", [7]);
   addSkuRows(overrides, "IC-003233", [13]);
+  addSkuRows(overrides, "IC-003478", [14]);
   addSkuRows(overrides, "IC-003232", [15]);
   addSkuRows(overrides, "IC-003230", [16]);
   addSkuRows(overrides, "IC-004912", [17]);
   addSkuRows(overrides, "IC-005661", [21]);
-  overrides.set(14, {
+  overrides.set(8, {
     status: "bundle",
     sellerBundleKey: "DR-BND-BG03-STRIP25-X3-V1",
     components: [
@@ -67,15 +68,19 @@ function buildScDrugStoreOverrides() {
   addSkuRows(overrides, "IC-005369", [18]);
   addSkuRows(overrides, "IC-005557", [20]);
   addSkuRows(overrides, "IC-006023", [21]);
-  addSkuRows(overrides, "IC-002516", [24, 50, 58]);
+  addSkuRows(overrides, "IC-002516", [24, 50]);
+  addSkuRows(overrides, "IC-002910", [58]);
   addSkuRows(overrides, "IC-000665", [36, 84]);
   addSkuRows(overrides, "IC-004199", [37, 62]);
-  addSkuRows(overrides, "IC-002353", [38, 39, 40, 41, 56, 57]);
+  addSkuRows(overrides, "IC-002353", [38, 39, 40, 41, 57]);
+  addSkuRows(overrides, "IC-002911", [56]);
   addSkuRows(overrides, "IC-000129", [44, 45]);
   addSkuRows(overrides, "IC-004143", [46]);
   addSkuRows(overrides, "IC-002484", [51]);
-  addSkuRows(overrides, "IC-002300", [52, 55]);
-  addSkuRows(overrides, "IC-002485", [53, 54]);
+  addSkuRows(overrides, "IC-002300", [55]);
+  addSkuRows(overrides, "IC-002912", [52]);
+  addSkuRows(overrides, "IC-002485", [54]);
+  addSkuRows(overrides, "IC-002913", [53]);
   addSkuRows(overrides, "IC-003387", [65, 66]);
   addSkuRows(overrides, "IC-005439", [78]);
   addSkuRows(overrides, "IC-005480", [90]);
@@ -125,7 +130,7 @@ const SOURCE_SPECS = [
   {
     shopCode: "sc-drug-store",
     argument: "sc-drug-store",
-    expectedSha256: "01d65d9358d992bf734b2189c9a812571c8f20d261bb436f1bb3e593e566c2b1",
+    expectedSha256: "6b32c90db585abcd1766bb8e3cc90b06940793c22378052409a2e9ec8997e1ec",
     firstDataRow: 7,
     expectedRecordCount: 212,
     overrides: buildScDrugStoreOverrides(),
@@ -251,7 +256,7 @@ async function main() {
   const catalog = {
     schemaVersion: 1,
     catalogVersion: CATALOG_VERSION,
-    ownerDecisionDate: "2026-09-02",
+    ownerDecisionDate: "2026-09-03",
     sources: results.map((result) => result.source),
     records,
   };
