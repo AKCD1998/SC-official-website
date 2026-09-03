@@ -1,5 +1,12 @@
 const express = require("express");
+const ExcelJS = require("exceljs");
 const request = require("supertest");
+
+function parseBinaryResponse(response, callback) {
+  const chunks = [];
+  response.on("data", (chunk) => chunks.push(chunk));
+  response.on("end", () => callback(null, Buffer.concat(chunks)));
+}
 
 const orderRow = {
   currentStatus: "shipment_due",
@@ -450,6 +457,36 @@ test("summarizes sold products by order date and defaults a blank end date to st
   expect(listOrdersForSalesSummaryMock).toHaveBeenCalledWith({
     endDate: "2026-08-24",
     shopCode: "all",
+    startDate: "2026-08-24",
+  });
+});
+
+test("downloads the selected sales-summary range as an Excel workbook", async () => {
+  listOrdersForSalesSummaryMock.mockResolvedValueOnce([{
+    ...orderRow,
+    items: [{
+      ...orderRow.items[0],
+      productMatch: { companySku: "IC-TEST", status: "matched" },
+    }],
+  }]);
+
+  const response = await request(buildApp()).get(
+    "/api/app/shopee/orders/sales-summary/export?shopCode=sc-drug-store&startDate=2026-08-24&endDate=2026-08-25",
+  ).buffer(true).parse(parseBinaryResponse);
+
+  expect(response.status).toBe(200);
+  expect(response.headers["content-type"]).toContain(
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  );
+  expect(response.headers["content-disposition"]).toContain(
+    "shopee-sales-sc-drug-store-2026-08-24-to-2026-08-25.xlsx",
+  );
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(response.body);
+  expect(workbook.getWorksheet("พร้อมคีย์").getCell("C2").value).toBe("IC-TEST");
+  expect(listOrdersForSalesSummaryMock).toHaveBeenCalledWith({
+    endDate: "2026-08-25",
+    shopCode: "sc-drug-store",
     startDate: "2026-08-24",
   });
 });

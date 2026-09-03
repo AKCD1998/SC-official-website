@@ -8,6 +8,7 @@ const {
 const { TIMELINE_EVENT_TYPES } = require("../services/shopeeOrderEmailParser");
 const { syncShopeeOrderPage } = require("../services/shopeeOrderTimelineService");
 const { getShopeeSalesSummary } = require("../services/shopeeSalesSummaryService");
+const { exportShopeeSalesSummary } = require("../services/shopeeSalesSummaryExportService");
 const {
   getViewerFinancialVisibility,
   normalizeUserFinancialVisibility,
@@ -186,15 +187,20 @@ function parseDateOnly(value, label) {
   return normalized;
 }
 
-async function listSalesSummary(req, res) {
-  const shopCode = requireShopeeShopScope(req.query?.shopCode);
-  const startDate = parseDateOnly(req.query?.startDate, "startDate");
-  const endDate = req.query?.endDate
-    ? parseDateOnly(req.query.endDate, "endDate")
+function parseSalesSummaryFilters(query = {}) {
+  const shopCode = requireShopeeShopScope(query.shopCode);
+  const startDate = parseDateOnly(query.startDate, "startDate");
+  const endDate = query.endDate
+    ? parseDateOnly(query.endDate, "endDate")
     : startDate;
   if (endDate < startDate) {
     throw badRequest("endDate must be on or after startDate.");
   }
+  return { endDate, shopCode, startDate };
+}
+
+async function listSalesSummary(req, res) {
+  const { endDate, shopCode, startDate } = parseSalesSummaryFilters(req.query);
 
   const summary = await getShopeeSalesSummary({ endDate, shopCode, startDate });
   res.json({
@@ -205,6 +211,15 @@ async function listSalesSummary(req, res) {
     startDate,
     timezone: "Asia/Bangkok",
   });
+}
+
+async function exportSalesSummary(req, res) {
+  const filters = parseSalesSummaryFilters(req.query);
+  const exported = await exportShopeeSalesSummary(filters);
+  res.set("Cache-Control", "no-store");
+  res.setHeader("Content-Type", exported.mimeType);
+  res.setHeader("Content-Disposition", `attachment; filename="${exported.filename}"`);
+  res.send(exported.buffer);
 }
 
 async function getInboxOverview(req, res) {
@@ -299,6 +314,7 @@ async function syncOrders(req, res) {
 
 module.exports = {
   encodeCursor,
+  exportSalesSummary,
   getFinancialVisibility,
   getInboxOverview,
   getOrder,
@@ -307,6 +323,7 @@ module.exports = {
   parseOpaqueCursor,
   parsePage,
   parseFinancialVisibilitySettings,
+  parseSalesSummaryFilters,
   parseSearch,
   parseSortBy,
   parseSortOrder,

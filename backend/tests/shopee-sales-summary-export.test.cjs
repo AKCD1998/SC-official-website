@@ -1,0 +1,168 @@
+const ExcelJS = require("exceljs");
+const {
+  buildShopeeSalesExportFilename,
+  buildShopeeSalesExportRows,
+  buildShopeeSalesExportWorkbook,
+  toBangkokExcelDate,
+} = require("../src/modules/seamless/services/shopeeSalesSummaryExportService");
+
+const BASE_ORDER = {
+  items: [],
+  orderedAt: "2026-09-01T17:05:06.000Z",
+  orderNumber: "260902TEST001",
+  shopCode: "sc-drug-store",
+};
+
+test("exports verified same-SKU multipacks in smallest inventory units", () => {
+  const result = buildShopeeSalesExportRows([{
+    ...BASE_ORDER,
+    items: [{
+      name: "Myda Soap",
+      productMatch: {
+        companySku: "IC-003493",
+        isMultipack: true,
+        quantityPerSale: 6,
+        quantityRuleStatus: "verified",
+        quantityUnit: "bar",
+        status: "matched",
+      },
+      quantity: 2,
+      variant: "80 กรัม 6 ก้อน",
+    }],
+  }]);
+
+  expect(result.reviewRows).toEqual([]);
+  expect(result.readyRows).toEqual([{
+    companySku: "IC-003493",
+    orderNumber: "260902TEST001",
+    orderedAt: new Date("2026-09-02T00:05:06.000Z"),
+    productName: "Myda Soap — 80 กรัม 6 ก้อน",
+    quantity: 12,
+    unit: "ก้อน",
+  }]);
+});
+
+test("splits a verified multi-SKU bundle into one automation row per component", () => {
+  const result = buildShopeeSalesExportRows([{
+    ...BASE_ORDER,
+    items: [{
+      name: "Candy Pop คละรส",
+      productMatch: {
+        components: [
+          { companySku: "IC-005598", quantityPerSale: 1 },
+          { companySku: "IC-005323", quantityPerSale: 1 },
+          { companySku: "IC-005294", quantityPerSale: 1 },
+        ],
+        quantityRuleStatus: "verified",
+        status: "bundle",
+      },
+      quantity: 2,
+      variant: "คละรสละ 1 ซอง",
+    }],
+  }]);
+
+  expect(result.reviewRows).toEqual([]);
+  expect(result.readyRows.map((row) => [row.companySku, row.quantity, row.unit])).toEqual([
+    ["IC-005294", 2, "ซอง"],
+    ["IC-005323", 2, "ซอง"],
+    ["IC-005598", 2, "ซอง"],
+  ]);
+});
+
+test("keeps unvalidated multipacks and unmapped products off the automation sheet", () => {
+  const result = buildShopeeSalesExportRows([{
+    ...BASE_ORDER,
+    items: [
+      {
+        name: "Vita-C Gummy EXP",
+        productMatch: {
+          companySku: "IC-001510",
+          isMultipack: true,
+          quantityRuleStatus: "requires_validation",
+          status: "matched",
+        },
+        quantity: 3,
+        variant: "24 ซอง",
+      },
+      {
+        name: "ชื่อสินค้าเก่าที่ยังไม่มี alias",
+        productMatch: { reasonCode: "catalog_identity_not_found", status: "unmapped" },
+        quantity: 1,
+        variant: "6 ซอง",
+      },
+    ],
+  }]);
+
+  expect(result.readyRows).toEqual([]);
+  expect(result.reviewRows).toHaveLength(2);
+  const vitaCRow = result.reviewRows.find((row) => row.companySku === "IC-001510");
+  const unmappedRow = result.reviewRows.find((row) => row.companySku === "-");
+  expect(vitaCRow).toMatchObject({
+    companySku: "IC-001510",
+    quantity: 3,
+    unit: "ชุดขาย (รอตรวจสอบ)",
+  });
+  expect(vitaCRow.reason).toContain("ยังไม่ยืนยันตัวคูณ");
+  expect(unmappedRow).toMatchObject({ companySku: "-", quantity: 1 });
+});
+
+test("combines duplicate rows for the same order and SKU", () => {
+  const item = {
+    name: "สินค้าทดสอบ",
+    productMatch: { companySku: "IC-TEST", status: "matched" },
+    quantity: 2,
+    variant: "1 กล่อง",
+  };
+  const result = buildShopeeSalesExportRows([{ ...BASE_ORDER, items: [item, item] }]);
+
+  expect(result.readyRows).toHaveLength(1);
+  expect(result.readyRows[0]).toMatchObject({ quantity: 4, unit: "กล่อง" });
+});
+
+test("writes the exact automation columns and a separate review worksheet", async () => {
+  const { buffer, readyRowCount, reviewRowCount } = await buildShopeeSalesExportWorkbook([{
+    ...BASE_ORDER,
+    items: [
+      {
+        name: "สินค้าพร้อมคีย์",
+        productMatch: { companySku: "IC-READY", status: "matched" },
+        quantity: 2,
+        variant: "1 กล่อง",
+      },
+      {
+        name: "สินค้ารอตรวจ",
+        productMatch: { status: "unmapped" },
+        quantity: 1,
+        variant: "",
+      },
+    ],
+  }]);
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(buffer);
+
+  expect(readyRowCount).toBe(1);
+  expect(reviewRowCount).toBe(1);
+  expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(["พร้อมคีย์", "ต้องตรวจสอบ"]);
+  expect(workbook.getWorksheet("พร้อมคีย์").getRow(1).values.slice(1)).toEqual([
+    "วันที่ เวลา",
+    "เลขออเดอร์",
+    "เลข SKU บริษัท",
+    "ชื่อสินค้า",
+    "จำนวนสินค้า (หน่วยที่เล็กสุด)",
+    "หน่วย",
+  ]);
+  expect(workbook.getWorksheet("พร้อมคีย์").getCell("A2").numFmt)
+    .toBe("yyyy-mm-dd hh:mm:ss");
+  expect(workbook.getWorksheet("ต้องตรวจสอบ").getCell("G1").value)
+    .toBe("เหตุผลที่ต้องตรวจสอบ");
+});
+
+test("formats Bangkok wall-clock timestamps and deterministic filenames", () => {
+  expect(toBangkokExcelDate("2026-09-01T17:05:06.000Z").toISOString())
+    .toBe("2026-09-02T00:05:06.000Z");
+  expect(buildShopeeSalesExportFilename({
+    endDate: "2026-09-03",
+    shopCode: "sc-drug-store",
+    startDate: "2026-09-01",
+  })).toBe("shopee-sales-sc-drug-store-2026-09-01-to-2026-09-03.xlsx");
+});

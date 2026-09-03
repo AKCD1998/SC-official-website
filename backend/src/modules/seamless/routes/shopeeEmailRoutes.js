@@ -14,6 +14,7 @@ const {
   saveLegacyReview,
 } = require("../controllers/shopeeLegacyReconciliationController");
 const {
+  exportSalesSummary,
   getFinancialVisibility,
   getInboxOverview,
   getOrder,
@@ -37,6 +38,7 @@ router.get("/orders", asyncHandler(listOrders));
 router.get("/orders/financial-visibility", asyncHandler(getFinancialVisibility));
 router.put("/orders/financial-visibility", asyncHandler(updateFinancialVisibility));
 router.get("/orders/sales-summary", asyncHandler(listSalesSummary));
+router.get("/orders/sales-summary/export", asyncHandler(exportSalesSummary));
 router.get("/orders/legacy-reconciliation", asyncHandler(listLegacyReviews));
 router.get(
   "/orders/legacy-reconciliation/apply-plan",
