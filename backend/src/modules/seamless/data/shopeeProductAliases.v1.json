@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "aliasVersion": "shopee-product-name-aliases-2026-09-03",
+  "aliasVersion": "shopee-product-name-aliases-2026-09-03-v2",
   "ownerDecisionDate": "2026-09-03",
   "aliases": [
     {
@@ -8,6 +8,12 @@
       "aliasProductName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ 3 รสชาติ (ส้ม แอปเปิ้ล องุ่น) | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
       "canonicalProductName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
       "reasonCode": "historical_listing_title"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "aliasProductName": "INTRASITE 15g อินทราไซต์ไฮโดรเจล สำหรับแผลกดทับ เบาหวาน และแผลเรื้อรัง",
+      "canonicalProductName": "INTRASITE 25g อินทราไซต์ไฮโดรเจล สำหรับแผลกดทับ เบาหวาน และแผลเรื้อรัง",
+      "reasonCode": "seller_title_size_typo_owner_confirmed"
     }
   ]
 }

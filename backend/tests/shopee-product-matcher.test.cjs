@@ -227,6 +227,33 @@ test("matches the historical Vita-C Gummy EXP title through its canonical name a
   });
 });
 
+test("maps the owner-confirmed historical INTRASITE 15g title typo to the 25g SKU", () => {
+  const alias = productAliases.aliases.find((candidate) => (
+    candidate.reasonCode === "seller_title_size_typo_owner_confirmed"
+  ));
+
+  expect(matchShopeeProduct(alias.shopCode, {
+    name: alias.aliasProductName,
+    variant: "1 กล่อง",
+  })).toMatchObject({
+    status: "matched",
+    companySku: "IC-000330",
+    matchSource: "catalog_name_alias",
+  });
+
+  expect(matchShopeeProduct(alias.shopCode, {
+    name: alias.aliasProductName,
+    variant: "3 กล่อง",
+  })).toMatchObject({
+    status: "matched",
+    companySku: "IC-000330",
+    matchSource: "catalog_name_alias",
+    quantityRuleStatus: "verified",
+    quantityPerSale: 3,
+    quantityUnit: "box",
+  });
+});
+
 test("keeps unrelated unvalidated pack units in manual review", () => {
   [130, 131, 215, 216].forEach((sourceRow) => {
     const record = catalog.records.find((candidate) => (
