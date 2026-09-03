@@ -266,6 +266,7 @@ test("maps the owner-confirmed historical Colosure title and variant identity", 
     status: "matched",
     companySku: "IC-005104",
     matchSource: "catalog_identity_alias",
+    quantityUnit: "can",
   });
 });
 
@@ -282,8 +283,25 @@ test("ignores the owner-confirmed legacy BioMag placeholder variant", () => {
     status: "matched",
     companySku: "IC-005370",
     matchSource: "catalog_identity_alias",
+    quantityUnit: "box",
   });
   expect(match).not.toHaveProperty("quantityPerSale");
+});
+
+test("maps the shortened historical Polar variant using its 280 ml product identity", () => {
+  const alias = productAliases.aliases.find((candidate) => (
+    candidate.reasonCode === "historical_shortened_variant_owner_confirmed"
+  ));
+
+  expect(matchShopeeProduct(alias.shopCode, {
+    name: alias.aliasProductName,
+    variant: alias.aliasVariant,
+  })).toMatchObject({
+    status: "matched",
+    companySku: "IC-002462",
+    matchSource: "catalog_identity_alias",
+    quantityUnit: "can",
+  });
 });
 
 test("keeps unrelated unvalidated pack units in manual review", () => {

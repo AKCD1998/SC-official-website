@@ -108,6 +108,10 @@ function buildSkuUnitValidationIndex(validation = skuUnitValidation) {
 
 const validatedSkuUnits = buildSkuUnitValidationIndex();
 
+function getValidatedSkuUnit(shopCode, companySku) {
+  return validatedSkuUnits.get(skuGroupKey(shopCode, companySku)) || null;
+}
+
 function hasExplicitUnitAnchor(records, targetRecord, unit) {
   return records.some((record) => (
     record !== targetRecord
@@ -202,6 +206,7 @@ module.exports = {
   buildSkuUnitValidationIndex,
   buildAutomaticQuantityRules,
   extractPackagingQuantities,
+  getValidatedSkuUnit,
   normalizeQuantityText,
   packagingQuantitiesForRecord,
 };

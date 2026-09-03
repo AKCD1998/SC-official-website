@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "validationVersion": "adasoft-base-unit-2026-09-03",
+  "validationVersion": "adasoft-base-unit-2026-09-03-v2",
   "ownerDecisionDate": "2026-09-03",
   "source": {
     "system": "AdaSoft",
@@ -71,6 +71,42 @@
       "baseUnitLabel": "ซอง",
       "baseFactor": 1,
       "barcodes": ["8856513000127", "8856513006365", "8856513003289"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-000330",
+      "quantityUnit": "box",
+      "baseUnitCode": "003",
+      "baseUnitLabel": "กล่อง",
+      "baseFactor": 1,
+      "barcodes": ["8852266001084", "9999900111231", "9999900111248"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-002462",
+      "quantityUnit": "can",
+      "baseUnitCode": "009",
+      "baseUnitLabel": "กระป๋อง",
+      "baseFactor": 1,
+      "barcodes": ["8856513006853", "8856513006860", "9999900251692"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-005104",
+      "quantityUnit": "can",
+      "baseUnitCode": "009",
+      "baseUnitLabel": "กระป๋อง",
+      "baseFactor": 1,
+      "barcodes": ["8859612290512", "8859612290260", "9999900278316"]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "companySku": "IC-005370",
+      "quantityUnit": "box",
+      "baseUnitCode": "003",
+      "baseUnitLabel": "กล่อง",
+      "baseFactor": 1,
+      "barcodes": ["8859612214716", "9999900229851", "9999900229868"]
     }
   ]
 }

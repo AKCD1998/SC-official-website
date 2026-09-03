@@ -5,6 +5,7 @@ const skuUnitValidation = require("../data/shopeeSkuUnitValidation.v1.json");
 const {
   AUTOMATIC_QUANTITY_RULE_VERSION,
   buildAutomaticQuantityRules,
+  getValidatedSkuUnit,
 } = require("./shopeeAutomaticQuantityRules");
 const { normalizeShopeeShopCode } = require("./shopeeShops");
 
@@ -188,9 +189,11 @@ function publicMatch(record, matchSource) {
   };
   if (record.match.status === "matched") {
     const automaticQuantityRule = indexes.automaticQuantityRules.get(record);
+    const validatedSkuUnit = getValidatedSkuUnit(record.shopCode, record.match.companySku);
     return {
       ...base,
       companySku: String(record.match.companySku),
+      ...(validatedSkuUnit ? { quantityUnit: validatedSkuUnit.quantityUnit } : {}),
       ...(automaticQuantityRule || {}),
     };
   }

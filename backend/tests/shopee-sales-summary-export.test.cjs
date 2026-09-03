@@ -167,6 +167,56 @@ test("exports historical Gummy EXP aliases and corrected Vita-C jars without rev
   ]);
 });
 
+test("exports owner-confirmed legacy identities with their ERP base units", () => {
+  const cases = [
+    {
+      alias: productAliases.aliases.find((entry) => (
+        entry.reasonCode === "seller_title_size_typo_owner_confirmed"
+      )),
+      quantity: 2,
+      variant: "3 กล่อง",
+    },
+    {
+      alias: productAliases.aliases.find((entry) => (
+        entry.reasonCode === "historical_shortened_variant_owner_confirmed"
+      )),
+      quantity: 3,
+    },
+    {
+      alias: productAliases.aliases.find((entry) => (
+        entry.reasonCode === "historical_listing_identity_owner_confirmed"
+      )),
+      quantity: 5,
+    },
+    {
+      alias: productAliases.aliases.find((entry) => (
+        entry.reasonCode === "legacy_placeholder_variant_owner_confirmed"
+      )),
+      quantity: 2,
+    },
+  ];
+  const result = buildShopeeSalesExportRows([{
+    ...BASE_ORDER,
+    items: cases.map(({ alias, quantity, variant }) => ({
+      name: alias.aliasProductName,
+      productMatch: matchShopeeProduct(alias.shopCode, {
+        name: alias.aliasProductName,
+        variant: variant ?? alias.aliasVariant,
+      }),
+      quantity,
+      variant: variant ?? alias.aliasVariant,
+    })),
+  }]);
+
+  expect(result.reviewRows).toEqual([]);
+  expect(result.readyRows.map((row) => [row.companySku, row.quantity, row.unit])).toEqual([
+    ["IC-000330", 6, "กล่อง"],
+    ["IC-002462", 3, "กระป๋อง"],
+    ["IC-005104", 5, "กระป๋อง"],
+    ["IC-005370", 2, "กล่อง"],
+  ]);
+});
+
 test("writes the exact automation columns and a separate review worksheet", async () => {
   const { buffer, readyRowCount, reviewRowCount } = await buildShopeeSalesExportWorkbook([{
     ...BASE_ORDER,
