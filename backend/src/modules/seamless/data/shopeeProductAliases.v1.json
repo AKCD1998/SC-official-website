@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "aliasVersion": "shopee-product-name-aliases-2026-09-03-v2",
+  "aliasVersion": "shopee-product-aliases-2026-09-03-v3",
   "ownerDecisionDate": "2026-09-03",
   "aliases": [
     {
@@ -14,6 +14,22 @@
       "aliasProductName": "INTRASITE 15g อินทราไซต์ไฮโดรเจล สำหรับแผลกดทับ เบาหวาน และแผลเรื้อรัง",
       "canonicalProductName": "INTRASITE 25g อินทราไซต์ไฮโดรเจล สำหรับแผลกดทับ เบาหวาน และแผลเรื้อรัง",
       "reasonCode": "seller_title_size_typo_owner_confirmed"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "aliasProductName": "โคลอชัวร์ อาหารเสริมโปรตีนสูง กลิ่นวนิลลา 400 กรัม โปรตีนสูง ไม่เติมน้ำตาล ไขมันต่ำ",
+      "aliasVariant": "vanilla,400 g",
+      "canonicalProductName": "โคลอชัวร์ อาหารเสริมโปรตีนสูง กลิ่นวนิลลา 800 กรัม 400 กรัม โปรตีนสูง ไม่เติมน้ำตาล ไขมันต่ำ",
+      "canonicalVariant": "กระป๋อง 400 g",
+      "reasonCode": "historical_listing_identity_owner_confirmed"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "aliasProductName": "Deeday BioMag Plus Vitamins Magnesium Chelate แมกนีเซียม วิตามินบี ลดตะคริว คลายเครียด 1 กล่อง 30 เม็ด",
+      "aliasVariant": "จำนวน:",
+      "canonicalProductName": "Deeday BioMag Plus Vitamins Magnesium Chelate แมกนีเซียม วิตามินบี ลดตะคริว คลายเครียด 1 กล่อง 30 เม็ด",
+      "canonicalVariant": "",
+      "reasonCode": "legacy_placeholder_variant_owner_confirmed"
     }
   ]
 }

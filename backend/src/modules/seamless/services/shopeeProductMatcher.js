@@ -120,12 +120,37 @@ function buildIndexes() {
   ) {
     throw new Error("Shopee product alias schema is invalid.");
   }
+  const exactAliases = new Map();
   const nameAliases = new Map();
   productAliases.aliases.forEach((alias) => {
     const shopCode = normalizeShopeeShopCode(alias?.shopCode);
     const aliasProductName = normalizeShopeeProductText(alias?.aliasProductName);
     const canonicalProductName = normalizeShopeeProductText(alias?.canonicalProductName);
-    if (!shopCode || !aliasProductName || !canonicalProductName || aliasProductName === canonicalProductName) {
+    const hasAliasVariant = Object.prototype.hasOwnProperty.call(alias || {}, "aliasVariant");
+    const hasCanonicalVariant = Object.prototype.hasOwnProperty.call(alias || {}, "canonicalVariant");
+    if (!shopCode || !aliasProductName || !canonicalProductName
+      || hasAliasVariant !== hasCanonicalVariant) {
+      throw new Error("Shopee product alias contains invalid identity data.");
+    }
+
+    if (hasAliasVariant) {
+      const aliasKey = identityKey(shopCode, aliasProductName, alias.aliasVariant);
+      const canonicalKey = identityKey(shopCode, canonicalProductName, alias.canonicalVariant);
+      if (aliasKey === canonicalKey || exact.has(aliasKey)) {
+        throw new Error("Shopee product identity alias overlaps a canonical catalog identity.");
+      }
+      const canonicalRecord = exact.get(canonicalKey);
+      if (!canonicalRecord) {
+        throw new Error("Shopee product identity alias points to a missing canonical identity.");
+      }
+      if (exactAliases.has(aliasKey)) {
+        throw new Error("Shopee product alias contains a duplicate normalized identity.");
+      }
+      exactAliases.set(aliasKey, canonicalRecord);
+      return;
+    }
+
+    if (aliasProductName === canonicalProductName) {
       throw new Error("Shopee product alias contains invalid identity data.");
     }
     const aliasKey = nameKey(shopCode, aliasProductName);
@@ -146,6 +171,7 @@ function buildIndexes() {
     automaticQuantityRules: buildAutomaticQuantityRules(catalog.records),
     byName,
     exact,
+    exactAliases,
     nameAliases,
   };
 }
@@ -201,6 +227,9 @@ function matchShopeeProduct(shopCodeValue, item) {
 
   const exactRecord = indexes.exact.get(identityKey(shopCode, productName, variant));
   if (exactRecord) return publicMatch(exactRecord, "exact_name_variant");
+
+  const exactAliasRecord = indexes.exactAliases.get(identityKey(shopCode, productName, variant));
+  if (exactAliasRecord) return publicMatch(exactAliasRecord, "catalog_identity_alias");
 
   const aliasedProductName = indexes.nameAliases.get(nameKey(shopCode, productName));
   if (aliasedProductName) {

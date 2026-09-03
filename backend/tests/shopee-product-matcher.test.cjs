@@ -254,6 +254,38 @@ test("maps the owner-confirmed historical INTRASITE 15g title typo to the 25g SK
   });
 });
 
+test("maps the owner-confirmed historical Colosure title and variant identity", () => {
+  const alias = productAliases.aliases.find((candidate) => (
+    candidate.reasonCode === "historical_listing_identity_owner_confirmed"
+  ));
+
+  expect(matchShopeeProduct(alias.shopCode, {
+    name: alias.aliasProductName,
+    variant: alias.aliasVariant,
+  })).toMatchObject({
+    status: "matched",
+    companySku: "IC-005104",
+    matchSource: "catalog_identity_alias",
+  });
+});
+
+test("ignores the owner-confirmed legacy BioMag placeholder variant", () => {
+  const alias = productAliases.aliases.find((candidate) => (
+    candidate.reasonCode === "legacy_placeholder_variant_owner_confirmed"
+  ));
+
+  const match = matchShopeeProduct(alias.shopCode, {
+    name: alias.aliasProductName,
+    variant: alias.aliasVariant,
+  });
+  expect(match).toMatchObject({
+    status: "matched",
+    companySku: "IC-005370",
+    matchSource: "catalog_identity_alias",
+  });
+  expect(match).not.toHaveProperty("quantityPerSale");
+});
+
 test("keeps unrelated unvalidated pack units in manual review", () => {
   [130, 131, 215, 216].forEach((sourceRow) => {
     const record = catalog.records.find((candidate) => (
