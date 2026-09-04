@@ -4,6 +4,9 @@ const {
 const {
   packagingQuantitiesForRecord,
 } = require("./shopeeAutomaticQuantityRules");
+const {
+  getPrimaryBarcode,
+} = require("./shopeePrimaryBarcodeRegistry");
 
 const XLSX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -11,6 +14,7 @@ const EXPORT_COLUMNS = Object.freeze([
   { header: "วันที่ เวลา", key: "orderedAt", width: 22 },
   { header: "เลขออเดอร์", key: "orderNumber", width: 22 },
   { header: "เลข SKU บริษัท", key: "companySku", width: 20 },
+  { header: "เลขบาร์โค้ด", key: "barcode", width: 20 },
   { header: "ชื่อสินค้า", key: "productName", width: 70 },
   { header: "จำนวนสินค้า (หน่วยที่เล็กสุด)", key: "quantity", width: 24 },
   { header: "หน่วย", key: "unit", width: 20 },
@@ -83,8 +87,10 @@ function resolveExportUnit(item, productMatch) {
 }
 
 function createBaseRow(order, item, overrides = {}) {
+  const companySku = overrides.companySku || "-";
   return {
-    companySku: overrides.companySku || "-",
+    barcode: overrides.barcode || getPrimaryBarcode(companySku) || "-",
+    companySku,
     orderNumber: String(order?.orderNumber || "").trim(),
     orderedAt: toBangkokExcelDate(order?.orderedAt),
     productName: formatExportProductName(item),
@@ -100,6 +106,7 @@ function buildReviewRow(order, item, reason) {
     : [productMatch?.companySku].filter(Boolean);
   return {
     ...createBaseRow(order, item, {
+      barcode: companySkus.map((companySku) => getPrimaryBarcode(companySku) || "-").join(", ") || "-",
       companySku: companySkus.join(", ") || "-",
       unit: "ชุดขาย (รอตรวจสอบ)",
     }),
@@ -172,6 +179,7 @@ function rowIdentity(row) {
     row.orderedAt?.toISOString() || "",
     row.orderNumber,
     row.companySku,
+    row.barcode,
     row.productName,
     row.unit,
     row.reason || "",
@@ -232,6 +240,7 @@ function styleWorksheet(worksheet, { review = false } = {}) {
   worksheet.getColumn("orderedAt").numFmt = "yyyy-mm-dd hh:mm:ss";
   worksheet.getColumn("orderNumber").numFmt = "@";
   worksheet.getColumn("companySku").numFmt = "@";
+  worksheet.getColumn("barcode").numFmt = "@";
   worksheet.getColumn("quantity").numFmt = "0";
   worksheet.eachRow((row, rowNumber) => {
     if (rowNumber === 1) return;

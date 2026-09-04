@@ -1,9 +1,17 @@
 const ExcelJS = require("exceljs");
 const catalog = require("../src/modules/seamless/data/shopeeProductCatalog.v1.json");
 const productAliases = require("../src/modules/seamless/data/shopeeProductAliases.v1.json");
+const primaryBarcodeRegistry = require("../src/modules/seamless/data/shopeePrimaryBarcode.v1.json");
+const skuUnitValidation = require("../src/modules/seamless/data/shopeeSkuUnitValidation.v1.json");
+const {
+  collectShopeeCompanySkus,
+} = require("../src/modules/seamless/services/erpProductCatalogVerifier");
 const {
   matchShopeeProduct,
 } = require("../src/modules/seamless/services/shopeeProductMatcher");
+const {
+  getPrimaryBarcode,
+} = require("../src/modules/seamless/services/shopeePrimaryBarcodeRegistry");
 const {
   buildShopeeSalesExportFilename,
   buildShopeeSalesExportRows,
@@ -38,6 +46,7 @@ test("exports verified same-SKU multipacks in smallest inventory units", () => {
 
   expect(result.reviewRows).toEqual([]);
   expect(result.readyRows).toEqual([{
+    barcode: "8856513013615",
     companySku: "IC-003493",
     orderNumber: "260902TEST001",
     orderedAt: new Date("2026-09-02T00:05:06.000Z"),
@@ -67,10 +76,10 @@ test("splits a verified multi-SKU bundle into one automation row per component",
   }]);
 
   expect(result.reviewRows).toEqual([]);
-  expect(result.readyRows.map((row) => [row.companySku, row.quantity, row.unit])).toEqual([
-    ["IC-005294", 2, "ซอง"],
-    ["IC-005323", 2, "ซอง"],
-    ["IC-005598", 2, "ซอง"],
+  expect(result.readyRows.map((row) => [row.companySku, row.barcode, row.quantity, row.unit])).toEqual([
+    ["IC-005294", "8856513016869", 2, "ซอง"],
+    ["IC-005323", "8856513016678", 2, "ซอง"],
+    ["IC-005598", "8856513017194", 2, "ซอง"],
   ]);
 });
 
@@ -106,11 +115,12 @@ test("exports validated Vita-C packs and keeps unmapped products off the automat
   const vitaCRow = result.readyRows.find((row) => row.companySku === "IC-001510");
   const unmappedRow = result.reviewRows.find((row) => row.companySku === "-");
   expect(vitaCRow).toMatchObject({
+    barcode: "8856513008963",
     companySku: "IC-001510",
     quantity: 72,
     unit: "ซอง",
   });
-  expect(unmappedRow).toMatchObject({ companySku: "-", quantity: 1 });
+  expect(unmappedRow).toMatchObject({ barcode: "-", companySku: "-", quantity: 1 });
 });
 
 test("combines duplicate rows for the same order and SKU", () => {
@@ -123,7 +133,30 @@ test("combines duplicate rows for the same order and SKU", () => {
   const result = buildShopeeSalesExportRows([{ ...BASE_ORDER, items: [item, item] }]);
 
   expect(result.readyRows).toHaveLength(1);
-  expect(result.readyRows[0]).toMatchObject({ quantity: 4, unit: "กล่อง" });
+  expect(result.readyRows[0]).toMatchObject({ barcode: "-", quantity: 4, unit: "กล่อง" });
+});
+
+test("includes a known primary barcode on rows that still require quantity validation", () => {
+  const result = buildShopeeSalesExportRows([{
+    ...BASE_ORDER,
+    items: [{
+      name: "สินค้ารอตรวจตัวคูณ",
+      productMatch: {
+        companySku: "IC-002353",
+        quantityRuleStatus: "requires_validation",
+        status: "matched",
+      },
+      quantity: 1,
+      variant: "50 ซอง",
+    }],
+  }]);
+
+  expect(result.readyRows).toEqual([]);
+  expect(result.reviewRows[0]).toMatchObject({
+    barcode: "8857121535056",
+    companySku: "IC-002353",
+    unit: "ชุดขาย (รอตรวจสอบ)",
+  });
 });
 
 test("exports historical Gummy EXP aliases and corrected Vita-C jars without review rows", () => {
@@ -231,13 +264,27 @@ test("exports owner-confirmed legacy identities with their ERP base units", () =
   ]);
 });
 
+test("the primary barcode registry covers every Company SKU in the Shopee catalog", () => {
+  const catalogSkus = collectShopeeCompanySkus(catalog);
+  expect(primaryBarcodeRegistry.records).toHaveLength(catalogSkus.length);
+  expect(catalogSkus.every((companySku) => getPrimaryBarcode(companySku))).toBe(true);
+  expect(new Set(primaryBarcodeRegistry.records.map((record) => record.primaryBarcode)).size)
+    .toBe(primaryBarcodeRegistry.records.length);
+});
+
+test("uses StockDay's smallest-unit barcode for every ERP-validated SKU", () => {
+  skuUnitValidation.records.forEach((record) => {
+    expect(getPrimaryBarcode(record.companySku)).toBe(record.barcodes[0]);
+  });
+});
+
 test("writes the exact automation columns and a separate review worksheet", async () => {
   const { buffer, readyRowCount, reviewRowCount } = await buildShopeeSalesExportWorkbook([{
     ...BASE_ORDER,
     items: [
       {
         name: "สินค้าพร้อมคีย์",
-        productMatch: { companySku: "IC-READY", status: "matched" },
+        productMatch: { companySku: "IC-003493", status: "matched" },
         quantity: 2,
         variant: "1 กล่อง",
       },
@@ -259,13 +306,18 @@ test("writes the exact automation columns and a separate review worksheet", asyn
     "วันที่ เวลา",
     "เลขออเดอร์",
     "เลข SKU บริษัท",
+    "เลขบาร์โค้ด",
     "ชื่อสินค้า",
     "จำนวนสินค้า (หน่วยที่เล็กสุด)",
     "หน่วย",
   ]);
   expect(workbook.getWorksheet("พร้อมคีย์").getCell("A2").numFmt)
     .toBe("yyyy-mm-dd hh:mm:ss");
-  expect(workbook.getWorksheet("ต้องตรวจสอบ").getCell("G1").value)
+  expect(workbook.getWorksheet("พร้อมคีย์").getCell("D2").value)
+    .toBe("8856513013615");
+  expect(workbook.getWorksheet("พร้อมคีย์").getCell("D2").numFmt)
+    .toBe("@");
+  expect(workbook.getWorksheet("ต้องตรวจสอบ").getCell("H1").value)
     .toBe("เหตุผลที่ต้องตรวจสอบ");
 });
 
