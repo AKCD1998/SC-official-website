@@ -8,6 +8,16 @@ const { readStoredFile } = require("./fileStorageService");
 const { readAutoPrintSince, readEmailConfig } = require("../config");
 const { conflict } = require("../errors");
 const { requireString } = require("../validators");
+const { getTables } = require("../tables");
+const { LANE_LOCK } = require("./accountingOriginalPrintService");
+
+async function batchHoldsPrinter(client = pool) {
+  if (process.env.SEAMLESS_ACCOUNTING_BATCH_ENABLED !== "true") return false;
+  const t = getTables();
+  const result = await client.query("SELECT id FROM " + t.accountingPrintBatches +
+    " WHERE status IN ('queued','printing','paused') LIMIT 1");
+  return result.rows.length > 0;
+}
 
 // metadata.outputFileId is only ever set by the real upload->process pipeline — records
 // imported from the legacy ProcessingRegistry never had it populated, so this falls back to
@@ -35,6 +45,7 @@ async function resolveOutputFile(record) {
 }
 
 async function getPrintQueue() {
+  if (await batchHoldsPrinter()) return [];
   await printJobRepository.requeueStaleJobs();
   const rows = await printJobRepository.listPrintQueueCandidates(readAutoPrintSince() || null);
   const queue = [];
@@ -67,6 +78,8 @@ async function createAgentPrintJob(body = {}) {
 
   try {
     await client.query("BEGIN");
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [LANE_LOCK]);
+    if (await batchHoldsPrinter(client)) throw conflict("ชุดเอกสารบัญชีกำลังใช้เครื่องพิมพ์");
 
     // Serialize every claim-or-create attempt for this exact record so two concurrent agent
     // requests can never both decide "nothing to claim, create a new job" at the same time

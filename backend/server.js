@@ -197,6 +197,8 @@ startServerAfterMigrations({
   app,
   port,
   runMigrations: runSeamlessMigrations,
+}).then(() => {
+  require("./src/modules/seamless/services/accountingPrintMaintenance").startAccountingPrintMaintenance();
 }).catch((error) => {
   console.error("Server startup failed before listening:", error.message);
   process.exitCode = 1;

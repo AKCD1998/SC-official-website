@@ -1,4 +1,6 @@
 const express = require("express");
+const accountingPrintBundleRoutes = require("./accountingPrintBundleRoutes");
+const accountingPrintAgentRoutes = require("./accountingPrintAgentRoutes");
 const agentRoutes = require("./agentRoutes");
 const appProcessingRecordRoutes = require("./appProcessingRecordRoutes");
 const bootstrapRoutes = require("./bootstrapRoutes");
@@ -15,6 +17,8 @@ const { errorHandler } = require("../middleware/errorHandler");
 const router = express.Router();
 
 router.use("/agent", agentRoutes);
+router.use("/agent/accounting-print-batches", accountingPrintAgentRoutes);
+router.use("/app/accounting-print-bundles", accountingPrintBundleRoutes);
 router.use("/app/processing-records", appProcessingRecordRoutes);
 router.use("/app/session", sessionRoutes);
 router.use("/bootstrap", bootstrapRoutes);

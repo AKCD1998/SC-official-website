@@ -11,3 +11,7 @@ backend/uploads/
 # Optional: OS / editor junk
 .DS_Store
 Thumbs.db
+
+# Local accounting preview and disposable database
+tmp/
+backend/.local-accounting/
