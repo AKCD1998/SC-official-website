@@ -105,7 +105,12 @@ async function listPrintQueueCandidates(autoPrintSince = null, client = null) {
       SELECT pr.*
       FROM ${tables.processingRecords} pr
       WHERE (
-        ($1::timestamptz IS NOT NULL AND pr.printed = false AND pr.uploaded_at >= $1::timestamptz)
+        (
+          $1::timestamptz IS NOT NULL
+          AND pr.printed = false
+          AND pr.uploaded_at >= $1::timestamptz
+          AND pr.metadata->>'source' IS DISTINCT FROM 'expense_receipt'
+        )
         OR EXISTS (
           SELECT 1 FROM ${tables.printJobs} pj
           WHERE pj.processing_record_id = pr.id AND pj.status = 'queued' AND pj.scheduled_for <= now()
@@ -141,6 +146,16 @@ async function listActivePrintJobs(processingRecordId = null, client = null) {
     params,
   );
 
+  return result.rows.map(mapPrintJob);
+}
+
+async function listPrintJobsForRecord(processingRecordId, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `SELECT * FROM ${tables.printJobs} WHERE processing_record_id = $1 ORDER BY created_at ASC`,
+    [processingRecordId],
+  );
   return result.rows.map(mapPrintJob);
 }
 
@@ -371,6 +386,7 @@ module.exports = {
   getAttemptPreview,
   getPrintJobById,
   listActivePrintJobs,
+  listPrintJobsForRecord,
   listPrintQueueCandidates,
   mapPrintJob,
   requeueStaleJobs,

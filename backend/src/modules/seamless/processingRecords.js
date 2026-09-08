@@ -134,6 +134,16 @@ async function listProcessingRecords(filters = {}, client = null) {
     where.push(`report_type = $${params.length}`);
   }
 
+  if (normalizeString(filters.source)) {
+    params.push(normalizeString(filters.source));
+    where.push(`metadata->>'source' = $${params.length}`);
+  }
+
+  if (normalizeString(filters.documentType)) {
+    params.push(normalizeString(filters.documentType));
+    where.push(`metadata->>'documentType' = $${params.length}`);
+  }
+
   const reportDateKey = normalizeReportDateKey(filters.reportDate);
   if (reportDateKey) {
     params.push(reportDateKey);
@@ -162,8 +172,9 @@ async function listProcessingRecords(filters = {}, client = null) {
   // PharmCare-sourced records) must still find them; only the general/browsing list needs the
   // filter. See docs/22-pharmcare-print-integration-spec.md.
   const whereClauses = [...where.map((clause) => `pr.${clause}`)];
-  if (!normalizeString(filters.id)) {
+  if (!normalizeString(filters.id) && !normalizeString(filters.source)) {
     whereClauses.push(`pr.metadata->>'source' IS DISTINCT FROM 'pharmcare'`);
+    whereClauses.push(`pr.metadata->>'source' IS DISTINCT FROM 'expense_receipt'`);
   }
 
   const result = await db.query(

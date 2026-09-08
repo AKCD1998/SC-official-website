@@ -91,6 +91,21 @@ async function getGeneratedFileById(id, client = null) {
   return mapGeneratedFile(result.rows[0]);
 }
 
+async function listGeneratedFilesByProcessingRecordId(processingRecordId, client = null) {
+  const db = executor(client);
+  const tables = getTables();
+  const result = await db.query(
+    `
+      SELECT * FROM ${tables.generatedFiles}
+      WHERE processing_record_id = $1
+        AND deleted_at IS NULL
+      ORDER BY created_at ASC
+    `,
+    [processingRecordId],
+  );
+  return result.rows.map(mapGeneratedFile);
+}
+
 // Records imported from the legacy ProcessingRegistry (most of the historical data set) never
 // had metadata.outputFileId populated — that field is only set by the real upload->process
 // pipeline. Falls back to the processing_record_id FK, preferring processed_xlsx (the intended
@@ -270,6 +285,7 @@ module.exports = {
   findSourceUploadByProcessingRecordId,
   findSourceUploadByChecksum,
   getGeneratedFileById,
+  listGeneratedFilesByProcessingRecordId,
   mapGeneratedFile,
   updateGeneratedFile,
 };

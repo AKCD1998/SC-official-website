@@ -1,4 +1,5 @@
 const { readLineConfig } = require("../config");
+const { buildExpenseReceiptPrintCompletionMessage } = require("./expenseReceiptNotificationService");
 
 function formatReportDateKey(reportDateKey) {
   const match = /^(\d{4})(\d{2})(\d{2})$/.exec(reportDateKey || "");
@@ -273,7 +274,7 @@ function buildAltText(job, record) {
   return `${prefix} ${record.filename} — ${status}`;
 }
 
-async function sendPrintNotification(job, record) {
+async function sendLineMessage(message) {
   const lineConfig = readLineConfig();
 
   if (!lineConfig.channelAccessToken || !lineConfig.targetId) {
@@ -291,13 +292,7 @@ async function sendPrintNotification(job, record) {
     },
     body: JSON.stringify({
       to: lineConfig.targetId,
-      messages: [
-        {
-          type: "flex",
-          altText: buildAltText(job, record),
-          contents: buildFlexContents(job, record),
-        },
-      ],
+      messages: [message],
     }),
   });
 
@@ -307,6 +302,17 @@ async function sendPrintNotification(job, record) {
   }
 
   return { skipped: false };
+}
+
+async function sendPrintNotification(job, record) {
+  const message = record.metadata?.source === "expense_receipt"
+    ? buildExpenseReceiptPrintCompletionMessage(job, record)
+    : {
+        type: "flex",
+        altText: buildAltText(job, record),
+        contents: buildFlexContents(job, record),
+      };
+  return sendLineMessage(message);
 }
 
 // Generic plain-text alert, reusing the same LINE config/target as print notifications — used
@@ -342,4 +348,4 @@ async function sendTextAlert(text) {
   return { skipped: false };
 }
 
-module.exports = { sendPrintNotification, sendTextAlert };
+module.exports = { sendLineMessage, sendPrintNotification, sendTextAlert };

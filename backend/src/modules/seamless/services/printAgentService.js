@@ -2,6 +2,7 @@ const pool = require("../../../../db");
 const printJobRepository = require("../db/printJobRepository");
 const processingRecords = require("../processingRecords");
 const generatedFileRepository = require("../db/generatedFileRepository");
+const { logOperation } = require("../db/operationLogRepository");
 const { sendPrintNotification } = require("./lineNotifyService");
 const { sendGeneratedFileEmail } = require("./emailService");
 const { readStoredFile } = require("./fileStorageService");
@@ -106,6 +107,14 @@ async function createAgentPrintJob(body = {}) {
       return claimed;
     }
 
+    // Final approval creates the queued job for an expense receipt. Without that exact row the
+    // agent must not fall through to its legacy create-on-demand behavior.
+    if (record.metadata?.source === "expense_receipt") {
+      throw conflict("This expense receipt has no approved print job to claim.", {
+        code: "EXPENSE_RECEIPT_APPROVAL_REQUIRED",
+      });
+    }
+
     // Nothing unclaimed to claim — if a concurrent caller serialized just ahead of us already
     // claimed/created an active job for this exact record, WE are the loser of the race. We
     // must not return that job as if it were ours: every caller returning 201 with "the same
@@ -190,12 +199,23 @@ async function sendPrintEmailNotification(job, record) {
   // Seamless mail apart at a glance in an inbox list (no HTML template exists for either today,
   // see docs/22-pharmcare-print-integration-spec.md for why that's out of scope here).
   const isPharmcare = record.metadata?.source === "pharmcare";
-  const subjectPrefix = isPharmcare ? "[PharmCare]" : "[ClaspSCxSeamless]";
+  const isExpenseReceipt = record.metadata?.source === "expense_receipt";
+  const subjectPrefix = isExpenseReceipt
+    ? "[ใบสำคัญรับเงิน]"
+    : isPharmcare
+      ? "[PharmCare]"
+      : "[ClaspSCxSeamless]";
+  const subject = isExpenseReceipt
+    ? `${subjectPrefix} พิมพ์ที่สำนักงานใหญ่แล้ว: ${record.filename}`
+    : `${subjectPrefix} ปริ้นเอกสารส่งพี่เอแล้ว: ${record.filename}`;
+  const text = isExpenseReceipt
+    ? `ใบสำคัญรับเงิน ${record.metadata?.trackingCode || record.filename} พิมพ์ที่สำนักงานใหญ่สำเร็จด้วยเครื่อง ${job.agentHost || "-"} (${job.printerName || "-"})`
+    : `ไฟล์ ${record.filename} ปริ้นเสร็จแล้วที่เครื่อง ${job.agentHost || "-"} (${job.printerName || "-"})`;
 
   await sendGeneratedFileEmail({
     to: emailConfig.docsRecipientEmail,
-    subject: `${subjectPrefix} ปริ้นเอกสารส่งพี่เอแล้ว: ${record.filename}`,
-    text: `ไฟล์ ${record.filename} ปริ้นเสร็จแล้วที่เครื่อง ${job.agentHost || "-"} (${job.printerName || "-"})`,
+    subject,
+    text,
     filename: generatedFile.filename,
     mimeType: generatedFile.mimeType,
     buffer,
@@ -210,7 +230,22 @@ async function completeAgentPrintJob(id) {
     completedAt: new Date().toISOString(),
   });
   const record = await processingRecords.markPrinted(job.processingRecordId, "auto-print-agent");
-  const notifyRecord = record.record || record;
+  let notifyRecord = record.record || record;
+  if (notifyRecord.metadata?.source === "expense_receipt") {
+    notifyRecord = await processingRecords.updateProcessingRecord(notifyRecord.id, {
+      lastAction: "expense_receipt_printed",
+      metadata: {
+        ...notifyRecord.metadata,
+        workflowStatus: "printed",
+        printCompletion: {
+          completedAt: job.completedAt,
+          printJobId: job.id,
+          printerName: job.printerName || "",
+          agentHost: job.agentHost || "",
+        },
+      },
+    });
+  }
 
   let lineResult;
   try {
@@ -242,6 +277,25 @@ async function completeAgentPrintJob(id) {
       : { emailNotifiedAt: new Date().toISOString() }),
   };
   const finalJob = await printJobRepository.updatePrintJob(id, notifyPatch);
+
+  if (notifyRecord.metadata?.source === "expense_receipt") {
+    await logOperation({
+      scope: "expense_receipt",
+      level: lineResult.skipped || emailResult.skipped ? "WARN" : "INFO",
+      action: "expense_receipt_printed",
+      message: `Printed expense receipt ${notifyRecord.metadata.trackingCode || notifyRecord.filename}.`,
+      actor: "auto-print-agent",
+      processingRecordId: notifyRecord.id,
+      generatedFileId: finalJob.generatedFileId || null,
+      metadata: {
+        printJobId: finalJob.id,
+        printerName: finalJob.printerName,
+        agentHost: finalJob.agentHost,
+        lineNotification: lineResult,
+        emailNotification: emailResult,
+      },
+    });
+  }
 
   return {
     ok: true,

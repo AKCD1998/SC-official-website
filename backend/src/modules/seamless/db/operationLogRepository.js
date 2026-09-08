@@ -51,4 +51,30 @@ async function logOperation(entry, client = null) {
   }
 }
 
-module.exports = { logOperation };
+async function listOperationLogsForRecord(processingRecordId, limit = 100, client = null) {
+  const executor = client || pool;
+  const tables = getTables();
+  const safeLimit = Math.min(Math.max(Number(limit) || 100, 1), 500);
+  const result = await executor.query(
+    `
+      SELECT id, scope, level, action, message, metadata, actor, created_at
+      FROM ${tables.operationLogs}
+      WHERE processing_record_id = $1
+      ORDER BY created_at ASC
+      LIMIT $2
+    `,
+    [processingRecordId, safeLimit],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    scope: row.scope,
+    level: row.level,
+    action: row.action,
+    message: row.message || "",
+    metadata: row.metadata || {},
+    actor: row.actor || "",
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+  }));
+}
+
+module.exports = { listOperationLogsForRecord, logOperation };

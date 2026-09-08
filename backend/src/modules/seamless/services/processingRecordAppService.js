@@ -1,6 +1,7 @@
 const pool = require("../../../../db");
 const processingRecords = require("../processingRecords");
 const printJobRepository = require("../db/printJobRepository");
+const { conflict } = require("../errors");
 const { normalizeString } = require("../validators");
 
 async function listProcessingRecords(filters = {}) {
@@ -23,6 +24,14 @@ async function requestPrint(id, options = {}) {
 
   try {
     await client.query("BEGIN");
+
+    const currentRecord = await processingRecords.getProcessingRecordById(id, client);
+    if (currentRecord.metadata?.source === "expense_receipt") {
+      throw conflict(
+        "Expense receipts require the dedicated final-approval endpoint before printing.",
+        { code: "EXPENSE_RECEIPT_APPROVAL_REQUIRED" },
+      );
+    }
 
     const record = await processingRecords.updateProcessingRecord(
       id,
