@@ -468,10 +468,10 @@ test("sales summary query uses inclusive Bangkok dates and excludes cancelled or
 
   expect(orders).toHaveLength(1);
   const [sql, params] = pool.query.mock.calls[0];
-  expect(sql).toContain("o.shop_code = ANY($1::text[])");
+  expect(sql).toContain("COALESCE(f.shop_code, o.shop_code) = ANY($1::text[])");
   expect(sql).toContain("AT TIME ZONE 'Asia/Bangkok'");
-  expect(sql).toContain("o.current_status IN ('order_confirmed', 'shipment_due')");
-  expect(sql).toContain("jsonb_array_length(o.items) > 0");
+  expect(sql).toContain("o.current_status IN ('order_cancelled', 'seller_return_delivery')");
+  expect(sql).toContain("FULL OUTER JOIN latest_facts");
   expect(params).toEqual([
     ["sc-drug-store", "dr-morepen"],
     "2026-08-24",

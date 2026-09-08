@@ -15,6 +15,7 @@ const {
   summarizeShopeeProductMatches,
 } = require("../services/shopeeProductMatcher");
 const { getTables } = require("../tables");
+const { resolveSalesOrders } = require("../services/shopeeSalesAccounting");
 const {
   ALL_FINANCIAL_VISIBILITY,
   normalizeUserFinancialVisibility,
@@ -200,6 +201,7 @@ function mapOrder(row) {
     firstEventAt: toIso(row.first_event_at),
     itemCount: Number(row.item_count || 0),
     itemSubtotal: storedItemSubtotal ?? deriveItemSubtotal(items),
+    ...(row.sales_source ? { salesSource: row.sales_source } : {}),
     items,
     lastEventAt: toIso(row.last_event_at),
     orderedAt: toIso(row.ordered_at),
@@ -561,19 +563,47 @@ async function listOrdersForSalesSummary({
 
   const result = await pool.query(
     `
-      SELECT o.*, 0::bigint AS event_count
+      WITH latest_facts AS (
+        SELECT DISTINCT ON (f.shop_code, f.order_number) f.*,
+          s.observed_at, s.source_filename
+        FROM ${tables.shopeeSalesOrderFacts} f
+        JOIN ${tables.shopeeSalesSources} s USING (shop_code, source_sha256)
+        WHERE ${isAllShops ? "f.shop_code = ANY($1::text[])" : "f.shop_code = $1"}
+        ORDER BY f.shop_code, f.order_number, s.observed_at DESC, f.source_sha256 ASC
+      )
+      SELECT o.*, 0::bigint AS event_count,
+        COALESCE(f.shop_code, o.shop_code) AS shop_code,
+        COALESCE(f.order_number, o.order_number) AS order_number,
+        COALESCE(f.ordered_at, o.ordered_at) AS ordered_at,
+        CASE WHEN jsonb_array_length(o.items) > 0 THEN o.items ELSE f.items END AS items,
+        jsonb_array_length(CASE WHEN jsonb_array_length(o.items) > 0 THEN o.items ELSE f.items END) AS item_count,
+        COALESCE(f.item_subtotal, o.item_subtotal) AS item_subtotal,
+        CASE WHEN o.current_status IN ('order_cancelled', 'seller_return_delivery')
+          THEN o.current_status
+          WHEN f.excluded THEN 'order_cancelled'
+          ELSE COALESCE(o.current_status, 'shipment_due') END AS current_status,
+        CASE WHEN f.order_number IS NULL THEN NULL ELSE jsonb_build_object(
+          'excluded', f.excluded, 'status', f.status,
+          'itemSubtotal', f.item_subtotal, 'sellerVoucher', f.seller_voucher,
+          'shopeeProductDiscount', f.shopee_product_discount,
+          'sourceFilename', f.source_filename, 'sourceSha256', f.source_sha256,
+          'observedAt', f.observed_at,
+          'itemQuantityMismatch', jsonb_array_length(o.items) > 0 AND
+            (SELECT SUM((item->>'quantity')::numeric) FROM jsonb_array_elements(o.items) item) IS DISTINCT FROM
+            (SELECT SUM((item->>'quantity')::numeric) FROM jsonb_array_elements(f.items) item)
+        ) END AS sales_source
       FROM ${tables.shopeeOrders} o
-      WHERE ${isAllShops ? "o.shop_code = ANY($1::text[])" : "o.shop_code = $1"}
-        AND o.ordered_at >= ($2::date::timestamp AT TIME ZONE 'Asia/Bangkok')
-        AND o.ordered_at < (($3::date::timestamp + INTERVAL '1 day') AT TIME ZONE 'Asia/Bangkok')
-        AND o.current_status IN ('order_confirmed', 'shipment_due')
-        AND jsonb_array_length(o.items) > 0
-      ORDER BY o.ordered_at DESC, o.shop_code ASC, o.order_number ASC
+      FULL OUTER JOIN latest_facts f ON f.shop_code = o.shop_code AND f.order_number = o.order_number
+      WHERE ${isAllShops ? "COALESCE(f.shop_code, o.shop_code) = ANY($1::text[])" : "COALESCE(f.shop_code, o.shop_code) = $1"}
+        AND COALESCE(f.ordered_at, o.ordered_at) >= ($2::date::timestamp AT TIME ZONE 'Asia/Bangkok')
+        AND COALESCE(f.ordered_at, o.ordered_at) < (($3::date::timestamp + INTERVAL '1 day') AT TIME ZONE 'Asia/Bangkok')
+      ORDER BY COALESCE(f.ordered_at, o.ordered_at) DESC,
+        COALESCE(f.shop_code, o.shop_code) ASC, COALESCE(f.order_number, o.order_number) ASC
     `,
     [shopScope, startDate, endDate],
   );
 
-  return result.rows.map(mapOrder);
+  return resolveSalesOrders(result.rows.map(mapOrder));
 }
 
 async function getInboxOperationsOverview({ date, shopCode: shopCodeValue } = {}) {

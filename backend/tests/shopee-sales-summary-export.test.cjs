@@ -301,7 +301,7 @@ test("writes the exact automation columns and a separate review worksheet", asyn
 
   expect(readyRowCount).toBe(1);
   expect(reviewRowCount).toBe(1);
-  expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(["พร้อมคีย์", "ต้องตรวจสอบ"]);
+  expect(workbook.worksheets.map((sheet) => sheet.name)).toEqual(["พร้อมคีย์", "ต้องตรวจสอบ", "ยอดขายรายออเดอร์"]);
   expect(workbook.getWorksheet("พร้อมคีย์").getRow(1).values.slice(1)).toEqual([
     "วันที่ เวลา",
     "เลขออเดอร์",
@@ -319,6 +319,8 @@ test("writes the exact automation columns and a separate review worksheet", asyn
     .toBe("@");
   expect(workbook.getWorksheet("ต้องตรวจสอบ").getCell("H1").value)
     .toBe("เหตุผลที่ต้องตรวจสอบ");
+  expect(workbook.getWorksheet('ยอดขายรายออเดอร์').getCell('G2').value).toBe(null);
+  expect(workbook.getWorksheet('ยอดขายรายออเดอร์').getCell('H2').value).toBe('ขาดยอดเงิน ห้ามสรุปยอดรวม');
 });
 
 test("formats Bangkok wall-clock timestamps and deterministic filenames", () => {
@@ -329,4 +331,31 @@ test("formats Bangkok wall-clock timestamps and deterministic filenames", () => 
     shopCode: "sc-drug-store",
     startDate: "2026-09-01",
   })).toBe("shopee-sales-sc-drug-store-2026-09-01-to-2026-09-03.xlsx");
+});
+
+test('keeps money once per order in a separate ledger and excludes raw cancellations from all sheets', async () => {
+  const item = { name: 'สินค้า', quantity: 2, variant: 'กล่อง', productMatch: { status: 'matched', companySku: 'IC-003493' } };
+  const order = { ...BASE_ORDER, itemSubtotal: 100, items: [item, { ...item, name: 'สินค้าอื่น' }],
+    salesSource: { excluded: false, itemSubtotal: 100, sellerVoucher: 10, shopeeProductDiscount: 5 } };
+  const { buffer } = await buildShopeeSalesExportWorkbook([order, order,
+    { ...order, orderNumber: '260808CANCEL01', salesSource: { ...order.salesSource, excluded: true } }]);
+  const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(buffer);
+  const ledger = workbook.getWorksheet('ยอดขายรายออเดอร์');
+  expect(ledger.rowCount).toBe(2);
+  expect(ledger.getCell('G2').value).toBe(95);
+  expect(workbook.getWorksheet('พร้อมคีย์').rowCount).toBe(3);
+  expect(workbook.getWorksheet('พร้อมคีย์').columnCount).toBe(7);
+  workbook.worksheets.forEach((sheet) => {
+    expect(sheet.pageSetup).toMatchObject({ paperSize: 9, orientation: 'landscape', fitToWidth: 1, fitToHeight: 0 });
+  });
+});
+
+test('routes raw/email quantity disagreements to review instead of automatic SKU rows', () => {
+  const result = buildShopeeSalesExportRows([{ ...BASE_ORDER,
+    salesSource: { excluded: false, itemSubtotal: 100, sellerVoucher: 0, shopeeProductDiscount: 0, itemQuantityMismatch: true },
+    items: [{ name: 'สินค้า', quantity: 1, productMatch: { status: 'matched', companySku: 'IC-003493' } }],
+  }]);
+  expect(result.readyRows).toEqual([]);
+  expect(result.reviewRows).toHaveLength(1);
+  expect(result.reviewRows[0].reason).toContain('จำนวนสินค้าในอีเมลไม่ตรง');
 });

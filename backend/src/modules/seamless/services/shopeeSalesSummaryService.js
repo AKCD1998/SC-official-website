@@ -1,5 +1,6 @@
 const repository = require("../db/shopeeOrderRepository");
 const { getVerifiedUnitsPerSale } = require("./shopeeProductMatcher");
+const { resolveSalesOrders, summarizeSalesAccounting } = require("./shopeeSalesAccounting");
 
 function normalizeProductText(value) {
   return String(value || "")
@@ -49,11 +50,12 @@ function resolveSalesQuantity(item) {
 }
 
 function summarizeSalesByProduct(orders = []) {
+  const salesOrders = resolveSalesOrders(orders);
   const productsByKey = new Map();
   const contributingOrders = new Set();
   let totalQuantity = 0;
 
-  orders.forEach((order) => {
+  salesOrders.forEach((order) => {
     const itemSubtotal = normalizeItemSubtotal(order.itemSubtotal);
     (order.items || []).forEach((item) => {
       const quantityResolution = resolveSalesQuantity(item);
@@ -145,6 +147,7 @@ function summarizeSalesByProduct(orders = []) {
     .map((product, index) => ({ id: String(index + 1), ...product }));
 
   return {
+    accounting: summarizeSalesAccounting(salesOrders),
     orderCount: contributingOrders.size,
     productCount: products.length,
     products,
@@ -152,9 +155,14 @@ function summarizeSalesByProduct(orders = []) {
   };
 }
 
-async function getShopeeSalesSummary({ endDate, shopCode, startDate }) {
+async function getShopeeSalesSummary({ endDate, shopCode, startDate, includeConfirmed = false }) {
   const orders = await repository.listOrdersForSalesSummary({ endDate, shopCode, startDate });
-  return summarizeSalesByProduct(orders);
+  const summary = summarizeSalesByProduct(orders);
+  if (includeConfirmed) {
+    const { getConfirmedSalesSummary } = require('./shopeeConfirmedSalesService');
+    summary.confirmedSales = await getConfirmedSalesSummary({ endDate, shopCode, startDate });
+  }
+  return summary;
 }
 
 module.exports = {

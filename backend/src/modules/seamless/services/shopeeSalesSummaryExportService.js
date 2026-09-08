@@ -7,6 +7,7 @@ const {
 const {
   getPrimaryBarcode,
 } = require("./shopeePrimaryBarcodeRegistry");
+const { resolveSalesOrders, summarizeSalesAccounting } = require('./shopeeSalesAccounting');
 
 const XLSX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -208,8 +209,12 @@ function aggregateRows(rows) {
 function buildShopeeSalesExportRows(orders = []) {
   const readyRows = [];
   const reviewRows = [];
-  orders.forEach((order) => {
+  resolveSalesOrders(orders).forEach((order) => {
     (Array.isArray(order?.items) ? order.items : []).forEach((item) => {
+      if (order.salesSource?.itemQuantityMismatch) {
+        reviewRows.push(buildReviewRow(order, item, 'จำนวนสินค้าในอีเมลไม่ตรงกับไฟล์คำสั่งซื้อ ต้องตรวจสอบก่อนคีย์'));
+        return;
+      }
       const itemRows = rowsForOrderItem(order, item);
       readyRows.push(...itemRows.readyRows);
       reviewRows.push(...itemRows.reviewRows);
@@ -259,7 +264,58 @@ function addWorksheet(workbook, name, rows, { review = false } = {}) {
   return worksheet;
 }
 
-async function buildShopeeSalesExportWorkbook(orders = []) {
+function addConfirmedWorksheet(workbook, confirmed) {
+  const sheet = workbook.addWorksheet('ยอดขายยืนยันแล้ว');
+  sheet.columns = [
+    { header: 'ร้าน', key: 'shopCode', width: 17 },
+    { header: 'ช่วงวันที่ในรายงานยืนยันแล้ว', key: 'period', width: 27 },
+    { header: 'ยอดขายยืนยันแล้ว ก่อนหักยกเลิก (บาท)', key: 'salesTotal', width: 20 },
+    { header: 'ออเดอร์ยืนยันแล้ว', key: 'orderCount', width: 13 },
+    { header: 'ยอดยกเลิกในกลุ่มยืนยันแล้ว (บาท)', key: 'cancelledSales', width: 18 },
+    { header: 'ยอดหลังหักยกเลิก (บาท)', key: 'salesAfterCancellation', width: 18 },
+    { header: 'ความครบถ้วนของรายงาน', key: 'coverage', width: 26 },
+  ];
+  for (const shop of confirmed.shops) sheet.addRow({ ...shop,
+    shopCode: shop.shopCode === 'sc-drug-store' ? 'SC Drug Store' : 'DR.Morepen',
+    period: `${confirmed.startDate} ถึง ${confirmed.endDate}`,
+    coverage: shop.status === 'source_backed' ? `ครบ ${shop.coveredDays} วัน` : `ยังสรุปไม่ได้ ขาด ${shop.missingDays.length} วัน`,
+  });
+  sheet.addRow([]);
+  const note = sheet.addRow(['ยอดหลักจากชีต “ยืนยันแล้ว” ของ Shopee ก่อนหักยกเลิก ไม่ใช่ยอดรับเงิน Income หรือยอดจากชีตรายออเดอร์']);
+  sheet.mergeCells(note.number, 1, note.number, 7); note.height = 32;
+  const note2 = sheet.addRow(['รายละเอียดสินค้าและยอดขายรายออเดอร์ใช้วันที่สร้างออเดอร์และตัดยกเลิก/พัสดุตีกลับ จึงเป็นคนละเกณฑ์ ห้ามนำมาแทนยอดยืนยันแล้ว']);
+  sheet.mergeCells(note2.number, 1, note2.number, 7); note2.height = 32;
+  sheet.getRow(1).height = 42;
+  sheet.getRow(1).font = { bold: true };
+  sheet.views = [{ state: 'frozen', ySplit: 1 }];
+  sheet.eachRow(row => { row.alignment = { vertical: 'middle', wrapText: true }; });
+  [3, 5].forEach(index => { sheet.getColumn(index).numFmt = '#,##0.00'; });
+  for (let row = 2; row <= confirmed.shops.length + 1; row += 1) sheet.getCell(row, 6).numFmt = '#,##0.00';
+  // Daily evidence is a separate sheet: summing a money column must not count
+  // both monthly summary and daily detail a second time.
+  const daily = workbook.addWorksheet('ยืนยันแล้วรายวัน');
+  daily.columns = [
+    { header: 'ร้าน', width: 17 }, { header: 'วันที่ในรายงานยืนยันแล้ว', width: 15 },
+    { header: 'ยอดขายยืนยันแล้ว (บาท)', width: 17 }, { header: 'ออเดอร์ยืนยันแล้ว', width: 12 },
+    { header: 'ยอดยกเลิก (บาท)', width: 16 }, { header: 'ยอดคืนเงิน/คืนสินค้า (บาท)', width: 17 },
+    { header: 'ไฟล์ต้นทาง', width: 38 }, { header: 'แถวในชีตยืนยันแล้ว', width: 12 },
+  ];
+  for (const day of confirmed.daily) daily.addRow([
+    day.shopCode === 'sc-drug-store' ? 'SC Drug Store' : 'DR.Morepen', day.date,
+    day.salesTotal, day.orderCount, day.cancelledSales, day.returnedSales, day.sourceFilename, day.sourceRow,
+  ]);
+  // Missing dates are explicit evidence, not manufactured zero-sales daily rows.
+  for (const missing of confirmed.missingDays) daily.addRow([
+    missing.shopCode === 'sc-drug-store' ? 'SC Drug Store' : 'DR.Morepen', missing.date, null, null, null, null, 'ขาดรายงานยืนยันแล้ว', null,
+  ]);
+  daily.getRow(1).height = 42;
+  daily.getRow(1).font = { bold: true };
+  daily.views = [{ state: 'frozen', ySplit: 1 }];
+  [3, 5, 6].forEach(index => { daily.getColumn(index).numFmt = '#,##0.00'; });
+  daily.eachRow(row => { row.alignment = { vertical: 'middle', wrapText: true }; });
+}
+
+async function buildShopeeSalesExportWorkbook(orders = [], { includeAccounting = true, confirmedSales = null } = {}) {
   // Keep the relatively heavy XLSX dependency off the normal JSON summary request path.
   // eslint-disable-next-line global-require
   const ExcelJS = require("exceljs");
@@ -268,8 +324,44 @@ async function buildShopeeSalesExportWorkbook(orders = []) {
   workbook.creator = "SC Drug Store";
   workbook.created = new Date();
   workbook.modified = new Date();
+  if (includeAccounting && confirmedSales) addConfirmedWorksheet(workbook, confirmedSales);
   addWorksheet(workbook, "พร้อมคีย์", readyRows);
   if (reviewRows.length) addWorksheet(workbook, "ต้องตรวจสอบ", reviewRows, { review: true });
+  // One row per shop + order. Never put whole-order money in the SKU sheets,
+  // where multi-product and bundle rows would duplicate it.
+  if (includeAccounting) {
+  const accounting = summarizeSalesAccounting(orders);
+  const ledger = workbook.addWorksheet('ยอดขายรายออเดอร์');
+  ledger.columns = [
+    { header: 'ร้าน', key: 'shopCode', width: 18 },
+    { header: 'วันที่สั่งซื้อ (เวลาไทย)', key: 'orderedAt', width: 22 },
+    { header: 'เลขออเดอร์', key: 'orderNumber', width: 21 },
+    { header: 'ค่าสินค้าก่อนปรับส่วนลด (บาท)', key: 'grossSubtotal', width: 18 },
+    { header: 'โค้ดส่วนลดผู้ขาย (หัก)', key: 'sellerVoucher', width: 16 },
+    { header: 'ส่วนลดจาก Shopee (บวกกลับ)', key: 'shopeeProductDiscount', width: 17 },
+    { header: 'ยอดหลังตัดยกเลิก/ตีกลับ ไม่ใช่ยอดยืนยันแล้ว (บาท)', key: 'salesAmount', width: 25 },
+    { header: 'หลักฐานยอดเงิน', key: 'basisLabel', width: 29 },
+  ];
+  accounting.orders.forEach((order) => ledger.addRow({ ...order,
+    shopCode: order.shopCode === 'sc-drug-store' ? 'SC Drug Store' : 'DR.Morepen',
+    orderedAt: toBangkokExcelDate(order.orderedAt),
+    basisLabel: order.salesAmount === null ? 'ขาดยอดเงิน ห้ามสรุปยอดรวม'
+      : order.basis === 'all_orders' ? 'ไฟล์คำสั่งซื้อ' : 'ประมาณการจากอีเมล ยังไม่ยืนยันส่วนลด',
+  }));
+  ledger.getColumn('orderedAt').numFmt = 'yyyy-mm-dd hh:mm:ss';
+  ledger.getColumn('orderNumber').numFmt = '@';
+  ['grossSubtotal', 'sellerVoucher', 'shopeeProductDiscount', 'salesAmount'].forEach((key) => {
+    ledger.getColumn(key).numFmt = '#,##0.00';
+  });
+  ledger.views = [{ state: 'frozen', ySplit: 1 }];
+  ledger.getRow(1).height = 32;
+  ledger.getRow(1).font = { bold: true };
+  ledger.eachRow((row) => { row.alignment = { vertical: 'middle', wrapText: true }; });
+  }
+  workbook.worksheets.forEach((sheet) => {
+    sheet.pageSetup = { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+      printTitlesRow: '1:1', margins: { left: 0.25, right: 0.25, top: 0.3, bottom: 0.3, header: 0.15, footer: 0.15 } };
+  });
   return {
     buffer: Buffer.from(await workbook.xlsx.writeBuffer()),
     readyRowCount: readyRows.length,
@@ -282,13 +374,15 @@ function buildShopeeSalesExportFilename({ endDate, shopCode, startDate }) {
   return `shopee-sales-${shopSegment}-${startDate}-to-${endDate}.xlsx`;
 }
 
-async function exportShopeeSalesSummary({ endDate, shopCode, startDate }) {
+async function exportShopeeSalesSummary({ endDate, shopCode, startDate, includeAccounting = false }) {
   // Lazy loading also lets pure export-row tests run without initializing the production DB.
   // eslint-disable-next-line global-require
   const repository = require("../db/shopeeOrderRepository");
   const orders = await repository.listOrdersForSalesSummary({ endDate, shopCode, startDate });
+  const confirmedSales = includeAccounting
+    ? await require('./shopeeConfirmedSalesService').getConfirmedSalesSummary({ endDate, shopCode, startDate }) : null;
   return {
-    ...await buildShopeeSalesExportWorkbook(orders),
+    ...await buildShopeeSalesExportWorkbook(orders, { includeAccounting, confirmedSales }),
     filename: buildShopeeSalesExportFilename({ endDate, shopCode, startDate }),
     mimeType: XLSX_MIME_TYPE,
   };

@@ -202,9 +202,14 @@ function parseSalesSummaryFilters(query = {}) {
 async function listSalesSummary(req, res) {
   const { endDate, shopCode, startDate } = parseSalesSummaryFilters(req.query);
 
-  const summary = await getShopeeSalesSummary({ endDate, shopCode, startDate });
+  const summary = await getShopeeSalesSummary({ endDate, shopCode, startDate, includeConfirmed: req.appRole === 'admin' });
+  // Discount components are a new financial surface, not covered by the legacy
+  // item-subtotal visibility setting. Keep them admin-only until a dedicated
+  // permission is defined. Existing product/subtotal views remain unchanged.
+  const { accounting, confirmedSales, ...productSummary } = summary;
   res.json({
-    ...summary,
+    ...productSummary,
+    ...(req.appRole === 'admin' ? { accounting, confirmedSales } : {}),
     endDate,
     excludedStatuses: ["order_cancelled", "seller_return_delivery"],
     shopCode,
@@ -215,7 +220,7 @@ async function listSalesSummary(req, res) {
 
 async function exportSalesSummary(req, res) {
   const filters = parseSalesSummaryFilters(req.query);
-  const exported = await exportShopeeSalesSummary(filters);
+  const exported = await exportShopeeSalesSummary({ ...filters, includeAccounting: req.appRole === 'admin' });
   res.set("Cache-Control", "no-store");
   res.setHeader("Content-Type", exported.mimeType);
   res.setHeader("Content-Disposition", `attachment; filename="${exported.filename}"`);

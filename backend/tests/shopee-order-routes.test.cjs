@@ -27,6 +27,10 @@ const orderRow = {
 
 const listOrdersMock = jest.fn(async () => ({ hasMore: true, orders: [orderRow], totalCount: 51 }));
 const listOrdersForSalesSummaryMock = jest.fn(async () => [orderRow]);
+const listConfirmedSalesDaysMock = jest.fn(async () => []);
+jest.mock('../src/modules/seamless/db/shopeeConfirmedSalesRepository', () => ({
+  listConfirmedSalesDays: (...args) => listConfirmedSalesDaysMock(...args),
+}));
 const getInboxOperationsOverviewMock = jest.fn(async () => ({
   cancelledToday: 2,
   confirmedCodToday: 3,
@@ -489,6 +493,35 @@ test("downloads the selected sales-summary range as an Excel workbook", async ()
     shopCode: "sc-drug-store",
     startDate: "2026-08-24",
   });
+});
+
+test('restricts new order-money JSON and ledger export to administrators', async () => {
+  process.env.SEAMLESS_APP_BASIC_USER = 'accounting-user';
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = 'local-test-password';
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = 'finance-admin';
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = 'local-test-admin-password';
+  const query = '?shopCode=sc-drug-store&startDate=2026-08-24&endDate=2026-08-25';
+  const app = buildApp();
+  const userJson = await request(app).get(`/api/app/shopee/orders/sales-summary${query}`)
+    .auth('accounting-user', 'local-test-password');
+  expect(userJson.status).toBe(200);
+  expect(userJson.body).not.toHaveProperty('accounting');
+  expect(userJson.body).not.toHaveProperty('confirmedSales');
+  const adminJson = await request(app).get(`/api/app/shopee/orders/sales-summary${query}`)
+    .auth('finance-admin', 'local-test-admin-password');
+  expect(adminJson.status).toBe(200);
+  expect(adminJson.body.accounting).toMatchObject({ calculatedSalesTotal: 70, status: 'provisional' });
+  expect(adminJson.body.confirmedSales).toMatchObject({ salesTotal: null, status: 'incomplete', metric: 'shopee_confirmed_gross_sales' });
+  for (const [user, password, allowed] of [
+    ['accounting-user', 'local-test-password', false], ['finance-admin', 'local-test-admin-password', true],
+  ]) {
+    const response = await request(app).get(`/api/app/shopee/orders/sales-summary/export${query}`)
+      .auth(user, password).buffer(true).parse(parseBinaryResponse);
+    expect(response.status).toBe(200);
+    const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(response.body);
+    expect(Boolean(workbook.getWorksheet('ยอดขายรายออเดอร์'))).toBe(allowed);
+    expect(workbook.getWorksheet('พร้อมคีย์').columnCount).toBe(7);
+  }
 });
 
 test.each([

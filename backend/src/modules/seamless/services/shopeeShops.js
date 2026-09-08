@@ -5,11 +5,13 @@ const SHOPEE_SHOP_PROFILES = Object.freeze({
     code: "sc-drug-store",
     displayName: "SC Drug Store",
     outputSlug: "sc-drug-store",
+    statisticsUsername: "142wuxqhgi",
   }),
   "dr-morepen": Object.freeze({
     code: "dr-morepen",
     displayName: "DR.Morepen",
     outputSlug: "dr-morepen",
+    statisticsUsername: "mu3f314od9",
   }),
 });
 
