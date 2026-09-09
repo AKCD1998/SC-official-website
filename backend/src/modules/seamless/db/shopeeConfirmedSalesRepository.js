@@ -61,10 +61,11 @@ async function listConfirmedSalesDays({ shopCode, startDate, endDate }) {
     WHERE ($1::text = 'all' OR f.shop_code = $1) AND f.report_date BETWEEN $2::date AND $3::date
     ORDER BY f.shop_code, f.report_date, s.observed_at DESC, s.source_sha256 DESC
   `, [scope, startDate, endDate]);
+  const numberOrNull = value => value == null ? null : Number(value);
   return result.rows.map(row => ({ shopCode: row.shop_code, date: row.report_date,
     salesTotal: Number(row.sales_total), orderCount: Number(row.order_count),
-    cancelledSales: Number(row.cancelled_sales), cancelledOrderCount: Number(row.cancelled_order_count),
-    returnedSales: Number(row.returned_sales), returnedOrderCount: Number(row.returned_order_count),
+    cancelledSales: numberOrNull(row.cancelled_sales), cancelledOrderCount: numberOrNull(row.cancelled_order_count),
+    returnedSales: numberOrNull(row.returned_sales), returnedOrderCount: numberOrNull(row.returned_order_count),
     sourceRow: row.source_row, sourceFilename: row.source_filename, sourceSha256: row.source_sha256,
     observedAt: new Date(row.observed_at).toISOString(), importedAt: new Date(row.imported_at).toISOString() }));
 }

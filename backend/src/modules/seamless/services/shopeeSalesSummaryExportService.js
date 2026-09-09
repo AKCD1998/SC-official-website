@@ -265,14 +265,14 @@ function addWorksheet(workbook, name, rows, { review = false } = {}) {
 }
 
 function addConfirmedWorksheet(workbook, confirmed) {
-  const sheet = workbook.addWorksheet('ยอดขายยืนยันแล้ว');
+  const sheet = workbook.addWorksheet('ยอดขายที่ได้รับการยืนยัน');
   sheet.columns = [
     { header: 'ร้าน', key: 'shopCode', width: 17 },
-    { header: 'ช่วงวันที่ในรายงานยืนยันแล้ว', key: 'period', width: 27 },
-    { header: 'ยอดขายยืนยันแล้ว ก่อนหักยกเลิก (บาท)', key: 'salesTotal', width: 20 },
-    { header: 'ออเดอร์ยืนยันแล้ว', key: 'orderCount', width: 13 },
-    { header: 'ยอดยกเลิกในกลุ่มยืนยันแล้ว (บาท)', key: 'cancelledSales', width: 18 },
-    { header: 'ยอดหลังหักยกเลิก (บาท)', key: 'salesAfterCancellation', width: 18 },
+    { header: 'ช่วงวันที่ใน Business Insights', key: 'period', width: 27 },
+    { header: 'ยอดขาย (คำสั่งซื้อที่ได้รับการยืนยัน) (THB)', key: 'salesTotal', width: 24 },
+    { header: 'คำสั่งซื้อ(ได้รับการยืนยัน)', key: 'orderCount', width: 18 },
+    { header: 'ยอดขายที่ยกเลิก (ถ้ามีในไฟล์)', key: 'cancelledSales', width: 20 },
+    { header: 'ยอดหลังหักยกเลิก (ถ้ามีในไฟล์)', key: 'salesAfterCancellation', width: 20 },
     { header: 'ความครบถ้วนของรายงาน', key: 'coverage', width: 26 },
   ];
   for (const shop of confirmed.shops) sheet.addRow({ ...shop,
@@ -281,9 +281,9 @@ function addConfirmedWorksheet(workbook, confirmed) {
     coverage: shop.status === 'source_backed' ? `ครบ ${shop.coveredDays} วัน` : `ยังสรุปไม่ได้ ขาด ${shop.missingDays.length} วัน`,
   });
   sheet.addRow([]);
-  const note = sheet.addRow(['ยอดหลักจากชีต “ยืนยันแล้ว” ของ Shopee ก่อนหักยกเลิก ไม่ใช่ยอดรับเงิน Income หรือยอดจากชีตรายออเดอร์']);
+  const note = sheet.addRow(['ยอดหลักใช้ “ยอดขาย (คำสั่งซื้อที่ได้รับการยืนยัน) (THB)” จาก Business Insights ของ Shopee ไม่ใช่ยอดรับเงิน Income หรือยอดจากชีตรายออเดอร์']);
   sheet.mergeCells(note.number, 1, note.number, 7); note.height = 32;
-  const note2 = sheet.addRow(['รายละเอียดสินค้าและยอดขายรายออเดอร์ใช้วันที่สร้างออเดอร์และตัดยกเลิก/พัสดุตีกลับ จึงเป็นคนละเกณฑ์ ห้ามนำมาแทนยอดยืนยันแล้ว']);
+  const note2 = sheet.addRow(['หากไฟล์ Business Insights รูปแบบปัจจุบันไม่มีข้อมูลยกเลิก/คืนสินค้า ช่องดังกล่าวจะเว้นว่าง ไม่ตีความเป็นศูนย์']);
   sheet.mergeCells(note2.number, 1, note2.number, 7); note2.height = 32;
   sheet.getRow(1).height = 42;
   sheet.getRow(1).font = { bold: true };
@@ -293,10 +293,10 @@ function addConfirmedWorksheet(workbook, confirmed) {
   for (let row = 2; row <= confirmed.shops.length + 1; row += 1) sheet.getCell(row, 6).numFmt = '#,##0.00';
   // Daily evidence is a separate sheet: summing a money column must not count
   // both monthly summary and daily detail a second time.
-  const daily = workbook.addWorksheet('ยืนยันแล้วรายวัน');
+  const daily = workbook.addWorksheet('ภาพรวมยอดขายรายวัน');
   daily.columns = [
-    { header: 'ร้าน', width: 17 }, { header: 'วันที่ในรายงานยืนยันแล้ว', width: 15 },
-    { header: 'ยอดขายยืนยันแล้ว (บาท)', width: 17 }, { header: 'ออเดอร์ยืนยันแล้ว', width: 12 },
+    { header: 'ร้าน', width: 17 }, { header: 'วันที่ใน Business Insights', width: 18 },
+    { header: 'ยอดขาย (คำสั่งซื้อที่ได้รับการยืนยัน) (THB)', width: 24 }, { header: 'คำสั่งซื้อ(ได้รับการยืนยัน)', width: 18 },
     { header: 'ยอดยกเลิก (บาท)', width: 16 }, { header: 'ยอดคืนเงิน/คืนสินค้า (บาท)', width: 17 },
     { header: 'ไฟล์ต้นทาง', width: 38 }, { header: 'แถวในชีตยืนยันแล้ว', width: 12 },
   ];
@@ -306,7 +306,7 @@ function addConfirmedWorksheet(workbook, confirmed) {
   ]);
   // Missing dates are explicit evidence, not manufactured zero-sales daily rows.
   for (const missing of confirmed.missingDays) daily.addRow([
-    missing.shopCode === 'sc-drug-store' ? 'SC Drug Store' : 'DR.Morepen', missing.date, null, null, null, null, 'ขาดรายงานยืนยันแล้ว', null,
+    missing.shopCode === 'sc-drug-store' ? 'SC Drug Store' : 'DR.Morepen', missing.date, null, null, null, null, 'ขาดรายงาน Business Insights', null,
   ]);
   daily.getRow(1).height = 42;
   daily.getRow(1).font = { bold: true };

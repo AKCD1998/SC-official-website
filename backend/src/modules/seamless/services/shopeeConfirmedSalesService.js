@@ -5,10 +5,18 @@ const { parseBangkokDate } = require('./shopeeSalesSourceService');
 const { requireShopeeShopCode, requireShopeeShopScope, SHOPEE_SHOP_PROFILES } = require('./shopeeShops');
 
 const SHEET = 'ยืนยันแล้ว';
+const OVERVIEW_SHEET = 'ภาพรวมยอดขาย';
 const HEADERS = Object.freeze({ date: 'วันที่', salesTotal: 'ยอดขายทั้งหมด (THB)',
   orderCount: 'คำสั่งซื้อทั้งหมด', cancelledOrderCount: 'คำสั่งซื้อที่ยกเลิก', cancelledSales: 'ยอดขายที่ยกเลิก',
   returnedOrderCount: 'คำสั่งซื้อที่คืนเงิน/คืนสินค้า', returnedSales: 'ยอดขายที่คืนเงิน/คืนสินค้า' });
-const METRICS = ['salesTotal', 'orderCount', 'cancelledOrderCount', 'cancelledSales', 'returnedOrderCount', 'returnedSales'];
+const OVERVIEW_HEADERS = Object.freeze({
+  date: 'วันที่',
+  salesTotal: 'ยอดขาย (คำสั่งซื้อที่ได้รับการยืนยัน) (THB)',
+  orderCount: 'คำสั่งซื้อ(ได้รับการยืนยัน)',
+});
+const PRIMARY_METRICS = ['salesTotal', 'orderCount'];
+const OPTIONAL_METRICS = ['cancelledOrderCount', 'cancelledSales', 'returnedOrderCount', 'returnedSales'];
+const METRICS = [...PRIMARY_METRICS, ...OPTIONAL_METRICS];
 function text(value) {
   if (value && typeof value === 'object') throw new Error('Formula/rich-text statistics cells are not supported.');
   return String(value ?? '').normalize('NFC').trim();
@@ -25,8 +33,9 @@ function datesInRange(start, end) {
   if (!Number.isInteger(days) || days < 1 || days > 3660) throw new Error('Unsupported report date range.');
   return Array.from({ length: days }, (_, i) => new Date(Date.parse(`${start}T00:00:00Z`) + i * 86400000).toISOString().slice(0, 10));
 }
-function readMetric(value, key) {
+function readMetric(value, key, { nullable = false } = {}) {
   const raw = text(value);
+  if (nullable && raw === '') return null;
   const count = key.endsWith('Count');
   if (!(count ? /^(?:\d+|\d{1,3}(?:,\d{3})+)$/u : /^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d{1,2})?$/u).test(raw)) {
     throw new Error(`Missing or invalid confirmed ${key}.`);
@@ -43,16 +52,117 @@ function metricsFrom(row, columns) {
   return amounts;
 }
 function amountUnits(amounts) {
-  return Object.fromEntries(METRICS.map(key => [key, key.endsWith('Count') ? amounts[key] : amounts[key] / 100]));
+  return Object.fromEntries(METRICS.map(key => [key,
+    amounts[key] == null ? null : key.endsWith('Count') ? amounts[key] : amounts[key] / 100]));
+}
+
+function sourceIdentity(sourceFilename, shopCode) {
+  const filename = path.basename(sourceFilename);
+  const legacy = /^([a-z0-9]+)\.shopee-shop-stats\.(\d{4})(\d{2})(\d{2})-(\d{4})(\d{2})(\d{2})(?: ?\(\d+\))?\.xlsx$/iu.exec(filename);
+  if (legacy) {
+    if (legacy[1] !== SHOPEE_SHOP_PROFILES[shopCode].statisticsUsername) {
+      throw new Error('Statistics filename does not identify the selected shop.');
+    }
+    return { filename, format: 'shop-stats-confirmed', sheetName: SHEET,
+      startDate: `${legacy[2]}-${legacy[3]}-${legacy[4]}`,
+      endDate: `${legacy[5]}-${legacy[6]}-${legacy[7]}` };
+  }
+  const overview = /^sales_overview_(\d{4})(\d{2})(\d{2})-(\d{4})(\d{2})(\d{2})(?: ?\(\d+\))?\.xlsx$/iu.exec(filename);
+  if (!overview) throw new Error('Statistics filename is not a recognized Shopee Business Insights export.');
+  return { filename, format: 'sales-overview', sheetName: OVERVIEW_SHEET,
+    startDate: `${overview[1]}-${overview[2]}-${overview[3]}`,
+    endDate: `${overview[4]}-${overview[5]}-${overview[6]}` };
+}
+
+function exactColumns(headers, expected) {
+  return Object.fromEntries(Object.entries(expected).map(([key, header]) => {
+    const indices = headers.flatMap((item, index) => item === header ? [index] : []);
+    if (indices.length !== 1) throw new Error(`Missing/duplicate confirmed header: ${header}`);
+    return [key, indices[0]];
+  }));
+}
+
+function parseSalesOverviewRows(rows, { shopCode, identity, sourceSha256, observedAt }) {
+  const summaryHeaders = (rows[0] || []).map(text);
+  const dailyHeaders = (rows[3] || []).map(text);
+  const summaryColumns = exactColumns(summaryHeaders, {
+    date: OVERVIEW_HEADERS.date,
+    salesTotal: OVERVIEW_HEADERS.salesTotal,
+  });
+  const dailyColumns = exactColumns(dailyHeaders, OVERVIEW_HEADERS);
+  if ((rows[2] || []).some(value => text(value))) throw new Error('Unexpected statistics spacer content.');
+  const displayDate = value => value.split('-').reverse().join('-');
+  const expectedPeriod = `${displayDate(identity.startDate)}-${displayDate(identity.endDate)}`;
+  if (text(rows[1]?.[summaryColumns.date]) !== expectedPeriod) {
+    throw new Error('Statistics summary period does not match the filename.');
+  }
+
+  const controlSales = readMetric(rows[1]?.[summaryColumns.salesTotal], 'salesTotal');
+  const expectedDates = datesInRange(identity.startDate, identity.endDate);
+  const byDate = new Map();
+  const intervals = new Set();
+  const hoursByDate = new Map();
+  let hourlyRows = 0;
+  let dailyRows = 0;
+  for (const [index, row] of rows.slice(4).entries()) {
+    if (row.every(value => !text(value))) continue;
+    const rawDate = text(row[dailyColumns.date]);
+    const match = /^(\d{2})-(\d{2})-(\d{4})(?:\s+([01]\d|2[0-3]):(\d{2}))?$/u.exec(rawDate);
+    if (!match || (match[4] && match[5] !== '00')) throw new Error('Invalid Sales Overview interval.');
+    const date = isoDate(`${match[3]}-${match[2]}-${match[1]}`);
+    if (date < identity.startDate || date > identity.endDate) throw new Error('Out-of-period Sales Overview interval.');
+    const interval = match[4] ? `${date}T${match[4]}:00` : date;
+    if (intervals.has(interval)) throw new Error('Duplicate Sales Overview interval.');
+    intervals.add(interval);
+    if (match[4]) {
+      hourlyRows += 1;
+      const hours = hoursByDate.get(date) || new Set();
+      hours.add(match[4]);
+      hoursByDate.set(date, hours);
+    } else {
+      dailyRows += 1;
+    }
+    const salesTotal = readMetric(row[dailyColumns.salesTotal], 'salesTotal');
+    const orderCount = readMetric(row[dailyColumns.orderCount], 'orderCount');
+    const aggregate = byDate.get(date) || { salesTotal: 0, orderCount: 0, sourceRow: index + 5 };
+    aggregate.salesTotal += salesTotal;
+    aggregate.orderCount += orderCount;
+    if (!Number.isSafeInteger(aggregate.salesTotal) || !Number.isSafeInteger(aggregate.orderCount)) {
+      throw new Error('Sales Overview daily total exceeds precision.');
+    }
+    byDate.set(date, aggregate);
+  }
+  if (hourlyRows && dailyRows) throw new Error('Mixed Sales Overview interval granularities are not supported.');
+  if (hourlyRows && expectedDates.some(date => hoursByDate.get(date)?.size !== 24)) {
+    throw new Error('Sales Overview hourly coverage is incomplete.');
+  }
+  if (expectedDates.some(date => !byDate.has(date))) throw new Error('Statistics daily coverage is incomplete.');
+  const totalSales = [...byDate.values()].reduce((sum, value) => sum + value.salesTotal, 0);
+  if (!Number.isSafeInteger(totalSales) || totalSales !== controlSales) {
+    throw new Error('Confirmed daily/summary mismatch: salesTotal');
+  }
+  const facts = expectedDates.map(date => ({ shopCode, date, ...amountUnits({
+    salesTotal: byDate.get(date).salesTotal,
+    orderCount: byDate.get(date).orderCount,
+    cancelledOrderCount: null,
+    cancelledSales: null,
+    returnedOrderCount: null,
+    returnedSales: null,
+  }), sourceRow: byDate.get(date).sourceRow }));
+  const orderCount = [...byDate.values()].reduce((sum, value) => sum + value.orderCount, 0);
+  return { shopCode, sourceFilename: identity.filename, sourceSha256,
+    observedAt: new Date(observedAt).toISOString(), startDate: identity.startDate,
+    endDate: identity.endDate, sheetName: identity.sheetName,
+    reportFormat: identity.format,
+    control: { salesTotal: controlSales / 100, orderCount,
+      cancelledOrderCount: null, cancelledSales: null, returnedOrderCount: null, returnedSales: null },
+    facts };
 }
 
 function parseConfirmedSalesRows(rows, { shopCode, sourceFilename, sourceSha256, observedAt }) {
   shopCode = requireShopeeShopCode(shopCode);
-  const filename = path.basename(sourceFilename);
-  const match = /^([a-z0-9]+)\.shopee-shop-stats\.(\d{4})(\d{2})(\d{2})-(\d{4})(\d{2})(\d{2})(?: ?\(\d+\))?\.xlsx$/iu.exec(filename);
-  if (!match || match[1] !== SHOPEE_SHOP_PROFILES[shopCode].statisticsUsername) throw new Error('Statistics filename does not identify the selected shop.');
-  const startDate = `${match[2]}-${match[3]}-${match[4]}`;
-  const endDate = `${match[5]}-${match[6]}-${match[7]}`;
+  const identity = sourceIdentity(sourceFilename, shopCode);
+  const { filename, startDate, endDate } = identity;
   const expectedDates = datesInRange(startDate, endDate);
   if (!/^[a-f0-9]{64}$/u.test(sourceSha256 || '')) throw new Error('Source SHA-256 is required.');
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/u.test(observedAt || '')
@@ -60,12 +170,11 @@ function parseConfirmedSalesRows(rows, { shopCode, sourceFilename, sourceSha256,
   parseBangkokDate(observedAt.slice(0, 19).replace('T', ' '));
   // Only complete historical report days are accepted, not an in-progress day.
   if (Date.parse(`${endDate}T23:59:59+07:00`) > Date.parse(observedAt)) throw new Error('Report period has not finished at the observation time.');
+  if (identity.format === 'sales-overview') {
+    return parseSalesOverviewRows(rows, { shopCode, identity, sourceSha256, observedAt });
+  }
   const headers = (rows[0] || []).map(text);
-  const columns = Object.fromEntries(Object.entries(HEADERS).map(([key, header]) => {
-    const indices = headers.flatMap((item, i) => item === header ? [i] : []);
-    if (indices.length !== 1) throw new Error(`Missing/duplicate confirmed header: ${header}`);
-    return [key, indices[0]];
-  }));
+  const columns = exactColumns(headers, HEADERS);
   const displayDate = value => value.split('-').reverse().join('-');
   if (text(rows[1]?.[columns.date]) !== `${displayDate(startDate)}-${displayDate(endDate)}`) throw new Error('Statistics summary period does not match the filename.');
   if ((rows[2] || []).some(value => text(value))) throw new Error('Unexpected statistics spacer content.');
@@ -91,7 +200,8 @@ function parseConfirmedSalesRows(rows, { shopCode, sourceFilename, sourceSha256,
     if (!Number.isSafeInteger(totals[key]) || totals[key] !== control[key]) throw new Error(`Confirmed daily/summary mismatch: ${key}`);
   }
   return { shopCode, sourceFilename: filename, sourceSha256, observedAt: new Date(observedAt).toISOString(),
-    startDate, endDate, sheetName: SHEET, control: amountUnits(control), facts };
+    startDate, endDate, sheetName: SHEET, reportFormat: identity.format,
+    control: amountUnits(control), facts };
 }
 
 async function readConfirmedSalesSourceBuffer(buffer, {
@@ -105,8 +215,9 @@ async function readConfirmedSalesSourceBuffer(buffer, {
   const ExcelJS = require('exceljs');
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
-  const sheet = workbook.getWorksheet(SHEET);
-  if (!sheet) throw new Error('Original ยืนยันแล้ว worksheet is required; other tabs are not substitutes.');
+  const identity = sourceIdentity(sourceFilename, requireShopeeShopCode(options.shopCode));
+  const sheet = workbook.getWorksheet(identity.sheetName);
+  if (!sheet) throw new Error(`Original ${identity.sheetName} worksheet is required; other tabs are not substitutes.`);
   const rows = [];
   sheet.eachRow({ includeEmpty: true }, row => rows.push(Array.from({ length: sheet.columnCount }, (_, i) => row.getCell(i + 1).value)));
   return parseConfirmedSalesRows(rows, {
@@ -133,7 +244,8 @@ function summarizeConfirmedSales(rows, { shopCode, startDate, endDate }) {
   for (const row of rows) {
     const key = `${row.shopCode}:${row.date}`;
     if (!shops.includes(row.shopCode) || !dates.includes(row.date) || keys.has(key)) throw new Error('Invalid confirmed summary scope or duplicate day.');
-    METRICS.forEach(metric => readMetric(row[metric], metric));
+    PRIMARY_METRICS.forEach(metric => readMetric(row[metric], metric));
+    OPTIONAL_METRICS.forEach(metric => readMetric(row[metric], metric, { nullable: true }));
     keys.add(key);
   }
   const summarizeEvidence = selected => {
@@ -185,15 +297,23 @@ function summarizeConfirmedSales(rows, { shopCode, startDate, endDate }) {
     const result = { status: missingDays.length ? 'incomplete' : 'source_backed', coveredDays: selected.length,
       expectedDays: dates.length * selectedShops.length, missingDays };
     for (const key of METRICS) {
-      const sum = selected.reduce((total, row) => total + readMetric(row[key], key), 0);
+      const nullable = OPTIONAL_METRICS.includes(key);
+      const unavailable = nullable && selected.some(row => readMetric(row[key], key, { nullable: true }) == null);
+      const sum = unavailable ? null : selected.reduce((total, row) => total + readMetric(row[key], key, { nullable }), 0);
+      if (sum == null) {
+        result[key] = null;
+        continue;
+      }
       if (!Number.isSafeInteger(sum)) throw new Error('Confirmed total exceeds precision.');
       result[key] = missingDays.length ? null : key.endsWith('Count') ? sum : sum / 100;
     }
-    result.salesAfterCancellation = missingDays.length ? null : (moneyCents(result.salesTotal) - moneyCents(result.cancelledSales)) / 100;
+    result.salesAfterCancellation = missingDays.length || result.cancelledSales == null
+      ? null
+      : (moneyCents(result.salesTotal) - moneyCents(result.cancelledSales)) / 100;
     return { ...result, ...summarizeEvidence(selected) };
   };
   return { metric: 'shopee_confirmed_gross_sales', currency: 'THB', dateBasis: 'confirmed_report_date',
-    sourceSheet: SHEET, startDate, endDate, ...summarize(shops),
+    sourceSheet: `${SHEET} / ${OVERVIEW_SHEET}`, startDate, endDate, ...summarize(shops),
     shops: shops.map(code => ({ shopCode: code, ...summarize([code]) })),
     daily: [...rows].sort((a, b) => a.shopCode.localeCompare(b.shopCode) || a.date.localeCompare(b.date)) };
 }
@@ -203,5 +323,5 @@ async function getConfirmedSalesSummary(filters) {
   return summarizeConfirmedSales(await listConfirmedSalesDays(filters), filters);
 }
 
-module.exports = { HEADERS, SHEET, METRICS, datesInRange, parseConfirmedSalesRows, readConfirmedSalesSource,
+module.exports = { HEADERS, OVERVIEW_HEADERS, SHEET, OVERVIEW_SHEET, METRICS, datesInRange, parseConfirmedSalesRows, readConfirmedSalesSource,
   readConfirmedSalesSourceBuffer, summarizeConfirmedSales, getConfirmedSalesSummary };

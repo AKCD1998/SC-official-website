@@ -1,5 +1,5 @@
 const ExcelJS = require('exceljs');
-const { HEADERS, parseConfirmedSalesRows, summarizeConfirmedSales } = require('../src/modules/seamless/services/shopeeConfirmedSalesService');
+const { HEADERS, OVERVIEW_HEADERS, parseConfirmedSalesRows, summarizeConfirmedSales } = require('../src/modules/seamless/services/shopeeConfirmedSalesService');
 const { buildShopeeSalesExportWorkbook } = require('../src/modules/seamless/services/shopeeSalesSummaryExportService');
 const { parseArgs } = require('../scripts/import-shopee-sales-sources.cjs');
 const options = { shopCode: 'sc-drug-store', sourceFilename: '142wuxqhgi.shopee-shop-stats.20260801-20260802.xlsx',
@@ -10,6 +10,25 @@ function rows() {
     ['01-08-2026', '100.25', '2', '1', '20.10', '0', '0'], ['02-08-2026', '0', '0', '0', '0', '0', '0']];
 }
 const parse = (values = rows(), opts = {}) => parseConfirmedSalesRows(values, { ...options, ...opts });
+
+function overviewRows({ missingHour = null, salesTotal = '100.25' } = {}) {
+  const summaryHeaders = [OVERVIEW_HEADERS.date, 'จำนวนผู้เยี่ยมชม(การเข้าชม)',
+    'จำนวนผู้ซื้อ (คำสั่งซื้อทั้งหมด)', 'ยอดขาย (ที่มีการสั่งซื้อทั้งหมด) (THB)',
+    'จำนวนผู้ซื้อ (คำสั่งซื้อที่ได้รับการยืนยัน)', OVERVIEW_HEADERS.salesTotal];
+  const summary = ['08-09-2026-08-09-2026', '10', '2', '120.00', '2', salesTotal];
+  const dailyHeaders = Array.from({ length: 14 }, (_, index) => `unused-${index}`);
+  dailyHeaders[0] = OVERVIEW_HEADERS.date;
+  dailyHeaders[9] = OVERVIEW_HEADERS.orderCount;
+  dailyHeaders[10] = OVERVIEW_HEADERS.salesTotal;
+  const hourly = Array.from({ length: 24 }, (_, hour) => {
+    const row = Array(14).fill('0');
+    row[0] = `08-09-2026 ${String(hour).padStart(2, '0')}:00`;
+    row[9] = hour === 0 ? '2' : '0';
+    row[10] = hour === 0 ? '100.25' : '0';
+    return row;
+  }).filter((_, hour) => hour !== missingHour);
+  return [summaryHeaders, summary, [], dailyHeaders, ...hourly];
+}
 
 test('confirmed gross stays primary; cancellations/counts separate, explicit zero day is covered', () => {
   const source = parse();
@@ -65,6 +84,33 @@ test('date subset selects only official daily values and rejects duplicate or fo
   expect(() => summarizeConfirmedSales(source.facts, { ...filters, shopCode: 'dr-morepen' })).toThrow();
 });
 
+test('current Sales Overview aggregates 24 hourly intervals using Shopee confirmed-order labels', () => {
+  const source = parseConfirmedSalesRows(overviewRows(), {
+    shopCode: 'sc-drug-store',
+    sourceFilename: 'sales_overview_20260908-20260908.xlsx',
+    sourceSha256: 'b'.repeat(64),
+    observedAt: '2026-09-09T08:00:00+07:00',
+  });
+  expect(source).toMatchObject({ startDate: '2026-09-08', endDate: '2026-09-08',
+    sheetName: 'ภาพรวมยอดขาย', reportFormat: 'sales-overview',
+    control: { salesTotal: 100.25, orderCount: 2, cancelledSales: null } });
+  expect(source.facts).toEqual([expect.objectContaining({ date: '2026-09-08',
+    salesTotal: 100.25, orderCount: 2, cancelledSales: null, returnedSales: null })]);
+  const summary = summarizeConfirmedSales(source.facts, {
+    shopCode: 'sc-drug-store', startDate: '2026-09-08', endDate: '2026-09-08',
+  });
+  expect(summary).toMatchObject({ status: 'source_backed', salesTotal: 100.25,
+    orderCount: 2, cancelledSales: null, salesAfterCancellation: null });
+});
+
+test('current Sales Overview rejects incomplete hourly evidence and summary mismatches', () => {
+  const current = { shopCode: 'sc-drug-store',
+    sourceFilename: 'sales_overview_20260908-20260908.xlsx',
+    sourceSha256: 'b'.repeat(64), observedAt: '2026-09-09T08:00:00+07:00' };
+  expect(() => parseConfirmedSalesRows(overviewRows({ missingHour: 23 }), current)).toThrow(/hourly coverage is incomplete/i);
+  expect(() => parseConfirmedSalesRows(overviewRows({ salesTotal: '100.26' }), current)).toThrow(/daily\/summary mismatch/i);
+});
+
 test('summary exposes source filename, hash, observation, import and latest covered date for audit', () => {
   const source = parse();
   const importedAt = '2026-09-08T00:05:00.000Z';
@@ -89,13 +135,13 @@ test('admin export puts confirmed gross first and preserves separate net order/S
     itemSubtotal: 75, items: [{ name: 'สินค้า', quantity: 1 }] }];
   const exported = await buildShopeeSalesExportWorkbook(orders, { confirmedSales });
   const workbook = new ExcelJS.Workbook(); await workbook.xlsx.load(exported.buffer);
-  expect(workbook.worksheets[0].name).toBe('ยอดขายยืนยันแล้ว');
+  expect(workbook.worksheets[0].name).toBe('ยอดขายที่ได้รับการยืนยัน');
   const sheet = workbook.worksheets[0];
   expect(sheet.getCell('C2').value).toBe(100.25);
   expect(sheet.getCell('D2').value).toBe(2);
   expect(sheet.getCell('E2').value).toBe(20.1);
   expect(sheet.getCell('F2').value).toBe(80.15);
-  const daily = workbook.getWorksheet('ยืนยันแล้วรายวัน');
+  const daily = workbook.getWorksheet('ภาพรวมยอดขายรายวัน');
   let dailyCents = 0;
   daily.eachRow((row, n) => { if (n > 1) dailyCents += Math.round(row.getCell(3).value * 100); });
   expect(dailyCents).toBe(10025);
@@ -105,7 +151,7 @@ test('admin export puts confirmed gross first and preserves separate net order/S
   expect(sheet.pageSetup).toMatchObject({ orientation: 'landscape', paperSize: 9, fitToWidth: 1 });
   const hidden = await buildShopeeSalesExportWorkbook(orders, { confirmedSales, includeAccounting: false });
   const userWorkbook = new ExcelJS.Workbook(); await userWorkbook.xlsx.load(hidden.buffer);
-  expect(userWorkbook.getWorksheet('ยอดขายยืนยันแล้ว')).toBeUndefined();
+  expect(userWorkbook.getWorksheet('ยอดขายที่ได้รับการยืนยัน')).toBeUndefined();
 });
 
 test('incomplete confirmed export leaves money blank and explicitly lists missing days', async () => {
@@ -115,8 +161,8 @@ test('incomplete confirmed export leaves money blank and explicitly lists missin
   const sheet = workbook.worksheets[0];
   expect(sheet.getCell('C2').value).toBeNull();
   expect(sheet.getCell('G2').value).toContain('ขาด 2 วัน');
-  const daily = workbook.getWorksheet('ยืนยันแล้วรายวัน');
-  expect(daily.getRow(daily.rowCount).getCell(7).value).toBe('ขาดรายงานยืนยันแล้ว');
+  const daily = workbook.getWorksheet('ภาพรวมยอดขายรายวัน');
+  expect(daily.getRow(daily.rowCount).getCell(7).value).toBe('ขาดรายงาน Business Insights');
 });
 
 test('confirmed importer retains dry-run default and accepts only a named report type', () => {
