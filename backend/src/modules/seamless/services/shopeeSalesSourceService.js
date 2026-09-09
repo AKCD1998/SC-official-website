@@ -33,7 +33,7 @@ function classifyStatus(value) {
   if (status === 'ยกเลิกแล้ว') return { status, excluded: true };
   // Delivered orders contain explanatory return-policy text. Never classify an
   // actual return by searching the entire string for คืนเงิน/คืนสินค้า.
-  if (/^(สำเร็จแล้ว|จัดส่งสำเร็จแล้ว|ผู้ซื้อได้รับสินค้าแล้ว|กำลังจัดส่ง|ที่ต้องจัดส่ง|ยังไม่ชำระเงิน|ยังไม่ชำระ)(?:$|\s)/u.test(status)) {
+  if (/^(สำเร็จแล้ว|จัดส่งสำเร็จแล้ว|ผู้ซื้อได้รับสินค้าแล้ว|กำลังจัดส่ง|การจัดส่ง|ที่ต้องจัดส่ง|ยังไม่ชำระเงิน|ยังไม่ชำระ)(?:$|\s)/u.test(status)) {
     return { status, excluded: false };
   }
   throw new Error(`Unsupported Shopee order status: ${status.slice(0, 100)}`);

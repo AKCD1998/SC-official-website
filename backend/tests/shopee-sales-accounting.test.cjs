@@ -64,6 +64,7 @@ test('raw multi-line order sums line values but counts repeated seller voucher o
 test('strict status parsing permits delivered return-policy explanations, rejects unknown actual returns', () => {
   expect(classifyStatus('ผู้ซื้อได้รับสินค้าแล้ว โปรดทราบว่าผู้ซื้อสามารถยื่นคำขอคืนเงิน/คืนสินค้าได้จนถึง 2026-09-10').excluded).toBe(false);
   expect(classifyStatus('จัดส่งสำเร็จแล้ว').excluded).toBe(false);
+  expect(classifyStatus('การจัดส่ง').excluded).toBe(false);
   expect(classifyStatus('ยกเลิกแล้ว').excluded).toBe(true);
   expect(() => classifyStatus('กำลังคืนเงิน/คืนสินค้า')).toThrow('Unsupported');
 });
