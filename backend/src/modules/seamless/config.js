@@ -20,6 +20,10 @@ function readInternalApiToken() {
   ).trim();
 }
 
+function readShopeeSalesIngestToken() {
+  return String(process.env.SHOPEE_SALES_INGEST_TOKEN || "").trim();
+}
+
 // SEAMLESS_APP_BASIC_USER accepts a comma-separated list (e.g. multiple staff usernames sharing
 // one password) as well as a single username — both resolve to the "user" role. Blank entries
 // from stray commas/whitespace are dropped.
@@ -315,5 +319,6 @@ module.exports = {
   readShopeeGmailConfig,
   readShopeeGmailConfigForShop,
   readShopeeGmailPushConfig,
+  readShopeeSalesIngestToken,
   readStorageDir,
 };

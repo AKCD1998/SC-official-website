@@ -52,6 +52,7 @@ function getTables() {
     shopeeSalesOrderFacts: qualifyTable("shopee_sales_order_facts"),
     shopeeConfirmedSources: qualifyTable("shopee_confirmed_sources"),
     shopeeConfirmedDailyFacts: qualifyTable("shopee_confirmed_daily_facts"),
+    shopeeSalesIngestJobs: qualifyTable("shopee_sales_ingest_jobs"),
     pharmcareSyncRuns: qualifyTable("pharmcare_sync_runs"),
     pharmcareSyncState: qualifyTable("pharmcare_sync_state"),
     workbookUploads: qualifyTable("workbook_uploads"),

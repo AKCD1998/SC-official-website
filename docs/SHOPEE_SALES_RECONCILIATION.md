@@ -49,6 +49,27 @@ The same explicit apply/digest/shop/actor/DB-URL approval gates described below
 apply to confirmed imports. Migrations **016 and 017** must precede code rollout.
 Local fixture timestamps are not authorization to import originals into production.
 
+## Agent HTTPS ingest
+
+The 000-HQ downloader can send the just-downloaded original workbook to
+`POST /api/agent/shopee/sales-sources` as multipart data. This route uses the
+dedicated `SHOPEE_SALES_INGEST_TOKEN`; it returns 503 when the server secret is
+unset and does not inherit the older print-agent auth fallback. Migration **018**
+adds the privacy-safe ingest-job audit table and must be applied before enabling
+the HQ uploader.
+
+The server verifies file size/MIME/ZIP magic, recomputes SHA-256, validates the
+shop/report/date/original-filename manifest, and calls the same buffer-based
+Confirmed or Orders parser used by the CLI path. Source import and ingest audit
+commit in one transaction. Exact replay is `unchanged`; immutable metadata
+conflict is 409; malformed/incomplete source is 422. Responses and logs contain
+no token or customer/order payload.
+
+Rollout order is migration, backend code and server secret first; then install
+the HQ agent code, set the same token only in the Scheduled Task environment,
+and enable one shop at a time. Production deployment/import remains a separately
+approved operation.
+
 ## Secondary order-net calculation and source precedence
 
 - Join by **shop code + order number**, never order number alone or its date prefix.

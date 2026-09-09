@@ -65,10 +65,26 @@ test('date subset selects only official daily values and rejects duplicate or fo
   expect(() => summarizeConfirmedSales(source.facts, { ...filters, shopCode: 'dr-morepen' })).toThrow();
 });
 
+test('summary exposes source filename, hash, observation, import and latest covered date for audit', () => {
+  const source = parse();
+  const importedAt = '2026-09-08T00:05:00.000Z';
+  const enriched = source.facts.map(row => ({ ...row, sourceFilename: source.sourceFilename,
+    sourceSha256: source.sourceSha256, observedAt: source.observedAt, importedAt }));
+  const result = summarizeConfirmedSales(enriched, filters);
+  expect(result).toMatchObject({ latestDataDate: '2026-08-02', latestObservedAt: source.observedAt,
+    latestImportedAt: importedAt });
+  expect(result.sources).toEqual([expect.objectContaining({ shopCode: 'sc-drug-store',
+    sourceFilename: source.sourceFilename, sourceSha256: source.sourceSha256,
+    observedAt: source.observedAt, importedAt, coveredStartDate: '2026-08-01',
+    coveredEndDate: '2026-08-02', coveredDays: 2 })]);
+  expect(result.shops[0].sources).toEqual(result.sources);
+});
+
 test('admin export puts confirmed gross first and preserves separate net order/SKU ledgers', async () => {
   const source = parse();
   const confirmedSales = summarizeConfirmedSales(source.facts.map(row => ({ ...row,
-    sourceFilename: source.sourceFilename, sourceSha256: source.sourceSha256 })), filters);
+    sourceFilename: source.sourceFilename, sourceSha256: source.sourceSha256,
+    observedAt: source.observedAt })), filters);
   const orders = [{ shopCode: 'sc-drug-store', orderNumber: 'TESTORDER01', orderedAt: '2026-08-01T01:00:00Z',
     itemSubtotal: 75, items: [{ name: 'สินค้า', quantity: 1 }] }];
   const exported = await buildShopeeSalesExportWorkbook(orders, { confirmedSales });

@@ -118,10 +118,16 @@ function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, ob
   return { shopCode, sourceFilename: filename, sourceSha256, observedAt: observed.toISOString(), startDate, endDate, facts };
 }
 
-async function readSalesSource(filePath, { shopCode, observedAt }) {
-  const fs = require('node:fs/promises');
+async function readSalesSourceBuffer(buffer, {
+  shopCode,
+  observedAt,
+  sourceFilename,
+  sourceSha256 = null,
+}) {
+  if (!Buffer.isBuffer(buffer) || !buffer.length) throw new Error('Original orders workbook buffer is required.');
+  const computedSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+  if (sourceSha256 && sourceSha256 !== computedSha256) throw new Error('Source SHA-256 does not match workbook bytes.');
   const ExcelJS = require('exceljs');
-  const buffer = await fs.readFile(filePath);
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   const sheet = workbook.getWorksheet('orders');
@@ -130,8 +136,29 @@ async function readSalesSource(filePath, { shopCode, observedAt }) {
   sheet.eachRow({ includeEmpty: true }, (row) => {
     rows.push(Array.from({ length: sheet.columnCount }, (_, i) => row.getCell(i + 1).value));
   });
-  return parseSalesSourceRows(rows, { shopCode, observedAt, sourceFilename: path.basename(filePath),
-    sourceSha256: crypto.createHash('sha256').update(buffer).digest('hex') });
+  return parseSalesSourceRows(rows, {
+    shopCode,
+    observedAt,
+    sourceFilename,
+    sourceSha256: computedSha256,
+  });
 }
 
-module.exports = { HEADERS, classifyStatus, parseBangkokDate, parseSalesSourceRows, readSalesSource };
+async function readSalesSource(filePath, { shopCode, observedAt }) {
+  const fs = require('node:fs/promises');
+  const buffer = await fs.readFile(filePath);
+  return readSalesSourceBuffer(buffer, {
+    shopCode,
+    observedAt,
+    sourceFilename: path.basename(filePath),
+  });
+}
+
+module.exports = {
+  HEADERS,
+  classifyStatus,
+  parseBangkokDate,
+  parseSalesSourceRows,
+  readSalesSource,
+  readSalesSourceBuffer,
+};

@@ -81,6 +81,11 @@ function testTables(schemaName) {
     shopeeOrderEvents: qualify("shopee_order_events"),
     shopeeFinancialVisibilitySettings: qualify("shopee_financial_visibility_settings"),
     shopeeOrders: qualify("shopee_orders"),
+    shopeeSalesSources: qualify("shopee_sales_sources"),
+    shopeeSalesOrderFacts: qualify("shopee_sales_order_facts"),
+    shopeeConfirmedSources: qualify("shopee_confirmed_sources"),
+    shopeeConfirmedDailyFacts: qualify("shopee_confirmed_daily_facts"),
+    shopeeSalesIngestJobs: qualify("shopee_sales_ingest_jobs"),
     workbookUploads: qualify("workbook_uploads"),
   };
 }
@@ -437,6 +442,11 @@ async function verifyMigrations(env = process.env) {
       "shopee_legacy_reconciliation_apply_items",
       "adasmart_shopee_jobs",
       "adasmart_shopee_job_events",
+      "shopee_sales_sources",
+      "shopee_sales_order_facts",
+      "shopee_confirmed_sources",
+      "shopee_confirmed_daily_facts",
+      "shopee_sales_ingest_jobs",
     ]) {
       // eslint-disable-next-line no-await-in-loop
       const result = await client.query("SELECT to_regclass($1) AS relation", [

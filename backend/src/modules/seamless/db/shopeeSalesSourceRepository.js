@@ -2,12 +2,12 @@ const { getTables } = require('../tables');
 
 // An explicit client is mandatory. This module must never initialize or select
 // a production connection on its own. The caller owns connection lifecycle.
-async function importSalesSources(sources, { client, actor }) {
+async function importSalesSources(sources, { client, actor, manageTransaction = true }) {
   if (!client || !String(actor || '').trim()) throw new Error('Import requires an explicit client and actor.');
   const tables = getTables();
   let imported = 0;
   let unchanged = 0;
-  await client.query('BEGIN');
+  if (manageTransaction) await client.query('BEGIN');
   try {
     // Stable lock ordering makes multi-file / multi-shop replays atomic.
     for (const shop of [...new Set(sources.map((source) => source.shopCode))].sort()) {
@@ -56,10 +56,10 @@ async function importSalesSources(sources, { client, actor }) {
       }
       imported += 1;
     }
-    await client.query('COMMIT');
+    if (manageTransaction) await client.query('COMMIT');
     return { imported, unchanged };
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (manageTransaction) await client.query('ROLLBACK');
     throw error;
   }
 }

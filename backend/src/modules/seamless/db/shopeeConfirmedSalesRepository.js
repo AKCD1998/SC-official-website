@@ -2,11 +2,11 @@ const { getTables } = require('../tables');
 const { requireShopeeShopScope } = require('../services/shopeeShops');
 const { datesInRange } = require('../services/shopeeConfirmedSalesService');
 
-async function importConfirmedSalesSources(sources, { client, actor }) {
+async function importConfirmedSalesSources(sources, { client, actor, manageTransaction = true }) {
   if (!client || !String(actor || '').trim()) throw new Error('Confirmed import requires explicit client and actor.');
   const tables = getTables();
   let imported = 0; let unchanged = 0;
-  await client.query('BEGIN');
+  if (manageTransaction) await client.query('BEGIN');
   try {
     for (const shop of [...new Set(sources.map(source => source.shopCode))].sort()) {
       await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`shopee-confirmed-source:${shop}`]);
@@ -38,10 +38,11 @@ async function importConfirmedSalesSources(sources, { client, actor }) {
       }
       imported += 1;
     }
-    await client.query('COMMIT');
+    if (manageTransaction) await client.query('COMMIT');
     return { imported, unchanged };
   } catch (error) {
-    await client.query('ROLLBACK'); throw error;
+    if (manageTransaction) await client.query('ROLLBACK');
+    throw error;
   }
 }
 
@@ -55,7 +56,7 @@ async function listConfirmedSalesDays({ shopCode, startDate, endDate }) {
       f.shop_code, to_char(f.report_date, 'YYYY-MM-DD') AS report_date,
       f.sales_total, f.order_count, f.cancelled_sales, f.cancelled_order_count,
       f.returned_sales, f.returned_order_count, f.source_row,
-      s.source_filename, s.source_sha256, s.observed_at
+      s.source_filename, s.source_sha256, s.observed_at, s.imported_at
     FROM ${tables.shopeeConfirmedDailyFacts} f JOIN ${tables.shopeeConfirmedSources} s USING (shop_code, source_sha256)
     WHERE ($1::text = 'all' OR f.shop_code = $1) AND f.report_date BETWEEN $2::date AND $3::date
     ORDER BY f.shop_code, f.report_date, s.observed_at DESC, s.source_sha256 DESC
@@ -65,6 +66,6 @@ async function listConfirmedSalesDays({ shopCode, startDate, endDate }) {
     cancelledSales: Number(row.cancelled_sales), cancelledOrderCount: Number(row.cancelled_order_count),
     returnedSales: Number(row.returned_sales), returnedOrderCount: Number(row.returned_order_count),
     sourceRow: row.source_row, sourceFilename: row.source_filename, sourceSha256: row.source_sha256,
-    observedAt: new Date(row.observed_at).toISOString() }));
+    observedAt: new Date(row.observed_at).toISOString(), importedAt: new Date(row.imported_at).toISOString() }));
 }
 module.exports = { importConfirmedSalesSources, listConfirmedSalesDays };

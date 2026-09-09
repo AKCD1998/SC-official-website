@@ -94,18 +94,35 @@ function parseConfirmedSalesRows(rows, { shopCode, sourceFilename, sourceSha256,
     startDate, endDate, sheetName: SHEET, control: amountUnits(control), facts };
 }
 
-async function readConfirmedSalesSource(filePath, options) {
-  const fs = require('node:fs/promises');
+async function readConfirmedSalesSourceBuffer(buffer, {
+  sourceFilename,
+  sourceSha256 = null,
+  ...options
+}) {
+  if (!Buffer.isBuffer(buffer) || !buffer.length) throw new Error('Original statistics workbook buffer is required.');
+  const computedSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+  if (sourceSha256 && sourceSha256 !== computedSha256) throw new Error('Source SHA-256 does not match workbook bytes.');
   const ExcelJS = require('exceljs');
-  const buffer = await fs.readFile(filePath);
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
   const sheet = workbook.getWorksheet(SHEET);
   if (!sheet) throw new Error('Original ยืนยันแล้ว worksheet is required; other tabs are not substitutes.');
   const rows = [];
   sheet.eachRow({ includeEmpty: true }, row => rows.push(Array.from({ length: sheet.columnCount }, (_, i) => row.getCell(i + 1).value)));
-  return parseConfirmedSalesRows(rows, { ...options, sourceFilename: path.basename(filePath),
-    sourceSha256: crypto.createHash('sha256').update(buffer).digest('hex') });
+  return parseConfirmedSalesRows(rows, {
+    ...options,
+    sourceFilename,
+    sourceSha256: computedSha256,
+  });
+}
+
+async function readConfirmedSalesSource(filePath, options) {
+  const fs = require('node:fs/promises');
+  const buffer = await fs.readFile(filePath);
+  return readConfirmedSalesSourceBuffer(buffer, {
+    ...options,
+    sourceFilename: path.basename(filePath),
+  });
 }
 
 function summarizeConfirmedSales(rows, { shopCode, startDate, endDate }) {
@@ -119,6 +136,49 @@ function summarizeConfirmedSales(rows, { shopCode, startDate, endDate }) {
     METRICS.forEach(metric => readMetric(row[metric], metric));
     keys.add(key);
   }
+  const summarizeEvidence = selected => {
+    const sources = new Map();
+    for (const row of selected) {
+      const values = [row.sourceFilename, row.sourceSha256, row.observedAt];
+      if (values.every(value => value == null)) continue;
+      if (values.some(value => value == null) || !/^[a-f0-9]{64}$/u.test(row.sourceSha256)) {
+        throw new Error('Invalid confirmed source evidence.');
+      }
+      const observedAt = new Date(row.observedAt);
+      const importedAt = row.importedAt == null ? null : new Date(row.importedAt);
+      if (Number.isNaN(observedAt.getTime()) || (importedAt && Number.isNaN(importedAt.getTime()))) {
+        throw new Error('Invalid confirmed source evidence timestamp.');
+      }
+      const evidenceKey = `${row.shopCode}:${row.sourceSha256}`;
+      const evidence = sources.get(evidenceKey) || {
+        shopCode: row.shopCode,
+        sourceFilename: row.sourceFilename,
+        sourceSha256: row.sourceSha256,
+        observedAt: observedAt.toISOString(),
+        importedAt: importedAt?.toISOString() || null,
+        coveredDates: new Set(),
+      };
+      if (evidence.sourceFilename !== row.sourceFilename || evidence.observedAt !== observedAt.toISOString()
+        || evidence.importedAt !== (importedAt?.toISOString() || null)) {
+        throw new Error('Conflicting confirmed source evidence.');
+      }
+      evidence.coveredDates.add(row.date);
+      sources.set(evidenceKey, evidence);
+    }
+    const evidence = [...sources.values()].map(source => {
+      const coveredDates = [...source.coveredDates].sort();
+      return { shopCode: source.shopCode, sourceFilename: source.sourceFilename,
+        sourceSha256: source.sourceSha256, observedAt: source.observedAt, importedAt: source.importedAt,
+        coveredStartDate: coveredDates[0],
+        coveredEndDate: coveredDates.at(-1), coveredDays: coveredDates.length };
+    }).sort((a, b) => b.observedAt.localeCompare(a.observedAt) || a.sourceFilename.localeCompare(b.sourceFilename));
+    return {
+      latestDataDate: selected.map(row => row.date).sort().at(-1) || null,
+      latestObservedAt: evidence[0]?.observedAt || null,
+      latestImportedAt: evidence.filter(source => source.importedAt).map(source => source.importedAt).sort().at(-1) || null,
+      sources: evidence,
+    };
+  };
   const summarize = selectedShops => {
     const selected = rows.filter(row => selectedShops.includes(row.shopCode));
     const missingDays = selectedShops.flatMap(shop => dates.filter(date => !keys.has(`${shop}:${date}`)).map(date => ({ shopCode: shop, date })));
@@ -130,7 +190,7 @@ function summarizeConfirmedSales(rows, { shopCode, startDate, endDate }) {
       result[key] = missingDays.length ? null : key.endsWith('Count') ? sum : sum / 100;
     }
     result.salesAfterCancellation = missingDays.length ? null : (moneyCents(result.salesTotal) - moneyCents(result.cancelledSales)) / 100;
-    return result;
+    return { ...result, ...summarizeEvidence(selected) };
   };
   return { metric: 'shopee_confirmed_gross_sales', currency: 'THB', dateBasis: 'confirmed_report_date',
     sourceSheet: SHEET, startDate, endDate, ...summarize(shops),
@@ -144,4 +204,4 @@ async function getConfirmedSalesSummary(filters) {
 }
 
 module.exports = { HEADERS, SHEET, METRICS, datesInRange, parseConfirmedSalesRows, readConfirmedSalesSource,
-  summarizeConfirmedSales, getConfirmedSalesSummary };
+  readConfirmedSalesSourceBuffer, summarizeConfirmedSales, getConfirmedSalesSummary };
