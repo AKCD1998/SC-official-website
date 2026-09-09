@@ -43,16 +43,47 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       `, [source.shopCode, source.sourceSha256, source.sourceFilename, source.observedAt,
         source.startDate, source.endDate, source.facts.length, String(actor).trim()]);
-      for (const fact of source.facts) {
+      const factRows = source.facts.map((fact) => {
         if (fact.shopCode !== source.shopCode) throw new Error('Fact/source shop mismatch.');
+        return {
+          shop_code: fact.shopCode,
+          source_sha256: source.sourceSha256,
+          order_number: fact.orderNumber,
+          ordered_at: fact.orderedAt,
+          status: fact.status,
+          excluded: fact.excluded,
+          item_subtotal: fact.itemSubtotal,
+          seller_voucher: fact.sellerVoucher,
+          shopee_product_discount: fact.shopeeProductDiscount,
+          items: fact.items,
+          source_rows: fact.sourceRows,
+        };
+      });
+      if (factRows.length) {
+        // A rolling 31-day Shopee export can contain thousands of orders. One
+        // parameterized bulk statement keeps the upload inside the agent's
+        // request timeout while preserving the surrounding atomic transaction.
         await client.query(`
           INSERT INTO ${tables.shopeeSalesOrderFacts}
             (shop_code, source_sha256, order_number, ordered_at, status, excluded,
              item_subtotal, seller_voucher, shopee_product_discount, items, source_rows)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb)
-        `, [fact.shopCode, source.sourceSha256, fact.orderNumber, fact.orderedAt, fact.status,
-          fact.excluded, fact.itemSubtotal, fact.sellerVoucher, fact.shopeeProductDiscount,
-          JSON.stringify(fact.items), JSON.stringify(fact.sourceRows)]);
+          SELECT fact.shop_code, fact.source_sha256, fact.order_number, fact.ordered_at,
+                 fact.status, fact.excluded, fact.item_subtotal, fact.seller_voucher,
+                 fact.shopee_product_discount, fact.items, fact.source_rows
+          FROM jsonb_to_recordset($1::jsonb) AS fact(
+            shop_code text,
+            source_sha256 text,
+            order_number text,
+            ordered_at timestamptz,
+            status text,
+            excluded boolean,
+            item_subtotal numeric,
+            seller_voucher numeric,
+            shopee_product_discount numeric,
+            items jsonb,
+            source_rows jsonb
+          )
+        `, [JSON.stringify(factRows)]);
       }
       imported += 1;
     }

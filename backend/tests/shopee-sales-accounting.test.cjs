@@ -114,3 +114,24 @@ test('source import rolls back the whole transaction on failure and never writes
   expect(queries).not.toContain('COMMIT');
   expect(queries.join('\n')).not.toMatch(/(?:INSERT INTO|UPDATE|DELETE FROM) [^\n]*shopee_orders/);
 });
+
+test('source import writes all order facts with one parameterized bulk statement', async () => {
+  const calls = [];
+  const client = { query: jest.fn(async (sql, params = []) => {
+    calls.push({ sql, params });
+    return { rows: [] };
+  }) };
+  const parsed = parseSalesSourceRows([
+    headers,
+    rawRow(),
+    rawRow({ orderNumber: '260808TEST02' }),
+  ], options);
+
+  await expect(importSalesSources([parsed], { client, actor: 'test' })).resolves.toEqual({ imported: 1, unchanged: 0 });
+
+  const factInserts = calls.filter(({ sql }) => sql.includes('INSERT INTO') && sql.includes('shopee_sales_order_facts'));
+  expect(factInserts).toHaveLength(1);
+  expect(factInserts[0].params).toHaveLength(1);
+  expect(JSON.parse(factInserts[0].params[0])).toHaveLength(2);
+  expect(calls.at(-1).sql).toBe('COMMIT');
+});
