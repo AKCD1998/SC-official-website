@@ -6,8 +6,8 @@ const describePostgres = runPostgresSmoke ? describe : describe.skip;
 function assertEphemeralTarget() {
   const connectionString = String(process.env.SEAMLESS_MIGRATION_TEST_DATABASE_URL || "").trim();
   const schemaName = String(process.env.SEAMLESS_DB_SCHEMA || "").trim();
-  if (!connectionString || !/_test$/u.test(schemaName)) {
-    throw new Error("Official-document PostgreSQL test requires an explicit local _test target.");
+  if (!connectionString || !/_(?:test|ci)$/u.test(schemaName)) {
+    throw new Error("Official-document PostgreSQL test requires an explicit local _test/_ci target.");
   }
   const { hostname } = new URL(connectionString);
   if (!new Set(["127.0.0.1", "localhost", "::1"]).has(hostname)) {
