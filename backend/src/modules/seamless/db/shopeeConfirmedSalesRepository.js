@@ -52,21 +52,71 @@ async function listConfirmedSalesDays({ shopCode, startDate, endDate }) {
   const pool = require('../../../../db');
   const tables = getTables();
   const result = await pool.query(`
-    SELECT DISTINCT ON (f.shop_code, f.report_date)
-      f.shop_code, to_char(f.report_date, 'YYYY-MM-DD') AS report_date,
-      f.sales_total, f.order_count, f.cancelled_sales, f.cancelled_order_count,
-      f.returned_sales, f.returned_order_count, f.source_row,
-      s.source_filename, s.source_sha256, s.observed_at, s.imported_at
-    FROM ${tables.shopeeConfirmedDailyFacts} f JOIN ${tables.shopeeConfirmedSources} s USING (shop_code, source_sha256)
-    WHERE ($1::text = 'all' OR f.shop_code = $1) AND f.report_date BETWEEN $2::date AND $3::date
-    ORDER BY f.shop_code, f.report_date, s.observed_at DESC, s.source_sha256 DESC
+    WITH candidates AS (
+      SELECT f.*, s.source_filename, s.observed_at, s.imported_at
+      FROM ${tables.shopeeConfirmedDailyFacts} f
+      JOIN ${tables.shopeeConfirmedSources} s USING (shop_code, source_sha256)
+      WHERE ($1::text = 'all' OR f.shop_code = $1)
+        AND f.report_date BETWEEN $2::date AND $3::date
+    ), latest_gross AS (
+      SELECT DISTINCT ON (shop_code, report_date) *
+      FROM candidates
+      ORDER BY shop_code, report_date, observed_at DESC, source_sha256 DESC
+    ), latest_cancellations AS (
+      SELECT DISTINCT ON (shop_code, report_date) *
+      FROM candidates
+      WHERE cancelled_sales IS NOT NULL AND cancelled_order_count IS NOT NULL
+      ORDER BY shop_code, report_date, observed_at DESC, source_sha256 DESC
+    ), latest_returns AS (
+      SELECT DISTINCT ON (shop_code, report_date) *
+      FROM candidates
+      WHERE returned_sales IS NOT NULL AND returned_order_count IS NOT NULL
+      ORDER BY shop_code, report_date, observed_at DESC, source_sha256 DESC
+    )
+    SELECT
+      gross.shop_code, to_char(gross.report_date, 'YYYY-MM-DD') AS report_date,
+      gross.sales_total, gross.order_count,
+      cancellations.cancelled_sales, cancellations.cancelled_order_count,
+      returns.returned_sales, returns.returned_order_count,
+      gross.source_row, gross.source_filename, gross.source_sha256,
+      gross.observed_at, gross.imported_at,
+      cancellations.source_row AS cancellations_source_row,
+      cancellations.source_filename AS cancellations_source_filename,
+      cancellations.source_sha256 AS cancellations_source_sha256,
+      cancellations.observed_at AS cancellations_observed_at,
+      cancellations.imported_at AS cancellations_imported_at,
+      returns.source_row AS returns_source_row,
+      returns.source_filename AS returns_source_filename,
+      returns.source_sha256 AS returns_source_sha256,
+      returns.observed_at AS returns_observed_at,
+      returns.imported_at AS returns_imported_at
+    FROM latest_gross gross
+    LEFT JOIN latest_cancellations cancellations USING (shop_code, report_date)
+    LEFT JOIN latest_returns returns USING (shop_code, report_date)
+    ORDER BY gross.shop_code, gross.report_date
   `, [scope, startDate, endDate]);
   const numberOrNull = value => value == null ? null : Number(value);
+  const evidence = (row, prefix = '') => {
+    const filename = row[`${prefix}source_filename`];
+    if (filename == null) return null;
+    return {
+      sourceRow: row[`${prefix}source_row`],
+      sourceFilename: filename,
+      sourceSha256: row[`${prefix}source_sha256`],
+      observedAt: new Date(row[`${prefix}observed_at`]).toISOString(),
+      importedAt: new Date(row[`${prefix}imported_at`]).toISOString(),
+    };
+  };
   return result.rows.map(row => ({ shopCode: row.shop_code, date: row.report_date,
     salesTotal: Number(row.sales_total), orderCount: Number(row.order_count),
     cancelledSales: numberOrNull(row.cancelled_sales), cancelledOrderCount: numberOrNull(row.cancelled_order_count),
     returnedSales: numberOrNull(row.returned_sales), returnedOrderCount: numberOrNull(row.returned_order_count),
     sourceRow: row.source_row, sourceFilename: row.source_filename, sourceSha256: row.source_sha256,
-    observedAt: new Date(row.observed_at).toISOString(), importedAt: new Date(row.imported_at).toISOString() }));
+    observedAt: new Date(row.observed_at).toISOString(), importedAt: new Date(row.imported_at).toISOString(),
+    metricEvidence: {
+      confirmedSales: evidence(row),
+      cancellations: evidence(row, 'cancellations_'),
+      returns: evidence(row, 'returns_'),
+    } }));
 }
 module.exports = { importConfirmedSalesSources, listConfirmedSalesDays };
