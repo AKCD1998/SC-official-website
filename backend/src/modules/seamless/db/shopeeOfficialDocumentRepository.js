@@ -34,6 +34,52 @@ function assertExistingSource(row, source) {
   }
 }
 
+async function enrichIncomeComponents(client, tables, source) {
+  if (!["income-transferred", "income-pending"].includes(source.reportType)) return;
+  const result = await client.query(`
+    SELECT source_row, order_number, return_request_number, ordered_at,
+      transferred_at, payout_amount, components
+    FROM ${tables.shopeeIncomeFacts}
+    WHERE shop_code = $1 AND source_sha256 = $2
+    ORDER BY source_row
+  `, [source.shopCode, source.sourceSha256]);
+  if (result.rows.length !== source.facts.length) {
+    throw new Error("Existing My Income fact count differs from the exact-source replay.");
+  }
+  const existingByRow = new Map(result.rows.map((row) => [Number(row.source_row), row]));
+  const updates = [];
+  for (const fact of source.facts) {
+    const existing = existingByRow.get(fact.sourceRow);
+    if (!existing
+      || existing.order_number !== fact.orderNumber
+      || (existing.return_request_number || null) !== (fact.returnRequestNumber || null)
+      || new Date(existing.ordered_at).toISOString() !== fact.orderedAt
+      || (existing.transferred_at ? new Date(existing.transferred_at).toISOString() : null) !== fact.transferredAt
+      || Number(existing.payout_amount) !== fact.payoutAmount) {
+      throw new Error("Existing My Income fact identity or amount differs from the exact-source replay.");
+    }
+    const current = existing.components || {};
+    const incoming = fact.components || {};
+    for (const [key, value] of Object.entries(current)) {
+      if (!Object.hasOwn(incoming, key) || !isDeepStrictEqual(value, incoming[key])) {
+        throw new Error(`Existing immutable My Income component differs: ${key}.`);
+      }
+    }
+    const merged = { ...incoming, ...current };
+    if (!isDeepStrictEqual(current, merged)) updates.push({ source_row: fact.sourceRow, components: merged });
+  }
+  if (updates.length) {
+    await client.query(`
+      UPDATE ${tables.shopeeIncomeFacts} fact
+      SET components = item.components
+      FROM jsonb_to_recordset($3::jsonb) AS item(source_row integer, components jsonb)
+      WHERE fact.shop_code = $1
+        AND fact.source_sha256 = $2
+        AND fact.source_row = item.source_row
+    `, [source.shopCode, source.sourceSha256, JSON.stringify(updates)]);
+  }
+}
+
 async function insertFinancialStatement(client, tables, source) {
   const [fact] = source.facts;
   if (!fact || source.facts.length !== 1) throw new Error("Financial Statement must contain one control fact.");
@@ -169,6 +215,7 @@ async function importOfficialDocumentSources(sources, {
       `, [source.sourceSha256]);
       if (existing.rows.length) {
         assertExistingSource(existing.rows[0], source);
+        await enrichIncomeComponents(client, tables, source);
         unchanged += 1;
         continue;
       }
@@ -269,6 +316,7 @@ async function listReturnSourcesAndFacts({ client, shopCode, startDate, endDate 
 }
 
 module.exports = {
+  enrichIncomeComponents,
   importOfficialDocumentSources,
   listFinanceSources,
   listReconciliationFacts,

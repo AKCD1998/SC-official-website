@@ -5,15 +5,16 @@ const { HEADERS: CONFIRMED_HEADERS, SHEET: CONFIRMED_SHEET } = require("../src/m
 const { BALANCE_HEADERS } = require("../src/modules/seamless/services/shopeeOfficialDocumentService");
 
 let mockAuditRow = null;
+let mockSalesSourceRows = [];
 const mockQueries = [];
 const mockClient = {
   release: jest.fn(),
   query: jest.fn(async (sql, params = []) => {
     mockQueries.push({ sql, params });
     if (/SELECT \* FROM .*shopee_sales_ingest_jobs/iu.test(sql)) {
-      return { rows: mockAuditRow ? [mockAuditRow] : [] };
+      return { rows: mockAuditRow?.job_id === params[0] ? [mockAuditRow] : [] };
     }
-    if (/SELECT \* FROM .*shopee_sales_sources/iu.test(sql)) return { rows: [] };
+    if (/SELECT \* FROM .*shopee_sales_sources/iu.test(sql)) return { rows: mockSalesSourceRows };
     if (/SELECT f\.order_number/iu.test(sql)) return { rows: [] };
     if (/INSERT INTO .*shopee_sales_ingest_jobs/iu.test(sql)) {
       mockAuditRow = {
@@ -85,7 +86,8 @@ async function source() {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("orders");
   sheet.addRow(Object.values(HEADERS));
-  sheet.addRow(["TESTORDER001", "สำเร็จแล้ว", "2026-09-08 12:00", "สินค้าทดสอบ", "หนึ่งกล่อง", 1, 100, 90, 5, 10]);
+  sheet.addRow(["TESTORDER001", "สำเร็จแล้ว", "2026-09-08 12:00", "2026-09-08 12:01",
+    "สินค้าทดสอบ", "หนึ่งกล่อง", 1, 100, 90, 5, 10, "-", "2026-09-08 18:00"]);
   const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
   const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
   return {
@@ -164,6 +166,7 @@ async function sellerBalanceSource() {
 
 beforeEach(() => {
   mockAuditRow = null;
+  mockSalesSourceRows = [];
   mockQueries.length = 0;
   mockClient.query.mockClear();
   mockClient.release.mockClear();
@@ -183,6 +186,31 @@ test("source import and ingest audit commit atomically, then exact replay is unc
   expect(replay.status).toBe("unchanged");
   expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_sales_sources/iu.test(sql))).toBe(false);
   expect(mockQueries.at(-1).sql).toBe("COMMIT");
+});
+
+test("a new job ID can safely backfill same-SHA order timestamps without breaking job replay idempotency", async () => {
+  const input = await source();
+  mockSalesSourceRows = [{
+    shop_code: input.body.shopCode,
+    source_filename: input.body.originalFilename,
+    observed_at: new Date(input.body.observedAt),
+    order_count: 1,
+  }];
+  const result = await ingestShopeeSalesSource({
+    ...input,
+    body: { ...input.body, jobId: "20260910120000-orders-backfill-12345678" },
+  });
+  expect(result.status).toBe("unchanged");
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_sales_sources/iu.test(sql))).toBe(false);
+  expect(mockQueries.some(({ sql }) => /UPDATE .*shopee_sales_order_facts/iu.test(sql))).toBe(true);
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_sales_ingest_jobs/iu.test(sql))).toBe(true);
+
+  mockQueries.length = 0;
+  await ingestShopeeSalesSource({
+    ...input,
+    body: { ...input.body, jobId: "20260910120000-orders-backfill-12345678" },
+  });
+  expect(mockQueries.some(({ sql }) => /UPDATE|INSERT INTO .*shopee_sales_sources/iu.test(sql))).toBe(false);
 });
 
 test("same job ID with different immutable metadata rolls back with HTTP 409", async () => {

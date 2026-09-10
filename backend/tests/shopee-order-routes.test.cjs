@@ -31,6 +31,12 @@ const listConfirmedSalesDaysMock = jest.fn(async () => []);
 jest.mock('../src/modules/seamless/db/shopeeConfirmedSalesRepository', () => ({
   listConfirmedSalesDays: (...args) => listConfirmedSalesDaysMock(...args),
 }));
+const listReconciliationEvidenceMock = jest.fn(async () => ({
+  orderSnapshots: [], incomeFacts: [], balanceFacts: [], returnFacts: [],
+}));
+jest.mock('../src/modules/seamless/db/shopeeFinancialReconciliationRepository', () => ({
+  listReconciliationEvidence: (...args) => listReconciliationEvidenceMock(...args),
+}));
 const getOfficialDocumentSummaryMock = jest.fn(async () => ({ finance: [], returns: [] }));
 jest.mock('../src/modules/seamless/services/shopeeOfficialDocumentSummaryService', () => ({
   getOfficialDocumentSummary: (...args) => getOfficialDocumentSummaryMock(...args),
@@ -515,9 +521,13 @@ test('restricts new order-money JSON and ledger export to administrators', async
   const adminJson = await request(app).get(`/api/app/shopee/orders/sales-summary${query}`)
     .auth('finance-admin', 'local-test-admin-password');
   expect(adminJson.status).toBe(200);
+  expect(adminJson.headers['cache-control']).toBe('no-store');
   expect(adminJson.body.accounting).toMatchObject({ calculatedSalesTotal: 70, status: 'provisional' });
   expect(adminJson.body.confirmedSales).toMatchObject({ salesTotal: null, status: 'incomplete', metric: 'shopee_confirmed_gross_sales' });
   expect(adminJson.body.officialDocuments).toEqual({ finance: [], returns: [] });
+  expect(adminJson.body.reconciliation).toMatchObject({ status: 'incomplete', timezone: 'Asia/Bangkok' });
+  expect(adminJson.body.reconciliation).toMatchObject({ orderLedgerCount: 0 });
+  expect(adminJson.body.reconciliation).not.toHaveProperty('orders');
   for (const [user, password, allowed] of [
     ['accounting-user', 'local-test-password', false], ['finance-admin', 'local-test-admin-password', true],
   ]) {
