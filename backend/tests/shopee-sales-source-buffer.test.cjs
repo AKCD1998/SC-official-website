@@ -17,6 +17,7 @@ async function ordersBuffer() {
     "TESTORDER001",
     "สำเร็จแล้ว",
     "2026-09-08 12:00",
+    "2026-09-08 12:01",
     "สินค้าทดสอบ",
     "หนึ่งกล่อง",
     1,
@@ -24,6 +25,8 @@ async function ordersBuffer() {
     90,
     5,
     10,
+    "SVC-1489610191827020",
+    "2026-09-09 12:00",
   ]);
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
@@ -45,13 +48,14 @@ test("buffer readers preserve caller-supplied original filenames and verify byte
   const orderHash = crypto.createHash("sha256").update(orderBytes).digest("hex");
   const orders = await readSalesSourceBuffer(orderBytes, {
     shopCode: "sc-drug-store",
-    observedAt: "2026-09-09T02:00:00.000Z",
+    observedAt: "2026-09-09T06:00:00.000Z",
     sourceFilename: "Order.all.20260908_20260908.xlsx",
     sourceSha256: orderHash,
   });
   expect(orders.sourceFilename).toBe("Order.all.20260908_20260908.xlsx");
   expect(orders.sourceSha256).toBe(orderHash);
   expect(orders.facts).toHaveLength(1);
+  expect(orders.facts[0].voucherCodes).toEqual(["SVC-1489610191827020"]);
 
   const confirmedBytes = await confirmedBuffer();
   const confirmedHash = crypto.createHash("sha256").update(confirmedBytes).digest("hex");
@@ -67,7 +71,7 @@ test("buffer readers preserve caller-supplied original filenames and verify byte
 
   await expect(readSalesSourceBuffer(orderBytes, {
     shopCode: "sc-drug-store",
-    observedAt: "2026-09-09T02:00:00.000Z",
+    observedAt: "2026-09-09T06:00:00.000Z",
     sourceFilename: "Order.all.20260908_20260908.xlsx",
     sourceSha256: "0".repeat(64),
   })).rejects.toThrow("SHA-256");

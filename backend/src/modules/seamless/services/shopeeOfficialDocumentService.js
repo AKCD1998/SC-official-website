@@ -8,13 +8,55 @@ const INCOME_HEADERS = Object.freeze({
   returnRequestNumber: "รหัสคืนสินค้า",
   orderedAt: "วันที่ทำการสั่งซื้อ",
   transferredAt: "วันที่โอนชำระเงินสำเร็จ",
-  productRegularAmount: "สินค้าราคาปกติ",
-  sellerProductDiscount: "ส่วนลดสินค้าจากผู้ขาย",
-  buyerRefund: "จำนวนเงินที่ทำการคืนให้ผู้ซื้อ",
-  shopeeProductDiscount: "ส่วนลดสินค้าที่ออกโดย Shopee",
-  sellerVoucher: "โค้ดส่วนลดที่ออกโดยผู้ขาย",
   payoutAmount: "จำนวนเงินทั้งหมดที่โอนแล้ว (฿)",
 });
+const INCOME_COMPONENT_SPECS = Object.freeze([
+  { key: "productRegularAmount", label: "สินค้าราคาปกติ", additive: true },
+  { key: "sellerProductDiscount", label: "ส่วนลดสินค้าจากผู้ขาย", additive: true },
+  { key: "buyerRefund", label: "จำนวนเงินที่ทำการคืนให้ผู้ซื้อ", additive: true },
+  { key: "shopeeProductDiscount", label: "ส่วนลดสินค้าที่ออกโดย Shopee", additive: true },
+  { key: "sellerVoucher", label: "โค้ดส่วนลดที่ออกโดยผู้ขาย", additive: true },
+  { key: "sellerCoSponsoredVoucher", label: "โค้ดส่วนลดร่วมที่ออกโดยผู้ขาย", additive: true },
+  { key: "sellerCoinsCashback", label: "Coins Cashback ที่สนับสนุนโดยผู้ขาย", additive: true },
+  { key: "sellerCoSponsoredCoinsCashback", label: "Coins Cashback ร่วมที่สนับสนุนโดยผู้ขาย", additive: true },
+  { key: "buyerPaidShipping", label: "ค่าจัดส่งที่ชำระโดยผู้ซื้อ", additive: true },
+  { key: "shopeeShippingSubsidy", label: "ค่าจัดส่งสินค้าที่ออกโดย Shopee", additive: true },
+  { key: "sellerChargedShipping", label: "ค่าจัดส่งที่ Shopee ชำระโดยชื่อของคุณ", additive: true },
+  { key: "returnShippingFee", label: "ค่าจัดส่งสินค้าคืน", additive: true },
+  { key: "sellerReturnShippingFee", label: "ค่าจัดส่งสินค้าคืนผู้ขาย", additive: true },
+  { key: "returnShippingSaverProgram", label: "โปรแกรมประหยัดค่าจัดส่งคืนสินค้า", additive: true },
+  { key: "amsCommission", label: "ค่าคอมมิชชั่น AMS", additive: true },
+  { key: "commissionFee", label: "ค่าคอมมิชชั่น", additive: true },
+  { key: "serviceFee", label: "ค่าบริการ", additive: true },
+  { key: "platformInfrastructureFee", label: "ค่าธรรมเนียมโครงสร้างพื้นฐานแพลตฟอร์ม", additive: true },
+  { key: "shippingSaverProgramFee", label: "ค่าธรรมเนียม ของโปรแกรมประหยัดค่าจัดส่ง", additive: true },
+  { key: "paymentTransactionFee", label: "ค่าธุรกรรมการชำระเงิน", additive: true },
+  { key: "tax", label: "ภาษี", additive: true },
+  { key: "adsTopupFeeFromEscrow", label: "ค่าธรรมเนียมเติมเงินโฆษณาจากเงิน Escrow", additive: true },
+  { key: "buyerPaidInstallationFee", label: "ค่าบริการติดตั้งที่ชำระโดยผู้ซื้อ", additive: true },
+  { key: "installationProviderFee", label: "ค่าบริการติดตั้งจริงจากผู้ให้บริการ", additive: true },
+  { key: "sellerTradeInBonus", label: "โบนัสส่วนลดเครื่องเก่าแลกใหม่จากผู้ขาย", additive: true },
+  { key: "missingCompensation", label: "ค่าชดเชยที่หายไป", additive: true },
+  { key: "sellerShippingPromotion", label: "โปรโมชั่นค่าจัดส่งจากผู้ขาย", additive: true },
+  // Shopee repeats the final credit-card promotion header. Occurrence order is
+  // part of the source contract so both columns remain distinct and stable.
+  { key: "buyerRefundDetail", label: "เงินที่คืนไปยังผู้ซื้อ", additive: false },
+  { key: "returnedItemShopeeCoins", label: "Shopee Coins ที่ใช้กับสินค้าที่ขอคืน", additive: false },
+  { key: "returnedItemShopeeVoucher", label: "โค้ดส่วนลด Shopee ที่ใช้กับสินค้าที่ขอคืน", additive: false },
+  { key: "returnedItemCreditCardPromotion1", label: "โปรโมชั่นบัตรเครดิตที่ใช้กับสินค้าที่ขอคืน", additive: false },
+  { key: "returnedItemCreditCardPromotion2", label: "โปรโมชั่นบัตรเครดิตที่ใช้กับสินค้าที่ขอคืน", additive: false },
+]);
+const INCOME_SOURCE_HEADERS = Object.freeze([
+  "ลำดับที่", INCOME_HEADERS.orderNumber, INCOME_HEADERS.returnRequestNumber,
+  "ชื่อผู้ใช้ (ผู้ซื้อ)", INCOME_HEADERS.orderedAt, "ช่องทางการชำระเงินของผู้ซื้อ",
+  "Hot Listing", "ช่องทางการชำระเงิน (รายละเอียด)", "แผนการผ่อนชำระ", "ค่าธรรมเนียม (%)",
+  INCOME_HEADERS.transferredAt,
+  ...INCOME_COMPONENT_SPECS.filter((item) => item.additive && !["missingCompensation", "sellerShippingPromotion"].includes(item.key))
+    .map((item) => item.label),
+  INCOME_HEADERS.payoutAmount, "โค้ดส่วนลด", "ค่าชดเชยที่หายไป", "โปรโมชั่นค่าจัดส่งจากผู้ขาย",
+  "Shipping provider", "ชื่อผู้ให้บริการขนส่ง", "",
+  ...INCOME_COMPONENT_SPECS.filter((item) => !item.additive).map((item) => item.label),
+]);
 const BALANCE_HEADERS = Object.freeze({
   transactionAt: "วันที่",
   transactionType: "ประเภทการทำธุรกรรม",
@@ -104,6 +146,37 @@ function exactColumns(headers, expected) {
     if (matches.length !== 1) throw new Error(`Missing or duplicate Shopee header: ${label}`);
     return [key, matches[0]];
   }));
+}
+
+function incomeComponentColumns(headers) {
+  if (headers.length !== INCOME_SOURCE_HEADERS.length
+    || headers.some((value, index) => value !== INCOME_SOURCE_HEADERS[index])) {
+    throw new Error("Shopee My Income header schema has changed; review every column before import.");
+  }
+  const expectedCountByLabel = new Map();
+  for (const spec of INCOME_COMPONENT_SPECS) {
+    expectedCountByLabel.set(spec.label, (expectedCountByLabel.get(spec.label) || 0) + 1);
+  }
+  const occurrenceByLabel = new Map();
+  const result = INCOME_COMPONENT_SPECS.map((spec) => {
+    const indices = headers.flatMap((value, index) => value === spec.label ? [index] : []);
+    if (indices.length !== expectedCountByLabel.get(spec.label)) {
+      throw new Error(`Missing or duplicate Shopee accounting header: ${spec.label}`);
+    }
+    const occurrence = occurrenceByLabel.get(spec.label) || 0;
+    occurrenceByLabel.set(spec.label, occurrence + 1);
+    return { ...spec, column: indices[occurrence] };
+  });
+  const additiveBeforePayout = result.filter((item) => item.additive
+    && !["missingCompensation", "sellerShippingPromotion"].includes(item.key));
+  const payoutIndex = headers.indexOf(INCOME_HEADERS.payoutAmount);
+  const firstIndex = additiveBeforePayout[0]?.column;
+  if (payoutIndex < 0 || firstIndex == null
+    || additiveBeforePayout.some((item, index) => item.column !== firstIndex + index)
+    || payoutIndex !== firstIndex + additiveBeforePayout.length) {
+    throw new Error("Shopee accounting component span has changed; review every monetary column before import.");
+  }
+  return result;
 }
 
 function sourceBase({ buffer, sourceFilename, sourceSha256, shopCode, observedAt }) {
@@ -212,6 +285,7 @@ async function readIncomeSourceBuffer(buffer, { reportType, ...options }) {
   }
   const headers = (rows[5] || []).map(text);
   const columns = exactColumns(headers, INCOME_HEADERS);
+  const componentColumns = incomeComponentColumns(headers);
   const facts = [];
   for (const [offset, row] of rows.slice(6).entries()) {
     if (row.every((value) => !text(value))) continue;
@@ -228,6 +302,14 @@ async function readIncomeSourceBuffer(buffer, { reportType, ...options }) {
       if (transferDate < startDate || transferDate > endDate) throw new Error("My Income transfer date is outside the source period.");
     }
     const payoutCents = cents(row[columns.payoutAmount], "My Income payout amount");
+    const componentValues = {};
+    let additiveTotalCents = 0;
+    for (const component of componentColumns) {
+      const valueCents = cents(row[component.column], component.label, { nullable: true });
+      componentValues[component.key] = amount(valueCents);
+      if (component.additive) additiveTotalCents += valueCents || 0;
+    }
+    const unexplainedResidualCents = payoutCents - additiveTotalCents;
     facts.push({
       shopCode: base.shopCode,
       sourceRow,
@@ -237,11 +319,10 @@ async function readIncomeSourceBuffer(buffer, { reportType, ...options }) {
       transferredAt,
       payoutAmount: amount(payoutCents),
       components: {
-        productRegularAmount: amount(cents(row[columns.productRegularAmount], "regular product amount", { nullable: true })),
-        sellerProductDiscount: amount(cents(row[columns.sellerProductDiscount], "seller product discount", { nullable: true })),
-        buyerRefund: amount(cents(row[columns.buyerRefund], "buyer refund", { nullable: true })),
-        shopeeProductDiscount: amount(cents(row[columns.shopeeProductDiscount], "Shopee product discount", { nullable: true })),
-        sellerVoucher: amount(cents(row[columns.sellerVoucher], "seller voucher", { nullable: true })),
+        ...componentValues,
+        additiveTotal: amount(additiveTotalCents),
+        unexplainedResidual: amount(unexplainedResidualCents),
+        reconciliationStatus: unexplainedResidualCents === 0 ? "reconciled" : "unresolved",
       },
     });
   }
@@ -349,12 +430,15 @@ async function readSellerBalanceSourceBuffer(buffer, options) {
 
 module.exports = {
   BALANCE_HEADERS,
+  INCOME_COMPONENT_SPECS,
   INCOME_HEADERS,
+  INCOME_SOURCE_HEADERS,
   addDays,
   amount,
   cents,
   compactDate,
   exactColumns,
+  incomeComponentColumns,
   excelRows,
   isoDate,
   parseBangkokTimestamp,

@@ -5,6 +5,8 @@ const { zipSync } = require("fflate");
 const {
   BALANCE_HEADERS,
   INCOME_HEADERS,
+  INCOME_SOURCE_HEADERS,
+  incomeComponentColumns,
   readIncomeSourceBuffer,
   readSellerBalanceSourceBuffer,
 } = require("../src/modules/seamless/services/shopeeOfficialDocumentService");
@@ -32,10 +34,24 @@ async function incomeWorkbook() {
   summary.getCell("A15").value = "3. จำนวนเงินทั้งหมดที่โอนแล้ว";
   summary.getCell("D15").value = 100;
   const income = workbook.addWorksheet("Income");
-  income.getRow(6).values = Object.values(INCOME_HEADERS);
-  income.getRow(7).values = [
-    "260901TEST001", "", "2026-08-31", "2026-09-02", 140, -10, 0, -20, -10, 100,
-  ];
+  income.getRow(6).values = INCOME_SOURCE_HEADERS;
+  const detail = Array(INCOME_SOURCE_HEADERS.length).fill(null);
+  const set = (header, value, occurrence = 0) => {
+    const matches = INCOME_SOURCE_HEADERS.flatMap((item, index) => item === header ? [index] : []);
+    detail[matches[occurrence]] = value;
+  };
+  set(INCOME_HEADERS.orderNumber, "260901TEST001");
+  set(INCOME_HEADERS.returnRequestNumber, "");
+  set(INCOME_HEADERS.orderedAt, "2026-08-31");
+  set(INCOME_HEADERS.transferredAt, "2026-09-02");
+  set("สินค้าราคาปกติ", 140);
+  set("ส่วนลดสินค้าจากผู้ขาย", -10);
+  set("ส่วนลดสินค้าที่ออกโดย Shopee", -20);
+  set("โค้ดส่วนลดที่ออกโดยผู้ขาย", -10);
+  set(INCOME_HEADERS.payoutAmount, 100);
+  set("โปรโมชั่นบัตรเครดิตที่ใช้กับสินค้าที่ขอคืน", -2, 0);
+  set("โปรโมชั่นบัตรเครดิตที่ใช้กับสินค้าที่ขอคืน", 2, 1);
+  income.getRow(7).values = detail;
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
@@ -106,11 +122,24 @@ test("My Income validates exact shop, period, status and Summary total", async (
     payoutAmount: 100,
     orderedAt: "2026-08-30T17:00:00.000Z",
     transferredAt: "2026-09-01T17:00:00.000Z",
+    components: {
+      additiveTotal: 100,
+      unexplainedResidual: 0,
+      reconciliationStatus: "reconciled",
+      returnedItemCreditCardPromotion1: -2,
+      returnedItemCreditCardPromotion2: 2,
+    },
   });
   await expect(readIncomeSourceBuffer(buffer, {
     ...options("Income.รอดำเนินการ.th.20260901_20260906.xlsx"),
     reportType: "income-transferred",
   })).rejects.toThrow(/status does not match/iu);
+});
+
+test("My Income fails closed when an unreviewed accounting column changes the 48-column schema", () => {
+  const changed = [...INCOME_SOURCE_HEADERS];
+  changed.splice(37, 0, "คอลัมน์จำนวนเงินใหม่");
+  expect(() => incomeComponentColumns(changed)).toThrow(/header schema has changed/iu);
 });
 
 test("Seller Balance separates order-linked money from unrelated adjustments", async () => {

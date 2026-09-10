@@ -161,6 +161,7 @@ async function getShopeeSalesSummary({
   startDate,
   includeConfirmed = false,
   includeOfficialDocuments = false,
+  includeReconciliation = false,
 }) {
   const orders = await repository.listOrdersForSalesSummary({ endDate, shopCode, startDate });
   const summary = summarizeSalesByProduct(orders);
@@ -171,6 +172,27 @@ async function getShopeeSalesSummary({
   if (includeOfficialDocuments) {
     const { getOfficialDocumentSummary } = require('./shopeeOfficialDocumentSummaryService');
     summary.officialDocuments = await getOfficialDocumentSummary({ endDate, shopCode, startDate });
+  }
+  if (includeReconciliation) {
+    const { getShopeeFinancialReconciliation } = require('./shopeeFinancialReconciliationService');
+    const fullReconciliation = await getShopeeFinancialReconciliation({ endDate, shopCode, startDate });
+    // The sales-summary view needs aggregate controls, not hundreds of order
+    // ledgers. Full detail remains available from the admin-only reconciliation
+    // endpoint and is omitted here to keep the existing response bounded.
+    const { orders: reconciliationOrders, ...embeddedReconciliation } = fullReconciliation;
+    summary.reconciliation = {
+      ...embeddedReconciliation,
+      orderLedgerCount: reconciliationOrders.length,
+    };
+    summary.accounting.periodReconciliation = summary.reconciliation.status;
+    summary.accounting.periodReconciliationDetails = {
+      dateBasis: summary.reconciliation.dateBasis.salesBatch,
+      shops: summary.reconciliation.shops.map((shop) => ({
+        shopCode: shop.shopCode,
+        status: shop.status,
+        salesBatchVariance: shop.salesBatch.variance,
+      })),
+    };
   }
   return summary;
 }

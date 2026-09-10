@@ -6,9 +6,12 @@ const { sanitizeShopeeOrderItem } = require('../shopeeOrderValidation');
 
 const HEADERS = Object.freeze({
   orderNumber: 'หมายเลขคำสั่งซื้อ', status: 'สถานะการสั่งซื้อ',
-  orderedAt: 'วันที่ทำการสั่งซื้อ', name: 'ชื่อสินค้า', variant: 'ชื่อตัวเลือก',
+  orderedAt: 'วันที่ทำการสั่งซื้อ', paidAt: 'เวลาการชำระสินค้า',
+  name: 'ชื่อสินค้า', variant: 'ชื่อตัวเลือก',
   quantity: 'จำนวน', unitPrice: 'ราคาขาย', itemSubtotal: 'ราคาขายสุทธิ',
   shopeeProductDiscount: 'ส่วนลดจาก Shopee', sellerVoucher: 'โค้ดส่วนลดชำระโดยผู้ขาย',
+  voucherCodes: 'โค้ดส่วนลด',
+  completedAt: 'เวลาที่ทำการสั่งซื้อสำเร็จ',
 });
 
 function text(value) {
@@ -17,15 +20,21 @@ function text(value) {
   return String(value ?? '').normalize('NFC').replace(/\s+/gu, ' ').trim();
 }
 
-function parseBangkokDate(value) {
+function parseBangkokDate(value, label = 'Shopee date') {
   const raw = value instanceof Date ? value.toISOString().slice(0, 19).replace('T', ' ') : text(value);
   const match = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2})(?::(\d{2}))?$/u.exec(raw);
-  if (!match) throw new Error('Invalid Shopee creation date.');
+  if (!match) throw new Error(`Invalid ${label}.`);
   const clock = `${match[1]}T${match[2]}:${match[3] || '00'}`;
   const instant = new Date(`${clock}+07:00`);
   const roundTrip = new Date(instant.getTime() + 7 * 3600000).toISOString().slice(0, 19);
-  if (roundTrip !== clock) throw new Error('Invalid Shopee calendar date.');
+  if (roundTrip !== clock) throw new Error(`Invalid ${label} calendar date.`);
   return instant.toISOString();
+}
+
+function parseOptionalBangkokDate(value, label) {
+  const normalized = text(value);
+  if (!normalized || normalized === '-') return null;
+  return parseBangkokDate(value, label);
 }
 
 function classifyStatus(value) {
@@ -48,6 +57,17 @@ function readCents(value, label) {
   const cents = moneyCents(clean);
   if (cents === null) throw new Error(`Missing or invalid ${label}.`);
   return cents;
+}
+
+function parseVoucherCodes(value) {
+  const raw = text(value);
+  if (!raw || raw === '-') return [];
+  const codes = [...new Set(raw.split(/[;,]/u).map((part) => part.trim().toUpperCase()).filter(Boolean))].sort();
+  if (!codes.length || codes.length > 20
+    || codes.some((code) => !/^[A-Z0-9][A-Z0-9._-]{1,79}$/u.test(code))) {
+    throw new Error('Invalid Shopee voucher code list.');
+  }
+  return codes;
 }
 
 function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, observedAt }) {
@@ -81,22 +101,35 @@ function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, ob
     const id = text(get('orderNumber')).toUpperCase();
     if (!/^[A-Z0-9]{8,40}$/u.test(id)) throw new Error(`Invalid order number at row ${index + 2}.`);
     const orderedAt = parseBangkokDate(get('orderedAt'));
+    const paidAt = parseOptionalBangkokDate(get('paidAt'), 'Shopee payment date');
+    const completedAt = parseOptionalBangkokDate(get('completedAt'), 'Shopee completed date');
     const thaiDate = new Date(new Date(orderedAt).getTime() + 7 * 3600000).toISOString().slice(0, 10);
-    if (thaiDate < startDate || thaiDate > endDate || new Date(orderedAt) > observed) {
+    if (thaiDate < startDate || thaiDate > endDate || [orderedAt, paidAt, completedAt]
+      .filter(Boolean).some((value) => new Date(value) > observed)) {
       throw new Error(`Order creation date is outside the source period/snapshot: ${id}`);
+    }
+    if (paidAt && new Date(paidAt) < new Date(orderedAt)) {
+      throw new Error(`Shopee payment date precedes order creation: ${id}`);
+    }
+    if (completedAt && new Date(completedAt) < new Date(orderedAt)) {
+      throw new Error(`Shopee completed date precedes order creation: ${id}`);
     }
     const status = classifyStatus(get('status'));
     const sellerVoucherCents = readCents(get('sellerVoucher'), 'seller voucher');
+    const voucherCodes = parseVoucherCodes(get('voucherCodes'));
     const quantity = Number(get('quantity'));
     if (!Number.isSafeInteger(quantity) || quantity < 1) throw new Error(`Invalid quantity: ${id}`);
     const name = text(get('name'));
     if (!name) throw new Error(`Missing product name: ${id}`);
     let order = orders.get(id);
     if (!order) {
-      order = { shopCode, orderNumber: id, orderedAt, ...status,
-        subtotalCents: 0, sellerVoucherCents, discountCents: 0, items: [], sourceRows: [] };
+      order = { shopCode, orderNumber: id, orderedAt, paidAt, completedAt, ...status,
+        subtotalCents: 0, sellerVoucherCents, discountCents: 0, voucherCodes, items: [], sourceRows: [] };
       orders.set(id, order);
-    } else if (order.status !== status.status || order.orderedAt !== orderedAt || order.sellerVoucherCents !== sellerVoucherCents) {
+    } else if (order.status !== status.status || order.orderedAt !== orderedAt
+      || order.paidAt !== paidAt || order.completedAt !== completedAt
+      || order.sellerVoucherCents !== sellerVoucherCents
+      || JSON.stringify(order.voucherCodes) !== JSON.stringify(voucherCodes)) {
       throw new Error(`Inconsistent order-level date/status/voucher: ${id}`);
     }
     order.subtotalCents += readCents(get('itemSubtotal'), 'net sale');
@@ -158,6 +191,8 @@ module.exports = {
   HEADERS,
   classifyStatus,
   parseBangkokDate,
+  parseOptionalBangkokDate,
+  parseVoucherCodes,
   parseSalesSourceRows,
   readSalesSource,
   readSalesSourceBuffer,

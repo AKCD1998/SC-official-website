@@ -9,6 +9,7 @@ const { TIMELINE_EVENT_TYPES } = require("../services/shopeeOrderEmailParser");
 const { syncShopeeOrderPage } = require("../services/shopeeOrderTimelineService");
 const { getShopeeSalesSummary } = require("../services/shopeeSalesSummaryService");
 const { exportShopeeSalesSummary } = require("../services/shopeeSalesSummaryExportService");
+const { getShopeeFinancialReconciliation } = require("../services/shopeeFinancialReconciliationService");
 const {
   getViewerFinancialVisibility,
   normalizeUserFinancialVisibility,
@@ -208,20 +209,29 @@ async function listSalesSummary(req, res) {
     startDate,
     includeConfirmed: req.appRole === 'admin',
     includeOfficialDocuments: req.appRole === 'admin',
+    includeReconciliation: req.appRole === 'admin',
   });
   // Discount components are a new financial surface, not covered by the legacy
   // item-subtotal visibility setting. Keep them admin-only until a dedicated
   // permission is defined. Existing product/subtotal views remain unchanged.
-  const { accounting, confirmedSales, officialDocuments, ...productSummary } = summary;
+  const { accounting, confirmedSales, officialDocuments, reconciliation, ...productSummary } = summary;
+  res.set('Cache-Control', 'no-store');
   res.json({
     ...productSummary,
-    ...(req.appRole === 'admin' ? { accounting, confirmedSales, officialDocuments } : {}),
+    ...(req.appRole === 'admin' ? { accounting, confirmedSales, officialDocuments, reconciliation } : {}),
     endDate,
     excludedStatuses: ["order_cancelled", "seller_return_delivery"],
     shopCode,
     startDate,
     timezone: "Asia/Bangkok",
   });
+}
+
+async function getSalesReconciliation(req, res) {
+  if (req.appRole !== 'admin') throw forbidden('Financial reconciliation is available to administrators only.');
+  const filters = parseSalesSummaryFilters(req.query);
+  res.set('Cache-Control', 'no-store');
+  res.json(await getShopeeFinancialReconciliation(filters));
 }
 
 async function exportSalesSummary(req, res) {
@@ -327,6 +337,7 @@ module.exports = {
   encodeCursor,
   exportSalesSummary,
   getFinancialVisibility,
+  getSalesReconciliation,
   getInboxOverview,
   getOrder,
   listSalesSummary,

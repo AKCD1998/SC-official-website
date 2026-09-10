@@ -14,7 +14,7 @@ const options = { shopCode: 'sc-drug-store', sourceFilename: source.sourceFilena
 function rawRow(overrides = {}) {
   const data = { orderNumber: base.orderNumber, status: 'สำเร็จแล้ว', orderedAt: '2026-08-08 07:00',
     name: 'สินค้า', variant: 'หนึ่งกล่อง', quantity: 1, unitPrice: 50, itemSubtotal: 50,
-    shopeeProductDiscount: 2, sellerVoucher: 10, ...overrides };
+    shopeeProductDiscount: 2, sellerVoucher: 10, voucherCodes: '-', ...overrides };
   return Object.keys(HEADERS).map((key) => data[key]);
 }
 const headers = Object.values(HEADERS);
@@ -134,4 +134,55 @@ test('source import writes all order facts with one parameterized bulk statement
   expect(factInserts[0].params).toHaveLength(1);
   expect(JSON.parse(factInserts[0].params[0])).toHaveLength(2);
   expect(calls.at(-1).sql).toBe('COMMIT');
+});
+
+test('raw Order All retains normalized voucher identifiers and rejects within-order conflicts', () => {
+  const code = 'SVC-1489610191827020';
+  const result = parseSalesSourceRows([headers, rawRow({ voucherCodes: code })], options);
+  expect(result.facts[0].voucherCodes).toEqual([code]);
+  expect(() => parseSalesSourceRows([
+    headers,
+    rawRow({ voucherCodes: code }),
+    rawRow({ voucherCodes: 'SVC-9999999999999999' }),
+  ], options)).toThrow('Inconsistent');
+});
+
+test('same-hash replay backfills only NULL lineage fields including voucher codes and rejects conflicts', async () => {
+  const parsed = parseSalesSourceRows([headers, rawRow({
+    paidAt: '2026-08-08 07:01', completedAt: '2026-08-09 10:00',
+    voucherCodes: 'SVC-1489610191827020',
+  })], options);
+  const existingSource = {
+    shop_code: parsed.shopCode,
+    source_filename: parsed.sourceFilename,
+    observed_at: new Date(parsed.observedAt),
+    order_count: parsed.facts.length,
+  };
+  const calls = [];
+  const client = { query: jest.fn(async (sql, params = []) => {
+    calls.push({ sql, params });
+    if (/SELECT \* FROM .*shopee_sales_sources/iu.test(sql)) return { rows: [existingSource] };
+    if (/SELECT f\.order_number/iu.test(sql)) return { rows: [] };
+    return { rows: [] };
+  }) };
+  await expect(importSalesSources([parsed], { client, actor: 'test' }))
+    .resolves.toEqual({ imported: 0, unchanged: 1 });
+  const update = calls.find(({ sql }) => /UPDATE .*shopee_sales_order_facts/isu.test(sql));
+  expect(update).toBeTruthy();
+  expect(update.sql).toMatch(/COALESCE\(f\.paid_at, item\.paid_at\)/iu);
+  expect(update.sql).toMatch(/COALESCE\(f\.completed_at, item\.completed_at\)/iu);
+  expect(update.sql).toMatch(/COALESCE\(f\.voucher_codes, item\.voucher_codes\)/iu);
+  expect(update.sql).toMatch(/f\.paid_at IS NULL AND item\.paid_at IS NOT NULL/iu);
+  expect(update.sql).toMatch(/f\.completed_at IS NULL AND item\.completed_at IS NOT NULL/iu);
+  expect(update.sql).toMatch(/f\.voucher_codes IS NULL AND item\.voucher_codes IS NOT NULL/iu);
+  expect(JSON.parse(update.params[0])[0].voucher_codes).toEqual(['SVC-1489610191827020']);
+  expect(calls.some(({ sql }) => /INSERT INTO .*shopee_sales_order_facts/isu.test(sql))).toBe(false);
+
+  const conflictClient = { query: jest.fn(async (sql) => {
+    if (/SELECT \* FROM .*shopee_sales_sources/iu.test(sql)) return { rows: [existingSource] };
+    if (/SELECT f\.order_number/iu.test(sql)) return { rows: [{ order_number: base.orderNumber }] };
+    return { rows: [] };
+  }) };
+  await expect(importSalesSources([parsed], { client: conflictClient, actor: 'test' }))
+    .rejects.toThrow('immutable order lineage');
 });
