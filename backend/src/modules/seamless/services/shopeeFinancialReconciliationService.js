@@ -131,12 +131,24 @@ function sellerVoucherRestoration(snapshots, basis, latest, rules) {
 }
 
 function evidenceRef(row) {
-  return {
+  const result = {
     sourceFilename: row.sourceFilename,
     sourceSha256: row.sourceSha256,
     observedAt: row.observedAt,
     sourceRows: row.sourceRows || (row.sourceRow ? [row.sourceRow] : []),
   };
+  if (row.metricEvidence) {
+    result.metricEvidence = Object.fromEntries(Object.entries(row.metricEvidence).map(([metric, source]) => [
+      metric,
+      source ? {
+        sourceFilename: source.sourceFilename,
+        sourceSha256: source.sourceSha256,
+        observedAt: source.observedAt,
+        sourceRows: source.sourceRows || (source.sourceRow ? [source.sourceRow] : []),
+      } : null,
+    ]));
+  }
+  return result;
 }
 
 function sourceEvidenceRef(row) {

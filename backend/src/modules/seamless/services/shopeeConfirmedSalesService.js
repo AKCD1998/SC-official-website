@@ -251,37 +251,48 @@ function summarizeConfirmedSales(rows, { shopCode, startDate, endDate }) {
   const summarizeEvidence = selected => {
     const sources = new Map();
     for (const row of selected) {
-      const values = [row.sourceFilename, row.sourceSha256, row.observedAt];
-      if (values.every(value => value == null)) continue;
-      if (values.some(value => value == null) || !/^[a-f0-9]{64}$/u.test(row.sourceSha256)) {
-        throw new Error('Invalid confirmed source evidence.');
+      const metricSources = row.metricEvidence
+        ? [
+          ['confirmedSales', ['salesTotal', 'orderCount']],
+          ['cancellations', ['cancelledSales', 'cancelledOrderCount']],
+          ['returns', ['returnedSales', 'returnedOrderCount']],
+        ].map(([group, metrics]) => ({ ...row.metricEvidence[group], metrics })).filter(source => source.sourceFilename)
+        : [{ ...row, metrics: METRICS.filter(metric => row[metric] != null) }];
+      for (const source of metricSources) {
+        const values = [source.sourceFilename, source.sourceSha256, source.observedAt];
+        if (values.every(value => value == null)) continue;
+        if (values.some(value => value == null) || !/^[a-f0-9]{64}$/u.test(source.sourceSha256)) {
+          throw new Error('Invalid confirmed source evidence.');
+        }
+        const observedAt = new Date(source.observedAt);
+        const importedAt = source.importedAt == null ? null : new Date(source.importedAt);
+        if (Number.isNaN(observedAt.getTime()) || (importedAt && Number.isNaN(importedAt.getTime()))) {
+          throw new Error('Invalid confirmed source evidence timestamp.');
+        }
+        const evidenceKey = `${row.shopCode}:${source.sourceSha256}`;
+        const evidence = sources.get(evidenceKey) || {
+          shopCode: row.shopCode,
+          sourceFilename: source.sourceFilename,
+          sourceSha256: source.sourceSha256,
+          observedAt: observedAt.toISOString(),
+          importedAt: importedAt?.toISOString() || null,
+          coveredDates: new Set(),
+          metrics: new Set(),
+        };
+        if (evidence.sourceFilename !== source.sourceFilename || evidence.observedAt !== observedAt.toISOString()
+          || evidence.importedAt !== (importedAt?.toISOString() || null)) {
+          throw new Error('Conflicting confirmed source evidence.');
+        }
+        evidence.coveredDates.add(row.date);
+        source.metrics.forEach(metric => evidence.metrics.add(metric));
+        sources.set(evidenceKey, evidence);
       }
-      const observedAt = new Date(row.observedAt);
-      const importedAt = row.importedAt == null ? null : new Date(row.importedAt);
-      if (Number.isNaN(observedAt.getTime()) || (importedAt && Number.isNaN(importedAt.getTime()))) {
-        throw new Error('Invalid confirmed source evidence timestamp.');
-      }
-      const evidenceKey = `${row.shopCode}:${row.sourceSha256}`;
-      const evidence = sources.get(evidenceKey) || {
-        shopCode: row.shopCode,
-        sourceFilename: row.sourceFilename,
-        sourceSha256: row.sourceSha256,
-        observedAt: observedAt.toISOString(),
-        importedAt: importedAt?.toISOString() || null,
-        coveredDates: new Set(),
-      };
-      if (evidence.sourceFilename !== row.sourceFilename || evidence.observedAt !== observedAt.toISOString()
-        || evidence.importedAt !== (importedAt?.toISOString() || null)) {
-        throw new Error('Conflicting confirmed source evidence.');
-      }
-      evidence.coveredDates.add(row.date);
-      sources.set(evidenceKey, evidence);
     }
     const evidence = [...sources.values()].map(source => {
       const coveredDates = [...source.coveredDates].sort();
       return { shopCode: source.shopCode, sourceFilename: source.sourceFilename,
         sourceSha256: source.sourceSha256, observedAt: source.observedAt, importedAt: source.importedAt,
-        coveredStartDate: coveredDates[0],
+        metrics: [...source.metrics].sort(), coveredStartDate: coveredDates[0],
         coveredEndDate: coveredDates.at(-1), coveredDays: coveredDates.length };
     }).sort((a, b) => b.observedAt.localeCompare(a.observedAt) || a.sourceFilename.localeCompare(b.sourceFilename));
     return {

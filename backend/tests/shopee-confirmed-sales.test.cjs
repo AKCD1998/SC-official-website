@@ -126,6 +126,35 @@ test('summary exposes source filename, hash, observation, import and latest cove
   expect(result.shops[0].sources).toEqual(result.sources);
 });
 
+test('summary keeps metric-level provenance when a newer thin report is combined with older complete evidence', () => {
+  const thin = {
+    shopCode: 'sc-drug-store', date: '2026-08-01', salesTotal: 100.25, orderCount: 2,
+    cancelledSales: 20.1, cancelledOrderCount: 1, returnedSales: 0, returnedOrderCount: 0,
+    sourceRow: 5, sourceFilename: 'sales_overview_20260801-20260801.xlsx',
+    sourceSha256: 'b'.repeat(64), observedAt: '2026-09-10T00:00:00.000Z',
+    importedAt: '2026-09-10T00:01:00.000Z',
+    metricEvidence: {
+      confirmedSales: { sourceRow: 5, sourceFilename: 'sales_overview_20260801-20260801.xlsx',
+        sourceSha256: 'b'.repeat(64), observedAt: '2026-09-10T00:00:00.000Z', importedAt: '2026-09-10T00:01:00.000Z' },
+      cancellations: { sourceRow: 5, sourceFilename: '142wuxqhgi.shopee-shop-stats.20260801-20260801.xlsx',
+        sourceSha256: 'a'.repeat(64), observedAt: '2026-09-08T00:00:00.000Z', importedAt: '2026-09-08T00:01:00.000Z' },
+      returns: { sourceRow: 5, sourceFilename: '142wuxqhgi.shopee-shop-stats.20260801-20260801.xlsx',
+        sourceSha256: 'a'.repeat(64), observedAt: '2026-09-08T00:00:00.000Z', importedAt: '2026-09-08T00:01:00.000Z' },
+    },
+  };
+  const result = summarizeConfirmedSales([thin], {
+    shopCode: 'sc-drug-store', startDate: '2026-08-01', endDate: '2026-08-01',
+  });
+
+  expect(result).toMatchObject({ salesTotal: 100.25, cancelledSales: 20.1, returnedSales: 0 });
+  expect(result.sources).toEqual([
+    expect.objectContaining({ sourceSha256: 'b'.repeat(64), metrics: ['orderCount', 'salesTotal'] }),
+    expect.objectContaining({ sourceSha256: 'a'.repeat(64), metrics: [
+      'cancelledOrderCount', 'cancelledSales', 'returnedOrderCount', 'returnedSales',
+    ] }),
+  ]);
+});
+
 test('admin export puts confirmed gross first and preserves separate net order/SKU ledgers', async () => {
   const source = parse();
   const confirmedSales = summarizeConfirmedSales(source.facts.map(row => ({ ...row,
