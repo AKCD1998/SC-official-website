@@ -155,12 +155,22 @@ function summarizeSalesByProduct(orders = []) {
   };
 }
 
-async function getShopeeSalesSummary({ endDate, shopCode, startDate, includeConfirmed = false }) {
+async function getShopeeSalesSummary({
+  endDate,
+  shopCode,
+  startDate,
+  includeConfirmed = false,
+  includeOfficialDocuments = false,
+}) {
   const orders = await repository.listOrdersForSalesSummary({ endDate, shopCode, startDate });
   const summary = summarizeSalesByProduct(orders);
   if (includeConfirmed) {
     const { getConfirmedSalesSummary } = require('./shopeeConfirmedSalesService');
     summary.confirmedSales = await getConfirmedSalesSummary({ endDate, shopCode, startDate });
+  }
+  if (includeOfficialDocuments) {
+    const { getOfficialDocumentSummary } = require('./shopeeOfficialDocumentSummaryService');
+    summary.officialDocuments = await getOfficialDocumentSummary({ endDate, shopCode, startDate });
   }
   return summary;
 }

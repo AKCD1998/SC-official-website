@@ -31,6 +31,10 @@ const listConfirmedSalesDaysMock = jest.fn(async () => []);
 jest.mock('../src/modules/seamless/db/shopeeConfirmedSalesRepository', () => ({
   listConfirmedSalesDays: (...args) => listConfirmedSalesDaysMock(...args),
 }));
+const getOfficialDocumentSummaryMock = jest.fn(async () => ({ finance: [], returns: [] }));
+jest.mock('../src/modules/seamless/services/shopeeOfficialDocumentSummaryService', () => ({
+  getOfficialDocumentSummary: (...args) => getOfficialDocumentSummaryMock(...args),
+}));
 const getInboxOperationsOverviewMock = jest.fn(async () => ({
   cancelledToday: 2,
   confirmedCodToday: 3,
@@ -507,11 +511,13 @@ test('restricts new order-money JSON and ledger export to administrators', async
   expect(userJson.status).toBe(200);
   expect(userJson.body).not.toHaveProperty('accounting');
   expect(userJson.body).not.toHaveProperty('confirmedSales');
+  expect(userJson.body).not.toHaveProperty('officialDocuments');
   const adminJson = await request(app).get(`/api/app/shopee/orders/sales-summary${query}`)
     .auth('finance-admin', 'local-test-admin-password');
   expect(adminJson.status).toBe(200);
   expect(adminJson.body.accounting).toMatchObject({ calculatedSalesTotal: 70, status: 'provisional' });
   expect(adminJson.body.confirmedSales).toMatchObject({ salesTotal: null, status: 'incomplete', metric: 'shopee_confirmed_gross_sales' });
+  expect(adminJson.body.officialDocuments).toEqual({ finance: [], returns: [] });
   for (const [user, password, allowed] of [
     ['accounting-user', 'local-test-password', false], ['finance-admin', 'local-test-admin-password', true],
   ]) {

@@ -22,3 +22,18 @@ test("Sales Overview migration preserves unavailable cancellation fields as null
   expect(sql).toMatch(/ALTER COLUMN returned_sales DROP NOT NULL/iu);
   expect(sql).toMatch(/ALTER COLUMN returned_order_count DROP NOT NULL/iu);
 });
+
+test("official document migration is immutable, privacy-safe and supports every downloaded type", () => {
+  const sql = fs.readFileSync(path.resolve(__dirname,
+    "../src/modules/seamless/db/migrations/020_shopee_official_documents.sql"), "utf8");
+  for (const reportType of [
+    "financial-statement", "seller-balance", "income-transferred",
+    "income-pending", "return-refund-cancel",
+  ]) expect(sql).toContain(`'${reportType}'`);
+  expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS shopee_official_document_sources/iu);
+  expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS shopee_financial_statement_facts/iu);
+  expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS shopee_income_facts/iu);
+  expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS shopee_seller_balance_facts/iu);
+  expect(sql).toMatch(/CREATE TABLE IF NOT EXISTS shopee_return_facts/iu);
+  expect(sql).not.toMatch(/^\s*(?:buyer|address|phone|username)\s+/imu);
+});

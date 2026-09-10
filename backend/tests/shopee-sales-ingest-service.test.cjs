@@ -2,6 +2,7 @@ const crypto = require("node:crypto");
 const ExcelJS = require("exceljs");
 const { HEADERS } = require("../src/modules/seamless/services/shopeeSalesSourceService");
 const { HEADERS: CONFIRMED_HEADERS, SHEET: CONFIRMED_SHEET } = require("../src/modules/seamless/services/shopeeConfirmedSalesService");
+const { BALANCE_HEADERS } = require("../src/modules/seamless/services/shopeeOfficialDocumentService");
 
 let mockAuditRow = null;
 const mockQueries = [];
@@ -80,6 +81,39 @@ async function confirmedSource() {
   };
 }
 
+async function sellerBalanceSource() {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("Transaction Report");
+  sheet.getCell("A6").value = "ชื่อผู้ใช้ของผู้ขาย";
+  sheet.getCell("B6").value = "142wuxqhgi";
+  sheet.getCell("B7").value = "2026-09-01";
+  sheet.getCell("B8").value = "2026-09-06";
+  sheet.getCell("E12").value = 100;
+  sheet.getCell("G12").value = 1;
+  sheet.getCell("E13").value = 0;
+  sheet.getCell("G13").value = 0;
+  sheet.getRow(18).values = Object.values(BALANCE_HEADERS);
+  sheet.getRow(19).values = [
+    "2026-09-02 10:00", "รายรับจากคำสั่งซื้อ", "เงินจากคำสั่งซื้อ",
+    "260901TEST001", "เงินเข้า", 100, "ทำรายการสำเร็จ", 1000,
+  ];
+  const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
+  const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
+  const originalFilename = "my_balance_transaction_report.shopee.20260901_20260906.xlsx";
+  return {
+    body: {
+      shopCode: "sc-drug-store", reportType: "seller-balance",
+      dateFrom: "2026-09-01", dateTo: "2026-09-06", originalFilename,
+      observedAt: "2026-09-09T02:00:00.000Z", sha256,
+      jobId: "20260909091500-seller-balance-12345678",
+    },
+    file: {
+      buffer, size: buffer.length, originalname: originalFilename,
+      mimetype: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    },
+  };
+}
+
 beforeEach(() => {
   mockAuditRow = null;
   mockQueries.length = 0;
@@ -120,6 +154,19 @@ test("confirmed Business Insights import returns complete coverage and shares th
     coverage: { coveredDays: 1, expectedDays: 1 }, reconciliationStatus: "source_backed" });
   expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_confirmed_sources/iu.test(sql))).toBe(true);
   expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_sales_ingest_jobs/iu.test(sql))).toBe(true);
+  expect(mockQueries.at(-1).sql).toBe("COMMIT");
+});
+
+test("official finance source validates, imports privacy-safe facts and records full period coverage", async () => {
+  const imported = await ingestShopeeSalesSource(await sellerBalanceSource());
+  expect(imported).toMatchObject({
+    status: "imported",
+    reportType: "seller-balance",
+    coverage: { coveredDays: 6, expectedDays: 6 },
+    reconciliationStatus: "document_validated",
+  });
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_official_document_sources/iu.test(sql))).toBe(true);
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_seller_balance_facts/iu.test(sql))).toBe(true);
   expect(mockQueries.at(-1).sql).toBe("COMMIT");
 });
 
