@@ -8,6 +8,9 @@ const {
 } = require("../controllers/adaSmartShopeeController");
 const { listInbox } = require("../controllers/shopeeEmailController");
 const {
+  getDocumentSyncStatus,
+} = require("../controllers/shopeeDocumentSyncStatusController");
+const {
   applyLegacyReviews,
   getLegacyApplyPlan,
   listLegacyReviews,
@@ -34,6 +37,7 @@ router.post("/adasmart/validation-preview", asyncHandler(createValidationPreview
 router.post("/adasmart/confirm", asyncHandler(confirmDryRunQueue));
 router.get("/inbox/overview", asyncHandler(getInboxOverview));
 router.get("/inbox", asyncHandler(listInbox));
+router.get("/document-sync-status", asyncHandler(getDocumentSyncStatus));
 router.get("/orders", asyncHandler(listOrders));
 router.get("/orders/financial-visibility", asyncHandler(getFinancialVisibility));
 router.put("/orders/financial-visibility", asyncHandler(updateFinancialVisibility));
