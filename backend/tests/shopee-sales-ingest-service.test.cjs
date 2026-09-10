@@ -55,6 +55,32 @@ test("accepts only the lossless multipart latin1 view of an exact Thai Shopee fi
   })).not.toThrow();
 });
 
+test("accepts Shopee's 22-byte empty exceptional-case ZIP but not an empty XLSX", () => {
+  const buffer = Buffer.alloc(22);
+  buffer.writeUInt32LE(0x06054b50, 0);
+  const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
+  const file = {
+    buffer,
+    size: buffer.length,
+    originalname: "Order.return_refund_cancel.20260901_20260909.zip",
+    mimetype: "application/zip",
+  };
+  expect(() => validateUpload(file, {
+    reportType: "return-refund-cancel",
+    originalFilename: file.originalname,
+    sha256,
+  })).not.toThrow();
+  expect(() => validateUpload({
+    ...file,
+    originalname: "142wuxqhgi.shopee-shop-stats.20260901-20260908.xlsx",
+    mimetype: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  }, {
+    reportType: "business-insights",
+    originalFilename: "142wuxqhgi.shopee-shop-stats.20260901-20260908.xlsx",
+    sha256,
+  })).toThrow(/XLSX ZIP magic/iu);
+});
+
 async function source() {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("orders");

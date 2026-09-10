@@ -205,6 +205,11 @@ function unzipShopeeReport(buffer) {
       return true;
     },
   });
+  const emptyArchive = Buffer.isBuffer(buffer)
+    && buffer.length === 22
+    && buffer.readUInt32LE(0) === 0x06054b50
+    && buffer.subarray(4).every((byte) => byte === 0);
+  if (!count && Object.keys(entries).length === 0 && emptyArchive) return entries;
   if (!count || Object.keys(entries).length !== count) throw new Error("Exceptional-case ZIP is empty or incomplete.");
   return entries;
 }

@@ -151,3 +151,22 @@ test("exceptional-case ZIP keeps Shopee's exclusive filename end and stores no b
     .toMatch(/\[redacted-email\].*\[redacted-phone\]/u);
   expect(source.sourceSha256).toBe(crypto.createHash("sha256").update(buffer).digest("hex"));
 });
+
+test("official empty exceptional-case ZIP records complete zero-event coverage", async () => {
+  const buffer = Buffer.alloc(22);
+  buffer.writeUInt32LE(0x06054b50, 0);
+  const source = await readReturnSourceBuffer(
+    buffer,
+    options("Order.return_refund_cancel.20260901_20260909.zip", "dr-morepen"),
+  );
+  expect(source).toMatchObject({
+    startDate: "2026-09-01",
+    endDate: "2026-09-08",
+    control: {
+      counts: { cancelled: 0, failed_delivery: 0, return_refund: 0 },
+      amounts: { cancelled: 0, failed_delivery: 0, return_refund: 0 },
+      entryFilenames: [],
+    },
+    facts: [],
+  });
+});
