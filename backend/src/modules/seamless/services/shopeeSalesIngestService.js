@@ -113,11 +113,16 @@ function validateUpload(file, manifest) {
     if (file.buffer.subarray(0, 5).toString("ascii") !== "%PDF-") {
       throw badRequest("Financial Statement does not have PDF magic bytes.");
     }
-  } else if (file.buffer[0] !== 0x50 || file.buffer[1] !== 0x4b
-    || file.buffer[2] !== 0x03 || file.buffer[3] !== 0x04) {
-    throw badRequest(XLSX_REPORT_TYPES.has(manifest.reportType)
-      ? "Shopee workbook does not have XLSX ZIP magic bytes."
-      : "Shopee exceptional-case report does not have ZIP magic bytes.");
+  } else {
+    const zipMagic = file.buffer[0] === 0x50 && file.buffer[1] === 0x4b;
+    const localEntryMagic = zipMagic && file.buffer[2] === 0x03 && file.buffer[3] === 0x04;
+    const emptyArchiveMagic = zipMagic && file.buffer[2] === 0x05 && file.buffer[3] === 0x06;
+    if (!localEntryMagic
+      && !(manifest.reportType === "return-refund-cancel" && emptyArchiveMagic)) {
+      throw badRequest(XLSX_REPORT_TYPES.has(manifest.reportType)
+        ? "Shopee workbook does not have XLSX ZIP magic bytes."
+        : "Shopee exceptional-case report does not have ZIP magic bytes.");
+    }
   }
   const actualSha256 = crypto.createHash("sha256").update(file.buffer).digest("hex");
   const expected = Buffer.from(manifest.sha256, "hex");
