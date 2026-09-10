@@ -50,6 +50,7 @@ function getTables() {
     shopeeOrders: qualifyTable("shopee_orders"),
     shopeeSalesSources: qualifyTable("shopee_sales_sources"),
     shopeeSalesOrderFacts: qualifyTable("shopee_sales_order_facts"),
+    shopeeSellerVoucherEvidence: qualifyTable("shopee_seller_voucher_evidence"),
     shopeeConfirmedSources: qualifyTable("shopee_confirmed_sources"),
     shopeeConfirmedDailyFacts: qualifyTable("shopee_confirmed_daily_facts"),
     shopeeSalesIngestJobs: qualifyTable("shopee_sales_ingest_jobs"),
