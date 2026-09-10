@@ -31,7 +31,29 @@ const mockClient = {
 
 jest.mock("../db", () => ({ connect: jest.fn(async () => mockClient) }));
 
-const { ingestShopeeSalesSource } = require("../src/modules/seamless/services/shopeeSalesIngestService");
+const {
+  ingestShopeeSalesSource,
+  multipartFilenameMatches,
+  validateUpload,
+} = require("../src/modules/seamless/services/shopeeSalesIngestService");
+
+test("accepts only the lossless multipart latin1 view of an exact Thai Shopee filename", () => {
+  const originalFilename = "Income.โอนเงินสำเร็จ.th.20260824_20260830.xlsx";
+  const multipartFilename = Buffer.from(originalFilename, "utf8").toString("latin1");
+  expect(multipartFilenameMatches(multipartFilename, originalFilename)).toBe(true);
+  expect(multipartFilenameMatches("Income.รอดำเนินการ.th.20260824_20260830.xlsx", originalFilename)).toBe(false);
+  const buffer = Buffer.from([0x50, 0x4b, 0x03, 0x04, 1]);
+  expect(() => validateUpload({
+    buffer,
+    size: buffer.length,
+    originalname: multipartFilename,
+    mimetype: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  }, {
+    reportType: "income-transferred",
+    originalFilename,
+    sha256: crypto.createHash("sha256").update(buffer).digest("hex"),
+  })).not.toThrow();
+});
 
 async function source() {
   const workbook = new ExcelJS.Workbook();

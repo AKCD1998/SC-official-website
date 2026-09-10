@@ -89,6 +89,15 @@ function parseManifest(body) {
   return { shopCode, reportType, dateFrom, dateTo, dayCount, originalFilename, observedAt, sha256, jobId };
 }
 
+function multipartFilenameMatches(uploadedFilename, originalFilename) {
+  if (uploadedFilename === originalFilename) return true;
+  // Busboy/Multer preserves multipart header bytes as latin1. Native FormData sends
+  // UTF-8 filename bytes, so Shopee's Thai filenames need one lossless decode at
+  // this boundary. The decoded value must still equal the separately signed-in-
+  // practice manifest field exactly; no normalization or relabelling is accepted.
+  return Buffer.from(String(uploadedFilename || ""), "latin1").toString("utf8") === originalFilename;
+}
+
 function validateUpload(file, manifest) {
   if (!file || !Buffer.isBuffer(file.buffer)) throw badRequest("Exactly one official Shopee source file is required.");
   if (file.size < 1 || file.size > MAX_SOURCE_BYTES) throw badRequest("Shopee source size is outside the supported range.");
@@ -97,7 +106,9 @@ function validateUpload(file, manifest) {
     ? PDF_MIME_TYPES
     : manifest.reportType === "return-refund-cancel" ? ZIP_MIME_TYPES : XLSX_MIME_TYPES;
   if (!acceptedMimes.has(mime)) throw badRequest("Shopee source MIME type is not accepted for this report.");
-  if (file.originalname !== manifest.originalFilename) throw badRequest("Multipart filename does not match originalFilename.");
+  if (!multipartFilenameMatches(file.originalname, manifest.originalFilename)) {
+    throw badRequest("Multipart filename does not match originalFilename.");
+  }
   if (manifest.reportType === "financial-statement") {
     if (file.buffer.subarray(0, 5).toString("ascii") !== "%PDF-") {
       throw badRequest("Financial Statement does not have PDF magic bytes.");
@@ -223,6 +234,7 @@ module.exports = {
   REPORT_TYPES,
   ingestShopeeSalesSource,
   parseManifest,
+  multipartFilenameMatches,
   sameAuditMetadata,
   sourceValidationError,
   validateUpload,
