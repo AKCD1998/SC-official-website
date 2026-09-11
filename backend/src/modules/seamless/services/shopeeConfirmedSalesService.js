@@ -174,31 +174,68 @@ function parseConfirmedSalesRows(rows, { shopCode, sourceFilename, sourceSha256,
     return parseSalesOverviewRows(rows, { shopCode, identity, sourceSha256, observedAt });
   }
   const headers = (rows[0] || []).map(text);
-  const columns = exactColumns(headers, HEADERS);
+  const summaryColumns = exactColumns(headers, HEADERS);
   const displayDate = value => value.split('-').reverse().join('-');
-  if (text(rows[1]?.[columns.date]) !== `${displayDate(startDate)}-${displayDate(endDate)}`) throw new Error('Statistics summary period does not match the filename.');
+  if (text(rows[1]?.[summaryColumns.date]) !== `${displayDate(startDate)}-${displayDate(endDate)}`) throw new Error('Statistics summary period does not match the filename.');
   if ((rows[2] || []).some(value => text(value))) throw new Error('Unexpected statistics spacer content.');
-  for (const [key, header] of Object.entries(HEADERS)) {
-    if (text(rows[3]?.[columns[key]]) !== header) throw new Error('Missing repeated daily headers.');
-  }
-  const control = metricsFrom(rows[1], columns);
+  const detailHeaders = (rows[3] || []).map(text);
+  const hasDailyHeader = detailHeaders.includes(HEADERS.date);
+  const hasHourlyHeader = detailHeaders.includes('เวลา');
+  if (hasDailyHeader === hasHourlyHeader) throw new Error('Missing or ambiguous statistics interval header.');
+  const hourly = hasHourlyHeader;
+  const detailColumns = exactColumns(detailHeaders, {
+    ...HEADERS,
+    date: hourly ? 'เวลา' : HEADERS.date,
+  });
+  const control = metricsFrom(rows[1], summaryColumns);
   const totals = Object.fromEntries(METRICS.map(key => [key, 0]));
-  const seen = new Set();
-  const facts = rows.slice(4).flatMap((row, index) => {
-    if (row.every(value => !text(value))) return [];
-    const rawDate = text(row[columns.date]);
-    if (!/^\d{2}-\d{2}-\d{4}$/u.test(rawDate)) throw new Error('Invalid daily statistics date.');
-    const date = isoDate(rawDate.split('-').reverse().join('-'));
-    if (seen.has(date) || date < startDate || date > endDate) throw new Error('Duplicate/out-of-period statistics day.');
-    seen.add(date);
-    const amounts = metricsFrom(row, columns);
-    for (const key of METRICS) totals[key] += amounts[key];
-    return [{ shopCode, date, ...amountUnits(amounts), sourceRow: index + 5 }];
-  }).sort((a, b) => a.date.localeCompare(b.date));
-  if (expectedDates.some(date => !seen.has(date))) throw new Error('Statistics daily coverage is incomplete.');
+  const intervals = new Set();
+  const hoursByDate = new Map();
+  const byDate = new Map();
+  for (const [index, row] of rows.slice(4).entries()) {
+    if (row.every(value => !text(value))) continue;
+    const rawInterval = text(row[detailColumns.date]);
+    const match = /^(\d{2})-(\d{2})-(\d{4})(?:\s+([01]\d|2[0-3]):(\d{2}))?$/u.exec(rawInterval);
+    if (!match || (hourly ? !match[4] || match[5] !== '00' : Boolean(match[4]))) {
+      throw new Error(`Invalid ${hourly ? 'hourly' : 'daily'} statistics interval.`);
+    }
+    const date = isoDate(`${match[3]}-${match[2]}-${match[1]}`);
+    if (date < startDate || date > endDate) throw new Error('Out-of-period statistics interval.');
+    const interval = hourly ? `${date}T${match[4]}:00` : date;
+    if (intervals.has(interval)) throw new Error('Duplicate statistics interval.');
+    intervals.add(interval);
+    if (hourly) {
+      const hours = hoursByDate.get(date) || new Set();
+      hours.add(match[4]);
+      hoursByDate.set(date, hours);
+    }
+    const amounts = metricsFrom(row, detailColumns);
+    const aggregate = byDate.get(date) || {
+      ...Object.fromEntries(METRICS.map(key => [key, 0])),
+      sourceRow: index + 5,
+    };
+    for (const key of METRICS) {
+      totals[key] += amounts[key];
+      aggregate[key] += amounts[key];
+      if (!Number.isSafeInteger(totals[key]) || !Number.isSafeInteger(aggregate[key])) {
+        throw new Error('Confirmed statistics total exceeds precision.');
+      }
+    }
+    byDate.set(date, aggregate);
+  }
+  if (hourly && expectedDates.some(date => hoursByDate.get(date)?.size !== 24)) {
+    throw new Error('Statistics hourly coverage is incomplete.');
+  }
+  if (expectedDates.some(date => !byDate.has(date))) throw new Error('Statistics daily coverage is incomplete.');
   for (const key of METRICS) {
     if (!Number.isSafeInteger(totals[key]) || totals[key] !== control[key]) throw new Error(`Confirmed daily/summary mismatch: ${key}`);
   }
+  const facts = expectedDates.map(date => ({
+    shopCode,
+    date,
+    ...amountUnits(byDate.get(date)),
+    sourceRow: byDate.get(date).sourceRow,
+  }));
   return { shopCode, sourceFilename: filename, sourceSha256, observedAt: new Date(observedAt).toISOString(),
     startDate, endDate, sheetName: SHEET, reportFormat: identity.format,
     control: amountUnits(control), facts };
