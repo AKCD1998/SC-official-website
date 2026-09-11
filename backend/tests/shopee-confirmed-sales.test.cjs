@@ -11,6 +11,22 @@ function rows() {
 }
 const parse = (values = rows(), opts = {}) => parseConfirmedSalesRows(values, { ...options, ...opts });
 
+function confirmedHourlyRows({ missingHour = null, malformedHour = null, summarySales = '100.25' } = {}) {
+  const detailHeaders = Object.values(HEADERS);
+  detailHeaders[0] = 'เวลา';
+  const hourly = Array.from({ length: 24 }, (_, hour) => [
+    `08-09-2026 ${String(hour).padStart(2, '0')}:${hour === malformedHour ? '30' : '00'}`,
+    hour === 0 ? '100.25' : '0',
+    hour === 0 ? '2' : '0',
+    hour === 0 ? '1' : '0',
+    hour === 0 ? '20.10' : '0',
+    '0',
+    '0',
+  ]).filter((_, hour) => hour !== missingHour);
+  return [Object.values(HEADERS), ['08-09-2026-08-09-2026', summarySales, '2', '1', '20.10', '0', '0'],
+    [], detailHeaders, ...hourly];
+}
+
 function overviewRows({ missingHour = null, salesTotal = '100.25' } = {}) {
   const summaryHeaders = [OVERVIEW_HEADERS.date, 'จำนวนผู้เยี่ยมชม(การเข้าชม)',
     'จำนวนผู้ซื้อ (คำสั่งซื้อทั้งหมด)', 'ยอดขาย (ที่มีการสั่งซื้อทั้งหมด) (THB)',
@@ -109,6 +125,34 @@ test('current Sales Overview rejects incomplete hourly evidence and summary mism
     sourceSha256: 'b'.repeat(64), observedAt: '2026-09-09T08:00:00+07:00' };
   expect(() => parseConfirmedSalesRows(overviewRows({ missingHour: 23 }), current)).toThrow(/hourly coverage is incomplete/i);
   expect(() => parseConfirmedSalesRows(overviewRows({ salesTotal: '100.26' }), current)).toThrow(/daily\/summary mismatch/i);
+});
+
+test('official confirmed workbook aggregates a single-day 24-hour detail table including cancellations', () => {
+  const source = parseConfirmedSalesRows(confirmedHourlyRows(), {
+    shopCode: 'sc-drug-store',
+    sourceFilename: '142wuxqhgi.shopee-shop-stats.20260908-20260908.xlsx',
+    sourceSha256: 'c'.repeat(64),
+    observedAt: '2026-09-09T08:00:00+07:00',
+  });
+  expect(source).toMatchObject({ startDate: '2026-09-08', endDate: '2026-09-08',
+    sheetName: 'ยืนยันแล้ว', reportFormat: 'shop-stats-confirmed',
+    control: { salesTotal: 100.25, orderCount: 2, cancelledOrderCount: 1,
+      cancelledSales: 20.1, returnedOrderCount: 0, returnedSales: 0 } });
+  expect(source.facts).toEqual([expect.objectContaining({ date: '2026-09-08',
+    salesTotal: 100.25, orderCount: 2, cancelledOrderCount: 1,
+    cancelledSales: 20.1, returnedOrderCount: 0, returnedSales: 0 })]);
+});
+
+test('official confirmed workbook rejects incomplete, malformed, or summary-mismatched hourly evidence', () => {
+  const current = { shopCode: 'sc-drug-store',
+    sourceFilename: '142wuxqhgi.shopee-shop-stats.20260908-20260908.xlsx',
+    sourceSha256: 'c'.repeat(64), observedAt: '2026-09-09T08:00:00+07:00' };
+  expect(() => parseConfirmedSalesRows(confirmedHourlyRows({ missingHour: 23 }), current))
+    .toThrow(/hourly coverage is incomplete/i);
+  expect(() => parseConfirmedSalesRows(confirmedHourlyRows({ malformedHour: 23 }), current))
+    .toThrow(/invalid hourly statistics interval/i);
+  expect(() => parseConfirmedSalesRows(confirmedHourlyRows({ summarySales: '100.26' }), current))
+    .toThrow(/daily\/summary mismatch/i);
 });
 
 test('summary exposes source filename, hash, observation, import and latest covered date for audit', () => {
