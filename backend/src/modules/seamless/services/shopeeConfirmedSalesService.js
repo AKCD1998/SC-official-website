@@ -182,29 +182,35 @@ function parseConfirmedSalesRows(rows, { shopCode, sourceFilename, sourceSha256,
   const hasDailyHeader = detailHeaders.includes(HEADERS.date);
   const hasHourlyHeader = detailHeaders.includes('เวลา');
   if (hasDailyHeader === hasHourlyHeader) throw new Error('Missing or ambiguous statistics interval header.');
-  const hourly = hasHourlyHeader;
   const detailColumns = exactColumns(detailHeaders, {
     ...HEADERS,
-    date: hourly ? 'เวลา' : HEADERS.date,
+    date: hasHourlyHeader ? 'เวลา' : HEADERS.date,
   });
   const control = metricsFrom(rows[1], summaryColumns);
   const totals = Object.fromEntries(METRICS.map(key => [key, 0]));
   const intervals = new Set();
   const hoursByDate = new Map();
   const byDate = new Map();
+  let granularity = null;
   for (const [index, row] of rows.slice(4).entries()) {
     if (row.every(value => !text(value))) continue;
     const rawInterval = text(row[detailColumns.date]);
     const match = /^(\d{2})-(\d{2})-(\d{4})(?:\s+([01]\d|2[0-3]):(\d{2}))?$/u.exec(rawInterval);
-    if (!match || (hourly ? !match[4] || match[5] !== '00' : Boolean(match[4]))) {
-      throw new Error(`Invalid ${hourly ? 'hourly' : 'daily'} statistics interval.`);
+    const rowHourly = Boolean(match?.[4]);
+    if (!match || (rowHourly && match[5] !== '00') || (hasHourlyHeader && !rowHourly)) {
+      throw new Error(`Invalid ${rowHourly || hasHourlyHeader ? 'hourly' : 'daily'} statistics interval.`);
     }
+    const rowGranularity = rowHourly ? 'hourly' : 'daily';
+    if (granularity && granularity !== rowGranularity) {
+      throw new Error('Mixed statistics interval granularities are not supported.');
+    }
+    granularity = rowGranularity;
     const date = isoDate(`${match[3]}-${match[2]}-${match[1]}`);
     if (date < startDate || date > endDate) throw new Error('Out-of-period statistics interval.');
-    const interval = hourly ? `${date}T${match[4]}:00` : date;
+    const interval = rowHourly ? `${date}T${match[4]}:00` : date;
     if (intervals.has(interval)) throw new Error('Duplicate statistics interval.');
     intervals.add(interval);
-    if (hourly) {
+    if (rowHourly) {
       const hours = hoursByDate.get(date) || new Set();
       hours.add(match[4]);
       hoursByDate.set(date, hours);
@@ -223,7 +229,7 @@ function parseConfirmedSalesRows(rows, { shopCode, sourceFilename, sourceSha256,
     }
     byDate.set(date, aggregate);
   }
-  if (hourly && expectedDates.some(date => hoursByDate.get(date)?.size !== 24)) {
+  if (granularity === 'hourly' && expectedDates.some(date => hoursByDate.get(date)?.size !== 24)) {
     throw new Error('Statistics hourly coverage is incomplete.');
   }
   if (expectedDates.some(date => !byDate.has(date))) throw new Error('Statistics daily coverage is incomplete.');

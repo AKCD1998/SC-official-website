@@ -143,6 +143,33 @@ test('official confirmed workbook aggregates a single-day 24-hour detail table i
     cancelledSales: 20.1, returnedOrderCount: 0, returnedSales: 0 })]);
 });
 
+test('official confirmed workbook accepts Shopee hourly rows under its วันที่ detail header', () => {
+  const values = confirmedHourlyRows();
+  values[3][0] = HEADERS.date;
+  const source = parseConfirmedSalesRows(values, {
+    shopCode: 'sc-drug-store',
+    sourceFilename: '142wuxqhgi.shopee-shop-stats.20260908-20260908.xlsx',
+    sourceSha256: 'c'.repeat(64),
+    observedAt: '2026-09-09T08:00:00+07:00',
+  });
+  expect(source.control).toMatchObject({ salesTotal: 100.25, orderCount: 2,
+    cancelledOrderCount: 1, cancelledSales: 20.1, returnedOrderCount: 0, returnedSales: 0 });
+  expect(source.facts).toEqual([expect.objectContaining({ date: '2026-09-08',
+    salesTotal: 100.25, orderCount: 2, cancelledOrderCount: 1, cancelledSales: 20.1 })]);
+});
+
+test('official confirmed workbook rejects mixed daily and hourly intervals under its วันที่ detail header', () => {
+  const values = confirmedHourlyRows();
+  values[3][0] = HEADERS.date;
+  values[4][0] = '08-09-2026';
+  expect(() => parseConfirmedSalesRows(values, {
+    shopCode: 'sc-drug-store',
+    sourceFilename: '142wuxqhgi.shopee-shop-stats.20260908-20260908.xlsx',
+    sourceSha256: 'c'.repeat(64),
+    observedAt: '2026-09-09T08:00:00+07:00',
+  })).toThrow(/mixed statistics interval granularities/i);
+});
+
 test('official confirmed workbook rejects incomplete, malformed, or summary-mismatched hourly evidence', () => {
   const current = { shopCode: 'sc-drug-store',
     sourceFilename: '142wuxqhgi.shopee-shop-stats.20260908-20260908.xlsx',
