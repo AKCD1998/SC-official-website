@@ -7,6 +7,23 @@ const { requireShopeeShopScope, SHOPEE_SHOP_PROFILES } = require('./shopeeShops'
 
 const SHOP_CODES = Object.keys(SHOPEE_SHOP_PROFILES);
 
+// Business Insights uses the original confirmed order value for returned
+// sales, rather than the exceptional-case file's "total refund amount".
+// Shopee includes an in-transit return in the amount before it increments the
+// returned-order count. Unknown lifecycle labels fail closed.
+const RETURN_AMOUNT_ACTIVE_STATUSES = new Set([
+  'คืนเงินแล้ว',
+  'กำลังส่งคืน',
+  'อนุมัติคำขอเคลม',
+]);
+const RETURN_ORDER_COUNTED_STATUSES = new Set([
+  'คืนเงินแล้ว',
+  'อนุมัติคำขอเคลม',
+]);
+const RETURN_EXCLUDED_STATUSES = new Set([
+  'ยกเลิกคำขอ',
+]);
+
 function cents(value, label) {
   const text = String(value ?? '').trim();
   const negative = text.startsWith('-');
@@ -392,15 +409,32 @@ function dailyRowsForShop({ shopCode, dates, officialRows, ledger, orderSources 
     const officialReturned = official?.returnedSales == null ? null : cents(official.returnedSales, 'official returns');
     const officialNet = [officialGross, officialCancelled, officialReturned].every((value) => value != null)
       ? officialGross - officialCancelled - officialReturned : null;
-    // Return/refund exports retain Shopee's source-column amount label. Until
-    // that label is proven to be the confirmed-sales amount we expose it as
-    // event evidence, never as a silent subtraction from sales.
-    const returnOrders = orders.filter((row) => row.returnEvents.some((event) => event.eventType === 'return_refund'));
-    // A positive Business Insights return cannot be reconstructed from the
-    // exceptional-case file's "total refund" column: Shopee does not document
-    // it as the same sales basis. Zero requires no monetary allocation.
-    const reconstructedReturns = officialReturned === 0 && official?.returnedOrderCount === 0 ? 0 : null;
-    const reconstructedNet = reconstructedReturns == null ? null : grossCents - cancelledCents;
+    const returnEvents = orders.flatMap((row) => row.returnEvents
+      .filter((event) => event.eventType === 'return_refund')
+      .map((event) => ({ order: row, event })));
+    const unknownReturnEvents = returnEvents.filter(({ event }) => (
+      !RETURN_AMOUNT_ACTIVE_STATUSES.has(event.status)
+      && !RETURN_EXCLUDED_STATUSES.has(event.status)
+    ));
+    const amountReturnOrders = orders.filter((row) => row.returnEvents.some((event) => (
+      event.eventType === 'return_refund' && RETURN_AMOUNT_ACTIVE_STATUSES.has(event.status)
+    )));
+    const countedReturnOrders = orders.filter((row) => row.returnEvents.some((event) => (
+      event.eventType === 'return_refund' && RETURN_ORDER_COUNTED_STATUSES.has(event.status)
+    )));
+    const lifecycleConflictOrders = amountReturnOrders.filter((row) => row.creditNoteRequired);
+    const returnEvidenceComplete = (officialReturned === 0 && official?.returnedOrderCount === 0)
+      || returnCoverageSources.length > 0;
+    const returnBasisComplete = returnEvidenceComplete
+      && unknownReturnEvents.length === 0
+      && lifecycleConflictOrders.length === 0;
+    const reconstructedReturns = returnBasisComplete
+      ? amountReturnOrders.reduce((sum, row) => sum + cents(row.grossSalesAmount, 'returned gross sales'), 0)
+      : null;
+    const reconstructedReturnOrderCount = returnBasisComplete ? countedReturnOrders.length : null;
+    const reconstructedNet = reconstructedReturns == null
+      ? null
+      : grossCents - cancelledCents - reconstructedReturns;
     // Order All periods are creation-date windows, not payment-date windows.
     // Reconciliation requires a creation-date source covering the day, plus
     // the exact BI amount/count checks below. Known paid-on-day carry-over
@@ -429,17 +463,28 @@ function dailyRowsForShop({ shopCode, dates, officialRows, ledger, orderSources 
       officialAmountCents: officialReturned,
       reconstructedAmountCents: reconstructedReturns,
       officialOrderCount: official?.returnedOrderCount ?? null,
-      reconstructedOrderCount: reconstructedReturns == null ? (returnCoverageSources.length ? returnOrders.length : null) : 0,
-      complete: sourceCoverageComplete && officialReturned != null && official?.returnedOrderCount != null,
+      reconstructedOrderCount: reconstructedReturnOrderCount,
+      complete: sourceCoverageComplete && returnEvidenceComplete
+        && officialReturned != null && official?.returnedOrderCount != null,
       metric: 'ยอดขายที่คืนเงิน/คืนสินค้า',
       dateBasis: 'เวลาการชำระสินค้าของรายการขายเดิม; หลักฐานคืนเงินเก็บเป็นเหตุการณ์แยก',
     });
+    returns.basisRule = 'original_confirmed_order_value_by_latest_return_lifecycle_status';
+    returns.amountOrderNumbers = amountReturnOrders.map((row) => row.orderNumber);
+    returns.countedOrderNumbers = countedReturnOrders.map((row) => row.orderNumber);
+    returns.statusRules = {
+      amountActive: [...RETURN_AMOUNT_ACTIVE_STATUSES],
+      orderCounted: [...RETURN_ORDER_COUNTED_STATUSES],
+      excluded: [...RETURN_EXCLUDED_STATUSES],
+    };
     const confirmedNet = stage({
       officialAmountCents: officialNet,
       reconstructedAmountCents: reconstructedNet,
       officialOrderCount: official && official.cancelledOrderCount != null
         ? official.orderCount - official.cancelledOrderCount - (official.returnedOrderCount || 0) : null,
-      reconstructedOrderCount: reconstructedNet == null ? null : orders.length - cancelled.length,
+      reconstructedOrderCount: reconstructedNet == null
+        ? null
+        : orders.length - cancelled.length - reconstructedReturnOrderCount,
       complete: sourceCoverageComplete && officialNet != null,
       metric: 'ยอดขายยืนยันแล้วสุทธิหลังยกเลิกและคืนเงิน/คืนสินค้า',
       dateBasis: 'เวลาการชำระสินค้าของรายการขายเดิม',
@@ -481,6 +526,17 @@ function dailyRowsForShop({ shopCode, dates, officialRows, ledger, orderSources 
       reasonCode: 'return_amount_basis_unproven',
       message: 'มียอดคืนสินค้าใน Business Insights แต่ยังไม่มีหลักฐานว่าจำนวนเงินในไฟล์คืนเงินใช้ฐานยอดขายเดียวกัน',
       orderNumbers: orders.filter((row) => row.returnEvents.length).map((row) => row.orderNumber),
+    });
+    if (unknownReturnEvents.length) unresolved.push({
+      reasonCode: 'unknown_return_lifecycle_status',
+      message: 'พบสถานะคืนเงิน/คืนสินค้าที่กติกากระทบยอดยังไม่รองรับ จึงหยุดโดยไม่เดายอด',
+      orderNumbers: [...new Set(unknownReturnEvents.map(({ order }) => order.orderNumber))],
+      statuses: [...new Set(unknownReturnEvents.map(({ event }) => event.status))],
+    });
+    if (lifecycleConflictOrders.length) unresolved.push({
+      reasonCode: 'cancelled_and_returned_lifecycle_conflict',
+      message: 'คำสั่งซื้อเดียวกันมีทั้งสถานะยกเลิกและคืนเงิน/คืนสินค้า จึงหยุดเพื่อป้องกันการหักซ้ำ',
+      orderNumbers: lifecycleConflictOrders.map((row) => row.orderNumber),
     });
     return {
       shopCode,

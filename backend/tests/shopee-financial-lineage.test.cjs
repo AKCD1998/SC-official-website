@@ -445,6 +445,8 @@ test('returns are a separate unresolved stage when the refund amount basis is no
       returnedSales: 25, returnedOrderCount: 1 }],
     evidence: {
       orderSnapshots: [order], orderSources: completeOrderSources([order], 'sc-drug-store'), incomeFacts: [], balanceFacts: [],
+      returnSources: [{ shopCode: 'sc-drug-store', startDate: '2026-09-01', endDate: '2026-09-01',
+        sourceRowCount: 1, sourceFilename: 'returns.zip', sourceSha256: hash('r'), observedAt }],
       returnFacts: [{ shopCode: 'sc-drug-store', orderNumber: order.orderNumber,
         eventKey: 'return_refund:R1', eventType: 'return_refund', amount: 25,
         amountLabel: 'จำนวนเงินคืนทั้งหมด', sourceRows: [2], sourceFilename: 'returns.zip',
@@ -458,6 +460,70 @@ test('returns are a separate unresolved stage when the refund amount basis is no
     confirmedNet: { reconstructedAmount: null, status: 'unresolved' },
   });
   expect(result.orders[0].returnEvents).toHaveLength(1);
+});
+
+test('return reconciliation uses original confirmed value and Shopee lifecycle count semantics', () => {
+  const orderSnapshots = [
+    snapshot({ shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0980',
+      paidAt: '2026-08-31T17:01:00.000Z', amount: 980, source: 'a' }),
+    snapshot({ shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0175',
+      paidAt: '2026-08-31T18:01:00.000Z', amount: 175, source: 'b' }),
+    snapshot({ shopCode: 'sc-drug-store', orderNumber: 'SCCANCELREQ355',
+      paidAt: '2026-08-31T19:01:00.000Z', amount: 355, source: 'e' }),
+  ];
+  const officialDay = {
+    ...official('sc-drug-store', '2026-09-01', 1510, 3, 0, 0),
+    returnedSales: 1155,
+    returnedOrderCount: 1,
+  };
+  const result = buildFinancialReconciliation({
+    officialDaily: [officialDay],
+    evidence: {
+      orderSnapshots,
+      orderSources: completeOrderSources(orderSnapshots, 'sc-drug-store'),
+      incomeFacts: [],
+      balanceFacts: [],
+      returnSources: [{
+        shopCode: 'sc-drug-store', startDate: '2026-09-01', endDate: '2026-09-01',
+        sourceRowCount: 3, sourceFilename: 'Order.return_refund_cancel.20260901_20260901.zip',
+        sourceSha256: hash('r'), observedAt,
+      }],
+      returnFacts: [
+        { shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0980', eventKey: 'return_refund:R980',
+          eventType: 'return_refund', status: 'กำลังส่งคืน', amount: 715,
+          amountLabel: 'จำนวนเงินคืนทั้งหมด', sourceRows: [2], sourceFilename: 'returns.zip',
+          sourceSha256: hash('r'), observedAt },
+        { shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0175', eventKey: 'return_refund:R175',
+          eventType: 'return_refund', status: 'อนุมัติคำขอเคลม', amount: 175,
+          amountLabel: 'จำนวนเงินคืนทั้งหมด', sourceRows: [3], sourceFilename: 'returns.zip',
+          sourceSha256: hash('r'), observedAt },
+        { shopCode: 'sc-drug-store', orderNumber: 'SCCANCELREQ355', eventKey: 'return_refund:R355',
+          eventType: 'return_refund', status: 'ยกเลิกคำขอ', amount: 284,
+          amountLabel: 'จำนวนเงินคืนทั้งหมด', sourceRows: [4], sourceFilename: 'returns.zip',
+          sourceSha256: hash('r'), observedAt },
+      ],
+    },
+    filters: { shopCode: 'sc-drug-store', startDate: '2026-09-01', endDate: '2026-09-01' },
+  });
+  expect(result.status).toBe('reconciled');
+  expect(result.shops[0].returns).toMatchObject({
+    officialAmount: 1155,
+    reconstructedAmount: 1155,
+    officialOrderCount: 1,
+    reconstructedOrderCount: 1,
+    status: 'reconciled',
+  });
+  expect(result.aggregates.daily[0].returns).toMatchObject({
+    amountOrderNumbers: ['SCRETURN0175', 'SCRETURN0980'],
+    countedOrderNumbers: ['SCRETURN0175'],
+  });
+  expect(result.shops[0].confirmedNet).toMatchObject({
+    officialAmount: 355,
+    reconstructedAmount: 355,
+    officialOrderCount: 2,
+    reconstructedOrderCount: 2,
+    status: 'reconciled',
+  });
 });
 
 test('lineage migration adds separate indexed timestamps without destructive rewrites', () => {
