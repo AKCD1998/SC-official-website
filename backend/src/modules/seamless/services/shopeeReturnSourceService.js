@@ -55,9 +55,31 @@ function cleanReason(value) {
   return result || null;
 }
 
-function assertOrderInPeriod(orderedAt, startDate, endDate) {
-  const date = new Date(new Date(orderedAt).getTime() + 7 * 3600000).toISOString().slice(0, 10);
-  if (date < startDate || date > endDate) throw new Error("Exceptional-case order is outside the source period.");
+function bangkokDate(instant) {
+  return new Date(new Date(instant).getTime() + 7 * 3600000).toISOString().slice(0, 10);
+}
+
+function assertOrderNotAfterPeriod(orderedAt, endDate) {
+  // Shopee filters this bundle by the exceptional lifecycle event, not by order
+  // creation. Cancelled/failed-delivery workbooks do not expose that event time,
+  // so legitimate carry-over rows may have an order date before the filename
+  // period. The order still cannot have been created after the reported event
+  // period; the exact parent/member filenames bind the event period separately.
+  const date = bangkokDate(orderedAt);
+  if (date > endDate) throw new Error("Exceptional-case order is later than the source period.");
+}
+
+function assertEventInPeriod(eventAt, startDate, endDate) {
+  const date = bangkokDate(eventAt);
+  if (date < startDate || date > endDate) {
+    throw new Error("Return/refund request is outside the source period.");
+  }
+}
+
+function assertEventNotBeforeOrder(orderedAt, eventAt) {
+  if (Date.parse(eventAt) < Date.parse(orderedAt)) {
+    throw new Error("Return/refund request is earlier than the order.");
+  }
 }
 
 async function readXlsxRows(bytes) {
@@ -90,7 +112,6 @@ function parseOrderExceptionRows(rows, {
   entryFilename,
   eventType,
   shopCode,
-  startDate,
 }) {
   const expectedHeaders = eventType === "cancelled" ? CANCELLED_HEADERS : FAILED_DELIVERY_HEADERS;
   const columns = exactColumns((rows[0] || []).map(text), expectedHeaders);
@@ -101,7 +122,7 @@ function parseOrderExceptionRows(rows, {
     const orderNumber = text(row[columns.orderNumber]).toUpperCase();
     if (!ORDER_PATTERN.test(orderNumber)) throw new Error(`Invalid exceptional-case order at row ${sourceRow}.`);
     const orderedAt = parseBangkokTimestamp(row[columns.orderedAt], "exceptional-case order date");
-    assertOrderInPeriod(orderedAt, startDate, endDate);
+    assertOrderNotAfterPeriod(orderedAt, endDate);
     const status = eventType === "cancelled"
       ? text(row[columns.orderStatus])
       : text(row[columns.deliveryStatus]);
@@ -149,8 +170,10 @@ function parseReturnRefundRows(rows, { endDate, entryFilename, shopCode, startDa
       throw new Error(`Invalid return/refund identity at row ${sourceRow}.`);
     }
     const orderedAt = parseBangkokTimestamp(row[columns.orderedAt], "return/refund order date");
-    assertOrderInPeriod(orderedAt, startDate, endDate);
     const eventAt = parseBangkokTimestamp(row[columns.requestedAt], "return/refund request date");
+    assertOrderNotAfterPeriod(orderedAt, endDate);
+    assertEventInPeriod(eventAt, startDate, endDate);
+    assertEventNotBeforeOrder(orderedAt, eventAt);
     const status = text(row[columns.returnStatus]);
     if (!status) throw new Error("Return/refund status is missing.");
     const reason = cleanReason(row[columns.reason]);
@@ -293,7 +316,7 @@ async function readReturnSourceBuffer(buffer, options) {
       const rows = eventType === "return_refund" ? readXlsRows(part.bytes) : await readXlsxRows(part.bytes);
       partFacts.push(...(eventType === "return_refund"
         ? parseReturnRefundRows(rows, { startDate, endDate, shopCode: base.shopCode, entryFilename: part.entryFilename })
-        : parseOrderExceptionRows(rows, { startDate, endDate, shopCode: base.shopCode,
+        : parseOrderExceptionRows(rows, { endDate, shopCode: base.shopCode,
           entryFilename: part.entryFilename, eventType })));
     }
   }

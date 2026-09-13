@@ -13,6 +13,8 @@ const {
 const {
   CANCELLED_HEADERS,
   RETURN_HEADERS,
+  parseOrderExceptionRows,
+  parseReturnRefundRows,
   readReturnSourceBuffer,
 } = require("../src/modules/seamless/services/shopeeReturnSourceService");
 
@@ -84,24 +86,30 @@ function xlsBuffer(rows) {
   return Buffer.from(XLSX.write(workbook, { bookType: "biff8", type: "buffer" }));
 }
 
-async function exceptionalCaseZip() {
+async function exceptionalCaseZip({
+  cancelledOrderedAt = "2026-08-31 09:00",
+  end = "20260907",
+  returnOrderedAt = "2026-08-31 09:00",
+  returnRequestedAt = "2026-09-05 12:00",
+  start = "20260901",
+} = {}) {
   const cancelled = new ExcelJS.Workbook();
   const sheet = cancelled.addWorksheet("orders");
   sheet.addRow(Object.values(CANCELLED_HEADERS));
   sheet.addRow([
-    "260901TEST001", "ยกเลิกแล้ว", "2026-09-01 09:00", 120,
+    "260901TEST001", "ยกเลิกแล้ว", cancelledOrderedAt, 120,
     "ผู้ซื้อยกเลิก", "-",
   ]);
   sheet.getCell("E2").value = `${sheet.getCell("E2").value} buyer@example.com 081-234-5678`;
   const cancelledBytes = Buffer.from(await cancelled.xlsx.writeBuffer());
   const returnedBytes = xlsBuffer([
     Object.values(RETURN_HEADERS),
-    ["RETURNTEST001", "260902TEST002", "2026-09-02 09:00", "2026-09-05 12:00",
+    ["RETURNTEST001", "260902TEST002", returnOrderedAt, returnRequestedAt,
       "คืนเงินแล้ว", "คืนเงิน", "สินค้าเสียหาย", 75],
   ]);
   return Buffer.from(zipSync({
-    "Order.cancelled.20260901_20260907_part_1_of_1.xlsx": new Uint8Array(cancelledBytes),
-    "Order.return_refund.20260901_20260907_part_1_of_1.xls": new Uint8Array(returnedBytes),
+    [`Order.cancelled.${start}_${end}_part_1_of_1.xlsx`]: new Uint8Array(cancelledBytes),
+    [`Order.return_refund.${start}_${end}_part_1_of_1.xls`]: new Uint8Array(returnedBytes),
   }));
 }
 
@@ -174,11 +182,103 @@ test("exceptional-case ZIP keeps Shopee's exclusive filename end and stores no b
     },
   });
   expect(source.facts.map((fact) => fact.eventType).sort()).toEqual(["cancelled", "return_refund"]);
+  expect(source.facts.every((fact) => fact.orderedAt === "2026-08-31T02:00:00.000Z")).toBe(true);
   expect(JSON.stringify(source.facts)).not.toMatch(/"(?:buyer|address|phone|username)[^"]*"\s*:/iu);
   expect(JSON.stringify(source.facts)).not.toMatch(/buyer@example\.com|081-234-5678/iu);
   expect(source.facts.find((fact) => fact.eventType === "cancelled").reason)
     .toMatch(/\[redacted-email\].*\[redacted-phone\]/u);
   expect(source.sourceSha256).toBe(crypto.createHash("sha256").update(buffer).digest("hex"));
+});
+
+test("a one-day exceptional lifecycle window accepts carry-over orders and binds return requests to that day", async () => {
+  const buffer = await exceptionalCaseZip({
+    start: "20260906",
+    end: "20260907",
+    cancelledOrderedAt: "2026-09-05 09:00",
+    returnOrderedAt: "2026-09-05 09:00",
+    returnRequestedAt: "2026-09-06 12:00",
+  });
+  const source = await readReturnSourceBuffer(
+    buffer,
+    options("Order.return_refund_cancel.20260906_20260907.zip"),
+  );
+  expect(source).toMatchObject({
+    startDate: "2026-09-06",
+    endDate: "2026-09-06",
+    control: { counts: { cancelled: 1, failed_delivery: 0, return_refund: 1 } },
+  });
+});
+
+test("exceptional lifecycle dates still fail closed after allowing carry-over order dates", () => {
+  const cancelledRows = [
+    Object.values(CANCELLED_HEADERS),
+    ["260907TEST001", "ยกเลิกแล้ว", "2026-09-07 00:01", 120, "ผู้ซื้อยกเลิก", "-"],
+  ];
+  expect(() => parseOrderExceptionRows(cancelledRows, {
+    endDate: "2026-09-06",
+    entryFilename: "Order.cancelled.20260901_20260907_part_1_of_1.xlsx",
+    eventType: "cancelled",
+    shopCode: "sc-drug-store",
+  })).toThrow(/later than the source period/iu);
+
+  const outsideRequestRows = [
+    Object.values(RETURN_HEADERS),
+    ["RETURNTEST001", "260831TEST001", "2026-08-31 09:00", "2026-08-31 12:00",
+      "คืนเงินแล้ว", "คืนเงิน", "สินค้าเสียหาย", 75],
+  ];
+  expect(() => parseReturnRefundRows(outsideRequestRows, {
+    startDate: "2026-09-01",
+    endDate: "2026-09-06",
+    entryFilename: "Order.return_refund.20260901_20260907_part_1_of_1.xls",
+    shopCode: "sc-drug-store",
+  })).toThrow(/request is outside the source period/iu);
+
+  const requestBeforeOrderRows = [
+    Object.values(RETURN_HEADERS),
+    ["RETURNTEST002", "260905TEST002", "2026-09-05 13:00", "2026-09-05 12:00",
+      "คืนเงินแล้ว", "คืนเงิน", "สินค้าเสียหาย", 75],
+  ];
+  expect(() => parseReturnRefundRows(requestBeforeOrderRows, {
+    startDate: "2026-09-01",
+    endDate: "2026-09-06",
+    entryFilename: "Order.return_refund.20260901_20260907_part_1_of_1.xls",
+    shopCode: "sc-drug-store",
+  })).toThrow(/request is earlier than the order/iu);
+});
+
+test("exceptional-case ZIP rejects mismatched periods, overlong ranges and unsafe entries", async () => {
+  const buffer = await exceptionalCaseZip();
+  await expect(readReturnSourceBuffer(
+    buffer,
+    options("Order.return_refund_cancel.20260901_20260908.zip"),
+  )).rejects.toThrow(/filename or period/iu);
+  await expect(readReturnSourceBuffer(
+    buffer,
+    options("Order.return_refund_cancel.20260801_20260902.zip"),
+  )).rejects.toThrow(/outside the supported range/iu);
+
+  const unsafe = Buffer.from(zipSync({
+    "../Order.cancelled.20260901_20260907_part_1_of_1.xlsx": new Uint8Array([1]),
+  }));
+  await expect(readReturnSourceBuffer(
+    unsafe,
+    options("Order.return_refund_cancel.20260901_20260907.zip"),
+  )).rejects.toThrow(/Unsafe or unsupported/iu);
+});
+
+test("the maximum 31-day inclusive exceptional-case range remains accepted", async () => {
+  const buffer = await exceptionalCaseZip({
+    start: "20260801",
+    end: "20260901",
+    cancelledOrderedAt: "2026-07-31 09:00",
+    returnOrderedAt: "2026-07-31 09:00",
+    returnRequestedAt: "2026-08-31 12:00",
+  });
+  const source = await readReturnSourceBuffer(
+    buffer,
+    options("Order.return_refund_cancel.20260801_20260901.zip"),
+  );
+  expect(source).toMatchObject({ startDate: "2026-08-01", endDate: "2026-08-31" });
 });
 
 test("official empty exceptional-case ZIP records complete zero-event coverage", async () => {

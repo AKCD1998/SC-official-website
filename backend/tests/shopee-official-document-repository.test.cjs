@@ -1,4 +1,7 @@
-const { enrichIncomeComponents } = require('../src/modules/seamless/db/shopeeOfficialDocumentRepository');
+const {
+  enrichIncomeComponents,
+  importOfficialDocumentSources,
+} = require('../src/modules/seamless/db/shopeeOfficialDocumentRepository');
 
 const tables = { shopeeIncomeFacts: 'test.shopee_income_facts' };
 const source = {
@@ -80,4 +83,41 @@ test('Income enrichment is write-free when complete and rejects an existing comp
   await expect(enrichIncomeComponents(conflictClient, tables, source))
     .rejects.toThrow(/immutable My Income component differs/iu);
   expect(conflictClient.query).toHaveBeenCalledTimes(1);
+});
+
+test('official document import rejects facts relabelled as a different shop', async () => {
+  const client = { query: jest.fn(async () => ({ rows: [] })) };
+  await expect(importOfficialDocumentSources([{
+    shopCode: 'sc-drug-store',
+    sourceSha256: 'b'.repeat(64),
+    reportType: 'return-refund-cancel',
+    sourceFilename: 'Order.return_refund_cancel.20260901_20260902.zip',
+    observedAt: '2026-09-03T03:00:00.000Z',
+    startDate: '2026-09-01',
+    endDate: '2026-09-01',
+    control: { counts: { cancelled: 1, failed_delivery: 0, return_refund: 0 } },
+    facts: [{
+      shopCode: 'dr-morepen',
+      eventKey: 'cancelled:260901TEST001',
+      eventType: 'cancelled',
+      orderNumber: '260901TEST001',
+      returnRequestNumber: null,
+      orderedAt: '2026-08-31T02:00:00.000Z',
+      eventAt: null,
+      status: 'ยกเลิกแล้ว',
+      reason: 'ผู้ซื้อยกเลิก',
+      amountLabel: 'ราคาขายสุทธิ',
+      amount: 120,
+      entryFilename: 'Order.cancelled.20260901_20260902_part_1_of_1.xlsx',
+      sourceRows: [2],
+    }],
+  }], {
+    client,
+    actor: 'unit-test',
+    manageTransaction: false,
+  })).rejects.toThrow(/fact\/source shop mismatch/iu);
+  expect(client.query).not.toHaveBeenCalledWith(
+    expect.stringMatching(/INSERT INTO .*shopee_return_facts/iu),
+    expect.anything(),
+  );
 });
