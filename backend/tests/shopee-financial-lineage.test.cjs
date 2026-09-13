@@ -437,7 +437,7 @@ test('pending and transferred Income remain separate while latest lifecycle stat
   });
 });
 
-test('returns are a separate unresolved stage when the refund amount basis is not proven', () => {
+test('an unknown Shopee return lifecycle stays unresolved without guessing the amount basis', () => {
   const order = snapshot({ shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0001',
     paidAt: '2026-08-31T17:01:00.000Z', amount: 100, source: 'a' });
   const result = buildFinancialReconciliation({
@@ -448,7 +448,7 @@ test('returns are a separate unresolved stage when the refund amount basis is no
       returnSources: [{ shopCode: 'sc-drug-store', startDate: '2026-09-01', endDate: '2026-09-01',
         sourceRowCount: 1, sourceFilename: 'returns.zip', sourceSha256: hash('r'), observedAt }],
       returnFacts: [{ shopCode: 'sc-drug-store', orderNumber: order.orderNumber,
-        eventKey: 'return_refund:R1', eventType: 'return_refund', amount: 25,
+        eventKey: 'return_refund:R1', eventType: 'return_refund', status: 'สถานะใหม่ที่ยังไม่รองรับ', amount: 25,
         amountLabel: 'จำนวนเงินคืนทั้งหมด', sourceRows: [2], sourceFilename: 'returns.zip',
         sourceSha256: hash('r'), observedAt }],
     },
@@ -460,9 +460,16 @@ test('returns are a separate unresolved stage when the refund amount basis is no
     confirmedNet: { reconstructedAmount: null, status: 'unresolved' },
   });
   expect(result.orders[0].returnEvents).toHaveLength(1);
+  expect(result.shops[0].unresolved).toContainEqual(expect.objectContaining({
+    reasonCode: 'unknown_return_lifecycle_status',
+    orderNumbers: ['SCRETURN0001'],
+    statuses: ['สถานะใหม่ที่ยังไม่รองรับ'],
+  }));
 });
 
-test('return reconciliation uses original confirmed value and Shopee lifecycle count semantics', () => {
+test.each(['กำลังส่งคืน', 'รอการตรวจสอบ'])(
+  'return reconciliation uses original confirmed value and Shopee lifecycle count semantics (%s)',
+  (amountActiveStatus) => {
   const orderSnapshots = [
     snapshot({ shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0980',
       paidAt: '2026-08-31T17:01:00.000Z', amount: 980, source: 'a' }),
@@ -490,7 +497,7 @@ test('return reconciliation uses original confirmed value and Shopee lifecycle c
       }],
       returnFacts: [
         { shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0980', eventKey: 'return_refund:R980',
-          eventType: 'return_refund', status: 'กำลังส่งคืน', amount: 715,
+          eventType: 'return_refund', status: amountActiveStatus, amount: 715,
           amountLabel: 'จำนวนเงินคืนทั้งหมด', sourceRows: [2], sourceFilename: 'returns.zip',
           sourceSha256: hash('r'), observedAt },
         { shopCode: 'sc-drug-store', orderNumber: 'SCRETURN0175', eventKey: 'return_refund:R175',
@@ -524,7 +531,8 @@ test('return reconciliation uses original confirmed value and Shopee lifecycle c
     reconstructedOrderCount: 2,
     status: 'reconciled',
   });
-});
+  },
+);
 
 test('lineage migration adds separate indexed timestamps without destructive rewrites', () => {
   const sql = fs.readFileSync(path.resolve(__dirname,

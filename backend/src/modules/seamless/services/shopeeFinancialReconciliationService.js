@@ -14,6 +14,7 @@ const SHOP_CODES = Object.keys(SHOPEE_SHOP_PROFILES);
 const RETURN_AMOUNT_ACTIVE_STATUSES = new Set([
   'คืนเงินแล้ว',
   'กำลังส่งคืน',
+  'รอการตรวจสอบ',
   'อนุมัติคำขอเคลม',
 ]);
 const RETURN_ORDER_COUNTED_STATUSES = new Set([
