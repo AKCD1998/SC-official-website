@@ -3,6 +3,11 @@ const repository = require("../db/shopeeDocumentSyncStatusRepository");
 const { SHOPEE_SHOP_PROFILES } = require("./shopeeShops");
 
 const DAY_MS = 86_400_000;
+const DAILY_SCHEDULES = Object.freeze({
+  "sc-drug-store": Object.freeze({ minutes: 9 * 60 + 15, time: "09:15" }),
+  "dr-morepen": Object.freeze({ minutes: 9 * 60 + 30, time: "09:30" }),
+});
+const DAILY_SLA_MINUTES = 11 * 60;
 
 const REPORTS = Object.freeze([
   Object.freeze({ key: "business-insights", label: "Business Insights — ภาพรวมยอดขาย", cadence: "daily" }),
@@ -44,6 +49,17 @@ function bangkokDate(now = new Date()) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+function bangkokMinutes(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    hour: "2-digit",
+    hourCycle: "h23",
+    minute: "2-digit",
+    timeZone: "Asia/Bangkok",
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return Number(values.hour) * 60 + Number(values.minute);
+}
+
 function enumerateDatesDescending(startDate, endDate) {
   const values = [];
   for (let cursor = endDate; cursor >= startDate; cursor = offsetDate(cursor, -1)) {
@@ -62,17 +78,21 @@ function latestJobForDate(jobs, date) {
   return jobs.find((job) => job.dateFrom <= date && job.dateTo >= date) || null;
 }
 
-function cellStatus(report, date, currentMonday, evidence) {
+function cellStatus(report, date, currentMonday, evidence, timing) {
   if (evidence) return "ingested";
   if (report.unavailableUntilExported) return "unavailable";
   if (report.cadence === "weekly" && date >= currentMonday) return "not_due";
+  if (report.cadence !== "weekly" && date === timing.latestExpectedDate) {
+    if (timing.minutes < timing.scheduleMinutes) return "waiting";
+    if (timing.minutes < DAILY_SLA_MINUTES) return "processing";
+  }
   return "missing";
 }
 
-function summarizeRow({ currentMonday, dates, jobs, report }) {
+function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
   const cells = dates.map((date) => {
     const evidence = latestJobForDate(jobs, date);
-    const status = cellStatus(report, date, currentMonday, evidence);
+    const status = cellStatus(report, date, currentMonday, evidence, timing);
     return {
       date,
       status,
@@ -91,9 +111,10 @@ function summarizeRow({ currentMonday, dates, jobs, report }) {
       } : {}),
     };
   });
-  const expectedCells = cells.filter((cell) => !["not_due", "unavailable"].includes(cell.status));
+  const expectedCells = cells.filter((cell) => !["not_due", "unavailable", "waiting", "processing"].includes(cell.status));
   const ingestedCount = expectedCells.filter((cell) => cell.status === "ingested").length;
   const missingCount = expectedCells.filter((cell) => cell.status === "missing").length;
+  const pendingCount = cells.filter((cell) => ["waiting", "processing"].includes(cell.status)).length;
   const ingestedJobs = jobs.filter((job) => job.dateFrom <= dates[0] && job.dateTo >= dates.at(-1));
   const latestCoveredDate = jobs.length
     ? jobs.map((job) => job.dateTo).sort().at(-1)
@@ -102,7 +123,12 @@ function summarizeRow({ currentMonday, dates, jobs, report }) {
     ? jobs.map((job) => job.importedAt).sort().at(-1)
     : null;
   let status = missingCount ? "incomplete" : "complete";
-  if (!expectedCells.length) status = report.unavailableUntilExported ? "unavailable" : "not_due";
+  if (!missingCount && pendingCount) {
+    status = cells.some((cell) => cell.status === "processing") ? "processing" : "waiting";
+  }
+  if (!expectedCells.length && !pendingCount) {
+    status = report.unavailableUntilExported ? "unavailable" : "not_due";
+  }
   return {
     cadence: report.cadence,
     expectedCount: expectedCells.length,
@@ -111,7 +137,9 @@ function summarizeRow({ currentMonday, dates, jobs, report }) {
     latestCoveredDate,
     latestImportedAt,
     missingCount,
+    pendingCount,
     reportType: report.key,
+    scheduleTime: timing.scheduleTime,
     status,
     cells,
     sourceCount: new Set(ingestedJobs.map((job) => job.sourceSha256)).size,
@@ -125,12 +153,20 @@ function buildDocumentSyncStatus({ days, jobs, now = new Date() }) {
   const dates = enumerateDatesDescending(startDate, endDate);
   const currentMonday = mondayOfWeek(today);
   const shops = Object.values(SHOPEE_SHOP_PROFILES).map((profile) => {
+    const schedule = DAILY_SCHEDULES[profile.code];
+    const timing = {
+      latestExpectedDate: endDate,
+      minutes: bangkokMinutes(now),
+      scheduleMinutes: schedule.minutes,
+      scheduleTime: schedule.time,
+    };
     const shopJobs = jobs.filter((job) => job.shopCode === profile.code);
     const rows = REPORTS.map((report) => summarizeRow({
       currentMonday,
       dates,
       jobs: shopJobs.filter((job) => job.reportType === report.key),
       report,
+      timing,
     }));
     const requiredRows = rows.filter((row) => row.status !== "unavailable");
     return {
@@ -138,6 +174,8 @@ function buildDocumentSyncStatus({ days, jobs, now = new Date() }) {
       shopName: profile.displayName,
       completeRowCount: requiredRows.filter((row) => row.status === "complete").length,
       incompleteRowCount: requiredRows.filter((row) => row.status === "incomplete").length,
+      pendingRowCount: requiredRows.filter((row) => ["waiting", "processing"].includes(row.status)).length,
+      scheduleTime: schedule.time,
       latestImportedAt: shopJobs.length
         ? shopJobs.map((job) => job.importedAt).sort().at(-1)
         : null,
@@ -152,6 +190,11 @@ function buildDocumentSyncStatus({ days, jobs, now = new Date() }) {
     startDate,
     endDate,
     timezone: "Asia/Bangkok",
+    dailyScheduleTime: "09:15–09:30",
+    dailyScheduleTimes: Object.fromEntries(
+      Object.entries(DAILY_SCHEDULES).map(([shopCode, schedule]) => [shopCode, schedule.time])
+    ),
+    dailySlaTime: "11:00",
     shops,
   };
 }
@@ -172,6 +215,7 @@ async function getShopeeDocumentSyncStatus({ days, now = new Date() }) {
 module.exports = {
   REPORTS,
   bangkokDate,
+  bangkokMinutes,
   buildDocumentSyncStatus,
   getShopeeDocumentSyncStatus,
   mondayOfWeek,
