@@ -1,8 +1,10 @@
 const crypto = require("node:crypto");
 const ExcelJS = require("exceljs");
+const { zipSync } = require("fflate");
 const { HEADERS } = require("../src/modules/seamless/services/shopeeSalesSourceService");
 const { HEADERS: CONFIRMED_HEADERS, SHEET: CONFIRMED_SHEET } = require("../src/modules/seamless/services/shopeeConfirmedSalesService");
 const { BALANCE_HEADERS } = require("../src/modules/seamless/services/shopeeOfficialDocumentService");
+const { CANCELLED_HEADERS } = require("../src/modules/seamless/services/shopeeReturnSourceService");
 
 let mockAuditRow = null;
 let mockSalesSourceRows = [];
@@ -164,6 +166,34 @@ async function sellerBalanceSource() {
   };
 }
 
+async function returnCarryOverSource() {
+  const workbook = new ExcelJS.Workbook();
+  const sheet = workbook.addWorksheet("orders");
+  sheet.addRow(Object.values(CANCELLED_HEADERS));
+  sheet.addRow([
+    "260911TEST001", "ยกเลิกแล้ว", "2026-09-11 21:19", 120,
+    "ยกเลิกโดยอัตโนมัติจากระบบของ Shopee", "-",
+  ]);
+  const entry = Buffer.from(await workbook.xlsx.writeBuffer());
+  const buffer = Buffer.from(zipSync({
+    "Order.cancelled.20260912_20260913_part_1_of_1.xlsx": new Uint8Array(entry),
+  }));
+  const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
+  const originalFilename = "Order.return_refund_cancel.20260912_20260913.zip";
+  return {
+    body: {
+      shopCode: "sc-drug-store", reportType: "return-refund-cancel",
+      dateFrom: "2026-09-12", dateTo: "2026-09-12", originalFilename,
+      observedAt: "2026-09-13T09:12:44.149Z", sha256,
+      jobId: "20260913090448-return-refund-cancel-c8a38c6d",
+    },
+    file: {
+      buffer, size: buffer.length, originalname: originalFilename,
+      mimetype: "application/zip",
+    },
+  };
+}
+
 beforeEach(() => {
   mockAuditRow = null;
   mockSalesSourceRows = [];
@@ -243,6 +273,19 @@ test("official finance source validates, imports privacy-safe facts and records 
   });
   expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_official_document_sources/iu.test(sql))).toBe(true);
   expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_seller_balance_facts/iu.test(sql))).toBe(true);
+  expect(mockQueries.at(-1).sql).toBe("COMMIT");
+});
+
+test("official exceptional-case ingest accepts an order created before its lifecycle report day", async () => {
+  const imported = await ingestShopeeSalesSource(await returnCarryOverSource());
+  expect(imported).toMatchObject({
+    status: "imported",
+    reportType: "return-refund-cancel",
+    coverage: { coveredDays: 1, expectedDays: 1 },
+    reconciliationStatus: "document_validated",
+  });
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_return_facts/iu.test(sql))).toBe(true);
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_sales_ingest_jobs/iu.test(sql))).toBe(true);
   expect(mockQueries.at(-1).sql).toBe("COMMIT");
 });
 
