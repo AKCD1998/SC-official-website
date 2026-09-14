@@ -10,14 +10,24 @@ const { asyncHandler } = require("../utils/asyncHandler");
 const { internalApiAuth } = require("../middleware/internalApiAuth");
 const { shopeeSalesIngestAuth } = require("../middleware/shopeeSalesIngestAuth");
 const { ingestSalesSource } = require("../controllers/shopeeSalesIngestController");
-const { MAX_SOURCE_BYTES } = require("../services/shopeeSalesIngestService");
+const {
+  MAX_PROVENANCE_JSON_BYTES,
+  MAX_SOURCE_BYTES,
+} = require("../services/shopeeSalesIngestService");
 
 const router = express.Router();
 const shopeeUpload = multer({
   storage: multer.memoryStorage(),
-  // Busboy counts the closing multipart boundary when enforcing this limit,
-  // so allow one part beyond the eight fields and one workbook.
-  limits: { fileSize: MAX_SOURCE_BYTES, files: 1, fields: 8, parts: 10 },
+  // Assembled return bundles add three bounded provenance fields. Busboy also
+  // counts the closing boundary, hence ten fields + one archive + one boundary.
+  limits: {
+    fileSize: MAX_SOURCE_BYTES,
+    fieldSize: MAX_PROVENANCE_JSON_BYTES,
+    fieldNameSize: 64,
+    files: 1,
+    fields: 10,
+    parts: 12,
+  },
 });
 
 router.post(
