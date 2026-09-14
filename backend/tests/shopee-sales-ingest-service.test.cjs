@@ -1,10 +1,15 @@
 const crypto = require("node:crypto");
 const ExcelJS = require("exceljs");
+const XLSX = require("xlsx");
 const { zipSync } = require("fflate");
 const { HEADERS } = require("../src/modules/seamless/services/shopeeSalesSourceService");
 const { HEADERS: CONFIRMED_HEADERS, SHEET: CONFIRMED_SHEET } = require("../src/modules/seamless/services/shopeeConfirmedSalesService");
 const { BALANCE_HEADERS } = require("../src/modules/seamless/services/shopeeOfficialDocumentService");
-const { CANCELLED_HEADERS } = require("../src/modules/seamless/services/shopeeReturnSourceService");
+const {
+  CANCELLED_HEADERS,
+  FAILED_DELIVERY_HEADERS,
+  RETURN_HEADERS,
+} = require("../src/modules/seamless/services/shopeeReturnSourceService");
 
 let mockAuditRow = null;
 let mockSalesSourceRows = [];
@@ -37,6 +42,7 @@ jest.mock("../db", () => ({ connect: jest.fn(async () => mockClient) }));
 const {
   ingestShopeeSalesSource,
   multipartFilenameMatches,
+  parseManifest,
   validateUpload,
 } = require("../src/modules/seamless/services/shopeeSalesIngestService");
 
@@ -194,6 +200,60 @@ async function returnCarryOverSource() {
   };
 }
 
+async function xlsxWithHeaders(headers) {
+  const workbook = new ExcelJS.Workbook();
+  workbook.addWorksheet("orders").addRow(Object.values(headers));
+  return Buffer.from(await workbook.xlsx.writeBuffer());
+}
+
+async function assembledReturnSource() {
+  const files = [
+    {
+      kind: "cancelled", extension: "xlsx", part: 1, totalParts: 1,
+      originalFilename: "Order.cancelled.20260912_20260913_part_1_of_1.xlsx",
+      buffer: await xlsxWithHeaders(CANCELLED_HEADERS),
+    },
+    {
+      kind: "return_refund", extension: "xls", part: 1, totalParts: 1,
+      originalFilename: "Order.return_refund.20260912_20260913_part_1_of_1.xls",
+      buffer: Buffer.from(XLSX.write({
+        SheetNames: ["orders"],
+        Sheets: { orders: XLSX.utils.aoa_to_sheet([Object.values(RETURN_HEADERS)]) },
+      }, { type: "buffer", bookType: "xls" })),
+    },
+    {
+      kind: "failed_delivery", extension: "xlsx", part: 1, totalParts: 1,
+      originalFilename: "Order.failed_delivery.20260912_20260913_part_1_of_1.xlsx",
+      buffer: await xlsxWithHeaders(FAILED_DELIVERY_HEADERS),
+    },
+  ].map((item) => ({
+    ...item,
+    bytes: item.buffer.length,
+    sha256: crypto.createHash("sha256").update(item.buffer).digest("hex"),
+  }));
+  const buffer = Buffer.from(zipSync(Object.fromEntries(files.map((item) => [
+    item.originalFilename, new Uint8Array(item.buffer),
+  ])), { level: 0 }));
+  const archiveFilename = "assembled.Order.return_refund_cancel.20260912_20260913.zip";
+  return {
+    body: {
+      shopCode: "sc-drug-store",
+      reportType: "return-refund-cancel",
+      dateFrom: "2026-09-12",
+      dateTo: "2026-09-12",
+      assembledFromOfficialComponents: "true",
+      archiveFilename,
+      // Deliberately shuffled: the backend must canonicalize before audit storage.
+      sourceOriginalFiles: JSON.stringify([files[2], files[0], files[1]].map(({ buffer: ignored, ...item }) => item)),
+      observedAt: "2026-09-13T09:12:44.149Z",
+      sha256: crypto.createHash("sha256").update(buffer).digest("hex"),
+      jobId: "20260913090448-return-refund-cancel-assembled",
+    },
+    file: { buffer, size: buffer.length, originalname: archiveFilename, mimetype: "application/zip" },
+    files,
+  };
+}
+
 beforeEach(() => {
   mockAuditRow = null;
   mockSalesSourceRows = [];
@@ -284,9 +344,168 @@ test("official exceptional-case ingest accepts an order created before its lifec
     coverage: { coveredDays: 1, expectedDays: 1 },
     reconciliationStatus: "document_validated",
   });
+  expect(imported.assembledProvenance).toBeUndefined();
   expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_return_facts/iu.test(sql))).toBe(true);
   expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_sales_ingest_jobs/iu.test(sql))).toBe(true);
   expect(mockQueries.at(-1).sql).toBe("COMMIT");
+});
+
+test("assembled exceptional-case ingest verifies components, returns sanitized provenance and replays unchanged", async () => {
+  const input = await assembledReturnSource();
+  const imported = await ingestShopeeSalesSource(input);
+  expect(imported).toMatchObject({
+    status: "imported",
+    sourceFilename: input.body.archiveFilename,
+    assembledProvenance: {
+      assembledFromOfficialComponents: true,
+      archiveFilename: input.body.archiveFilename,
+      sourceFilename: input.body.archiveFilename,
+    },
+  });
+  expect(imported.assembledProvenance.sourceOriginalFiles.map((item) => item.kind))
+    .toEqual(["cancelled", "return_refund", "failed_delivery"]);
+  expect(imported.assembledProvenance.sourceOriginalFiles.every((item) => (
+    Object.keys(item).sort().join(",")
+      === "bytes,extension,kind,originalFilename,part,sha256,totalParts"
+  ))).toBe(true);
+  expect(JSON.stringify(imported.assembledProvenance)).not.toMatch(/[\\/](?:Users|AppData|documents)[\\/]/iu);
+
+  mockQueries.length = 0;
+  const reorderObject = (value) => Object.fromEntries(Object.entries(value).reverse());
+  const storedProvenance = mockAuditRow.response_metadata.assembledProvenance;
+  mockAuditRow.response_metadata.assembledProvenance = reorderObject({
+    ...storedProvenance,
+    sourceOriginalFiles: storedProvenance.sourceOriginalFiles.map(reorderObject),
+  });
+  const replayBody = {
+    ...input.body,
+    sourceOriginalFiles: JSON.stringify(JSON.parse(input.body.sourceOriginalFiles).reverse()),
+  };
+  const replay = await ingestShopeeSalesSource({ ...input, body: replayBody });
+  expect(replay.status).toBe("unchanged");
+  expect(replay.assembledProvenance).toEqual(imported.assembledProvenance);
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_official_document_sources/iu.test(sql))).toBe(false);
+  expect(mockQueries.at(-1).sql).toBe("COMMIT");
+});
+
+test("direct manifest cannot disguise an assembled archive without component provenance", async () => {
+  const input = await assembledReturnSource();
+  await expect(ingestShopeeSalesSource({
+    body: {
+      shopCode: input.body.shopCode,
+      reportType: input.body.reportType,
+      dateFrom: input.body.dateFrom,
+      dateTo: input.body.dateTo,
+      originalFilename: input.body.archiveFilename,
+      observedAt: input.body.observedAt,
+      sha256: input.body.sha256,
+      jobId: "20260913090448-return-refund-cancel-direct-bypass",
+    },
+    file: input.file,
+  })).rejects.toMatchObject({ statusCode: 422, code: "SHOPEE_SOURCE_REJECTED" });
+  expect(mockClient.query).not.toHaveBeenCalled();
+});
+
+test("assembled upload requires multipart filename to equal archiveFilename", async () => {
+  const input = await assembledReturnSource();
+  const manifest = parseManifest(input.body);
+  expect(() => validateUpload({ ...input.file, originalname: "other.zip" }, manifest))
+    .toThrow(/does not match archiveFilename/iu);
+});
+
+test("assembled manifest rejects incomplete, ambiguous, local-path and incorrectly ranged provenance", async () => {
+  const input = await assembledReturnSource();
+  const files = JSON.parse(input.body.sourceOriginalFiles);
+  const withSources = (sourceOriginalFiles, extra = {}) => ({
+    ...input.body,
+    ...extra,
+    sourceOriginalFiles: typeof sourceOriginalFiles === "string"
+      ? sourceOriginalFiles : JSON.stringify(sourceOriginalFiles),
+  });
+  const cancelled = files.find((item) => item.kind === "cancelled");
+  const returnRefund = files.find((item) => item.kind === "return_refund");
+  expect(() => parseManifest(withSources([
+    { ...cancelled, totalParts: 2,
+      originalFilename: cancelled.originalFilename.replace("part_1_of_1", "part_1_of_2") },
+    { ...cancelled, part: 2, totalParts: 2,
+      originalFilename: cancelled.originalFilename.replace("part_1_of_1", "part_2_of_2") },
+    returnRefund,
+  ])))
+    .toThrow(/missing failed_delivery/iu);
+  expect(() => parseManifest(withSources([...files, { ...files[0] }])))
+    .toThrow(/incomplete or duplicated|duplicate/iu);
+  expect(() => parseManifest(withSources(files.map((item, index) => index === 0
+    ? { ...item, storedFilename: "C:\\private\\file.xlsx" } : item))))
+    .toThrow(/unsupported or missing fields/iu);
+  expect(() => parseManifest(withSources(files.map((item) => item.kind === "return_refund"
+    ? { ...item, extension: "xlsx", originalFilename: item.originalFilename.replace(/\.xls$/u, ".xlsx") } : item))))
+    .toThrow(/unsupported component format/iu);
+  expect(() => parseManifest(withSources(files.map((item, index) => index === 0
+    ? { ...item, originalFilename: item.originalFilename.replace("20260913", "20260914") } : item))))
+    .toThrow(/does not match the manifest/iu);
+  expect(() => parseManifest(withSources(files, { archiveFilename: "assembled.Order.return_refund_cancel.20260912_20260914.zip" })))
+    .toThrow(/archiveFilename does not match/iu);
+  expect(() => parseManifest(withSources(files, { originalFilename: input.body.archiveFilename })))
+    .toThrow(/unsupported fields|must not fabricate/iu);
+  expect(() => parseManifest({
+    ...input.body,
+    assembledFromOfficialComponents: undefined,
+    archiveFilename: undefined,
+    sourceOriginalFiles: undefined,
+    originalFilename: "Order.return_refund_cancel.20260912_20260913.zip",
+    sourcePath: "C:\\private\\evidence.zip",
+  })).toThrow(/unsupported fields/iu);
+  expect(() => parseManifest(withSources("[" + " ".repeat(33 * 1024) + "]")))
+    .toThrow(/malformed or exceeds/iu);
+});
+
+test("assembled archive rejects extra, missing, hash and byte-length member evidence before database access", async () => {
+  const input = await assembledReturnSource();
+  const declared = JSON.parse(input.body.sourceOriginalFiles);
+  const zipEntries = Object.fromEntries(input.files.map((item) => [item.originalFilename, new Uint8Array(item.buffer)]));
+  const corruptReturnBytes = Buffer.from([1, 2, 3, 4]);
+  const corruptReturnProvenance = declared.map((item) => item.kind === "return_refund" ? {
+    ...item,
+    bytes: corruptReturnBytes.length,
+    sha256: crypto.createHash("sha256").update(corruptReturnBytes).digest("hex"),
+  } : item);
+  const corruptReturnEntries = { ...zipEntries };
+  corruptReturnEntries[corruptReturnProvenance.find((item) => item.kind === "return_refund").originalFilename]
+    = new Uint8Array(corruptReturnBytes);
+  const variants = [
+    {
+      body: input.body,
+      buffer: Buffer.from(zipSync({ ...zipEntries, "extra.xlsx": new Uint8Array([1]) }, { level: 0 })),
+    },
+    {
+      body: input.body,
+      buffer: Buffer.from(zipSync(Object.fromEntries(Object.entries(zipEntries).slice(0, 2)), { level: 0 })),
+    },
+    {
+      body: { ...input.body, sourceOriginalFiles: JSON.stringify(declared.map((item, index) => (
+        index === 0 ? { ...item, sha256: "0".repeat(64) } : item
+      ))) },
+      buffer: input.file.buffer,
+    },
+    {
+      body: { ...input.body, sourceOriginalFiles: JSON.stringify(declared.map((item, index) => (
+        index === 0 ? { ...item, bytes: item.bytes + 1 } : item
+      ))) },
+      buffer: input.file.buffer,
+    },
+    {
+      body: { ...input.body, sourceOriginalFiles: JSON.stringify(corruptReturnProvenance) },
+      buffer: Buffer.from(zipSync(corruptReturnEntries, { level: 0 })),
+    },
+  ];
+  for (const variant of variants) {
+    const sha256 = crypto.createHash("sha256").update(variant.buffer).digest("hex");
+    await expect(ingestShopeeSalesSource({
+      body: { ...variant.body, sha256 },
+      file: { ...input.file, buffer: variant.buffer, size: variant.buffer.length },
+    })).rejects.toMatchObject({ statusCode: 422, code: "SHOPEE_SOURCE_REJECTED" });
+  }
+  expect(mockClient.query).not.toHaveBeenCalled();
 });
 
 test("hash mismatch and parser rejection stop before any database connection", async () => {

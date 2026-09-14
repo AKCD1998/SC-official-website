@@ -1,3 +1,4 @@
+const crypto = require("node:crypto");
 const { unzipSync } = require("fflate");
 const XLSX = require("xlsx");
 const {
@@ -233,7 +234,41 @@ function unzipShopeeReport(buffer) {
     && buffer.readUInt32LE(0) === 0x06054b50
     && buffer.subarray(4).every((byte) => byte === 0);
   if (!count && Object.keys(entries).length === 0 && emptyArchive) return entries;
-  if (!count || Object.keys(entries).length !== count) throw new Error("Exceptional-case ZIP is empty or incomplete.");
+  const names = Object.keys(entries);
+  if (!count || names.length !== count) throw new Error("Exceptional-case ZIP is empty or incomplete.");
+  if (new Set(names.map((name) => name.normalize("NFC").toLowerCase())).size !== names.length) {
+    throw new Error("Exceptional-case ZIP contains duplicate normalized filenames.");
+  }
+  return entries;
+}
+
+function validateAssembledReturnArchive(buffer, sourceOriginalFiles) {
+  if (!Array.isArray(sourceOriginalFiles) || !sourceOriginalFiles.length) {
+    throw new Error("Assembled exceptional-case provenance is required.");
+  }
+  const entries = unzipShopeeReport(buffer);
+  const actualNames = Object.keys(entries).sort();
+  const declaredNames = sourceOriginalFiles.map((item) => item.originalFilename).sort();
+  if (actualNames.length !== declaredNames.length
+    || actualNames.some((name, index) => name !== declaredNames[index])) {
+    throw new Error("Assembled exceptional-case ZIP members do not match provenance exactly.");
+  }
+  for (const item of sourceOriginalFiles) {
+    const bytes = Buffer.from(entries[item.originalFilename]);
+    if (bytes.length !== item.bytes) {
+      throw new Error(`Assembled exceptional-case byte length differs for ${item.originalFilename}.`);
+    }
+    const sha256 = crypto.createHash("sha256").update(bytes).digest("hex");
+    if (sha256 !== item.sha256) {
+      throw new Error(`Assembled exceptional-case SHA-256 differs for ${item.originalFilename}.`);
+    }
+    const xlsxMagic = bytes[0] === 0x50 && bytes[1] === 0x4b
+      && bytes[2] === 0x03 && bytes[3] === 0x04;
+    const xlsMagic = bytes.subarray(0, 8).equals(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]));
+    if ((item.extension === "xlsx" && !xlsxMagic) || (item.extension === "xls" && !xlsMagic)) {
+      throw new Error(`Assembled exceptional-case workbook magic differs for ${item.originalFilename}.`);
+    }
+  }
   return entries;
 }
 
@@ -281,8 +316,15 @@ function mergePartFacts(facts) {
 
 async function readReturnSourceBuffer(buffer, options) {
   const base = sourceBase({ buffer, ...options });
-  const parent = /^Order\.return_refund_cancel\.(\d{8})_(\d{8})(?: ?\(\d+\))?\.zip$/iu.exec(base.sourceFilename);
-  if (!parent) throw new Error("Expected original Order.return_refund_cancel ZIP filename.");
+  const parentPattern = options.assembledProvenance
+    ? /^assembled\.Order\.return_refund_cancel\.(\d{8})_(\d{8})\.zip$/u
+    : /^Order\.return_refund_cancel\.(\d{8})_(\d{8})(?: ?\(\d+\))?\.zip$/iu;
+  const parent = parentPattern.exec(base.sourceFilename);
+  if (!parent) {
+    throw new Error(options.assembledProvenance
+      ? "Expected assembled Order.return_refund_cancel filename with provenance."
+      : "Expected original Order.return_refund_cancel ZIP filename.");
+  }
   const startDate = compactDate(parent[1]);
   const exclusiveEndDate = compactDate(parent[2]);
   const endDate = addDays(exclusiveEndDate, -1);
@@ -290,7 +332,9 @@ async function readReturnSourceBuffer(buffer, options) {
   if (addDays(startDate, 31) < exclusiveEndDate || exclusiveEndDate <= startDate) {
     throw new Error("Exceptional-case ZIP period is outside the supported range.");
   }
-  const entries = unzipShopeeReport(buffer);
+  const entries = options.assembledProvenance
+    ? validateAssembledReturnArchive(buffer, options.assembledProvenance.sourceOriginalFiles)
+    : unzipShopeeReport(buffer);
   const partsByType = new Map();
   for (const [entryFilename, bytes] of Object.entries(entries)) {
     const match = /^Order\.(cancelled|failed_delivery|return_refund)\.(\d{8})_(\d{8})_part_(\d+)_of_(\d+)\.(xlsx|xls)$/iu.exec(entryFilename);
@@ -331,7 +375,12 @@ async function readReturnSourceBuffer(buffer, options) {
     reportType: "return-refund-cancel",
     startDate,
     endDate,
-    control: { counts, amounts, entryFilenames: Object.keys(entries).sort() },
+    control: {
+      counts,
+      amounts,
+      entryFilenames: Object.keys(entries).sort(),
+      ...(options.assembledProvenance ? { assembledProvenance: options.assembledProvenance } : {}),
+    },
     facts,
   };
 }
@@ -345,4 +394,5 @@ module.exports = {
   mergePartFacts,
   readReturnSourceBuffer,
   unzipShopeeReport,
+  validateAssembledReturnArchive,
 };

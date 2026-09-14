@@ -18,6 +18,9 @@ function mapJob(row) {
     sourceRowCount: Number(row.source_row_count),
     reconciliationStatus: row.reconciliation_status,
     coverage: row.response_metadata?.coverage || null,
+    ...(row.response_metadata?.assembledProvenance
+      ? { assembledProvenance: row.response_metadata.assembledProvenance }
+      : {}),
     importedAt: new Date(row.imported_at).toISOString(),
   };
 }
@@ -52,7 +55,10 @@ async function insertIngestJob(client, value) {
     value.status,
     value.sourceRowCount,
     value.reconciliationStatus,
-    JSON.stringify({ coverage: value.coverage || null }),
+    JSON.stringify({
+      coverage: value.coverage || null,
+      ...(value.assembledProvenance ? { assembledProvenance: value.assembledProvenance } : {}),
+    }),
   ]);
   return mapJob(result.rows[0]);
 }
