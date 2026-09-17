@@ -2,6 +2,10 @@ const express = require("express");
 const request = require("supertest");
 
 const mockIngestShopeeSalesSource = jest.fn();
+const mockRecordDocumentObservation = jest.fn();
+jest.mock("../src/modules/seamless/services/shopeeDocumentObservationService", () => ({
+  recordDocumentObservation: (...args) => mockRecordDocumentObservation(...args),
+}));
 jest.mock("../src/modules/seamless/services/shopeeSalesIngestService", () => ({
   MAX_PROVENANCE_JSON_BYTES: 32 * 1024,
   MAX_SOURCE_BYTES: 20 * 1024 * 1024,
@@ -46,6 +50,22 @@ function validRequest(value, token = "dedicated-ingest-test-token") {
 beforeEach(() => {
   process.env.SHOPEE_SALES_INGEST_TOKEN = "dedicated-ingest-test-token";
   mockIngestShopeeSalesSource.mockReset();
+  mockRecordDocumentObservation.mockReset();
+});
+
+test("metadata observations require the dedicated bearer and accept JSON without a file", async () => {
+  const path = "/api/agent/shopee/document-observations";
+  expect((await request(app()).post(path).send({})).status).toBe(401);
+  delete process.env.SHOPEE_SALES_INGEST_TOKEN;
+  expect((await request(app()).post(path).send({})).status).toBe(503);
+  expect(mockRecordDocumentObservation).not.toHaveBeenCalled();
+  process.env.SHOPEE_SALES_INGEST_TOKEN = "dedicated-ingest-test-token";
+  mockRecordDocumentObservation.mockResolvedValue({ status: "recorded", resultStatus: "no_file" });
+  const response = await request(app()).post(path)
+    .set("Authorization", "Bearer dedicated-ingest-test-token").send({ resultStatus: "no_file" });
+  expect(response.status).toBe(200);
+  expect(response.headers["cache-control"]).toBe("no-store");
+  expect(mockRecordDocumentObservation).toHaveBeenCalledWith({ body: { resultStatus: "no_file" } });
 });
 
 afterAll(() => {

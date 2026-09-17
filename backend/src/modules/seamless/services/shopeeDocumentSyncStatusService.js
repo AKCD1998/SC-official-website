@@ -14,7 +14,6 @@ const REPORTS = Object.freeze([
     key: "etax-receipt-invoice",
     label: "Shopee e-Tax — ใบเสร็จรับเงิน/ใบกำกับภาษีอิเล็กทรอนิกส์เต็มรูป",
     cadence: "daily",
-    unavailableUntilExported: true,
   }),
   Object.freeze({ key: "business-insights", label: "Business Insights — ภาพรวมยอดขาย", cadence: "daily" }),
   Object.freeze({ key: "orders", label: "คำสั่งซื้อทั้งหมด (Order All)", cadence: "rolling" }),
@@ -81,11 +80,13 @@ function mondayOfWeek(date) {
 }
 
 function latestJobForDate(jobs, date) {
-  return jobs.find((job) => job.dateFrom <= date && job.dateTo >= date) || null;
+  const matches = jobs.filter((job) => job.dateFrom <= date && job.dateTo >= date);
+  // A real downloaded document always takes precedence over an empty historical search.
+  return matches.find((job) => job.resultStatus !== "no_file") || matches[0] || null;
 }
 
 function cellStatus(report, date, currentMonday, evidence, timing) {
-  if (evidence) return "ingested";
+  if (evidence) return evidence.resultStatus === "no_file" ? "no_file" : "ingested";
   if (report.unavailableUntilExported) return "unavailable";
   if (report.cadence === "weekly" && date >= currentMonday) return "not_due";
   if (report.cadence !== "weekly" && date === timing.latestExpectedDate) {
@@ -113,15 +114,18 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
           resultStatus: evidence.resultStatus,
           sourceFilename: evidence.sourceFilename,
           sourceSha256: evidence.sourceSha256,
+          reasonCode: evidence.reasonCode,
+          portalAccount: evidence.portalAccount,
         },
       } : {}),
     };
   });
   const expectedCells = cells.filter((cell) => !["not_due", "unavailable", "waiting", "processing"].includes(cell.status));
   const ingestedCount = expectedCells.filter((cell) => cell.status === "ingested").length;
+  const noFileCount = expectedCells.filter((cell) => cell.status === "no_file").length;
   const missingCount = expectedCells.filter((cell) => cell.status === "missing").length;
   const pendingCount = cells.filter((cell) => ["waiting", "processing"].includes(cell.status)).length;
-  const ingestedJobs = jobs.filter((job) => job.dateFrom <= dates[0] && job.dateTo >= dates.at(-1));
+  const ingestedJobs = jobs.filter((job) => job.resultStatus !== "no_file" && job.dateFrom <= dates[0] && job.dateTo >= dates.at(-1));
   const latestCoveredDate = jobs.length
     ? jobs.map((job) => job.dateTo).sort().at(-1)
     : null;
@@ -139,6 +143,7 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
     cadence: report.cadence,
     expectedCount: expectedCells.length,
     ingestedCount,
+    noFileCount,
     label: report.label,
     latestCoveredDate,
     latestImportedAt,
