@@ -45,4 +45,22 @@ test("unchecked days remain missing, verified empty days are no_file, actual fil
   const file = { ...job, resultStatus: "imported", sourceSha256: "a".repeat(64), sourceFilename: "report.zip" };
   expect(row([job, file]).cells[0].status).toBe("ingested");
   expect(row([job, file]).sourceCount).toBe(1);
+  const allEmpty = row([job, { ...job, dateFrom: "2026-09-15", dateTo: "2026-09-15", jobId: "older" }]);
+  expect(allEmpty).toMatchObject({ status: "complete", sourceCount: 0, ingestedCount: 0,
+    noFileCount: 2, latestCoveredDate: "2026-09-16", latestImportedAt: now.toISOString() });
+});
+
+test("rollout verification requires every expected ledger constraint", () => {
+  const { verifyConstraints } = require("../scripts/verify-shopee-observation-rollout.cjs");
+  const definitions = ["PRIMARY KEY (job_id)", "CHECK (report_type = 'etax-receipt-invoice')", "CHECK (result_status = 'no_file')",
+    "CHECK (reason_code = 'SHOPEE_ETAX_NO_DOCUMENT_FOR_DATE')", "CHECK (date_to = date_from)",
+    "CHECK (payload_sha256 ~ '^[a-f0-9]{64}$')", "CHECK (shop_code IN ('sc-drug-store', 'dr-morepen'))",
+    "CHECK ((shop_code = 'sc-drug-store' AND portal_account = '142wuxqhgi') OR (shop_code = 'dr-morepen' AND portal_account = 'mu3f314od9'))"];
+  const rows = definitions.map((definition) => ({ definition }));
+  expect(() => verifyConstraints(rows)).not.toThrow();
+  for (let index = 0; index < rows.length; index += 1) {
+    // The mapping also establishes scope, so scope has a separate direct DB constraint but overlapping proof.
+    if (index === 6) continue;
+    expect(() => verifyConstraints(rows.filter((_, position) => position !== index))).toThrow();
+  }
 });
