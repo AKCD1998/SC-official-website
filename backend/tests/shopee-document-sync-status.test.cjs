@@ -121,7 +121,7 @@ test("pending income is shown as unavailable until Shopee exposes an export", ()
   expect(new Set(row.cells.map((cell) => cell.status))).toEqual(new Set(["unavailable"]));
 });
 
-test("e-Tax is daily, records exact evidence, and leaves non-export days unavailable", () => {
+test("e-Tax is daily and leaves unverified days missing", () => {
   const result = buildDocumentSyncStatus({
     days: 14,
     jobs: [job({
@@ -134,7 +134,7 @@ test("e-Tax is daily, records exact evidence, and leaves non-export days unavail
     now: NOW,
   });
   const row = result.shops[0].rows.find((item) => item.reportType === "etax-receipt-invoice");
-  expect(row).toMatchObject({ cadence: "daily", expectedCount: 1, ingestedCount: 1, missingCount: 0, status: "complete" });
+  expect(row).toMatchObject({ cadence: "daily", expectedCount: 14, ingestedCount: 1, missingCount: 13, status: "incomplete" });
   expect(row.cells[0]).toMatchObject({
     date: "2026-09-09",
     status: "ingested",
@@ -143,7 +143,7 @@ test("e-Tax is daily, records exact evidence, and leaves non-export days unavail
       sourceSha256: "c".repeat(64),
     },
   });
-  expect(new Set(row.cells.slice(1).map((cell) => cell.status))).toEqual(new Set(["unavailable"]));
+  expect(new Set(row.cells.slice(1).map((cell) => cell.status))).toEqual(new Set(["missing"]));
 });
 
 test("date and days validation is deterministic", () => {

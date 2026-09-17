@@ -54,6 +54,7 @@ function getTables() {
     shopeeConfirmedSources: qualifyTable("shopee_confirmed_sources"),
     shopeeConfirmedDailyFacts: qualifyTable("shopee_confirmed_daily_facts"),
     shopeeSalesIngestJobs: qualifyTable("shopee_sales_ingest_jobs"),
+    shopeeDocumentObservations: qualifyTable("shopee_document_observations"),
     shopeeOfficialDocumentSources: qualifyTable("shopee_official_document_sources"),
     shopeeFinancialStatementFacts: qualifyTable("shopee_financial_statement_facts"),
     shopeeIncomeFacts: qualifyTable("shopee_income_facts"),

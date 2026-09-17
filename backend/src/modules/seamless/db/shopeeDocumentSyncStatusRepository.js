@@ -39,7 +39,20 @@ async function listSuccessfulIngestJobs({ client, startDate, endDate }) {
       AND report_type = ANY($3::text[])
     ORDER BY shop_code, report_type, observed_at DESC, imported_at DESC, job_id DESC
   `, [startDate, endDate, REPORT_TYPES]);
-  return result.rows.map(mapJob);
+  const observations = await client.query(`
+    SELECT job_id, shop_code, report_type, date_from::text AS date_from, date_to::text AS date_to,
+           observed_at, result_status, reason_code, recorded_at, portal_account
+    FROM ${tables.shopeeDocumentObservations}
+    WHERE date_from BETWEEN $1::date AND $2::date
+    ORDER BY observed_at DESC, recorded_at DESC, job_id DESC
+  `, [startDate, endDate]);
+  return [...result.rows.map(mapJob), ...observations.rows.map((row) => ({
+    jobId: row.job_id, shopCode: row.shop_code, reportType: row.report_type,
+    dateFrom: row.date_from, dateTo: row.date_to,
+    observedAt: new Date(row.observed_at).toISOString(),
+    importedAt: new Date(row.recorded_at).toISOString(),
+    resultStatus: row.result_status, reasonCode: row.reason_code, portalAccount: row.portal_account,
+  }))];
 }
 
 module.exports = { REPORT_TYPES, listSuccessfulIngestJobs, mapJob };

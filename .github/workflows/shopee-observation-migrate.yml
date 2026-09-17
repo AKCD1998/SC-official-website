@@ -1,0 +1,34 @@
+name: Apply Shopee document observation migration
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        required: true
+        type: string
+        description: Type APPLY_025_SHOPEE_OBSERVATIONS
+permissions:
+  contents: read
+concurrency:
+  group: seamless-production-migration
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: ${{ inputs.confirmation == 'APPLY_025_SHOPEE_OBSERVATIONS' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SC_OFFICIAL_SUPABASE_DATABASE_URL: ${{ secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL }}
+      SEAMLESS_PRODUCTION_MIGRATION_VERIFY: 025_shopee_document_observations.sql
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: node scripts/verify-shopee-observation-rollout.cjs preflight
+      - run: npm run seamless:migrate
+      - run: node scripts/verify-shopee-observation-rollout.cjs verify

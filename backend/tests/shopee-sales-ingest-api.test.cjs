@@ -2,6 +2,11 @@ const express = require("express");
 const request = require("supertest");
 
 const mockIngestShopeeSalesSource = jest.fn();
+const mockRecordDocumentObservation = jest.fn();
+jest.mock("../db", () => ({}));
+jest.mock("../src/modules/seamless/services/shopeeDocumentObservationService", () => ({
+  recordDocumentObservation: (...args) => mockRecordDocumentObservation(...args),
+}));
 jest.mock("../src/modules/seamless/services/shopeeSalesIngestService", () => ({
   MAX_PROVENANCE_JSON_BYTES: 32 * 1024,
   MAX_SOURCE_BYTES: 20 * 1024 * 1024,
@@ -46,6 +51,36 @@ function validRequest(value, token = "dedicated-ingest-test-token") {
 beforeEach(() => {
   process.env.SHOPEE_SALES_INGEST_TOKEN = "dedicated-ingest-test-token";
   mockIngestShopeeSalesSource.mockReset();
+  mockRecordDocumentObservation.mockReset();
+});
+
+test("metadata observations require the dedicated bearer and accept JSON without a file", async () => {
+  const path = "/api/agent/shopee/document-observations";
+  expect((await request(app()).post(path).send({})).status).toBe(401);
+  delete process.env.SHOPEE_SALES_INGEST_TOKEN;
+  expect((await request(app()).post(path).send({})).status).toBe(503);
+  expect(mockRecordDocumentObservation).not.toHaveBeenCalled();
+  process.env.SHOPEE_SALES_INGEST_TOKEN = "dedicated-ingest-test-token";
+  mockRecordDocumentObservation.mockResolvedValue({ status: "recorded", resultStatus: "no_file" });
+  const response = await request(app()).post(path)
+    .set("Authorization", "Bearer dedicated-ingest-test-token").send({ resultStatus: "no_file" });
+  expect(response.status).toBe(200);
+  expect(response.headers["cache-control"]).toBe("no-store");
+  expect(mockRecordDocumentObservation).toHaveBeenCalledWith({ body: { resultStatus: "no_file" } });
+});
+
+test("metadata endpoint rejects malformed JSON and unsupported JSON fields with 400", async () => {
+  const path = "/api/agent/shopee/document-observations";
+  const malformed = await request(app()).post(path).set("Authorization", "Bearer dedicated-ingest-test-token")
+    .set("Content-Type", "application/json").send('{"shopCode":');
+  expect(malformed.status).toBe(400);
+  expect(mockRecordDocumentObservation).not.toHaveBeenCalled();
+  const { validateObservation } = jest.requireActual("../src/modules/seamless/services/shopeeDocumentObservationService");
+  mockRecordDocumentObservation.mockImplementation(({ body }) => validateObservation(body));
+  const response = await request(app()).post(path).set("Authorization", "Bearer dedicated-ingest-test-token")
+    .send({ shopCode: "dr-morepen", rawResponse: "must-not-be-stored" });
+  expect(response.status).toBe(400);
+  expect(JSON.stringify(response.body)).not.toContain("must-not-be-stored");
 });
 
 afterAll(() => {
