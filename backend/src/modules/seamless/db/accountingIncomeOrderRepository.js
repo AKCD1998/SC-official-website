@@ -144,8 +144,8 @@ async function listIncomeOrders({
                status = 'ทำรายการสำเร็จ' AND direction = 'เงินออก'
              ) AS has_successful_outflow,
              MAX(transaction_at) FILTER (
-               WHERE status = 'ทำรายการสำเร็จ'
-             ) AS latest_transaction_at
+               WHERE status = 'ทำรายการสำเร็จ' AND direction = 'เงินเข้า'
+             ) AS latest_successful_inflow_at
         FROM balance_ranked
        WHERE evidence_rank = 1
        GROUP BY shop_code, order_number
@@ -157,8 +157,8 @@ async function listIncomeOrders({
            page_rows.return_request_number,
            evidence.successful_inflow_count, evidence.successful_inflow_amount,
            evidence.successful_net_amount, evidence.has_successful_outflow,
-           to_char(evidence.latest_transaction_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD')
-             AS seller_balance_transaction_date,
+           to_char(evidence.latest_successful_inflow_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD')
+             AS seller_balance_inflow_date,
            CASE WHEN page_rows.order_number IS NULL THEN FALSE ELSE EXISTS (
              SELECT 1
                FROM ${tables.shopeeOfficialDocumentSources} coverage_source
@@ -201,8 +201,8 @@ async function listIncomeOrders({
           successfulInflowAmount: row.successful_inflow_amount || 0,
           successfulInflowCount,
         }),
-        sellerBalanceTransactionDate: hasSuccessfulEvidence
-          ? row.seller_balance_transaction_date
+        sellerBalanceInflowDate: successfulInflowCount > 0
+          ? row.seller_balance_inflow_date
           : null,
         transferDate: row.transferred_date,
       };

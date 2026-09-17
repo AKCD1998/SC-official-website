@@ -45,7 +45,7 @@ beforeEach(() => {
       orderNumber: "260901TEST001",
       sellerBalanceNetAmount: 125.5,
       sellerBalanceStatus: "credited",
-      sellerBalanceTransactionDate: "2026-09-01",
+      sellerBalanceInflowDate: "2026-09-01",
       transferDate: "2026-09-01",
     }],
     totalCount: 1,
@@ -143,7 +143,7 @@ test("lists Income orders through the named authenticated route with shared filt
     orders: [{
       sellerBalanceNetAmount: 125.5,
       sellerBalanceStatus: "credited",
-      sellerBalanceTransactionDate: "2026-09-01",
+      sellerBalanceInflowDate: "2026-09-01",
     }],
     page: 2,
     pageSize: 10,

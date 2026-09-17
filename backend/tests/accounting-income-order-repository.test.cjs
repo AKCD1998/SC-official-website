@@ -72,7 +72,7 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
         ordered_date: "2026-08-31",
         payout_amount: "125.50",
         seller_balance_covered: true,
-        seller_balance_transaction_date: "2026-09-01",
+        seller_balance_inflow_date: "2026-09-01",
         successful_inflow_amount: "125.50",
         successful_inflow_count: 1,
         successful_net_amount: "125.50",
@@ -97,7 +97,7 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
       orderNumber: "260901TEST001",
       sellerBalanceNetAmount: 125.5,
       sellerBalanceStatus: "credited",
-      sellerBalanceTransactionDate: "2026-09-01",
+      sellerBalanceInflowDate: "2026-09-01",
       transferDate: "2026-09-01",
     }],
     totalCount: 31,
@@ -109,6 +109,7 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
   expect(sql).toMatch(/PARTITION BY balance\.shop_code, balance\.order_number,[\s\S]*balance\.balance_after/iu);
   expect(sql).toMatch(/balance\.transaction_type = 'รายรับจากคำสั่งซื้อ'/u);
   expect(sql).toMatch(/status = 'ทำรายการสำเร็จ' AND direction = 'เงินออก'/u);
+  expect(sql).toMatch(/MAX\(transaction_at\) FILTER \([\s\S]*status = 'ทำรายการสำเร็จ' AND direction = 'เงินเข้า'[\s\S]*latest_successful_inflow_at/iu);
   expect(sql).toMatch(/coverage_source\.report_type = 'seller-balance'/u);
   expect(sql).toMatch(/page_rows\.transferred_at AT TIME ZONE 'Asia\/Bangkok'/u);
   expect(sql).toMatch(/AT TIME ZONE 'Asia\/Bangkok'/iu);
@@ -163,7 +164,7 @@ test.each([
   expect(result.orders[0]).toMatchObject({
     sellerBalanceNetAmount: null,
     sellerBalanceStatus,
-    sellerBalanceTransactionDate: null,
+    sellerBalanceInflowDate: null,
   });
 });
 
@@ -176,7 +177,7 @@ test("Income rows expose reversal precedence and only privacy-safe Seller Balanc
         order_number: "260901TEST002",
         payout_amount: "125.50",
         seller_balance_covered: true,
-        seller_balance_transaction_date: "2026-09-02",
+        seller_balance_inflow_date: "2026-09-01",
         successful_inflow_amount: "125.50",
         successful_inflow_count: 1,
         successful_net_amount: "0.00",
@@ -200,7 +201,7 @@ test("Income rows expose reversal precedence and only privacy-safe Seller Balanc
     orderNumber: "260901TEST002",
     sellerBalanceNetAmount: 0,
     sellerBalanceStatus: "outflow_or_reversed",
-    sellerBalanceTransactionDate: "2026-09-02",
+    sellerBalanceInflowDate: "2026-09-01",
     transferDate: "2026-09-01",
   }]);
   expect(result.orders[0]).not.toHaveProperty("shopCode");
