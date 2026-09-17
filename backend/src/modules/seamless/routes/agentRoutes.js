@@ -18,8 +18,9 @@ const {
 const router = express.Router();
 const shopeeUpload = multer({
   storage: multer.memoryStorage(),
-  // Assembled return bundles add three bounded provenance fields. Busboy also
-  // counts the closing boundary, hence ten fields + one archive + one boundary.
+  // Assembled return bundles and e-Tax each use at most ten bounded fields.
+  // Busboy also counts the closing boundary, hence ten fields + one file + one
+  // boundary.
   limits: {
     fileSize: MAX_SOURCE_BYTES,
     fieldSize: MAX_PROVENANCE_JSON_BYTES,

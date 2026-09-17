@@ -14,6 +14,7 @@ const {
   readSellerBalanceSourceBuffer,
 } = require("./shopeeOfficialDocumentService");
 const { readReturnSourceBuffer } = require("./shopeeReturnSourceService");
+const { readEtaxReceiptInvoiceSourceBuffer } = require("./shopeeEtaxReceiptInvoiceService");
 const { readSalesSourceBuffer } = require("./shopeeSalesSourceService");
 const { requireShopeeShopCode } = require("./shopeeShops");
 
@@ -35,6 +36,7 @@ const REPORT_TYPES = new Set([
   "income-transferred",
   "income-pending",
   "return-refund-cancel",
+  "etax-receipt-invoice",
 ]);
 const XLSX_REPORT_TYPES = new Set([
   "business-insights",
@@ -47,6 +49,10 @@ const BASE_MANIFEST_FIELDS = Object.freeze([
   "shopCode", "reportType", "dateFrom", "dateTo", "observedAt", "sha256", "jobId",
 ]);
 const DIRECT_MANIFEST_FIELDS = new Set([...BASE_MANIFEST_FIELDS, "originalFilename"]);
+const ETAX_MANIFEST_FIELDS = new Set([
+  ...DIRECT_MANIFEST_FIELDS,
+  "portalAccount", "sourceValidation",
+]);
 const ASSEMBLED_MANIFEST_FIELDS = new Set([
   ...BASE_MANIFEST_FIELDS,
   "assembledFromOfficialComponents", "archiveFilename", "sourceOriginalFiles",
@@ -193,11 +199,17 @@ function parseManifest(body) {
   const dateTo = isoDate(stringField(body, "dateTo", 10), "dateTo");
   const dayCount = Math.floor((Date.parse(`${dateTo}T00:00:00Z`) - Date.parse(`${dateFrom}T00:00:00Z`)) / 86400000) + 1;
   if (dayCount < 1 || dayCount > 31) throw badRequest("Source date range must contain 1 to 31 inclusive days.");
+  if (reportType === "etax-receipt-invoice" && dayCount !== 1) {
+    throw badRequest("Shopee e-Tax receipt/invoice source must cover exactly one calendar day.");
+  }
   const assembled = body?.assembledFromOfficialComponents === "true";
   if (body?.assembledFromOfficialComponents !== undefined && !assembled) {
     throw badRequest("assembledFromOfficialComponents must be exactly true when supplied.");
   }
-  assertExactFields(body, assembled ? ASSEMBLED_MANIFEST_FIELDS : DIRECT_MANIFEST_FIELDS,
+  const allowedFields = assembled
+    ? ASSEMBLED_MANIFEST_FIELDS
+    : reportType === "etax-receipt-invoice" ? ETAX_MANIFEST_FIELDS : DIRECT_MANIFEST_FIELDS;
+  assertExactFields(body, allowedFields,
     assembled ? "Assembled" : "Direct official");
   if (assembled && reportType !== "return-refund-cancel") {
     throw badRequest("Assembled provenance is supported only for return-refund-cancel.");
@@ -221,10 +233,27 @@ function parseManifest(body) {
   }
   const requiredExtension = reportType === "financial-statement"
     ? ".pdf"
-    : reportType === "return-refund-cancel" ? ".zip" : ".xlsx";
+    : ["return-refund-cancel", "etax-receipt-invoice"].includes(reportType) ? ".zip" : ".xlsx";
   if (!assembled && (path.basename(originalFilename) !== originalFilename || /[\\/]/u.test(originalFilename)
     || path.extname(originalFilename).toLowerCase() !== requiredExtension)) {
     throw badRequest(`originalFilename must be a plain ${requiredExtension} filename for ${reportType}.`);
+  }
+  let portalAccount = null;
+  let sourceValidation = null;
+  if (reportType === "etax-receipt-invoice") {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}-\d{10,16}(?: ?\(\d+\))?\.zip$/iu.test(originalFilename)) {
+      throw badRequest("originalFilename is not a recognized Shopee e-Tax archive name.");
+    }
+    portalAccount = stringField(body, "portalAccount", 40);
+    const rawValidation = stringField(body, "sourceValidation", 5_000);
+    try {
+      sourceValidation = JSON.parse(rawValidation);
+    } catch {
+      throw badRequest("sourceValidation must be a JSON object for Shopee e-Tax sources.");
+    }
+    if (!sourceValidation || typeof sourceValidation !== "object" || Array.isArray(sourceValidation)) {
+      throw badRequest("sourceValidation must be a JSON object for Shopee e-Tax sources.");
+    }
   }
   const observedAt = stringField(body, "observedAt", 40);
   if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:\d{2})$/u.test(observedAt)
@@ -244,7 +273,7 @@ function parseManifest(body) {
   return {
     shopCode, reportType, dateFrom, dateTo, dayCount, originalFilename, archiveFilename,
     sourceFilename, sourceOriginalFiles, assembledFromOfficialComponents: assembled,
-    assembledProvenance, observedAt, sha256, jobId,
+    assembledProvenance, observedAt, sha256, jobId, portalAccount, sourceValidation,
   };
 }
 
@@ -263,7 +292,8 @@ function validateUpload(file, manifest) {
   const mime = String(file.mimetype || "").toLowerCase();
   const acceptedMimes = manifest.reportType === "financial-statement"
     ? PDF_MIME_TYPES
-    : manifest.reportType === "return-refund-cancel" ? ZIP_MIME_TYPES : XLSX_MIME_TYPES;
+    : ["return-refund-cancel", "etax-receipt-invoice"].includes(manifest.reportType)
+      ? ZIP_MIME_TYPES : XLSX_MIME_TYPES;
   if (!acceptedMimes.has(mime)) throw badRequest("Shopee source MIME type is not accepted for this report.");
   const expectedFilename = manifest.sourceFilename || manifest.originalFilename;
   if (!multipartFilenameMatches(file.originalname, expectedFilename)) {
@@ -326,6 +356,7 @@ async function ingestShopeeSalesSource({ body, file }) {
       "income-transferred": readIncomeSourceBuffer,
       "income-pending": readIncomeSourceBuffer,
       "return-refund-cancel": readReturnSourceBuffer,
+      "etax-receipt-invoice": readEtaxReceiptInvoiceSourceBuffer,
     };
     const reader = readers[manifest.reportType];
     source = await reader(file.buffer, {
@@ -335,6 +366,10 @@ async function ingestShopeeSalesSource({ body, file }) {
       sourceFilename: manifest.sourceFilename,
       sourceSha256: manifest.sha256,
       assembledProvenance: manifest.assembledProvenance,
+      startDate: manifest.dateFrom,
+      endDate: manifest.dateTo,
+      portalAccount: manifest.portalAccount,
+      sourceValidation: manifest.sourceValidation,
     });
   } catch (error) {
     throw sourceValidationError(error);
@@ -345,7 +380,7 @@ async function ingestShopeeSalesSource({ body, file }) {
 
   const coverage = manifest.reportType === "business-insights"
     ? { coveredDays: source.facts.length, expectedDays: manifest.dayCount }
-    : ["financial-statement", "seller-balance", "income-transferred", "income-pending", "return-refund-cancel"]
+    : ["financial-statement", "seller-balance", "income-transferred", "income-pending", "return-refund-cancel", "etax-receipt-invoice"]
       .includes(manifest.reportType)
       ? { coveredDays: manifest.dayCount, expectedDays: manifest.dayCount }
       : null;

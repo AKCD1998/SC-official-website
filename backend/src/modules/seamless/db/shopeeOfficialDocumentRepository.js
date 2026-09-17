@@ -191,6 +191,7 @@ async function insertFacts(client, tables, source) {
   if (["income-transferred", "income-pending"].includes(source.reportType)) return insertIncome(client, tables, source);
   if (source.reportType === "seller-balance") return insertSellerBalance(client, tables, source);
   if (source.reportType === "return-refund-cancel") return insertReturns(client, tables, source);
+  if (source.reportType === "etax-receipt-invoice" && source.facts.length === 0) return undefined;
   throw new Error(`Unsupported official Shopee document type: ${source.reportType}`);
 }
 
