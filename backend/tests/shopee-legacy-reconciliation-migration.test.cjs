@@ -49,13 +49,14 @@ test("production migration workflow is manual, exact-confirmation gated, and rea
   ), "utf8");
   const verifier = fs.readFileSync(path.join(
     __dirname,
-    "../scripts/verify-seamless-production-migration.cjs",
+    "../scripts/verify-seamless-production-migration-023.cjs",
   ), "utf8");
 
   expect(workflow).toContain("workflow_dispatch:");
   expect(workflow).not.toMatch(/\b(push|schedule):/u);
-  expect(workflow).toContain("APPLY_014_SHOPEE_FINANCIAL_VISIBILITY");
+  expect(workflow).toContain("APPLY_023_SHOPEE_INCOME_TABLE_INDEXES");
   expect(workflow).toContain("secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL");
-  expect(verifier).toContain("014_shopee_financial_visibility_settings.sql");
+  expect(workflow).toContain("preflight");
+  expect(verifier).toContain("023_shopee_income_table_indexes.sql");
   expect(verifier).not.toMatch(/\b(INSERT|UPDATE|DELETE|ALTER|DROP|CREATE)\b/iu);
 });
