@@ -200,6 +200,42 @@ async function returnCarryOverSource() {
   };
 }
 
+function etaxSource() {
+  const pdf = Buffer.from(`%PDF-1.7\n${" ".repeat(180)}\n%%EOF\n`, "latin1");
+  const buffer = Buffer.from(zipSync({
+    "SPX Express-RCT-NRSPXSPB00-00000-260818-0006502.pdf": new Uint8Array(pdf),
+  }, { level: 0 }));
+  const sha256 = crypto.createHash("sha256").update(buffer).digest("hex");
+  const sourceValidation = {
+    portalAccount: "142wuxqhgi",
+    selectedDate: "2026-08-18",
+    archiveEntryCount: 1,
+    allEntriesArePdf: true,
+    allEntryDatesMatch: true,
+  };
+  const originalFilename = "8de1a4c0-64f5-40c4-8884-5665f93d4b09-1789632160066.zip";
+  return {
+    body: {
+      shopCode: "sc-drug-store",
+      reportType: "etax-receipt-invoice",
+      dateFrom: "2026-08-18",
+      dateTo: "2026-08-18",
+      originalFilename,
+      portalAccount: "142wuxqhgi",
+      sourceValidation: JSON.stringify(sourceValidation),
+      observedAt: "2026-09-17T08:02:42.000Z",
+      sha256,
+      jobId: "20260917090000-etax-receipt-invoice-12345678",
+    },
+    file: {
+      buffer,
+      size: buffer.length,
+      originalname: originalFilename,
+      mimetype: "application/zip",
+    },
+  };
+}
+
 async function xlsxWithHeaders(headers) {
   const workbook = new ExcelJS.Workbook();
   workbook.addWorksheet("orders").addRow(Object.values(headers));
@@ -506,6 +542,26 @@ test("assembled archive rejects extra, missing, hash and byte-length member evid
     })).rejects.toMatchObject({ statusCode: 422, code: "SHOPEE_SOURCE_REJECTED" });
   }
   expect(mockClient.query).not.toHaveBeenCalled();
+});
+
+test("e-Tax ZIP imports only daily aggregate provenance and no PDF contents", async () => {
+  const imported = await ingestShopeeSalesSource(etaxSource());
+  expect(imported).toMatchObject({
+    status: "imported",
+    reportType: "etax-receipt-invoice",
+    coverage: { coveredDays: 1, expectedDays: 1 },
+    reconciliationStatus: "document_validated",
+  });
+  const sourceInsert = mockQueries.find(({ sql }) => /INSERT INTO .*shopee_official_document_sources/iu.test(sql));
+  expect(sourceInsert).toBeTruthy();
+  const control = JSON.parse(sourceInsert.params[8]);
+  expect(control).toMatchObject({
+    documentCount: 1,
+    portalAccount: "142wuxqhgi",
+    selectedDate: "2026-08-18",
+    rawArchiveRetention: "hq-agent-only",
+  });
+  expect(mockQueries.some(({ sql }) => /INSERT INTO .*shopee_(?:income|return|seller_balance|financial_statement)_facts/iu.test(sql))).toBe(false);
 });
 
 test("hash mismatch and parser rejection stop before any database connection", async () => {

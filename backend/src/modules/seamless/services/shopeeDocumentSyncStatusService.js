@@ -10,6 +10,12 @@ const DAILY_SCHEDULES = Object.freeze({
 const DAILY_SLA_MINUTES = 11 * 60;
 
 const REPORTS = Object.freeze([
+  Object.freeze({
+    key: "etax-receipt-invoice",
+    label: "Shopee e-Tax — ใบเสร็จรับเงิน/ใบกำกับภาษีอิเล็กทรอนิกส์เต็มรูป",
+    cadence: "daily",
+    unavailableUntilExported: true,
+  }),
   Object.freeze({ key: "business-insights", label: "Business Insights — ภาพรวมยอดขาย", cadence: "daily" }),
   Object.freeze({ key: "orders", label: "คำสั่งซื้อทั้งหมด (Order All)", cadence: "rolling" }),
   Object.freeze({

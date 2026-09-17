@@ -121,6 +121,31 @@ test("pending income is shown as unavailable until Shopee exposes an export", ()
   expect(new Set(row.cells.map((cell) => cell.status))).toEqual(new Set(["unavailable"]));
 });
 
+test("e-Tax is daily, records exact evidence, and leaves non-export days unavailable", () => {
+  const result = buildDocumentSyncStatus({
+    days: 14,
+    jobs: [job({
+      dateFrom: "2026-09-09",
+      dateTo: "2026-09-09",
+      reportType: "etax-receipt-invoice",
+      sourceFilename: "8de1a4c0-64f5-40c4-8884-5665f93d4b09-1789632160066.zip",
+      sourceSha256: "c".repeat(64),
+    })],
+    now: NOW,
+  });
+  const row = result.shops[0].rows.find((item) => item.reportType === "etax-receipt-invoice");
+  expect(row).toMatchObject({ cadence: "daily", expectedCount: 1, ingestedCount: 1, missingCount: 0, status: "complete" });
+  expect(row.cells[0]).toMatchObject({
+    date: "2026-09-09",
+    status: "ingested",
+    evidence: {
+      sourceFilename: "8de1a4c0-64f5-40c4-8884-5665f93d4b09-1789632160066.zip",
+      sourceSha256: "c".repeat(64),
+    },
+  });
+  expect(new Set(row.cells.slice(1).map((cell) => cell.status))).toEqual(new Set(["unavailable"]));
+});
+
 test("date and days validation is deterministic", () => {
   expect(mondayOfWeek("2026-09-10")).toBe("2026-09-07");
   expect(parseDays(undefined)).toBe(14);

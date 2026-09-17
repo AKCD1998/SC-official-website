@@ -8,6 +8,7 @@ const REPORT_TYPES = Object.freeze([
   "seller-balance",
   "income-transferred",
   "income-pending",
+  "etax-receipt-invoice",
 ]);
 
 function mapJob(row) {
