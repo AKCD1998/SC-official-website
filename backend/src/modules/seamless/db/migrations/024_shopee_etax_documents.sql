@@ -30,3 +30,4 @@ COMMENT ON TABLE shopee_official_document_sources IS
   'Immutable audit for official Shopee Finance, return/refund/cancel, and e-Tax exports. Raw e-Tax archives and customer PII remain on the isolated HQ agent; this table stores only validated provenance and aggregate controls.';
 
 COMMIT;
+
