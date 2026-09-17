@@ -1,6 +1,68 @@
 const {
+  SELLER_BALANCE_STATUSES,
+  deriveSellerBalanceStatus,
   listIncomeOrders,
 } = require("../src/modules/seamless/db/accountingIncomeOrderRepository");
+
+test.each([
+  {
+    expected: SELLER_BALANCE_STATUSES.OUTFLOW_OR_REVERSED,
+    input: {
+      covered: true,
+      hasSuccessfulOutflow: true,
+      incomeAmount: "125.50",
+      successfulInflowAmount: "125.50",
+      successfulInflowCount: 1,
+    },
+    label: "successful outflow takes precedence over an exact inflow",
+  },
+  {
+    expected: SELLER_BALANCE_STATUSES.CREDITED,
+    input: {
+      covered: true,
+      hasSuccessfulOutflow: false,
+      incomeAmount: "125.50",
+      successfulInflowAmount: "125.50",
+      successfulInflowCount: 1,
+    },
+    label: "exact successful inflow is credited",
+  },
+  {
+    expected: SELLER_BALANCE_STATUSES.AMOUNT_MISMATCH,
+    input: {
+      covered: true,
+      hasSuccessfulOutflow: false,
+      incomeAmount: "125.50",
+      successfulInflowAmount: "120.00",
+      successfulInflowCount: 1,
+    },
+    label: "successful inflow with a different amount needs review",
+  },
+  {
+    expected: SELLER_BALANCE_STATUSES.NOT_FOUND_IN_COVERED_REPORT,
+    input: {
+      covered: true,
+      hasSuccessfulOutflow: false,
+      incomeAmount: "125.50",
+      successfulInflowAmount: 0,
+      successfulInflowCount: 0,
+    },
+    label: "a covering report with no evidence is distinguished from missing coverage",
+  },
+  {
+    expected: SELLER_BALANCE_STATUSES.NOT_COVERED,
+    input: {
+      covered: false,
+      hasSuccessfulOutflow: false,
+      incomeAmount: "125.50",
+      successfulInflowAmount: 0,
+      successfulInflowCount: 0,
+    },
+    label: "missing report coverage is not called unpaid",
+  },
+])("derives Seller Balance status: $label", ({ expected, input }) => {
+  expect(deriveSellerBalanceStatus(input)).toBe(expected);
+});
 
 test("Income order query is parameterized, Bangkok-date filtered, deduplicated, and paginated", async () => {
   const db = {
@@ -9,6 +71,11 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
         order_number: "260901TEST001",
         ordered_date: "2026-08-31",
         payout_amount: "125.50",
+        seller_balance_covered: true,
+        seller_balance_transaction_date: "2026-09-01",
+        successful_inflow_amount: "125.50",
+        successful_inflow_count: 1,
+        successful_net_amount: "125.50",
         total_count: 31,
         transferred_date: "2026-09-01",
       }],
@@ -28,6 +95,9 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
       amount: 125.5,
       orderDate: "2026-08-31",
       orderNumber: "260901TEST001",
+      sellerBalanceNetAmount: 125.5,
+      sellerBalanceStatus: "credited",
+      sellerBalanceTransactionDate: "2026-09-01",
       transferDate: "2026-09-01",
     }],
     totalCount: 31,
@@ -35,6 +105,12 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
   const [sql, params] = db.query.mock.calls[0];
   expect(sql).toMatch(/PARTITION BY fact\.shop_code, fact\.order_number/iu);
   expect(sql).toMatch(/fact\.transferred_at, fact\.payout_amount/iu);
+  expect(sql).toMatch(/FROM page_order_keys page_key[\s\S]*JOIN .*shopee_seller_balance_facts/iu);
+  expect(sql).toMatch(/PARTITION BY balance\.shop_code, balance\.order_number,[\s\S]*balance\.balance_after/iu);
+  expect(sql).toMatch(/balance\.transaction_type = 'รายรับจากคำสั่งซื้อ'/u);
+  expect(sql).toMatch(/status = 'ทำรายการสำเร็จ' AND direction = 'เงินออก'/u);
+  expect(sql).toMatch(/coverage_source\.report_type = 'seller-balance'/u);
+  expect(sql).toMatch(/page_rows\.transferred_at AT TIME ZONE 'Asia\/Bangkok'/u);
   expect(sql).toMatch(/AT TIME ZONE 'Asia\/Bangkok'/iu);
   expect(sql).toMatch(/LIMIT \$4 OFFSET \$5/iu);
   expect(sql).not.toContain("260901TEST");
@@ -53,4 +129,80 @@ test("Income pagination returns the total even when the requested page has no ro
     page: 9,
     pageSize: 20,
   }, db)).resolves.toEqual({ orders: [], totalCount: 4 });
+});
+
+test.each([
+  [false, "not_covered"],
+  [true, "not_found_in_covered_report"],
+])("Income row with no successful Balance evidence keeps amount/date null (covered=%s)", async (
+  sellerBalanceCovered,
+  sellerBalanceStatus,
+) => {
+  const db = {
+    query: jest.fn(async () => ({
+      rows: [{
+        ordered_date: "2026-08-31",
+        order_number: "260901TEST003",
+        payout_amount: "125.50",
+        seller_balance_covered: sellerBalanceCovered,
+        total_count: 1,
+        transferred_date: "2026-09-01",
+      }],
+    })),
+  };
+
+  const result = await listIncomeOrders({
+    dateColumn: "transferredAt",
+    dateFrom: null,
+    dateTo: null,
+    orderNumber: "",
+    page: 1,
+    pageSize: 10,
+  }, db);
+
+  expect(result.orders[0]).toMatchObject({
+    sellerBalanceNetAmount: null,
+    sellerBalanceStatus,
+    sellerBalanceTransactionDate: null,
+  });
+});
+
+test("Income rows expose reversal precedence and only privacy-safe Seller Balance evidence", async () => {
+  const db = {
+    query: jest.fn(async () => ({
+      rows: [{
+        has_successful_outflow: true,
+        ordered_date: "2026-08-31",
+        order_number: "260901TEST002",
+        payout_amount: "125.50",
+        seller_balance_covered: true,
+        seller_balance_transaction_date: "2026-09-02",
+        successful_inflow_amount: "125.50",
+        successful_inflow_count: 1,
+        successful_net_amount: "0.00",
+        total_count: 1,
+        transferred_date: "2026-09-01",
+      }],
+    })),
+  };
+  const result = await listIncomeOrders({
+    dateColumn: "transferredAt",
+    dateFrom: null,
+    dateTo: null,
+    orderNumber: "",
+    page: 1,
+    pageSize: 10,
+  }, db);
+
+  expect(result.orders).toEqual([{
+    amount: 125.5,
+    orderDate: "2026-08-31",
+    orderNumber: "260901TEST002",
+    sellerBalanceNetAmount: 0,
+    sellerBalanceStatus: "outflow_or_reversed",
+    sellerBalanceTransactionDate: "2026-09-02",
+    transferDate: "2026-09-01",
+  }]);
+  expect(result.orders[0]).not.toHaveProperty("shopCode");
+  expect(result.orders[0]).not.toHaveProperty("buyerUsername");
 });

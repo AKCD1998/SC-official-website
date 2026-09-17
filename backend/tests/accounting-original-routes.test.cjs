@@ -43,6 +43,9 @@ beforeEach(() => {
       amount: 125.5,
       orderDate: "2026-08-31",
       orderNumber: "260901TEST001",
+      sellerBalanceNetAmount: 125.5,
+      sellerBalanceStatus: "credited",
+      sellerBalanceTransactionDate: "2026-09-01",
       transferDate: "2026-09-01",
     }],
     totalCount: 1,
@@ -137,11 +140,18 @@ test("lists Income orders through the named authenticated route with shared filt
   expect(result.status).toBe(200);
   expect(result.headers["cache-control"]).toBe("private, no-store");
   expect(result.body).toMatchObject({
+    orders: [{
+      sellerBalanceNetAmount: 125.5,
+      sellerBalanceStatus: "credited",
+      sellerBalanceTransactionDate: "2026-09-01",
+    }],
     page: 2,
     pageSize: 10,
     timezone: "Asia/Bangkok",
     totalCount: 1,
   });
+  expect(result.body.orders[0]).not.toHaveProperty("shopCode");
+  expect(result.body.orders[0]).not.toHaveProperty("buyerUsername");
   expect(incomeOrderRepository.listIncomeOrders).toHaveBeenCalledWith({
     dateColumn: "orderedAt",
     dateFrom: "2026-08-30",

@@ -7,6 +7,37 @@ function numberValue(value, label) {
   return parsed;
 }
 
+const SELLER_BALANCE_STATUSES = Object.freeze({
+  AMOUNT_MISMATCH: "amount_mismatch",
+  CREDITED: "credited",
+  NOT_COVERED: "not_covered",
+  NOT_FOUND_IN_COVERED_REPORT: "not_found_in_covered_report",
+  OUTFLOW_OR_REVERSED: "outflow_or_reversed",
+});
+
+function moneyCents(value, label) {
+  return Math.round(numberValue(value, label) * 100);
+}
+
+function deriveSellerBalanceStatus({
+  covered,
+  hasSuccessfulOutflow,
+  incomeAmount,
+  successfulInflowAmount,
+  successfulInflowCount,
+}) {
+  if (hasSuccessfulOutflow) return SELLER_BALANCE_STATUSES.OUTFLOW_OR_REVERSED;
+  if (Number(successfulInflowCount) > 0) {
+    return moneyCents(successfulInflowAmount, "Seller Balance inflow amount")
+      === moneyCents(incomeAmount, "Income payout amount")
+      ? SELLER_BALANCE_STATUSES.CREDITED
+      : SELLER_BALANCE_STATUSES.AMOUNT_MISMATCH;
+  }
+  return covered
+    ? SELLER_BALANCE_STATUSES.NOT_FOUND_IN_COVERED_REPORT
+    : SELLER_BALANCE_STATUSES.NOT_COVERED;
+}
+
 async function listIncomeOrders({
   dateColumn,
   dateFrom,
@@ -41,9 +72,12 @@ async function listIncomeOrders({
   const limitPosition = params.length - 1;
   const offsetPosition = params.length;
 
-  // Exact source replays and overlapping export snapshots can contain the same Income fact.
-  // Keep the latest observation of that identical fact, while preserving genuinely distinct
-  // transfers for the same order when return reference, dates, or amount differ.
+  // Exact source replays and overlapping export snapshots can contain the same Income or
+  // Seller Balance fact. Keep the latest observation of each identical fact. Balance-after is
+  // part of the Balance identity so separate real transactions with the same order, timestamp,
+  // direction, and amount are not collapsed when they move the running balance independently.
+  // Seller Balance joins start from page_order_keys, limiting the indexed order lookup to the
+  // current page rather than reconciling the entire Income result set for every request.
   const result = await db.query(`
     WITH ranked AS (
       SELECT fact.shop_code, fact.order_number, fact.return_request_number,
@@ -64,19 +98,83 @@ async function listIncomeOrders({
       SELECT *, ${dateColumn === "transferredAt" ? "transferred_at" : "ordered_at"} AS sort_at
         FROM ranked
        WHERE source_rank = 1
-    ), page_rows AS (
-      SELECT order_number,
-             to_char(ordered_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD') AS ordered_date,
-             to_char(transferred_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD') AS transferred_date,
-             payout_amount, sort_at, shop_code, return_request_number
+    ), page_rows AS MATERIALIZED (
+      SELECT order_number, ordered_at, transferred_at, payout_amount, sort_at,
+             shop_code, return_request_number
         FROM filtered
        ORDER BY sort_at DESC, order_number ASC, shop_code ASC,
                 COALESCE(return_request_number, '') ASC
        LIMIT $${limitPosition} OFFSET $${offsetPosition}
+    ), page_order_keys AS (
+      SELECT DISTINCT shop_code, order_number
+        FROM page_rows
+    ), balance_ranked AS (
+      SELECT balance.shop_code, balance.order_number, balance.transaction_at,
+             balance.direction, balance.amount, balance.status, balance.balance_after,
+             ROW_NUMBER() OVER (
+               PARTITION BY balance.shop_code, balance.order_number,
+                 balance.transaction_at, balance.transaction_type, balance.direction,
+                 balance.amount, balance.status, balance.balance_after
+               ORDER BY balance_source.observed_at DESC,
+                        balance_source.imported_at DESC,
+                        balance_source.source_sha256 DESC,
+                        balance.source_row DESC
+             ) AS evidence_rank
+        FROM page_order_keys page_key
+        JOIN ${tables.shopeeSellerBalanceFacts} balance
+          ON balance.shop_code = page_key.shop_code
+         AND balance.order_number = page_key.order_number
+        JOIN ${tables.shopeeOfficialDocumentSources} balance_source
+          ON balance_source.shop_code = balance.shop_code
+         AND balance_source.source_sha256 = balance.source_sha256
+       WHERE balance_source.report_type = 'seller-balance'
+         AND balance.transaction_type = 'รายรับจากคำสั่งซื้อ'
+    ), balance_evidence AS (
+      SELECT shop_code, order_number,
+             COUNT(*) FILTER (
+               WHERE status = 'ทำรายการสำเร็จ' AND direction = 'เงินเข้า'
+             )::integer AS successful_inflow_count,
+             COALESCE(SUM(amount) FILTER (
+               WHERE status = 'ทำรายการสำเร็จ' AND direction = 'เงินเข้า'
+             ), 0) AS successful_inflow_amount,
+             COALESCE(SUM(amount) FILTER (
+               WHERE status = 'ทำรายการสำเร็จ'
+             ), 0) AS successful_net_amount,
+             BOOL_OR(
+               status = 'ทำรายการสำเร็จ' AND direction = 'เงินออก'
+             ) AS has_successful_outflow,
+             MAX(transaction_at) FILTER (
+               WHERE status = 'ทำรายการสำเร็จ'
+             ) AS latest_transaction_at
+        FROM balance_ranked
+       WHERE evidence_rank = 1
+       GROUP BY shop_code, order_number
     )
-    SELECT totals.total_count, page_rows.*
+    SELECT totals.total_count, page_rows.order_number,
+           to_char(page_rows.ordered_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD') AS ordered_date,
+           to_char(page_rows.transferred_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD') AS transferred_date,
+           page_rows.payout_amount, page_rows.sort_at, page_rows.shop_code,
+           page_rows.return_request_number,
+           evidence.successful_inflow_count, evidence.successful_inflow_amount,
+           evidence.successful_net_amount, evidence.has_successful_outflow,
+           to_char(evidence.latest_transaction_at AT TIME ZONE 'Asia/Bangkok', 'YYYY-MM-DD')
+             AS seller_balance_transaction_date,
+           CASE WHEN page_rows.order_number IS NULL THEN FALSE ELSE EXISTS (
+             SELECT 1
+               FROM ${tables.shopeeOfficialDocumentSources} coverage_source
+              WHERE coverage_source.shop_code = page_rows.shop_code
+                AND coverage_source.report_type = 'seller-balance'
+                AND page_rows.transferred_at IS NOT NULL
+                AND coverage_source.start_date
+                    <= (page_rows.transferred_at AT TIME ZONE 'Asia/Bangkok')::date
+                AND coverage_source.end_date
+                    >= (page_rows.transferred_at AT TIME ZONE 'Asia/Bangkok')::date
+           ) END AS seller_balance_covered
       FROM (SELECT COUNT(*)::integer AS total_count FROM filtered) totals
       LEFT JOIN page_rows ON TRUE
+      LEFT JOIN balance_evidence evidence
+        ON evidence.shop_code = page_rows.shop_code
+       AND evidence.order_number = page_rows.order_number
      ORDER BY page_rows.sort_at DESC NULLS LAST, page_rows.order_number ASC,
               page_rows.shop_code ASC, COALESCE(page_rows.return_request_number, '') ASC
   `, params);
@@ -84,13 +182,36 @@ async function listIncomeOrders({
   const totalCount = numberValue(result.rows[0]?.total_count || 0, "Income total count");
   const orders = result.rows
     .filter((row) => row.order_number)
-    .map((row) => ({
-      amount: numberValue(row.payout_amount, "Income payout amount"),
-      orderDate: row.ordered_date,
-      orderNumber: row.order_number,
-      transferDate: row.transferred_date,
-    }));
+    .map((row) => {
+      const amount = numberValue(row.payout_amount, "Income payout amount");
+      const successfulInflowCount = Number(row.successful_inflow_count || 0);
+      const hasSuccessfulOutflow = row.has_successful_outflow === true;
+      const hasSuccessfulEvidence = successfulInflowCount > 0 || hasSuccessfulOutflow;
+      return {
+        amount,
+        orderDate: row.ordered_date,
+        orderNumber: row.order_number,
+        sellerBalanceNetAmount: hasSuccessfulEvidence
+          ? numberValue(row.successful_net_amount, "Seller Balance net amount")
+          : null,
+        sellerBalanceStatus: deriveSellerBalanceStatus({
+          covered: row.seller_balance_covered === true,
+          hasSuccessfulOutflow,
+          incomeAmount: amount,
+          successfulInflowAmount: row.successful_inflow_amount || 0,
+          successfulInflowCount,
+        }),
+        sellerBalanceTransactionDate: hasSuccessfulEvidence
+          ? row.seller_balance_transaction_date
+          : null,
+        transferDate: row.transferred_date,
+      };
+    });
   return { orders, totalCount };
 }
 
-module.exports = { listIncomeOrders };
+module.exports = {
+  SELLER_BALANCE_STATUSES,
+  deriveSellerBalanceStatus,
+  listIncomeOrders,
+};
