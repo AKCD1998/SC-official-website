@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Type APPLY_014_SHOPEE_FINANCIAL_VISIBILITY to run the approved migration
+        description: Type APPLY_023_SHOPEE_INCOME_TABLE_INDEXES to run the approved migration
         required: true
         type: string
 
@@ -18,14 +18,14 @@ concurrency:
 jobs:
   migrate:
     name: Migrate and verify production schema
-    if: ${{ inputs.confirmation == 'APPLY_014_SHOPEE_FINANCIAL_VISIBILITY' }}
+    if: ${{ inputs.confirmation == 'APPLY_023_SHOPEE_INCOME_TABLE_INDEXES' }}
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
     env:
       SC_OFFICIAL_SUPABASE_DATABASE_URL: ${{ secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL }}
-      SEAMLESS_PRODUCTION_MIGRATION_VERIFY: 014_shopee_financial_visibility_settings.sql
+      SEAMLESS_PRODUCTION_MIGRATION_VERIFY: 023_shopee_income_table_indexes.sql
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -40,8 +40,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Confirm every prerequisite migration is already applied
+        run: node ./scripts/verify-seamless-production-migration-023.cjs preflight
+
       - name: Apply pending Seamless migrations
         run: npm run seamless:migrate
 
       - name: Verify approved migration read-only
-        run: node ./scripts/verify-seamless-production-migration.cjs
+        run: node ./scripts/verify-seamless-production-migration-023.cjs verify

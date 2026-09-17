@@ -19,6 +19,12 @@ const {
   sendAccountingBatchText,
   buildAccountingBatchMessage,
 } = require("./accountingPrintNotificationService");
+const {
+  readIncomeSourceBuffer,
+} = require("./shopeeOfficialDocumentService");
+const {
+  importOfficialDocumentSources,
+} = require("../db/shopeeOfficialDocumentRepository");
 
 const LANE_LOCK = "accounting-original-print-lane-v1";
 const uuid = (value) => {
@@ -50,6 +56,86 @@ function digestFor(batch, items) {
     }),
   );
 }
+
+async function parseAccountingIncomeSources(
+  files,
+  manifest,
+  {
+    observedAt = new Date().toISOString(),
+    readIncome = readIncomeSourceBuffer,
+  } = {},
+) {
+  const sources = [];
+  for (const document of manifest.items.filter((item) => item.kind === "income")) {
+    const file = files.find(
+      (candidate) => candidate.fieldname === document.shopCode
+        && filenameOf(candidate) === document.filename,
+    );
+    if (!file) throw badRequest(`Missing Income source bytes: ${document.filename}`);
+    try {
+      const source = await readIncome(file.buffer, {
+        observedAt,
+        reportType: "income-transferred",
+        shopCode: document.shopCode,
+        sourceFilename: document.filename,
+        sourceSha256: document.checksumSha256,
+      });
+      if (source.startDate !== document.start || source.endDate !== document.end) {
+        throw new Error("Income period differs from the validated accounting manifest.");
+      }
+      sources.push(source);
+    } catch (error) {
+      throw badRequest(`Income workbook validation failed: ${document.filename}`, {
+        reason: error.message,
+      });
+    }
+  }
+  return sources;
+}
+
+async function importAccountingIncomeSources(
+  client,
+  tables,
+  sources,
+  actor,
+  importer = importOfficialDocumentSources,
+) {
+  if (!sources.length) return { imported: 0, unchanged: 0 };
+
+  // Serialize with the canonical Shopee-document importer before checking hashes. Exact-byte
+  // replays may already have been observed by the download agent at a different time; those
+  // retain their original immutable provenance and facts instead of being relabelled here.
+  for (const shopCode of [...new Set(sources.map((source) => source.shopCode))].sort()) {
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+      `shopee-official-document:${shopCode}`,
+    ]);
+  }
+  const existing = await client.query(
+    `SELECT source_sha256, shop_code, report_type
+       FROM ${tables.shopeeOfficialDocumentSources}
+      WHERE source_sha256 = ANY($1::text[])`,
+    [sources.map((source) => source.sourceSha256)],
+  );
+  const existingByHash = new Map(existing.rows.map((row) => [row.source_sha256, row]));
+  for (const source of sources) {
+    const row = existingByHash.get(source.sourceSha256);
+    if (row && (row.shop_code !== source.shopCode || row.report_type !== source.reportType)) {
+      throw conflict("Existing Shopee source bytes have different immutable ownership or type.");
+    }
+  }
+  const missing = sources.filter((source) => !existingByHash.has(source.sourceSha256));
+  if (!missing.length) return { imported: 0, unchanged: sources.length };
+  const result = await importer(missing, {
+    actor: `accounting-print-bundle:${String(actor || "local-admin").trim() || "local-admin"}`,
+    client,
+    manageTransaction: false,
+  });
+  return {
+    imported: result.imported,
+    unchanged: sources.length - missing.length + result.unchanged,
+  };
+}
+
 function createService({
   db = pool,
   tables = getTables,
@@ -59,6 +145,8 @@ function createService({
   notify = sendAccountingBatchText,
   target = targetConfig,
   lineConfig = readLineConfig,
+  readIncome = readIncomeSourceBuffer,
+  importOfficialSources = importOfficialDocumentSources,
 } = {}) {
   async function transaction(action) {
     const client = await db.connect();
@@ -241,7 +329,17 @@ function createService({
         "ยังไม่ได้ตั้งค่าเครื่องสาขาและเครื่องพิมพ์สำหรับชุดเอกสารบัญชี",
       );
     const manifest = await parseFiles(files);
+    const incomeSources = await parseAccountingIncomeSources(files, manifest, {
+      readIncome,
+    });
     const id = await transaction(async (client, t) => {
+      await importAccountingIncomeSources(
+        client,
+        t,
+        incomeSources,
+        actor,
+        importOfficialSources,
+      );
       const duplicate = (
         await client.query(
           "SELECT id FROM " +
@@ -772,4 +870,11 @@ function createService({
     maintain,
   };
 }
-module.exports = { ...createService(), createService, LANE_LOCK, digestFor };
+module.exports = {
+  ...createService(),
+  createService,
+  digestFor,
+  importAccountingIncomeSources,
+  LANE_LOCK,
+  parseAccountingIncomeSources,
+};

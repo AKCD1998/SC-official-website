@@ -14,7 +14,12 @@ jest.mock(
     updateWork: jest.fn(),
   }),
 );
+jest.mock(
+  "../src/modules/seamless/db/accountingIncomeOrderRepository",
+  () => ({ listIncomeOrders: jest.fn() }),
+);
 const service = require("../src/modules/seamless/services/accountingOriginalPrintService");
+const incomeOrderRepository = require("../src/modules/seamless/db/accountingIncomeOrderRepository");
 const routes = require("../src/modules/seamless/routes/accountingPrintBundleRoutes");
 const agentRoutes = require("../src/modules/seamless/routes/accountingPrintAgentRoutes");
 const {
@@ -33,6 +38,15 @@ beforeEach(() => {
   process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "admin";
   process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-test";
   process.env.SEAMLESS_INTERNAL_API_TOKEN = "agent-test";
+  incomeOrderRepository.listIncomeOrders.mockResolvedValue({
+    orders: [{
+      amount: 125.5,
+      orderDate: "2026-08-31",
+      orderNumber: "260901TEST001",
+      transferDate: "2026-09-01",
+    }],
+    totalCount: 1,
+  });
 });
 afterEach(() => {
   for (const name of [
@@ -106,4 +120,43 @@ test("feature remains unavailable until enabled", async () => {
     (await request(app).get("/batches").auth("admin", "admin-test")).status,
   ).toBe(503);
   expect(service.listBatches).not.toHaveBeenCalled();
+});
+
+test("lists Income orders through the named authenticated route with shared filters", async () => {
+  const result = await request(app)
+    .get("/batches/income-orders")
+    .query({
+      dateColumn: "orderedAt",
+      dateFrom: "2026-08-30",
+      dateTo: "2026-08-31",
+      orderNumber: "260901test",
+      page: 2,
+      pageSize: 10,
+    })
+    .auth("staff", "staff-test");
+  expect(result.status).toBe(200);
+  expect(result.headers["cache-control"]).toBe("private, no-store");
+  expect(result.body).toMatchObject({
+    page: 2,
+    pageSize: 10,
+    timezone: "Asia/Bangkok",
+    totalCount: 1,
+  });
+  expect(incomeOrderRepository.listIncomeOrders).toHaveBeenCalledWith({
+    dateColumn: "orderedAt",
+    dateFrom: "2026-08-30",
+    dateTo: "2026-08-31",
+    orderNumber: "260901TEST",
+    page: 2,
+    pageSize: 10,
+  });
+});
+
+test("rejects invalid Income order ranges before querying the database", async () => {
+  const result = await request(app)
+    .get("/batches/income-orders?dateFrom=2026-09-02&dateTo=2026-09-01")
+    .auth("staff", "staff-test");
+  expect(result.status).toBe(400);
+  expect(result.body.error.message).toContain("dateTo");
+  expect(incomeOrderRepository.listIncomeOrders).not.toHaveBeenCalled();
 });
