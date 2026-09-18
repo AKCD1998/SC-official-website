@@ -2,6 +2,7 @@ const ExcelJS = require("exceljs");
 const {
   EXPORT_PAGE_SIZE,
   buildAccountingIncomeExportFilename,
+  buildAccountingIncomeExportPreview,
   buildAccountingIncomeExportWorkbook,
   collectAllIncomeOrders,
   exportAccountingIncomeOrders,
@@ -22,6 +23,7 @@ function exampleOrders() {
     sellerBalanceInflowDate: "2026-08-02",
     sellerBalanceNetAmount: 125.5,
     sellerBalanceStatus: "credited",
+    shopCode: "sc-drug-store",
     transferDate: "2026-08-01",
   }, {
     amount: 90,
@@ -30,6 +32,7 @@ function exampleOrders() {
     sellerBalanceInflowDate: null,
     sellerBalanceNetAmount: null,
     sellerBalanceStatus: "not_covered",
+    shopCode: "sc-drug-store",
     transferDate: "2026-08-05",
   }];
 }
@@ -87,12 +90,35 @@ test("accounting Income workbook explains transferred-date scope and links origi
   const orders = workbook.getWorksheet("รายการรายรับ");
   expect(orders.getCell("A2").value).toContain("01/08/2026 ถึง 31/08/2026");
   expect(orders.getCell("A4").value).toBe("หมายเลขคำสั่งซื้อ");
-  expect(orders.getCell("C4").value).toBe("วันที่โอนชำระเงินสำเร็จ");
+  expect(orders.getCell("B4").value).toBe("ร้าน");
+  expect(orders.getCell("D4").value).toBe("วันที่โอนชำระเงินสำเร็จ");
   expect(orders.getCell("A5").value).toBe("260730TEST001");
-  expect(orders.getCell("D5").value).toBe(125.5);
-  expect(orders.getCell("E5").value).toBe("เงินเข้าแล้ว");
-  expect(orders.getCell("G6").value).toBeNull();
-  expect(orders.autoFilter.toString()).toContain("A4:G6");
+  expect(orders.getCell("B5").value).toBe("SC Drug Store");
+  expect(orders.getCell("E5").value).toBe(125.5);
+  expect(orders.getCell("F5").value).toBe("เงินเข้าแล้ว");
+  expect(orders.getCell("H6").value).toBeNull();
+  expect(orders.autoFilter.toString()).toContain("A4:H6");
+});
+
+test("accounting preview uses the same filters, totals, rows, and source evidence as the workbook", () => {
+  const preview = buildAccountingIncomeExportPreview({
+    documents: exampleDocuments(),
+    filters: { ...filters, shopCode: "sc-drug-store" },
+    orders: exampleOrders(),
+    publicOrigin: "https://api.example.test",
+  });
+
+  expect(preview.filters.shopLabel).toBe("SC Drug Store");
+  expect(preview.summary).toEqual({ creditedCount: 1, orderCount: 2, totalIncome: 215.5 });
+  expect(preview.orders[0]).toMatchObject({
+    orderNumber: "260730TEST001",
+    shopCode: "sc-drug-store",
+  });
+  expect(preview.documents[0]).toMatchObject({
+    kindLabel: "รายงานการเงิน",
+    originalUrl: "https://api.example.test/api/app/accounting-print-bundles/batch-1/items/statement-1/original",
+    shopLabel: "SC Drug Store",
+  });
 });
 
 test("collectAllIncomeOrders requests every page without exposing pagination in the export", async () => {
@@ -138,5 +164,10 @@ test("exportAccountingIncomeOrders returns a stable range filename and fetches s
   expect(incomeRepository.listIncomeExportSourceDocuments).toHaveBeenCalledWith({
     dateFrom: "2026-08-01",
     dateTo: "2026-08-31",
+    shopCode: undefined,
   });
+  expect(buildAccountingIncomeExportFilename({
+    ...filters,
+    shopCode: "dr-morepen",
+  })).toBe("shopee-income-accounting-dr-morepen-2026-08-01-to-2026-08-31.xlsx");
 });

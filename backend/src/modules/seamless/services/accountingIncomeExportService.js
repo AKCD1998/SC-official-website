@@ -19,6 +19,10 @@ const KIND_LABELS = Object.freeze({
   statement: "รายงานการเงิน",
 });
 
+function shopLabel(shopCode) {
+  return SHOP_LABELS[shopCode] || "ทุกร้าน";
+}
+
 function toExcelDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/u.test(String(value || ""))) return null;
   const [year, month, day] = String(value).split("-").map(Number);
@@ -102,6 +106,7 @@ function addSourceDocumentSheet(workbook, {
     ["ฐานวันที่", "วันที่โอนชำระเงินสำเร็จ", null, null],
     ["ความหมาย", "รวมออเดอร์ที่ Shopee ทำรายการโอนชำระเงินสำเร็จในช่วงนี้ ไม่ใช่วันที่สั่งซื้อหรือวันที่กดดาวน์โหลด", null, null],
     ["เขตเวลา", "Asia/Bangkok", null, null],
+    ["ร้านที่เลือก", shopLabel(filters.shopCode), null, null],
     ["เลขคำสั่งซื้อ", filters.orderNumber || "ทั้งหมด", null, null],
   ];
   metadata.forEach((values, index) => {
@@ -207,6 +212,7 @@ function addIncomeOrdersSheet(workbook, { filters, orders }) {
   const worksheet = workbook.addWorksheet("รายการรายรับ");
   worksheet.columns = [
     { key: "orderNumber", width: 22 },
+    { key: "shop", width: 18 },
     { key: "orderDate", width: 18 },
     { key: "transferDate", width: 23 },
     { key: "amount", width: 21 },
@@ -214,17 +220,18 @@ function addIncomeOrdersSheet(workbook, { filters, orders }) {
     { key: "sellerBalanceInflowDate", width: 25 },
     { key: "sellerBalanceNetAmount", width: 23 },
   ];
-  worksheet.mergeCells("A1:G1");
+  worksheet.mergeCells("A1:H1");
   worksheet.getCell("A1").value = "รายการรายรับจาก Income";
   worksheet.getCell("A1").font = { bold: true, color: { argb: "FF17365D" }, name: "Arial", size: 14 };
   worksheet.getRow(1).height = 26;
-  worksheet.mergeCells("A2:G2");
-  worksheet.getCell("A2").value = `ช่วงวันที่โอนชำระเงินสำเร็จ ${formatDateLabel(filters.dateFrom)} ถึง ${formatDateLabel(filters.dateTo)} (Asia/Bangkok)`;
+  worksheet.mergeCells("A2:H2");
+  worksheet.getCell("A2").value = `ร้าน ${shopLabel(filters.shopCode)} | ช่วงวันที่โอนชำระเงินสำเร็จ ${formatDateLabel(filters.dateFrom)} ถึง ${formatDateLabel(filters.dateTo)} (Asia/Bangkok)`;
   worksheet.getCell("A2").font = { italic: true, color: { argb: "FF666666" }, name: "Arial", size: 10 };
 
   const headerRow = worksheet.getRow(4);
   headerRow.values = [
     "หมายเลขคำสั่งซื้อ",
+    "ร้าน",
     "วันที่ทำการสั่งซื้อ",
     "วันที่โอนชำระเงินสำเร็จ",
     "จำนวนเงินทั้งหมดที่โอนแล้ว (บาท)",
@@ -238,6 +245,7 @@ function addIncomeOrdersSheet(workbook, { filters, orders }) {
     const row = worksheet.getRow(index + 5);
     row.values = [
       order.orderNumber,
+      shopLabel(order.shopCode),
       toExcelDate(order.orderDate),
       toExcelDate(order.transferDate),
       Number(order.amount),
@@ -248,11 +256,11 @@ function addIncomeOrdersSheet(workbook, { filters, orders }) {
         : Number(order.sellerBalanceNetAmount),
     ];
     row.getCell(1).numFmt = "@";
-    [2, 3, 6].forEach((column) => { row.getCell(column).numFmt = "dd/mm/yyyy"; });
-    [4, 7].forEach((column) => { row.getCell(column).numFmt = "#,##0.00;[Red](#,##0.00);-"; });
+    [3, 4, 7].forEach((column) => { row.getCell(column).numFmt = "dd/mm/yyyy"; });
+    [5, 8].forEach((column) => { row.getCell(column).numFmt = "#,##0.00;[Red](#,##0.00);-"; });
     row.alignment = { vertical: "middle", wrapText: true };
     row.font = { name: "Arial", size: 10 };
-    const statusCell = row.getCell(5);
+    const statusCell = row.getCell(6);
     const statusColors = {
       credited: ["FFE2F0D9", "FF375623"],
       outflow_or_reversed: ["FFF4CCCC", "FF9C0006"],
@@ -268,7 +276,7 @@ function addIncomeOrdersSheet(workbook, { filters, orders }) {
   });
 
   const lastRow = Math.max(4, orders.length + 4);
-  worksheet.autoFilter = { from: { column: 1, row: 4 }, to: { column: 7, row: lastRow } };
+  worksheet.autoFilter = { from: { column: 1, row: 4 }, to: { column: 8, row: lastRow } };
   worksheet.views = [{ showGridLines: false, state: "frozen", ySplit: 4 }];
   applyPageSetup(worksheet, "4:4");
   return worksheet;
@@ -293,8 +301,9 @@ async function buildAccountingIncomeExportWorkbook({
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
-function buildAccountingIncomeExportFilename({ dateFrom, dateTo }) {
-  return `shopee-income-accounting-${dateFrom}-to-${dateTo}.xlsx`;
+function buildAccountingIncomeExportFilename({ dateFrom, dateTo, shopCode }) {
+  const shopPart = shopCode ? `-${shopCode}` : "";
+  return `shopee-income-accounting${shopPart}-${dateFrom}-to-${dateTo}.xlsx`;
 }
 
 async function collectAllIncomeOrders(filters, incomeRepository = repository) {
@@ -321,17 +330,78 @@ async function collectAllIncomeOrders(filters, incomeRepository = repository) {
   return orders;
 }
 
-async function exportAccountingIncomeOrders(filters, {
-  incomeRepository = repository,
-  publicOrigin = "",
-} = {}) {
+async function loadAccountingIncomeExportData(filters, incomeRepository = repository) {
   const [orders, documents] = await Promise.all([
     collectAllIncomeOrders(filters, incomeRepository),
     incomeRepository.listIncomeExportSourceDocuments({
       dateFrom: filters.dateFrom,
       dateTo: filters.dateTo,
+      shopCode: filters.shopCode,
     }),
   ]);
+  return { documents, orders };
+}
+
+function buildAccountingIncomeExportPreview({
+  documents = [],
+  filters,
+  orders = [],
+  publicOrigin = "",
+}) {
+  const totalIncome = orders.reduce((sum, order) => sum + Number(order.amount || 0), 0);
+  const creditedOrders = orders.filter((order) => order.sellerBalanceStatus === "credited");
+  return {
+    documents: documents.map((document) => ({
+      endDate: document.endDate,
+      filename: document.filename,
+      kind: document.kind,
+      kindLabel: KIND_LABELS[document.kind] || document.kind,
+      originalAvailable: document.originalAvailable,
+      originalUrl: absoluteOriginalUrl(publicOrigin, document.originalPath),
+      shopCode: document.shopCode,
+      shopLabel: shopLabel(document.shopCode),
+      startDate: document.startDate,
+    })),
+    filters: {
+      dateColumn: filters.dateColumn,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+      orderNumber: filters.orderNumber,
+      shopCode: filters.shopCode,
+      shopLabel: shopLabel(filters.shopCode),
+    },
+    orders: orders.map((order) => ({
+      ...order,
+      sellerBalanceStatusLabel: STATUS_LABELS[order.sellerBalanceStatus] || "ไม่ทราบสถานะ",
+      shopLabel: shopLabel(order.shopCode),
+    })),
+    summary: {
+      creditedCount: creditedOrders.length,
+      orderCount: orders.length,
+      totalIncome,
+    },
+    timezone: "Asia/Bangkok",
+  };
+}
+
+async function previewAccountingIncomeOrders(filters, {
+  incomeRepository = repository,
+  publicOrigin = "",
+} = {}) {
+  const { documents, orders } = await loadAccountingIncomeExportData(filters, incomeRepository);
+  return buildAccountingIncomeExportPreview({
+    documents,
+    filters,
+    orders,
+    publicOrigin,
+  });
+}
+
+async function exportAccountingIncomeOrders(filters, {
+  incomeRepository = repository,
+  publicOrigin = "",
+} = {}) {
+  const { documents, orders } = await loadAccountingIncomeExportData(filters, incomeRepository);
   return {
     buffer: await buildAccountingIncomeExportWorkbook({
       documents,
@@ -352,9 +422,13 @@ module.exports = {
   STATUS_LABELS,
   XLSX_MIME_TYPE,
   buildAccountingIncomeExportFilename,
+  buildAccountingIncomeExportPreview,
   buildAccountingIncomeExportWorkbook,
   collectAllIncomeOrders,
   exportAccountingIncomeOrders,
   formatDateLabel,
+  loadAccountingIncomeExportData,
+  previewAccountingIncomeOrders,
+  shopLabel,
   toExcelDate,
 };

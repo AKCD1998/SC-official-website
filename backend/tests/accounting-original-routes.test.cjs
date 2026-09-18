@@ -20,7 +20,10 @@ jest.mock(
 );
 jest.mock(
   "../src/modules/seamless/services/accountingIncomeExportService",
-  () => ({ exportAccountingIncomeOrders: jest.fn() }),
+  () => ({
+    exportAccountingIncomeOrders: jest.fn(),
+    previewAccountingIncomeOrders: jest.fn(),
+  }),
 );
 const service = require("../src/modules/seamless/services/accountingOriginalPrintService");
 const incomeOrderRepository = require("../src/modules/seamless/db/accountingIncomeOrderRepository");
@@ -51,6 +54,7 @@ beforeEach(() => {
       sellerBalanceNetAmount: 125.5,
       sellerBalanceStatus: "credited",
       sellerBalanceInflowDate: "2026-09-01",
+      shopCode: "sc-drug-store",
       transferDate: "2026-09-01",
     }],
     totalCount: 1,
@@ -59,6 +63,13 @@ beforeEach(() => {
     buffer: Buffer.from("xlsx-test"),
     filename: "shopee-income-accounting-2026-08-01-to-2026-08-31.xlsx",
     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  incomeExportService.previewAccountingIncomeOrders.mockResolvedValue({
+    documents: [],
+    filters: { shopCode: "sc-drug-store", shopLabel: "SC Drug Store" },
+    orders: [{ orderNumber: "260901TEST001", shopCode: "sc-drug-store" }],
+    summary: { creditedCount: 1, orderCount: 1, totalIncome: 125.5 },
+    timezone: "Asia/Bangkok",
   });
 });
 afterEach(() => {
@@ -145,6 +156,7 @@ test("lists Income orders through the named authenticated route with shared filt
       orderNumber: "260901test",
       page: 2,
       pageSize: 10,
+      shopCode: "sc-drug-store",
     })
     .auth("staff", "staff-test");
   expect(result.status).toBe(200);
@@ -160,7 +172,7 @@ test("lists Income orders through the named authenticated route with shared filt
     timezone: "Asia/Bangkok",
     totalCount: 1,
   });
-  expect(result.body.orders[0]).not.toHaveProperty("shopCode");
+  expect(result.body.orders[0].shopCode).toBe("sc-drug-store");
   expect(result.body.orders[0]).not.toHaveProperty("buyerUsername");
   expect(incomeOrderRepository.listIncomeOrders).toHaveBeenCalledWith({
     dateColumn: "orderedAt",
@@ -169,6 +181,7 @@ test("lists Income orders through the named authenticated route with shared filt
     orderNumber: "260901TEST",
     page: 2,
     pageSize: 10,
+    shopCode: "sc-drug-store",
   });
 });
 
@@ -178,6 +191,11 @@ test("rejects invalid Income order ranges before querying the database", async (
     .auth("staff", "staff-test");
   expect(result.status).toBe(400);
   expect(result.body.error.message).toContain("dateTo");
+  const invalidShop = await request(app)
+    .get("/batches/income-orders?shopCode=unknown-shop")
+    .auth("staff", "staff-test");
+  expect(invalidShop.status).toBe(400);
+  expect(invalidShop.body.error.message).toContain("shopCode");
   expect(incomeOrderRepository.listIncomeOrders).not.toHaveBeenCalled();
 });
 
@@ -189,6 +207,7 @@ test("exports the selected transferred-date range as an authenticated accounting
       dateFrom: "2026-08-01",
       dateTo: "2026-08-31",
       orderNumber: "2608test",
+      shopCode: "dr-morepen",
     })
     .set("X-Forwarded-Proto", "https")
     .set("X-Forwarded-Host", "api.example.test")
@@ -207,7 +226,34 @@ test("exports the selected transferred-date range as an authenticated accounting
     dateFrom: "2026-08-01",
     dateTo: "2026-08-31",
     orderNumber: "2608TEST",
+    shopCode: "dr-morepen",
   }, { publicOrigin: "https://api.example.test" });
+});
+
+test("previews the selected shop and range before any workbook download", async () => {
+  const result = await request(app)
+    .get("/batches/income-orders/preview")
+    .query({
+      dateColumn: "transferredAt",
+      dateFrom: "2026-08-01",
+      dateTo: "2026-08-31",
+      shopCode: "sc-drug-store",
+    })
+    .set("X-Forwarded-Proto", "https")
+    .set("X-Forwarded-Host", "api.example.test")
+    .auth("staff", "staff-test");
+
+  expect(result.status).toBe(200);
+  expect(result.headers["cache-control"]).toBe("private, no-store");
+  expect(result.body.filters.shopLabel).toBe("SC Drug Store");
+  expect(incomeExportService.previewAccountingIncomeOrders).toHaveBeenCalledWith({
+    dateColumn: "transferredAt",
+    dateFrom: "2026-08-01",
+    dateTo: "2026-08-31",
+    orderNumber: "",
+    shopCode: "sc-drug-store",
+  }, { publicOrigin: "https://api.example.test" });
+  expect(incomeExportService.exportAccountingIncomeOrders).not.toHaveBeenCalled();
 });
 
 test("Income accounting export rejects order-date basis and missing date bounds", async () => {

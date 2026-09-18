@@ -45,6 +45,7 @@ async function listIncomeOrders({
   orderNumber,
   page,
   pageSize,
+  shopCode,
 }, db = pool) {
   const tables = getTables();
   const params = [];
@@ -52,6 +53,10 @@ async function listIncomeOrders({
   if (orderNumber) {
     params.push(orderNumber);
     sourceWhere.push(`POSITION($${params.length} IN fact.order_number) > 0`);
+  }
+  if (shopCode) {
+    params.push(shopCode);
+    sourceWhere.push(`fact.shop_code = $${params.length}`);
   }
   const dateExpression = dateColumn === "transferredAt"
     ? "fact.transferred_at"
@@ -191,6 +196,7 @@ async function listIncomeOrders({
         amount,
         orderDate: row.ordered_date,
         orderNumber: row.order_number,
+        shopCode: row.shop_code,
         sellerBalanceNetAmount: hasSuccessfulEvidence
           ? numberValue(row.successful_net_amount, "Seller Balance net amount")
           : null,
@@ -210,8 +216,14 @@ async function listIncomeOrders({
   return { orders, totalCount };
 }
 
-async function listIncomeExportSourceDocuments({ dateFrom, dateTo }, db = pool) {
+async function listIncomeExportSourceDocuments({ dateFrom, dateTo, shopCode }, db = pool) {
   const tables = getTables();
+  const params = [dateFrom, dateTo];
+  const shopParameter = shopCode ? params.push(shopCode) : null;
+  const storedShopCondition = shopParameter
+    ? `AND item.document->>'shopCode' = $${shopParameter}`
+    : "";
+  const canonicalShopCondition = shopParameter ? `AND shop_code = $${shopParameter}` : "";
   const stored = await db.query(`
     SELECT item.id AS item_id, item.batch_id, item.document, batch.created_at
       FROM ${tables.accountingPrintItems} item
@@ -219,8 +231,9 @@ async function listIncomeExportSourceDocuments({ dateFrom, dateTo }, db = pool) 
      WHERE item.document->>'kind' IN ('statement', 'income')
        AND (item.document->>'start')::date <= $2::date
        AND (item.document->>'end')::date >= $1::date
+       ${storedShopCondition}
      ORDER BY batch.created_at DESC, item.sequence DESC
-  `, [dateFrom, dateTo]);
+  `, params);
   const canonical = await db.query(`
     SELECT shop_code, source_sha256, report_type, source_filename,
            start_date::text, end_date::text, imported_at
@@ -228,8 +241,9 @@ async function listIncomeExportSourceDocuments({ dateFrom, dateTo }, db = pool) 
      WHERE report_type IN ('financial-statement', 'income-transferred')
        AND start_date <= $2::date
        AND end_date >= $1::date
+       ${canonicalShopCondition}
      ORDER BY imported_at DESC, source_filename ASC
-  `, [dateFrom, dateTo]);
+  `, params);
 
   const byChecksum = new Map();
   for (const row of stored.rows) {

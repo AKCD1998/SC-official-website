@@ -74,6 +74,7 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
         payout_amount: "125.50",
         seller_balance_covered: true,
         seller_balance_inflow_date: "2026-09-01",
+        shop_code: "sc-drug-store",
         successful_inflow_amount: "125.50",
         successful_inflow_count: 1,
         successful_net_amount: "125.50",
@@ -89,6 +90,7 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
     orderNumber: "260901TEST",
     page: 2,
     pageSize: 20,
+    shopCode: "sc-drug-store",
   }, db);
 
   expect(result).toEqual({
@@ -99,6 +101,7 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
       sellerBalanceNetAmount: 125.5,
       sellerBalanceStatus: "credited",
       sellerBalanceInflowDate: "2026-09-01",
+      shopCode: "sc-drug-store",
       transferDate: "2026-09-01",
     }],
     totalCount: 31,
@@ -114,9 +117,17 @@ test("Income order query is parameterized, Bangkok-date filtered, deduplicated, 
   expect(sql).toMatch(/coverage_source\.report_type = 'seller-balance'/u);
   expect(sql).toMatch(/page_rows\.transferred_at AT TIME ZONE 'Asia\/Bangkok'/u);
   expect(sql).toMatch(/AT TIME ZONE 'Asia\/Bangkok'/iu);
-  expect(sql).toMatch(/LIMIT \$4 OFFSET \$5/iu);
+  expect(sql).toMatch(/fact\.shop_code = \$2/iu);
+  expect(sql).toMatch(/LIMIT \$5 OFFSET \$6/iu);
   expect(sql).not.toContain("260901TEST");
-  expect(params).toEqual(["260901TEST", "2026-09-01", "2026-09-07", 20, 20]);
+  expect(params).toEqual([
+    "260901TEST",
+    "sc-drug-store",
+    "2026-09-01",
+    "2026-09-07",
+    20,
+    20,
+  ]);
 });
 
 test("Income pagination returns the total even when the requested page has no rows", async () => {
@@ -169,7 +180,7 @@ test.each([
   });
 });
 
-test("Income rows expose reversal precedence and only privacy-safe Seller Balance evidence", async () => {
+test("Income rows expose shop identity, reversal precedence, and privacy-safe Seller Balance evidence", async () => {
   const db = {
     query: jest.fn(async () => ({
       rows: [{
@@ -179,6 +190,7 @@ test("Income rows expose reversal precedence and only privacy-safe Seller Balanc
         payout_amount: "125.50",
         seller_balance_covered: true,
         seller_balance_inflow_date: "2026-09-01",
+        shop_code: "sc-drug-store",
         successful_inflow_amount: "125.50",
         successful_inflow_count: 1,
         successful_net_amount: "0.00",
@@ -203,9 +215,9 @@ test("Income rows expose reversal precedence and only privacy-safe Seller Balanc
     sellerBalanceNetAmount: 0,
     sellerBalanceStatus: "outflow_or_reversed",
     sellerBalanceInflowDate: "2026-09-01",
+    shopCode: "sc-drug-store",
     transferDate: "2026-09-01",
   }]);
-  expect(result.orders[0]).not.toHaveProperty("shopCode");
   expect(result.orders[0]).not.toHaveProperty("buyerUsername");
 });
 
@@ -275,4 +287,23 @@ test("Income export source documents prefer stored originals and retain canonica
   expect(db.query.mock.calls[0][1]).toEqual(["2026-08-01", "2026-08-31"]);
   expect(db.query.mock.calls[0][0]).toMatch(/accounting_print_items/iu);
   expect(db.query.mock.calls[1][0]).toMatch(/shopee_official_document_sources/iu);
+});
+
+test("Income export source documents apply the selected shop to stored and canonical evidence", async () => {
+  const db = {
+    query: jest.fn()
+      .mockResolvedValueOnce({ rows: [] })
+      .mockResolvedValueOnce({ rows: [] }),
+  };
+
+  await listIncomeExportSourceDocuments({
+    dateFrom: "2026-08-01",
+    dateTo: "2026-08-31",
+    shopCode: "dr-morepen",
+  }, db);
+
+  expect(db.query.mock.calls[0][0]).toMatch(/document->>'shopCode' = \$3/iu);
+  expect(db.query.mock.calls[1][0]).toMatch(/shop_code = \$3/iu);
+  expect(db.query.mock.calls[0][1]).toEqual(["2026-08-01", "2026-08-31", "dr-morepen"]);
+  expect(db.query.mock.calls[1][1]).toEqual(["2026-08-01", "2026-08-31", "dr-morepen"]);
 });

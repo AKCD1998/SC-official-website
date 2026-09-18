@@ -4,6 +4,7 @@ const { readPublicBaseUrl } = require("../config");
 const { badRequest } = require("../errors");
 
 const DATE_COLUMNS = new Set(["orderedAt", "transferredAt"]);
+const SHOP_CODES = new Set(["dr-morepen", "sc-drug-store"]);
 
 function parseInteger(value, label, fallback, maximum) {
   if (value === undefined || value === "") return fallback;
@@ -46,7 +47,11 @@ function parseIncomeOrderFilters(query = {}) {
   if (orderNumber.length > 40 || (orderNumber && !/^[A-Z0-9]+$/u.test(orderNumber))) {
     throw badRequest("orderNumber must contain at most 40 letters or digits.");
   }
-  return { dateColumn, dateFrom, dateTo, orderNumber, page, pageSize };
+  const shopCode = String(query.shopCode || "").trim().toLowerCase();
+  if (shopCode && !SHOP_CODES.has(shopCode)) {
+    throw badRequest("shopCode must be sc-drug-store or dr-morepen.");
+  }
+  return { dateColumn, dateFrom, dateTo, orderNumber, page, pageSize, shopCode };
 }
 
 function parseIncomeExportFilters(query = {}) {
@@ -69,6 +74,7 @@ function parseIncomeExportFilters(query = {}) {
     dateFrom: filters.dateFrom,
     dateTo: filters.dateTo,
     orderNumber: filters.orderNumber,
+    shopCode: filters.shopCode,
   };
 }
 
@@ -102,6 +108,7 @@ async function listIncomeOrders(req, res) {
       dateFrom: filters.dateFrom,
       dateTo: filters.dateTo,
       orderNumber: filters.orderNumber,
+      shopCode: filters.shopCode,
     },
     page: filters.page,
     pageSize: filters.pageSize,
@@ -124,10 +131,20 @@ async function exportIncomeOrders(req, res) {
   res.send(exported.buffer);
 }
 
+async function previewIncomeOrders(req, res) {
+  const filters = parseIncomeExportFilters(req.query);
+  const preview = await exportService.previewAccountingIncomeOrders(filters, {
+    publicOrigin: requestPublicOrigin(req),
+  });
+  res.set("Cache-Control", "private, no-store");
+  res.json(preview);
+}
+
 module.exports = {
   exportIncomeOrders,
   listIncomeOrders,
   parseIncomeExportFilters,
   parseIncomeOrderFilters,
+  previewIncomeOrders,
   requestPublicOrigin,
 };
