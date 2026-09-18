@@ -82,11 +82,11 @@ function mondayOfWeek(date) {
 function latestJobForDate(jobs, date) {
   const matches = jobs.filter((job) => job.dateFrom <= date && job.dateTo >= date);
   // A real downloaded document always takes precedence over an empty historical search.
-  return matches.find((job) => job.resultStatus !== "no_file") || matches[0] || null;
+  return matches.find((job) => !["no_file", "unavailable"].includes(job.resultStatus)) || matches[0] || null;
 }
 
 function cellStatus(report, date, currentMonday, evidence, timing) {
-  if (evidence) return evidence.resultStatus === "no_file" ? "no_file" : "ingested";
+  if (evidence) return ["no_file", "unavailable"].includes(evidence.resultStatus) ? evidence.resultStatus : "ingested";
   if (report.unavailableUntilExported) return "unavailable";
   if (report.cadence === "weekly" && date >= currentMonday) return "not_due";
   if (report.cadence !== "weekly" && date === timing.latestExpectedDate) {
@@ -116,16 +116,19 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
           sourceSha256: evidence.sourceSha256,
           reasonCode: evidence.reasonCode,
           portalAccount: evidence.portalAccount,
+          earliestAvailableDate: evidence.earliestAvailableDate,
         },
       } : {}),
     };
   });
-  const expectedCells = cells.filter((cell) => !["not_due", "unavailable", "waiting", "processing"].includes(cell.status));
+  const expectedCells = cells.filter((cell) => !["not_due", "waiting", "processing"].includes(cell.status)
+    && (cell.status !== "unavailable" || cell.evidence?.reasonCode === "SHOPEE_ETAX_DATE_OUTSIDE_AVAILABLE_WINDOW"));
   const ingestedCount = expectedCells.filter((cell) => cell.status === "ingested").length;
   const noFileCount = expectedCells.filter((cell) => cell.status === "no_file").length;
+  const outsideWindowCount = expectedCells.filter((cell) => cell.status === "unavailable").length;
   const missingCount = expectedCells.filter((cell) => cell.status === "missing").length;
   const pendingCount = cells.filter((cell) => ["waiting", "processing"].includes(cell.status)).length;
-  const ingestedJobs = jobs.filter((job) => job.resultStatus !== "no_file" && job.dateFrom <= dates[0] && job.dateTo >= dates.at(-1));
+  const ingestedJobs = jobs.filter((job) => !["no_file", "unavailable"].includes(job.resultStatus) && job.dateFrom <= dates[0] && job.dateTo >= dates.at(-1));
   const latestCoveredDate = jobs.length
     ? jobs.map((job) => job.dateTo).sort().at(-1)
     : null;
@@ -144,6 +147,7 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
     expectedCount: expectedCells.length,
     ingestedCount,
     noFileCount,
+    outsideWindowCount,
     label: report.label,
     latestCoveredDate,
     latestImportedAt,
