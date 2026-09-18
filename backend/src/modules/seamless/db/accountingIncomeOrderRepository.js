@@ -225,14 +225,33 @@ async function listIncomeExportSourceDocuments({ dateFrom, dateTo, shopCode }, d
     : "";
   const canonicalShopCondition = shopParameter ? `AND shop_code = $${shopParameter}` : "";
   const stored = await db.query(`
-    SELECT item.id AS item_id, item.batch_id, item.document, batch.created_at
+    SELECT item.id AS item_id, item.batch_id, item.document, item.source_file,
+           batch.created_at, NULL::text AS source_original_id
       FROM ${tables.accountingPrintItems} item
       JOIN ${tables.accountingPrintBatches} batch ON batch.id = item.batch_id
      WHERE item.document->>'kind' IN ('statement', 'income')
        AND (item.document->>'start')::date <= $2::date
        AND (item.document->>'end')::date >= $1::date
        ${storedShopCondition}
-     ORDER BY batch.created_at DESC, item.sequence DESC
+    UNION ALL
+    SELECT NULL::uuid AS item_id, NULL::uuid AS batch_id,
+           jsonb_build_object(
+             'checksumSha256', source.source_sha256,
+             'end', source.end_date::text,
+             'filename', source.source_filename,
+             'kind', source.document_kind,
+             'periodType', source.period_type,
+             'shopCode', source.shop_code,
+             'start', source.start_date::text
+           ) AS document,
+           source.source_file, source.created_at,
+           source.id::text AS source_original_id
+      FROM ${tables.accountingSourceOriginals} source
+     WHERE source.document_kind IN ('statement')
+       AND source.start_date <= $2::date
+       AND source.end_date >= $1::date
+       ${shopParameter ? `AND source.shop_code = $${shopParameter}` : ""}
+     ORDER BY created_at DESC
   `, params);
   const canonical = await db.query(`
     SELECT shop_code, source_sha256, report_type, source_filename,
@@ -256,8 +275,12 @@ async function listIncomeExportSourceDocuments({ dateFrom, dateTo, shopCode }, d
       filename: String(document.filename || ""),
       kind: document.kind,
       originalAvailable: true,
-      originalPath: `/app/accounting-print-bundles/${row.batch_id}/items/${row.item_id}/original`,
+      originalPath: row.source_original_id
+        ? `/app/accounting-print-bundles/source-originals/${row.source_original_id}`
+        : `/app/accounting-print-bundles/${row.batch_id}/items/${row.item_id}/original?disposition=inline`,
+      periodType: String(document.periodType || ""),
       shopCode: String(document.shopCode || ""),
+      sourceFile: row.source_file || null,
       startDate: String(document.start || ""),
     });
   }
@@ -271,7 +294,9 @@ async function listIncomeExportSourceDocuments({ dateFrom, dateTo, shopCode }, d
       kind: row.report_type === "financial-statement" ? "statement" : "income",
       originalAvailable: false,
       originalPath: null,
+      periodType: "",
       shopCode: String(row.shop_code || ""),
+      sourceFile: null,
       startDate: String(row.start_date || ""),
     });
   }

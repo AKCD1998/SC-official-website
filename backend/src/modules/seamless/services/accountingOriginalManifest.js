@@ -44,6 +44,21 @@ function filenameOf(file) {
   }
   return name.split(/[\\/]/).pop();
 }
+function statementPeriodType(start, end) {
+  const startDate = new Date(`${day(start)}T00:00:00.000Z`);
+  const endDate = new Date(`${day(end)}T00:00:00.000Z`);
+  const lastDay = new Date(Date.UTC(
+    startDate.getUTCFullYear(),
+    startDate.getUTCMonth() + 1,
+    0,
+  ));
+  if (
+    startDate.getUTCDate() === 1
+    && endDate.toISOString().slice(0, 10) === lastDay.toISOString().slice(0, 10)
+  ) return "monthly";
+  if (weekStart(start) === start && shift(start, 6) === end) return "weekly";
+  return null;
+}
 async function pdfText(buffer) {
   const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const task = getDocument({
@@ -103,18 +118,26 @@ async function inspectOriginal(file, shop) {
     checksumSha256: hash(file.buffer),
     size: file.buffer.length,
   };
-  if (/^weekly_report_\d{8}(?:\s*\(\d+\))?\.pdf$/i.test(filename)) {
+  const statementName = /^(weekly|monthly)_report_\d{8}(?:\s*\(\d+\))?\.pdf$/i.exec(filename);
+  if (statementName) {
     const contents = await pdfText(file.buffer);
     if (!contents.includes(shop.seller))
       throw badRequest("รายงานการเงินอยู่ผิดร้าน: " + filename);
     const dates = contents.match(/\b20\d{2}-\d{2}-\d{2}\b/g);
     if (!dates || dates.length < 2)
       throw badRequest("อ่านรอบบัญชีจาก PDF ไม่ได้: " + filename);
+    const start = day(dates[0]);
+    const end = day(dates[1]);
+    const periodType = statementPeriodType(start, end);
+    if (!periodType || periodType !== statementName[1].toLowerCase()) {
+      throw badRequest("ช่วงวันที่ไม่ตรงกับประเภทรายงานการเงิน: " + filename);
+    }
     return {
       ...base,
       kind: "statement",
-      start: day(dates[0]),
-      end: day(dates[1]),
+      start,
+      end,
+      periodType,
       ...(await inspectPdf(file.buffer)),
     };
   }
@@ -375,6 +398,7 @@ module.exports = {
   shift,
   inspectPdf,
   inspectOriginal,
+  statementPeriodType,
   arrangeManifest,
   parseOriginalFiles,
   filenameOf,

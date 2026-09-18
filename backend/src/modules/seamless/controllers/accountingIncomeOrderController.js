@@ -131,6 +131,20 @@ async function exportIncomeOrders(req, res) {
   res.send(exported.buffer);
 }
 
+async function exportIncomeOrdersBundle(req, res) {
+  const filters = parseIncomeExportFilters(req.query);
+  const exported = await exportService.exportAccountingIncomeOrdersBundle(filters, {
+    publicOrigin: requestPublicOrigin(req),
+  });
+  res.set("Cache-Control", "private, no-store");
+  res.setHeader("Content-Type", exported.mimeType);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${exported.filename}"; filename*=UTF-8''${encodeURIComponent(exported.filename)}`,
+  );
+  res.send(exported.buffer);
+}
+
 async function previewIncomeOrders(req, res) {
   const filters = parseIncomeExportFilters(req.query);
   const preview = await exportService.previewAccountingIncomeOrders(filters, {
@@ -142,6 +156,7 @@ async function previewIncomeOrders(req, res) {
 
 module.exports = {
   exportIncomeOrders,
+  exportIncomeOrdersBundle,
   listIncomeOrders,
   parseIncomeExportFilters,
   parseIncomeOrderFilters,

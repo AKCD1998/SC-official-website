@@ -19,13 +19,22 @@ jest.mock(
   () => ({ listIncomeOrders: jest.fn() }),
 );
 jest.mock(
+  "../src/modules/seamless/services/accountingSourceOriginalService",
+  () => ({
+    getSourceOriginal: jest.fn(),
+    uploadSourceOriginals: jest.fn(),
+  }),
+);
+jest.mock(
   "../src/modules/seamless/services/accountingIncomeExportService",
   () => ({
     exportAccountingIncomeOrders: jest.fn(),
+    exportAccountingIncomeOrdersBundle: jest.fn(),
     previewAccountingIncomeOrders: jest.fn(),
   }),
 );
 const service = require("../src/modules/seamless/services/accountingOriginalPrintService");
+const sourceOriginalService = require("../src/modules/seamless/services/accountingSourceOriginalService");
 const incomeOrderRepository = require("../src/modules/seamless/db/accountingIncomeOrderRepository");
 const incomeExportService = require("../src/modules/seamless/services/accountingIncomeExportService");
 const routes = require("../src/modules/seamless/routes/accountingPrintBundleRoutes");
@@ -63,6 +72,11 @@ beforeEach(() => {
     buffer: Buffer.from("xlsx-test"),
     filename: "shopee-income-accounting-2026-08-01-to-2026-08-31.xlsx",
     mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  incomeExportService.exportAccountingIncomeOrdersBundle.mockResolvedValue({
+    buffer: Buffer.from("zip-test"),
+    filename: "shopee-income-accounting-2026-08-01-to-2026-08-31.zip",
+    mimeType: "application/zip",
   });
   incomeExportService.previewAccountingIncomeOrders.mockResolvedValue({
     documents: [],
@@ -198,6 +212,21 @@ test("rejects invalid Income order ranges before querying the database", async (
   expect(invalidShop.body.error.message).toContain("shopCode");
   expect(incomeOrderRepository.listIncomeOrders).not.toHaveBeenCalled();
 });
+test("admin can store monthly or weekly statement originals without creating a print batch", async () => {
+  sourceOriginalService.uploadSourceOriginals.mockResolvedValue({ sources: [{ id: "source" }] });
+  const result = await request(app)
+    .post("/batches/source-originals/sc-drug-store")
+    .auth("admin", "admin-test")
+    .attach("files", Buffer.from("pdf"), "monthly_report_20260801.pdf");
+
+  expect(result.status).toBe(201);
+  expect(sourceOriginalService.uploadSourceOriginals).toHaveBeenCalledWith(
+    expect.arrayContaining([expect.objectContaining({ originalname: "monthly_report_20260801.pdf" })]),
+    "sc-drug-store",
+    "admin",
+  );
+  expect(service.createBatch).not.toHaveBeenCalled();
+});
 
 test("exports the selected transferred-date range as an authenticated accounting workbook", async () => {
   const result = await request(app)
@@ -228,6 +257,29 @@ test("exports the selected transferred-date range as an authenticated accounting
     orderNumber: "2608TEST",
     shopCode: "dr-morepen",
   }, { publicOrigin: "https://api.example.test" });
+});
+
+test("downloads a ZIP bundle only after the same transferred-date validation", async () => {
+  const result = await request(app)
+    .get("/batches/income-orders/export.zip")
+    .query({
+      dateColumn: "transferredAt",
+      dateFrom: "2026-08-01",
+      dateTo: "2026-08-31",
+      shopCode: "sc-drug-store",
+    })
+    .auth("staff", "staff-test");
+
+  expect(result.status).toBe(200);
+  expect(result.headers["content-type"]).toContain("application/zip");
+  expect(result.headers["content-disposition"]).toContain(".zip");
+  expect(incomeExportService.exportAccountingIncomeOrdersBundle).toHaveBeenCalledWith({
+    dateColumn: "transferredAt",
+    dateFrom: "2026-08-01",
+    dateTo: "2026-08-31",
+    orderNumber: "",
+    shopCode: "sc-drug-store",
+  }, expect.objectContaining({ publicOrigin: expect.any(String) }));
 });
 
 test("previews the selected shop and range before any workbook download", async () => {

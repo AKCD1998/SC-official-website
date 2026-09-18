@@ -271,7 +271,9 @@ test("Income export source documents prefer stored originals and retain canonica
     kind: "statement",
     originalAvailable: false,
     originalPath: null,
+    periodType: "",
     shopCode: "dr-morepen",
+    sourceFile: null,
     startDate: "2026-08-01",
   }, {
     checksumSha256: checksumStored,
@@ -279,8 +281,10 @@ test("Income export source documents prefer stored originals and retain canonica
     filename: "Income.โอนเงินสำเร็จ.th.20260801_20260831.xlsx",
     kind: "income",
     originalAvailable: true,
-    originalPath: "/app/accounting-print-bundles/batch-1/items/item-1/original",
+    originalPath: "/app/accounting-print-bundles/batch-1/items/item-1/original?disposition=inline",
+    periodType: "",
     shopCode: "sc-drug-store",
+    sourceFile: null,
     startDate: "2026-08-01",
   }]);
   expect(db.query).toHaveBeenCalledTimes(2);

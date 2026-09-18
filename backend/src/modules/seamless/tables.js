@@ -21,6 +21,7 @@ function getTables() {
     accountingPrintBatches: qualifyTable("accounting_print_batches"),
     accountingPrintItems: qualifyTable("accounting_print_items"),
     accountingPrintNotifications: qualifyTable("accounting_print_notifications"),
+    accountingSourceOriginals: qualifyTable("accounting_source_originals"),
     adaSmartShopeeJobEvents: qualifyTable("adasmart_shopee_job_events"),
     adaSmartShopeeJobs: qualifyTable("adasmart_shopee_jobs"),
     generatedFiles: qualifyTable("generated_files"),

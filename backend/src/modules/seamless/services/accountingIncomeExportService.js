@@ -1,4 +1,6 @@
 const repository = require("../db/accountingIncomeOrderRepository");
+const fileStorage = require("./fileStorageService");
+const { strToU8, zipSync } = require("fflate");
 
 const XLSX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const EXPORT_PAGE_SIZE = 1000;
@@ -18,6 +20,114 @@ const KIND_LABELS = Object.freeze({
   income: "รายงานรายรับของฉัน",
   statement: "รายงานการเงิน",
 });
+const PERIOD_TYPE_LABELS = Object.freeze({
+  income: "รายงาน Income",
+  monthly: "รายเดือน",
+  weekly: "รายสัปดาห์",
+});
+const SHOP_CODES = Object.freeze(["sc-drug-store", "dr-morepen"]);
+
+function shiftDate(value, days) {
+  return new Date(Date.parse(`${value}T00:00:00.000Z`) + days * 86400000)
+    .toISOString()
+    .slice(0, 10);
+}
+
+function weekStart(value) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return shiftDate(value, -((date.getUTCDay() + 6) % 7));
+}
+
+function isFullCalendarMonth(startDate, endDate) {
+  if (!/^\d{4}-\d{2}-\d{2}$/u.test(startDate || "")
+      || !/^\d{4}-\d{2}-\d{2}$/u.test(endDate || "")) return false;
+  const start = new Date(`${startDate}T00:00:00.000Z`);
+  const last = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0))
+    .toISOString()
+    .slice(0, 10);
+  return start.getUTCDate() === 1 && endDate === last;
+}
+
+function sourcePeriodType(document) {
+  if (document.kind === "income") return "income";
+  if (document.periodType === "monthly" || document.periodType === "weekly") {
+    return document.periodType;
+  }
+  if (isFullCalendarMonth(document.startDate, document.endDate)) return "monthly";
+  if (weekStart(document.startDate) === document.startDate
+      && shiftDate(document.startDate, 6) === document.endDate) return "weekly";
+  return "other";
+}
+
+function selectAccountingSourceDocuments(documents, filters) {
+  const fullCalendarMonth = isFullCalendarMonth(filters.dateFrom, filters.dateTo);
+  const shops = filters.shopCode ? [filters.shopCode] : SHOP_CODES;
+  const normalized = documents.map((document) => ({
+    ...document,
+    periodType: sourcePeriodType(document),
+  }));
+  const selected = [];
+  const choose = (shopCode, periodType, startDate, endDate) => normalized
+    .filter((document) => (
+      document.kind === "statement"
+      && document.shopCode === shopCode
+      && document.periodType === periodType
+      && document.startDate === startDate
+      && document.endDate === endDate
+    ))
+    .sort((left, right) => Number(right.originalAvailable) - Number(left.originalAvailable))[0];
+  const missing = (shopCode, periodType, startDate, endDate) => ({
+    checksumSha256: "",
+    endDate,
+    filename: periodType === "monthly"
+      ? `ยังไม่มีไฟล์ monthly_report_${startDate.replaceAll("-", "")}.pdf`
+      : `ยังไม่มีไฟล์ weekly_report_${startDate.replaceAll("-", "")}.pdf`,
+    isRequiredPlaceholder: true,
+    kind: "statement",
+    originalAvailable: false,
+    originalPath: null,
+    periodType,
+    shopCode,
+    sourceFile: null,
+    startDate,
+  });
+
+  for (const shopCode of shops) {
+    if (fullCalendarMonth) {
+      selected.push(
+        choose(shopCode, "monthly", filters.dateFrom, filters.dateTo)
+          || missing(shopCode, "monthly", filters.dateFrom, filters.dateTo),
+      );
+    }
+    for (
+      let startDate = weekStart(filters.dateFrom);
+      startDate <= filters.dateTo;
+      startDate = shiftDate(startDate, 7)
+    ) {
+      const endDate = shiftDate(startDate, 6);
+      selected.push(
+        choose(shopCode, "weekly", startDate, endDate)
+          || missing(shopCode, "weekly", startDate, endDate),
+      );
+    }
+  }
+
+  const incomeByPeriod = new Map();
+  for (const document of normalized.filter((row) => row.kind === "income")) {
+    const key = [document.shopCode, document.startDate, document.endDate].join(":");
+    const previous = incomeByPeriod.get(key);
+    if (!previous || (!previous.originalAvailable && document.originalAvailable)) {
+      incomeByPeriod.set(key, document);
+    }
+  }
+  selected.push(...incomeByPeriod.values());
+  return selected;
+}
+
+function sourceDocumentLabel(document) {
+  if (document.kind !== "statement") return KIND_LABELS[document.kind] || document.kind;
+  return `${KIND_LABELS.statement} (${PERIOD_TYPE_LABELS[document.periodType] || "ไม่ทราบรอบ"})`;
+}
 
 function shopLabel(shopCode) {
   return SHOP_LABELS[shopCode] || "ทุกร้าน";
@@ -159,7 +269,9 @@ function addSourceDocumentSheet(workbook, {
   worksheet.getCell("A13").value = "เอกสาร Shopee ต้นฉบับที่อ้างอิง";
   styleSectionRow(worksheet.getRow(13), 7);
   worksheet.mergeCells("A14:G14");
-  worksheet.getCell("A14").value = "ไฟล์ต้นฉบับคงสภาพเดิมและเปิดผ่านลิงก์ด้านล่าง รายงานการเงิน PDF จะไม่ถูกแปลงหรือฝังลงใน Excel";
+  worksheet.getCell("A14").value = isFullCalendarMonth(filters.dateFrom, filters.dateTo)
+    ? "ช่วงเดือนเต็ม: ใช้รายงานการเงินต้นฉบับรายเดือนที่ตรงทั้งเดือน และรายสัปดาห์ทุกสัปดาห์ที่ทับซ้อนช่วงที่เลือก"
+    : "ช่วงไม่ครบเดือน: ใช้รายงานการเงินต้นฉบับรายสัปดาห์ทุกสัปดาห์ที่ทับซ้อนช่วงที่เลือก โดยไม่ใส่รายเดือน";
   worksheet.getCell("A14").font = { italic: true, color: { argb: "FF666666" }, name: "Arial", size: 9 };
   worksheet.getCell("A14").alignment = { vertical: "middle", wrapText: true };
   worksheet.getRow(14).height = 30;
@@ -177,25 +289,37 @@ function addSourceDocumentSheet(workbook, {
     documents.forEach((document, index) => {
       const row = worksheet.getRow(16 + index);
       row.values = [
-        KIND_LABELS[document.kind] || document.kind,
+        sourceDocumentLabel(document),
         SHOP_LABELS[document.shopCode] || document.shopCode,
         toExcelDate(document.startDate),
         toExcelDate(document.endDate),
         document.filename,
-        document.originalAvailable ? "มีไฟล์ต้นฉบับในเว็บ" : "ระบบเก็บเฉพาะข้อมูลที่อ่านได้",
-        document.originalAvailable ? "ดาวน์โหลดต้นฉบับ" : "ไม่มีไฟล์ให้ดาวน์โหลด",
+        document.originalAvailable
+          ? "มีไฟล์ต้นฉบับในเว็บ"
+          : document.isRequiredPlaceholder
+            ? "ยังไม่มีไฟล์ต้นฉบับตามรอบที่ต้องใช้"
+            : "มีข้อมูลอ้างอิง แต่ยังไม่มีไฟล์ต้นฉบับ",
+        document.originalAvailable ? "เปิดดูต้นฉบับ" : "ไม่มีไฟล์ให้เปิด",
       ];
+      row.font = { name: "Arial", size: 10 };
       row.getCell(3).numFmt = "dd/mm/yyyy";
       row.getCell(4).numFmt = "dd/mm/yyyy";
       row.getCell(5).note = `SHA-256: ${document.checksumSha256}`;
       const url = absoluteOriginalUrl(publicOrigin, document.originalPath);
       if (url) {
-        row.getCell(7).value = { hyperlink: url, text: "ดาวน์โหลดต้นฉบับ" };
+        row.getCell(7).value = { hyperlink: url, text: "เปิดดูต้นฉบับ" };
         row.getCell(7).font = { color: { argb: "FF0563C1" }, name: "Arial", size: 10, underline: true };
       }
+      const statusCell = row.getCell(6);
+      if (document.originalAvailable) {
+        statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFC6EFCE" } };
+        statusCell.font = { bold: true, color: { argb: "FF006100" }, name: "Arial", size: 10 };
+      } else {
+        statusCell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFFFEB9C" } };
+        statusCell.font = { bold: true, color: { argb: "FF9C6500" }, name: "Arial", size: 10 };
+      }
       row.alignment = { vertical: "top", wrapText: true };
-      row.font = { ...row.font, name: "Arial", size: 10 };
-      row.height = 30;
+      row.height = document.originalAvailable ? 30 : 42;
     });
   }
 
@@ -262,11 +386,11 @@ function addIncomeOrdersSheet(workbook, { filters, orders }) {
     row.font = { name: "Arial", size: 10 };
     const statusCell = row.getCell(6);
     const statusColors = {
-      credited: ["FFE2F0D9", "FF375623"],
-      outflow_or_reversed: ["FFF4CCCC", "FF9C0006"],
-      amount_mismatch: ["FFFFE699", "FF7F6000"],
-      not_found_in_covered_report: ["FFFFE699", "FF7F6000"],
-      not_covered: ["FFE7E6E6", "FF595959"],
+      credited: ["FFC6EFCE", "FF006100"],
+      outflow_or_reversed: ["FFFFC7CE", "FF9C0006"],
+      amount_mismatch: ["FFFFEB9C", "FF9C6500"],
+      not_found_in_covered_report: ["FFFFEB9C", "FF9C6500"],
+      not_covered: ["FFDDEBF7", "FF44546A"],
     };
     const colors = statusColors[order.sellerBalanceStatus];
     if (colors) {
@@ -331,7 +455,7 @@ async function collectAllIncomeOrders(filters, incomeRepository = repository) {
 }
 
 async function loadAccountingIncomeExportData(filters, incomeRepository = repository) {
-  const [orders, documents] = await Promise.all([
+  const [orders, sourceDocuments] = await Promise.all([
     collectAllIncomeOrders(filters, incomeRepository),
     incomeRepository.listIncomeExportSourceDocuments({
       dateFrom: filters.dateFrom,
@@ -339,6 +463,7 @@ async function loadAccountingIncomeExportData(filters, incomeRepository = reposi
       shopCode: filters.shopCode,
     }),
   ]);
+  const documents = selectAccountingSourceDocuments(sourceDocuments, filters);
   return { documents, orders };
 }
 
@@ -355,9 +480,12 @@ function buildAccountingIncomeExportPreview({
       endDate: document.endDate,
       filename: document.filename,
       kind: document.kind,
-      kindLabel: KIND_LABELS[document.kind] || document.kind,
+      kindLabel: sourceDocumentLabel(document),
+      isRequiredPlaceholder: document.isRequiredPlaceholder === true,
       originalAvailable: document.originalAvailable,
       originalUrl: absoluteOriginalUrl(publicOrigin, document.originalPath),
+      periodType: document.periodType,
+      periodTypeLabel: PERIOD_TYPE_LABELS[document.periodType] || "ไม่ทราบรอบ",
       shopCode: document.shopCode,
       shopLabel: shopLabel(document.shopCode),
       startDate: document.startDate,
@@ -376,11 +504,82 @@ function buildAccountingIncomeExportPreview({
       shopLabel: shopLabel(order.shopCode),
     })),
     summary: {
+      availableOriginalCount: documents.filter((document) => document.originalAvailable).length,
       creditedCount: creditedOrders.length,
+      missingOriginalCount: documents.filter((document) => !document.originalAvailable).length,
       orderCount: orders.length,
       totalIncome,
     },
+    sourcePolicy: {
+      fullCalendarMonth: isFullCalendarMonth(filters.dateFrom, filters.dateTo),
+      monthlyIncluded: isFullCalendarMonth(filters.dateFrom, filters.dateTo),
+    },
     timezone: "Asia/Bangkok",
+  };
+}
+
+function safeZipSegment(value) {
+  return String(value || "file")
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/gu, "-")
+    .replace(/\s+/gu, " ")
+    .trim() || "file";
+}
+
+async function exportAccountingIncomeOrdersBundle(filters, {
+  incomeRepository = repository,
+  publicOrigin = "",
+  storage = fileStorage,
+} = {}) {
+  const { documents, orders } = await loadAccountingIncomeExportData(filters, incomeRepository);
+  const workbookFilename = buildAccountingIncomeExportFilename(filters);
+  const workbookBuffer = await buildAccountingIncomeExportWorkbook({
+    documents,
+    filters,
+    orders,
+    publicOrigin,
+  });
+  const entries = {
+    [`เอกสารที่ระบบสร้าง/${workbookFilename}`]: new Uint8Array(workbookBuffer),
+  };
+  const missing = [];
+  for (const document of documents) {
+    if (!document.originalAvailable || !document.sourceFile) {
+      missing.push(
+        `${SHOP_LABELS[document.shopCode] || document.shopCode} | ${sourceDocumentLabel(document)}`
+        + ` | ${document.startDate} ถึง ${document.endDate} | ${document.filename}`,
+      );
+      continue;
+    }
+    const folder = document.kind === "income"
+      ? "รายงานรายรับของฉัน"
+      : document.periodType === "monthly" ? "รายงานการเงินรายเดือน" : "รายงานการเงินรายสัปดาห์";
+    const path = [
+      safeZipSegment(SHOP_LABELS[document.shopCode] || document.shopCode),
+      folder,
+      safeZipSegment(document.filename),
+    ].join("/");
+    entries[path] = new Uint8Array(await storage.readStoredFile(
+      document.sourceFile.storageProvider,
+      document.sourceFile.storagePath,
+      document.sourceFile.storageBucket,
+    ));
+  }
+  const readme = [
+    "ชุดเอกสารบัญชี Shopee",
+    `ช่วงวันที่โอนชำระเงินสำเร็จ: ${filters.dateFrom} ถึง ${filters.dateTo}`,
+    isFullCalendarMonth(filters.dateFrom, filters.dateTo)
+      ? "กติกา: เดือนเต็ม จึงรวมรายงานการเงินรายเดือนที่ตรงทั้งเดือน และรายสัปดาห์ที่ทับซ้อน"
+      : "กติกา: ช่วงไม่ครบเดือน จึงรวมเฉพาะรายงานการเงินรายสัปดาห์ที่ทับซ้อน",
+    "",
+    missing.length
+      ? `ไฟล์ต้นฉบับที่ยังขาด (${missing.length}):\n- ${missing.join("\n- ")}`
+      : "ไฟล์ต้นฉบับตามรอบที่เลือกมีครบในชุดนี้",
+  ].join("\n");
+  entries["README.txt"] = strToU8(readme);
+  return {
+    buffer: Buffer.from(zipSync(entries, { level: 6 })),
+    filename: workbookFilename.replace(/\.xlsx$/iu, ".zip"),
+    mimeType: "application/zip",
   };
 }
 
@@ -426,8 +625,12 @@ module.exports = {
   buildAccountingIncomeExportWorkbook,
   collectAllIncomeOrders,
   exportAccountingIncomeOrders,
+  exportAccountingIncomeOrdersBundle,
   formatDateLabel,
   loadAccountingIncomeExportData,
+  isFullCalendarMonth,
+  selectAccountingSourceDocuments,
+  sourceDocumentLabel,
   previewAccountingIncomeOrders,
   shopLabel,
   toExcelDate,

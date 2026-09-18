@@ -7,6 +7,7 @@ const {
 const { asyncHandler } = require("../utils/asyncHandler");
 const controller = require("../controllers/accountingPrintBundleController");
 const {
+  exportIncomeOrdersBundle,
   exportIncomeOrders,
   listIncomeOrders,
   previewIncomeOrders,
@@ -16,6 +17,13 @@ const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 20 * 1024 * 1024, files: 100, fields: 0 },
+});
+const sourceOriginalUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 20 * 1024 * 1024, files: 20, fields: 0 },
+  fileFilter(req, file, callback) {
+    callback(null, /\.pdf$/iu.test(file.originalname || ""));
+  },
 });
 router.use(appAuth);
 router.use(accountingPrintEnabled);
@@ -39,8 +47,19 @@ router.post(
 );
 // Keep named collection routes above /:id so "income-orders" is never parsed as a batch UUID.
 router.get("/income-orders/export.xlsx", asyncHandler(exportIncomeOrders));
+router.get("/income-orders/export.zip", asyncHandler(exportIncomeOrdersBundle));
 router.get("/income-orders/preview", asyncHandler(previewIncomeOrders));
 router.get("/income-orders", asyncHandler(listIncomeOrders));
+router.post(
+  "/source-originals/:shopCode",
+  controller.requireAdmin,
+  sourceOriginalUpload.array("files", 20),
+  asyncHandler(controller.uploadSourceOriginals),
+);
+router.get(
+  "/source-originals/:sourceId",
+  asyncHandler(controller.downloadSourceOriginal),
+);
 router.get(
   "/:id",
   asyncHandler(async (req, res) =>

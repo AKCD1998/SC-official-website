@@ -1,6 +1,7 @@
 const {
   arrangeManifest,
   inspectOriginal,
+  statementPeriodType,
   SHOPS,
 } = require("../src/modules/seamless/services/accountingOriginalManifest");
 const {
@@ -106,6 +107,11 @@ test("validates embedded seller ID instead of trusting the upload field", async 
       SHOPS[0],
     ),
   ).rejects.toThrow(/ผิดร้าน/);
+});
+test("classifies only exact Monday-Sunday weeks and exact calendar months", () => {
+  expect(statementPeriodType("2026-07-27", "2026-08-02")).toBe("weekly");
+  expect(statementPeriodType("2026-08-01", "2026-08-31")).toBe("monthly");
+  expect(statementPeriodType("2026-08-01", "2026-08-30")).toBeNull();
 });
 test("LINE message includes an exact ledger link and carries no buyer details", () => {
   const manifest = arrangeManifest(docs());

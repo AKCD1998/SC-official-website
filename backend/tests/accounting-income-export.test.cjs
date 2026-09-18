@@ -6,6 +6,9 @@ const {
   buildAccountingIncomeExportWorkbook,
   collectAllIncomeOrders,
   exportAccountingIncomeOrders,
+  exportAccountingIncomeOrdersBundle,
+  isFullCalendarMonth,
+  selectAccountingSourceDocuments,
 } = require("../src/modules/seamless/services/accountingIncomeExportService");
 
 const filters = Object.freeze({
@@ -40,13 +43,15 @@ function exampleOrders() {
 function exampleDocuments() {
   return [{
     checksumSha256: "a".repeat(64),
-    endDate: "2026-08-07",
-    filename: "weekly_report_20260801.pdf",
+    endDate: "2026-08-02",
+    filename: "weekly_report_20260727.pdf",
     kind: "statement",
     originalAvailable: true,
     originalPath: "/app/accounting-print-bundles/batch-1/items/statement-1/original",
+    periodType: "weekly",
     shopCode: "sc-drug-store",
-    startDate: "2026-08-01",
+    sourceFile: { storageProvider: "r2", storagePath: "weekly.pdf", storageBucket: "docs" },
+    startDate: "2026-07-27",
   }, {
     checksumSha256: "b".repeat(64),
     endDate: "2026-08-07",
@@ -54,6 +59,7 @@ function exampleDocuments() {
     kind: "income",
     originalAvailable: false,
     originalPath: null,
+    periodType: "income",
     shopCode: "sc-drug-store",
     startDate: "2026-08-01",
   }];
@@ -80,12 +86,12 @@ test("accounting Income workbook explains transferred-date scope and links origi
   expect(sources.getCell("B11").value).toBe(2);
   expect(sources.getCell("D11").value).toBe(215.5);
   expect(sources.getCell("F11").value).toBe(1);
-  expect(sources.getCell("A16").value).toBe("รายงานการเงิน");
+  expect(sources.getCell("A16").value).toBe("รายงานการเงิน (รายสัปดาห์)");
   expect(sources.getCell("G16").value).toEqual({
     hyperlink: "https://api.example.test/api/app/accounting-print-bundles/batch-1/items/statement-1/original",
-    text: "ดาวน์โหลดต้นฉบับ",
+    text: "เปิดดูต้นฉบับ",
   });
-  expect(sources.getCell("F17").value).toBe("ระบบเก็บเฉพาะข้อมูลที่อ่านได้");
+  expect(sources.getCell("F17").value).toBe("มีข้อมูลอ้างอิง แต่ยังไม่มีไฟล์ต้นฉบับ");
 
   const orders = workbook.getWorksheet("รายการรายรับ");
   expect(orders.getCell("A2").value).toContain("01/08/2026 ถึง 31/08/2026");
@@ -96,6 +102,10 @@ test("accounting Income workbook explains transferred-date scope and links origi
   expect(orders.getCell("B5").value).toBe("SC Drug Store");
   expect(orders.getCell("E5").value).toBe(125.5);
   expect(orders.getCell("F5").value).toBe("เงินเข้าแล้ว");
+  expect(orders.getCell("F5").fill.fgColor.argb).toBe("FFC6EFCE");
+  expect(orders.getCell("F5").font.color.argb).toBe("FF006100");
+  expect(orders.getCell("F6").fill.fgColor.argb).toBe("FFDDEBF7");
+  expect(orders.getCell("F6").font.color.argb).toBe("FF44546A");
   expect(orders.getCell("H6").value).toBeNull();
   expect(orders.autoFilter.toString()).toContain("A4:H6");
 });
@@ -109,16 +119,100 @@ test("accounting preview uses the same filters, totals, rows, and source evidenc
   });
 
   expect(preview.filters.shopLabel).toBe("SC Drug Store");
-  expect(preview.summary).toEqual({ creditedCount: 1, orderCount: 2, totalIncome: 215.5 });
+  expect(preview.summary).toEqual({
+    availableOriginalCount: 1,
+    creditedCount: 1,
+    missingOriginalCount: 1,
+    orderCount: 2,
+    totalIncome: 215.5,
+  });
   expect(preview.orders[0]).toMatchObject({
     orderNumber: "260730TEST001",
     shopCode: "sc-drug-store",
   });
   expect(preview.documents[0]).toMatchObject({
-    kindLabel: "รายงานการเงิน",
+    kindLabel: "รายงานการเงิน (รายสัปดาห์)",
     originalUrl: "https://api.example.test/api/app/accounting-print-bundles/batch-1/items/statement-1/original",
     shopLabel: "SC Drug Store",
   });
+});
+
+test("full calendar month selects one exact monthly statement plus every overlapping boundary week", () => {
+  const statement = (periodType, startDate, endDate, originalAvailable = true) => ({
+    checksumSha256: `${periodType}-${startDate}`,
+    endDate,
+    filename: `${periodType}_report_${startDate.replaceAll("-", "")}.pdf`,
+    kind: "statement",
+    originalAvailable,
+    originalPath: originalAvailable ? "/original" : null,
+    periodType,
+    shopCode: "sc-drug-store",
+    startDate,
+  });
+  const documents = [
+    statement("monthly", "2026-08-01", "2026-08-31"),
+    statement("weekly", "2026-07-27", "2026-08-02"),
+    statement("weekly", "2026-08-03", "2026-08-09"),
+    statement("weekly", "2026-08-10", "2026-08-16"),
+    statement("weekly", "2026-08-17", "2026-08-23"),
+    statement("weekly", "2026-08-24", "2026-08-30"),
+    statement("weekly", "2026-08-31", "2026-09-06", false),
+  ];
+  const selected = selectAccountingSourceDocuments(documents, {
+    dateFrom: "2026-08-01",
+    dateTo: "2026-08-31",
+    shopCode: "sc-drug-store",
+  });
+
+  expect(isFullCalendarMonth("2026-08-01", "2026-08-31")).toBe(true);
+  expect(selected.filter((document) => document.periodType === "monthly")).toHaveLength(1);
+  expect(selected.filter((document) => document.periodType === "weekly")).toHaveLength(6);
+  expect(selected[1]).toMatchObject({ startDate: "2026-07-27", endDate: "2026-08-02" });
+  expect(selected[6]).toMatchObject({ startDate: "2026-08-31", endDate: "2026-09-06" });
+});
+
+test("partial month excludes monthly statements and reports missing weekly originals without inventing files", () => {
+  const selected = selectAccountingSourceDocuments([{
+    checksumSha256: "monthly",
+    endDate: "2026-08-31",
+    filename: "monthly_report_20260801.pdf",
+    kind: "statement",
+    originalAvailable: true,
+    periodType: "monthly",
+    shopCode: "sc-drug-store",
+    startDate: "2026-08-01",
+  }], {
+    dateFrom: "2026-08-05",
+    dateTo: "2026-08-12",
+    shopCode: "sc-drug-store",
+  });
+
+  expect(isFullCalendarMonth("2026-08-05", "2026-08-12")).toBe(false);
+  expect(selected).toHaveLength(2);
+  expect(selected.every((document) => document.periodType === "weekly")).toBe(true);
+  expect(selected.every((document) => document.isRequiredPlaceholder)).toBe(true);
+});
+
+test("ZIP bundle contains the generated workbook, available originals, and a missing-file manifest", async () => {
+  const { unzipSync, strFromU8 } = require("fflate");
+  const incomeRepository = {
+    listIncomeExportSourceDocuments: jest.fn().mockResolvedValue(exampleDocuments()),
+    listIncomeOrders: jest.fn().mockResolvedValue({ orders: exampleOrders(), totalCount: 2 }),
+  };
+  const storage = {
+    readStoredFile: jest.fn().mockResolvedValue(Buffer.from("original-pdf")),
+  };
+  const bundle = await exportAccountingIncomeOrdersBundle({
+    ...filters,
+    shopCode: "sc-drug-store",
+  }, { incomeRepository, publicOrigin: "https://api.example.test", storage });
+  const entries = unzipSync(new Uint8Array(bundle.buffer));
+  const names = Object.keys(entries);
+
+  expect(bundle.filename).toMatch(/\.zip$/u);
+  expect(names.some((name) => name.endsWith(".xlsx"))).toBe(true);
+  expect(names.some((name) => name.endsWith("weekly_report_20260727.pdf"))).toBe(true);
+  expect(strFromU8(entries["README.txt"])).toContain("ไฟล์ต้นฉบับที่ยังขาด");
 });
 
 test("collectAllIncomeOrders requests every page without exposing pagination in the export", async () => {
