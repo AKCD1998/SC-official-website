@@ -53,6 +53,8 @@ test("immutable job replay is idempotent and changed evidence rolls back", async
   expect(query).toHaveBeenLastCalledWith("ROLLBACK");
 });
 test("outside-window replay returns the original status and rejects changed lower-bound proof", async () => {
+  const body = { ...windowEvidence(), dateFrom: "2026-03-17", dateTo: "2026-03-17",
+    sourceValidation: { ...windowEvidence().sourceValidation, requestedDate: "2026-03-17", earliestAvailableDate: "2026-03-18" } };
   let saved;
   const query = jest.fn(async (sql, args) => {
     if (sql.startsWith("SELECT payload")) return { rows: saved ? [saved] : [] };
@@ -60,8 +62,9 @@ test("outside-window replay returns the original status and rejects changed lowe
     return { rows: [] };
   });
   const dbPool = { connect: async () => ({ query, release: jest.fn() }) };
-  expect(await recordDocumentObservation({ body: windowEvidence(), now, dbPool })).toMatchObject({ status: "recorded", resultStatus: "unavailable" });
-  expect(await recordDocumentObservation({ body: windowEvidence(), now, dbPool })).toMatchObject({ status: "already_recorded", resultStatus: "unavailable" });
+  expect(await recordDocumentObservation({ body, now, dbPool })).toMatchObject({ status: "recorded", resultStatus: "unavailable" });
+  expect(await recordDocumentObservation({ body, now, dbPool })).toMatchObject({ status: "already_recorded", resultStatus: "unavailable" });
+  await expect(recordDocumentObservation({ body: { ...body, sourceValidation: { ...body.sourceValidation, earliestAvailableDate: "2026-03-19" } }, now, dbPool })).rejects.toMatchObject({ statusCode: 409 });
   await expect(recordDocumentObservation({ body: evidence(), now, dbPool })).rejects.toMatchObject({ statusCode: 409 });
 });
 test("window observations show checked coverage, real files win and income-pending is unchanged", () => {
