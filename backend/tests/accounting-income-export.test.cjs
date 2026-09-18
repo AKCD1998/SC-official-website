@@ -12,6 +12,9 @@ const {
   isFullCalendarMonth,
   selectAccountingSourceDocuments,
 } = require("../src/modules/seamless/services/accountingIncomeExportService");
+const {
+  buildWeeklyReconciliation,
+} = require("../src/modules/seamless/services/accountingIncomePdfService");
 
 const filters = Object.freeze({
   dateColumn: "transferredAt",
@@ -202,6 +205,58 @@ test("partial month excludes monthly statements and reports missing weekly origi
   expect(selected.every((document) => document.isRequiredPlaceholder)).toBe(true);
 });
 
+test("weekly reconciliation includes boundary weeks without adding their out-of-range amounts", () => {
+  const weeklyAmounts = [2611, 2065, 4877, 15988, 27084, null];
+  const starts = ["2026-07-27", "2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31"];
+  const ends = ["2026-08-02", "2026-08-09", "2026-08-16", "2026-08-23", "2026-08-30", "2026-09-06"];
+  const includedAmounts = [999, 2065, 4877, 15988, 27084, 7701];
+  const documents = starts.map((startDate, index) => ({
+    endDate: ends[index],
+    filename: `weekly_report_${startDate.replaceAll("-", "")}.pdf`,
+    kind: "statement",
+    originalAvailable: weeklyAmounts[index] != null,
+    periodType: "weekly",
+    shopCode: "sc-drug-store",
+    startDate,
+  }));
+  documents.unshift({
+    endDate: "2026-08-31",
+    filename: "monthly_report_20260801.pdf",
+    kind: "statement",
+    originalAvailable: true,
+    periodType: "monthly",
+    shopCode: "sc-drug-store",
+    startDate: "2026-08-01",
+  });
+  const entries = documents
+    .filter((document) => document.periodType === "weekly" && document.originalAvailable)
+    .map((document, index) => ({ document, transferredTotal: weeklyAmounts[index] }));
+  const orders = ["2026-08-02", "2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31"]
+    .map((transferDate, index) => ({ amount: includedAmounts[index], shopCode: "sc-drug-store", transferDate }));
+
+  const reconciliation = buildWeeklyReconciliation({ documents, entries, filters, orders });
+
+  expect(reconciliation.rows).toHaveLength(6);
+  expect(reconciliation.rows[0]).toMatchObject({
+    excludedAmount: 1612,
+    fullDocumentAmount: 2611,
+    includedAmount: 999,
+    status: "partial_overlap",
+  });
+  expect(reconciliation.rows[5]).toMatchObject({
+    fullDocumentAmount: null,
+    includedAmount: 7701,
+    status: "awaiting_original",
+  });
+  expect(reconciliation).toMatchObject({
+    difference: 0,
+    missingOriginalCount: 1,
+    overallStatus: "awaiting_original",
+    selectedIncomeTotal: 58714,
+    weeklyIncludedTotal: 58714,
+  });
+});
+
 test("ZIP bundle contains the generated workbook, available originals, and a missing-file manifest", async () => {
   const { unzipSync, strFromU8 } = require("fflate");
   const incomeRepository = {
@@ -243,9 +298,9 @@ test("combined PDF keeps the generated report first and appends every original S
 
   expect(exported.mimeType).toBe("application/pdf");
   expect(exported.filename).toMatch(/with-shopee-appendix\.pdf$/u);
-  expect(combined.getPageCount()).toBe(5);
-  expect(combined.getPage(3).getSize()).toEqual({ width: 400, height: 500 });
-  expect(combined.getPage(4).getSize()).toEqual({ width: 500, height: 400 });
+  expect(combined.getPageCount()).toBe(6);
+  expect(combined.getPage(4).getSize()).toEqual({ width: 400, height: 500 });
+  expect(combined.getPage(5).getSize()).toEqual({ width: 500, height: 400 });
   expect(storage.readStoredFile).toHaveBeenCalledTimes(1);
 });
 

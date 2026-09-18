@@ -2,6 +2,7 @@ const fs = require("node:fs/promises");
 const path = require("node:path");
 const fontkit = require("@pdf-lib/fontkit");
 const { PDFDocument, rgb } = require("pdf-lib");
+const { readFinancialStatementSourceBuffer } = require("./shopeeOfficialDocumentService");
 
 const A4_LANDSCAPE = Object.freeze([841.89, 595.28]);
 const FONT_PATH = path.resolve(
@@ -12,12 +13,17 @@ const MAX_APPENDIX_BYTES = 100 * 1024 * 1024;
 const MAX_APPENDIX_PAGES = 500;
 const ORDER_ROWS_PER_PAGE = 18;
 const INDEX_ROWS_PER_PAGE = 18;
+const RECONCILIATION_ROWS_PER_PAGE = 12;
 const COLORS = Object.freeze({
   blue: rgb(31 / 255, 78 / 255, 120 / 255),
   border: rgb(205 / 255, 217 / 255, 232 / 255),
   ink: rgb(31 / 255, 41 / 255, 55 / 255),
   muted: rgb(95 / 255, 107 / 255, 122 / 255),
   paleBlue: rgb(238 / 255, 245 / 255, 251 / 255),
+  paleGray: rgb(238 / 255, 241 / 255, 245 / 255),
+  paleGreen: rgb(198 / 255, 239 / 255, 206 / 255),
+  paleRed: rgb(1, 199 / 255, 206 / 255),
+  paleYellow: rgb(1, 235 / 255, 156 / 255),
   white: rgb(1, 1, 1),
 });
 const STATUS_COLORS = Object.freeze({
@@ -187,7 +193,7 @@ function drawCover(pdf, font, { documents, filters, orders, summary, sourcePolic
     x: 30,
     y: 140,
   });
-  drawText(page, font, "1. หน้าปกและสรุป  2. ตารางรายการรายรับ  3. ดัชนีภาคผนวก  4. สำเนาทุกหน้าของ PDF Shopee ต้นฉบับ", {
+  drawText(page, font, "1. หน้าปก  2. ตารางรายการรายรับ  3. กระทบยอดรายสัปดาห์  4. ดัชนีภาคผนวก  5. PDF Shopee ต้นฉบับ", {
     maxWidth: 780,
     size: 12,
     x: 30,
@@ -332,9 +338,210 @@ async function loadAppendixEntries(documents, storage) {
       error.statusCode = 413;
       throw error;
     }
-    entries.push({ document, pageCount, sourcePdf });
+    let transferredTotal = null;
+    let transferredTotalError = "";
+    if (document.kind === "statement" && document.periodType === "weekly") {
+      try {
+        const parsed = await readFinancialStatementSourceBuffer(buffer, {
+          observedAt: new Date().toISOString(),
+          shopCode: document.shopCode,
+          sourceFilename: document.filename,
+          sourceSha256: document.checksumSha256 || undefined,
+        });
+        transferredTotal = parsed.control.transferredTotal;
+      } catch (error) {
+        transferredTotalError = error?.message || "อ่านยอดรวมจาก PDF ไม่สำเร็จ";
+      }
+    }
+    entries.push({ document, pageCount, sourcePdf, transferredTotal, transferredTotalError });
   }
   return { entries, skipped };
+}
+
+function amountCents(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.round(number * 100) : 0;
+}
+
+function centsAmount(value) {
+  return Math.round(value) / 100;
+}
+
+function buildWeeklyReconciliation({ documents, entries = [], filters, orders = [] }) {
+  const entryByDocument = new Map(entries.map((entry) => [entry.document, entry]));
+  const rows = documents
+    .filter((document) => document.kind === "statement" && document.periodType === "weekly")
+    .map((document) => {
+      const overlapStart = document.startDate > filters.dateFrom ? document.startDate : filters.dateFrom;
+      const overlapEnd = document.endDate < filters.dateTo ? document.endDate : filters.dateTo;
+      const matchingOrders = orders.filter((order) => (
+        order.shopCode === document.shopCode
+        && order.transferDate >= overlapStart
+        && order.transferDate <= overlapEnd
+      ));
+      const includedCents = matchingOrders.reduce((total, order) => total + amountCents(order.amount), 0);
+      const entry = entryByDocument.get(document);
+      const fullCents = entry?.transferredTotal == null
+        ? null
+        : amountCents(entry.transferredTotal);
+      const isBoundary = document.startDate < filters.dateFrom || document.endDate > filters.dateTo;
+      let status = "matched";
+      let statusLabel = "ตรงกัน";
+      if (!document.originalAvailable || !entry) {
+        status = "awaiting_original";
+        statusLabel = "รอไฟล์ต้นฉบับ";
+      } else if (fullCents == null) {
+        status = "unreadable_total";
+        statusLabel = "อ่านยอดต้นฉบับไม่ได้";
+      } else if (!isBoundary && fullCents !== includedCents) {
+        status = "mismatch";
+        statusLabel = "ยอดไม่ตรง";
+      } else if (isBoundary && fullCents < includedCents) {
+        status = "mismatch";
+        statusLabel = "ยอดนับเกินต้นฉบับ";
+      } else if (isBoundary) {
+        status = includedCents === 0 ? "excluded" : "partial_overlap";
+        statusLabel = includedCents === 0 ? "ไม่นับในช่วง" : "นับเฉพาะวันที่ในช่วง";
+      }
+      return {
+        document,
+        excludedAmount: fullCents == null ? null : centsAmount(fullCents - includedCents),
+        fullDocumentAmount: fullCents == null ? null : centsAmount(fullCents),
+        includedAmount: centsAmount(includedCents),
+        isBoundary,
+        orderCount: matchingOrders.length,
+        overlapEnd,
+        overlapStart,
+        status,
+        statusLabel,
+      };
+    });
+  const selectedIncomeCents = orders.reduce((total, order) => total + amountCents(order.amount), 0);
+  const weeklyIncludedCents = rows.reduce((total, row) => total + amountCents(row.includedAmount), 0);
+  const missingOriginalCount = rows.filter((row) => row.status === "awaiting_original").length;
+  const issueCount = rows.filter((row) => ["mismatch", "unreadable_total"].includes(row.status)).length;
+  const differenceCents = selectedIncomeCents - weeklyIncludedCents;
+  const overallStatus = differenceCents !== 0 || issueCount > 0
+    ? "issue"
+    : missingOriginalCount > 0 ? "awaiting_original" : "matched";
+  return {
+    difference: centsAmount(differenceCents),
+    issueCount,
+    missingOriginalCount,
+    overallStatus,
+    rows,
+    selectedIncomeTotal: centsAmount(selectedIncomeCents),
+    weeklyIncludedTotal: centsAmount(weeklyIncludedCents),
+  };
+}
+
+const RECONCILIATION_COLUMNS = Object.freeze([
+  { key: "period", label: "รอบ Weekly", width: 113 },
+  { key: "shopLabel", label: "ร้าน", width: 78 },
+  { key: "originalStatus", label: "ไฟล์ต้นฉบับ", width: 100 },
+  { key: "orderCount", label: "ออเดอร์", width: 54, align: "right" },
+  { key: "fullDocumentAmount", label: "ยอดเต็มเอกสาร", width: 102, align: "right" },
+  { key: "includedAmount", label: "ยอดนับเข้าช่วง", width: 102, align: "right" },
+  { key: "excludedAmount", label: "ยอดนอกช่วง", width: 102, align: "right" },
+  { key: "statusLabel", label: "ผลตรวจ", width: 133 },
+]);
+
+function reconciliationFill(status) {
+  if (status === "matched" || status === "partial_overlap") return COLORS.paleGreen;
+  if (status === "awaiting_original") return COLORS.paleYellow;
+  if (status === "excluded") return COLORS.paleGray;
+  return COLORS.paleRed;
+}
+
+function reconciliationCellValue(row, key) {
+  if (key === "period") return `${formatDate(row.document.startDate)} - ${formatDate(row.document.endDate)}`;
+  if (key === "shopLabel") return row.document.shopLabel || row.document.shopCode;
+  if (key === "originalStatus") return row.document.originalAvailable ? "มีไฟล์" : "ยังไม่มีไฟล์";
+  if (["fullDocumentAmount", "includedAmount", "excludedAmount"].includes(key)) {
+    return row[key] == null ? "-" : formatMoney(row[key]);
+  }
+  return row[key];
+}
+
+function drawWeeklyReconciliationPages(pdf, font, reconciliation, filters) {
+  const chunks = [];
+  if (!reconciliation.rows.length) chunks.push([]);
+  for (let index = 0; index < reconciliation.rows.length; index += RECONCILIATION_ROWS_PER_PAGE) {
+    chunks.push(reconciliation.rows.slice(index, index + RECONCILIATION_ROWS_PER_PAGE));
+  }
+  return chunks.map((chunk, pageIndex) => {
+    const page = pdf.addPage(A4_LANDSCAPE);
+    drawTitle(
+      page,
+      font,
+      "สรุปการกระทบยอดรายสัปดาห์",
+      `ยึดวันที่โอนชำระเงินสำเร็จ ${formatDate(filters.dateFrom)} ถึง ${formatDate(filters.dateTo)} | หน้า ${pageIndex + 1}/${chunks.length}`,
+    );
+    drawText(page, font, "ยอดเต็มเอกสารคือยอดทั้งสัปดาห์ ส่วนยอดนับเข้าช่วงใช้เฉพาะวันที่ที่เลือก เอกสาร monthly เป็นหลักฐานและไม่นำมานับซ้ำ", {
+      color: COLORS.muted, maxWidth: 782, size: 11, x: 30, y: 505,
+    });
+    const tableX = 29;
+    const headerY = 448;
+    let x = tableX;
+    RECONCILIATION_COLUMNS.forEach((column) => {
+      page.drawRectangle({ x, y: headerY, width: column.width, height: 35, color: COLORS.blue });
+      drawText(page, font, column.label, {
+        align: "center", color: COLORS.white, maxWidth: column.width - 8, size: 9.5, x: x + 4, y: headerY + 12,
+      });
+      x += column.width;
+    });
+    if (!chunk.length) {
+      drawText(page, font, "ไม่พบรายงานการเงินรายสัปดาห์ที่ทับซ้อนช่วงนี้", {
+        align: "center", color: COLORS.muted, maxWidth: 784, size: 14, x: tableX, y: 406,
+      });
+    }
+    chunk.forEach((row, rowIndex) => {
+      const rowY = headerY - (rowIndex + 1) * 27;
+      let cellX = tableX;
+      RECONCILIATION_COLUMNS.forEach((column) => {
+        page.drawRectangle({
+          x: cellX,
+          y: rowY,
+          width: column.width,
+          height: 27,
+          borderColor: COLORS.border,
+          borderWidth: 0.5,
+          color: column.key === "statusLabel"
+            ? reconciliationFill(row.status)
+            : rowIndex % 2 ? rgb(248 / 255, 250 / 255, 252 / 255) : COLORS.white,
+        });
+        drawText(page, font, reconciliationCellValue(row, column.key), {
+          align: column.align || "left", maxWidth: column.width - 8, size: 8.8, x: cellX + 4, y: rowY + 8,
+        });
+        cellX += column.width;
+      });
+    });
+    if (pageIndex === chunks.length - 1) {
+      const summaryY = 62;
+      const summaryItems = [
+        ["ยอด Income ตามช่วง", formatMoney(reconciliation.selectedIncomeTotal)],
+        ["ยอด Weekly ที่นับเข้าช่วง", formatMoney(reconciliation.weeklyIncludedTotal)],
+        ["ผลต่าง", formatMoney(reconciliation.difference)],
+      ];
+      summaryItems.forEach(([label, value], index) => {
+        const boxX = 29 + index * 190;
+        page.drawRectangle({ x: boxX, y: summaryY, width: 176, height: 48, color: COLORS.paleBlue, borderColor: COLORS.border, borderWidth: 0.7 });
+        drawText(page, font, label, { color: COLORS.muted, maxWidth: 160, size: 9.5, x: boxX + 8, y: summaryY + 29 });
+        drawText(page, font, value, { color: COLORS.blue, maxWidth: 160, size: 13, x: boxX + 8, y: summaryY + 10 });
+      });
+      const overallLabel = reconciliation.overallStatus === "matched"
+        ? "หลักฐานครบและยอดตรง"
+        : reconciliation.overallStatus === "awaiting_original"
+          ? `ยอดตาม Income ครบ แต่รอไฟล์ต้นฉบับ ${reconciliation.missingOriginalCount} ฉบับ`
+          : reconciliation.difference !== 0
+            ? `ยอดรวมต่างกัน ${formatMoney(reconciliation.difference)}`
+            : `ต้องตรวจสอบ ${reconciliation.issueCount} จุด`;
+      page.drawRectangle({ x: 599, y: summaryY, width: 213, height: 48, color: reconciliationFill(reconciliation.overallStatus === "issue" ? "mismatch" : reconciliation.overallStatus) });
+      drawText(page, font, "สถานะรวม", { color: COLORS.muted, maxWidth: 197, size: 9.5, x: 607, y: summaryY + 29 });
+      drawText(page, font, overallLabel, { maxWidth: 197, size: 11, x: 607, y: summaryY + 10 });
+    }
+    return page;
+  });
 }
 
 const INDEX_COLUMNS = Object.freeze([
@@ -435,13 +642,15 @@ async function buildAccountingIncomeCombinedPdf({
   pdf.setTitle("Shopee Income accounting report with original appendices");
   pdf.setSubject("Income rows and original Shopee financial statement appendices");
 
+  const { entries, skipped } = await loadAppendixEntries(documents, storage);
+  const reconciliation = buildWeeklyReconciliation({ documents, entries, filters, orders });
   const generatedPages = [];
   generatedPages.push(drawCover(pdf, font, {
     documents, filters, orders, sourcePolicy, summary,
   }));
   generatedPages.push(...drawOrderPages(pdf, font, { filters, orders }));
+  generatedPages.push(...drawWeeklyReconciliationPages(pdf, font, reconciliation, filters));
 
-  const { entries, skipped } = await loadAppendixEntries(documents, storage);
   const indexPageCount = Math.max(1, Math.ceil(documents.length / INDEX_ROWS_PER_PAGE));
   const startPageByDocument = new Map();
   let nextPage = generatedPages.length + indexPageCount + 1;
@@ -472,7 +681,9 @@ module.exports = {
   MAX_APPENDIX_BYTES,
   MAX_APPENDIX_PAGES,
   ORDER_ROWS_PER_PAGE,
+  RECONCILIATION_ROWS_PER_PAGE,
   buildAccountingIncomeCombinedPdf,
+  buildWeeklyReconciliation,
   fitText,
   formatDate,
   formatMoney,
