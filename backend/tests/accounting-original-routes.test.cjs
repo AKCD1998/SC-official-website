@@ -18,8 +18,13 @@ jest.mock(
   "../src/modules/seamless/db/accountingIncomeOrderRepository",
   () => ({ listIncomeOrders: jest.fn() }),
 );
+jest.mock(
+  "../src/modules/seamless/services/accountingIncomeExportService",
+  () => ({ exportAccountingIncomeOrders: jest.fn() }),
+);
 const service = require("../src/modules/seamless/services/accountingOriginalPrintService");
 const incomeOrderRepository = require("../src/modules/seamless/db/accountingIncomeOrderRepository");
+const incomeExportService = require("../src/modules/seamless/services/accountingIncomeExportService");
 const routes = require("../src/modules/seamless/routes/accountingPrintBundleRoutes");
 const agentRoutes = require("../src/modules/seamless/routes/accountingPrintAgentRoutes");
 const {
@@ -49,6 +54,11 @@ beforeEach(() => {
       transferDate: "2026-09-01",
     }],
     totalCount: 1,
+  });
+  incomeExportService.exportAccountingIncomeOrders.mockResolvedValue({
+    buffer: Buffer.from("xlsx-test"),
+    filename: "shopee-income-accounting-2026-08-01-to-2026-08-31.xlsx",
+    mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
 });
 afterEach(() => {
@@ -169,4 +179,48 @@ test("rejects invalid Income order ranges before querying the database", async (
   expect(result.status).toBe(400);
   expect(result.body.error.message).toContain("dateTo");
   expect(incomeOrderRepository.listIncomeOrders).not.toHaveBeenCalled();
+});
+
+test("exports the selected transferred-date range as an authenticated accounting workbook", async () => {
+  const result = await request(app)
+    .get("/batches/income-orders/export.xlsx")
+    .query({
+      dateColumn: "transferredAt",
+      dateFrom: "2026-08-01",
+      dateTo: "2026-08-31",
+      orderNumber: "2608test",
+    })
+    .set("X-Forwarded-Proto", "https")
+    .set("X-Forwarded-Host", "api.example.test")
+    .auth("staff", "staff-test");
+
+  expect(result.status).toBe(200);
+  expect(result.headers["cache-control"]).toBe("private, no-store");
+  expect(result.headers["content-type"]).toContain(
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  );
+  expect(result.headers["content-disposition"]).toContain(
+    "shopee-income-accounting-2026-08-01-to-2026-08-31.xlsx",
+  );
+  expect(incomeExportService.exportAccountingIncomeOrders).toHaveBeenCalledWith({
+    dateColumn: "transferredAt",
+    dateFrom: "2026-08-01",
+    dateTo: "2026-08-31",
+    orderNumber: "2608TEST",
+  }, { publicOrigin: "https://api.example.test" });
+});
+
+test("Income accounting export rejects order-date basis and missing date bounds", async () => {
+  const orderDateResult = await request(app)
+    .get("/batches/income-orders/export.xlsx?dateColumn=orderedAt&dateFrom=2026-08-01&dateTo=2026-08-31")
+    .auth("staff", "staff-test");
+  const missingDateResult = await request(app)
+    .get("/batches/income-orders/export.xlsx?dateColumn=transferredAt")
+    .auth("staff", "staff-test");
+
+  expect(orderDateResult.status).toBe(400);
+  expect(orderDateResult.body.error.message).toContain("transferredAt");
+  expect(missingDateResult.status).toBe(400);
+  expect(missingDateResult.body.error.message).toContain("dateFrom");
+  expect(incomeExportService.exportAccountingIncomeOrders).not.toHaveBeenCalled();
 });

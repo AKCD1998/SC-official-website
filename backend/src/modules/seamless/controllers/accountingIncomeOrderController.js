@@ -1,4 +1,6 @@
 const repository = require("../db/accountingIncomeOrderRepository");
+const exportService = require("../services/accountingIncomeExportService");
+const { readPublicBaseUrl } = require("../config");
 const { badRequest } = require("../errors");
 
 const DATE_COLUMNS = new Set(["orderedAt", "transferredAt"]);
@@ -47,6 +49,48 @@ function parseIncomeOrderFilters(query = {}) {
   return { dateColumn, dateFrom, dateTo, orderNumber, page, pageSize };
 }
 
+function parseIncomeExportFilters(query = {}) {
+  const filters = parseIncomeOrderFilters({ ...query, page: 1, pageSize: 50 });
+  if (filters.dateColumn !== "transferredAt") {
+    throw badRequest("Income accounting export must use transferredAt as its dateColumn.");
+  }
+  if (!filters.dateFrom || !filters.dateTo) {
+    throw badRequest("dateFrom and dateTo are required for Income accounting export.");
+  }
+  const dayCount = Math.round(
+    (Date.parse(`${filters.dateTo}T00:00:00.000Z`)
+      - Date.parse(`${filters.dateFrom}T00:00:00.000Z`)) / 86400000,
+  ) + 1;
+  if (dayCount > 366) {
+    throw badRequest("Income accounting export cannot cover more than 366 days.");
+  }
+  return {
+    dateColumn: filters.dateColumn,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    orderNumber: filters.orderNumber,
+  };
+}
+
+function requestPublicOrigin(req) {
+  const configuredBaseUrl = readPublicBaseUrl();
+  if (configuredBaseUrl) {
+    try {
+      const configured = new URL(configuredBaseUrl);
+      if (configured.protocol === "http:" || configured.protocol === "https:") {
+        return configured.origin;
+      }
+    } catch (error) {
+      // Fall back to the current request when the optional public URL is malformed.
+    }
+  }
+  const forwardedProto = String(req.get("x-forwarded-proto") || "").split(",")[0].trim();
+  const forwardedHost = String(req.get("x-forwarded-host") || "").split(",")[0].trim();
+  const protocol = forwardedProto || req.protocol;
+  const host = forwardedHost || req.get("host");
+  return host ? `${protocol}://${host}` : "";
+}
+
 async function listIncomeOrders(req, res) {
   const filters = parseIncomeOrderFilters(req.query);
   const result = await repository.listIncomeOrders(filters);
@@ -66,4 +110,24 @@ async function listIncomeOrders(req, res) {
   });
 }
 
-module.exports = { listIncomeOrders, parseIncomeOrderFilters };
+async function exportIncomeOrders(req, res) {
+  const filters = parseIncomeExportFilters(req.query);
+  const exported = await exportService.exportAccountingIncomeOrders(filters, {
+    publicOrigin: requestPublicOrigin(req),
+  });
+  res.set("Cache-Control", "private, no-store");
+  res.setHeader("Content-Type", exported.mimeType);
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="${exported.filename}"; filename*=UTF-8''${encodeURIComponent(exported.filename)}`,
+  );
+  res.send(exported.buffer);
+}
+
+module.exports = {
+  exportIncomeOrders,
+  listIncomeOrders,
+  parseIncomeExportFilters,
+  parseIncomeOrderFilters,
+  requestPublicOrigin,
+};

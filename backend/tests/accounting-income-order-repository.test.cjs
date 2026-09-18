@@ -1,6 +1,7 @@
 const {
   SELLER_BALANCE_STATUSES,
   deriveSellerBalanceStatus,
+  listIncomeExportSourceDocuments,
   listIncomeOrders,
 } = require("../src/modules/seamless/db/accountingIncomeOrderRepository");
 
@@ -206,4 +207,72 @@ test("Income rows expose reversal precedence and only privacy-safe Seller Balanc
   }]);
   expect(result.orders[0]).not.toHaveProperty("shopCode");
   expect(result.orders[0]).not.toHaveProperty("buyerUsername");
+});
+
+test("Income export source documents prefer stored originals and retain canonical-only evidence", async () => {
+  const checksumStored = "a".repeat(64);
+  const checksumCanonicalOnly = "b".repeat(64);
+  const db = {
+    query: jest.fn()
+      .mockResolvedValueOnce({
+        rows: [{
+          batch_id: "batch-1",
+          item_id: "item-1",
+          document: {
+            checksumSha256: checksumStored,
+            end: "2026-08-31",
+            filename: "Income.โอนเงินสำเร็จ.th.20260801_20260831.xlsx",
+            kind: "income",
+            shopCode: "sc-drug-store",
+            start: "2026-08-01",
+          },
+        }],
+      })
+      .mockResolvedValueOnce({
+        rows: [{
+          end_date: "2026-08-31",
+          report_type: "income-transferred",
+          shop_code: "sc-drug-store",
+          source_filename: "Income.โอนเงินสำเร็จ.th.20260801_20260831.xlsx",
+          source_sha256: checksumStored,
+          start_date: "2026-08-01",
+        }, {
+          end_date: "2026-08-31",
+          report_type: "financial-statement",
+          shop_code: "dr-morepen",
+          source_filename: "weekly_report_20260801.pdf",
+          source_sha256: checksumCanonicalOnly,
+          start_date: "2026-08-01",
+        }],
+      }),
+  };
+
+  const result = await listIncomeExportSourceDocuments({
+    dateFrom: "2026-08-01",
+    dateTo: "2026-08-31",
+  }, db);
+
+  expect(result).toEqual([{
+    checksumSha256: checksumCanonicalOnly,
+    endDate: "2026-08-31",
+    filename: "weekly_report_20260801.pdf",
+    kind: "statement",
+    originalAvailable: false,
+    originalPath: null,
+    shopCode: "dr-morepen",
+    startDate: "2026-08-01",
+  }, {
+    checksumSha256: checksumStored,
+    endDate: "2026-08-31",
+    filename: "Income.โอนเงินสำเร็จ.th.20260801_20260831.xlsx",
+    kind: "income",
+    originalAvailable: true,
+    originalPath: "/app/accounting-print-bundles/batch-1/items/item-1/original",
+    shopCode: "sc-drug-store",
+    startDate: "2026-08-01",
+  }]);
+  expect(db.query).toHaveBeenCalledTimes(2);
+  expect(db.query.mock.calls[0][1]).toEqual(["2026-08-01", "2026-08-31"]);
+  expect(db.query.mock.calls[0][0]).toMatch(/accounting_print_items/iu);
+  expect(db.query.mock.calls[1][0]).toMatch(/shopee_official_document_sources/iu);
 });

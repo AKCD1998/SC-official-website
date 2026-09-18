@@ -210,8 +210,70 @@ async function listIncomeOrders({
   return { orders, totalCount };
 }
 
+async function listIncomeExportSourceDocuments({ dateFrom, dateTo }, db = pool) {
+  const tables = getTables();
+  const stored = await db.query(`
+    SELECT item.id AS item_id, item.batch_id, item.document, batch.created_at
+      FROM ${tables.accountingPrintItems} item
+      JOIN ${tables.accountingPrintBatches} batch ON batch.id = item.batch_id
+     WHERE item.document->>'kind' IN ('statement', 'income')
+       AND (item.document->>'start')::date <= $2::date
+       AND (item.document->>'end')::date >= $1::date
+     ORDER BY batch.created_at DESC, item.sequence DESC
+  `, [dateFrom, dateTo]);
+  const canonical = await db.query(`
+    SELECT shop_code, source_sha256, report_type, source_filename,
+           start_date::text, end_date::text, imported_at
+      FROM ${tables.shopeeOfficialDocumentSources}
+     WHERE report_type IN ('financial-statement', 'income-transferred')
+       AND start_date <= $2::date
+       AND end_date >= $1::date
+     ORDER BY imported_at DESC, source_filename ASC
+  `, [dateFrom, dateTo]);
+
+  const byChecksum = new Map();
+  for (const row of stored.rows) {
+    const document = row.document || {};
+    const checksumSha256 = String(document.checksumSha256 || "").toLowerCase();
+    if (!checksumSha256 || byChecksum.has(checksumSha256)) continue;
+    byChecksum.set(checksumSha256, {
+      checksumSha256,
+      endDate: String(document.end || ""),
+      filename: String(document.filename || ""),
+      kind: document.kind,
+      originalAvailable: true,
+      originalPath: `/app/accounting-print-bundles/${row.batch_id}/items/${row.item_id}/original`,
+      shopCode: String(document.shopCode || ""),
+      startDate: String(document.start || ""),
+    });
+  }
+  for (const row of canonical.rows) {
+    const checksumSha256 = String(row.source_sha256 || "").toLowerCase();
+    if (!checksumSha256 || byChecksum.has(checksumSha256)) continue;
+    byChecksum.set(checksumSha256, {
+      checksumSha256,
+      endDate: String(row.end_date || ""),
+      filename: String(row.source_filename || ""),
+      kind: row.report_type === "financial-statement" ? "statement" : "income",
+      originalAvailable: false,
+      originalPath: null,
+      shopCode: String(row.shop_code || ""),
+      startDate: String(row.start_date || ""),
+    });
+  }
+
+  const kindOrder = { statement: 0, income: 1 };
+  return [...byChecksum.values()].sort((left, right) => (
+    left.startDate.localeCompare(right.startDate)
+      || left.shopCode.localeCompare(right.shopCode)
+      || (kindOrder[left.kind] ?? 99) - (kindOrder[right.kind] ?? 99)
+      || left.filename.localeCompare(right.filename, "th")
+  ));
+}
+
 module.exports = {
   SELLER_BALANCE_STATUSES,
   deriveSellerBalanceStatus,
+  listIncomeExportSourceDocuments,
   listIncomeOrders,
 };

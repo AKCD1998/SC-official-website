@@ -7,6 +7,7 @@ const {
 const { asyncHandler } = require("../utils/asyncHandler");
 const controller = require("../controllers/accountingPrintBundleController");
 const {
+  exportIncomeOrders,
   listIncomeOrders,
 } = require("../controllers/accountingIncomeOrderController");
 const service = require("../services/accountingOriginalPrintService");
@@ -36,6 +37,7 @@ router.post(
   asyncHandler(controller.upload),
 );
 // Keep named collection routes above /:id so "income-orders" is never parsed as a batch UUID.
+router.get("/income-orders/export.xlsx", asyncHandler(exportIncomeOrders));
 router.get("/income-orders", asyncHandler(listIncomeOrders));
 router.get(
   "/:id",
