@@ -41,7 +41,7 @@ async function listSuccessfulIngestJobs({ client, startDate, endDate }) {
   `, [startDate, endDate, REPORT_TYPES]);
   const observations = await client.query(`
     SELECT job_id, shop_code, report_type, date_from::text AS date_from, date_to::text AS date_to,
-           observed_at, result_status, reason_code, recorded_at, portal_account
+           observed_at, result_status, reason_code, recorded_at, portal_account, source_validation
     FROM ${tables.shopeeDocumentObservations}
     WHERE date_from BETWEEN $1::date AND $2::date
     ORDER BY observed_at DESC, recorded_at DESC, job_id DESC
@@ -52,6 +52,7 @@ async function listSuccessfulIngestJobs({ client, startDate, endDate }) {
     observedAt: new Date(row.observed_at).toISOString(),
     importedAt: new Date(row.recorded_at).toISOString(),
     resultStatus: row.result_status, reasonCode: row.reason_code, portalAccount: row.portal_account,
+    earliestAvailableDate: row.source_validation?.earliestAvailableDate,
   }))];
 }
 

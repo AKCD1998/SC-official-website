@@ -1,0 +1,34 @@
+name: Apply Shopee e-Tax available window migration
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        required: true
+        type: string
+        description: Type APPLY_026_SHOPEE_ETAX_WINDOW
+permissions:
+  contents: read
+concurrency:
+  group: seamless-production-migration
+  cancel-in-progress: false
+jobs:
+  migrate:
+    if: ${{ inputs.confirmation == 'APPLY_026_SHOPEE_ETAX_WINDOW' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SC_OFFICIAL_SUPABASE_DATABASE_URL: ${{ secrets.SC_OFFICIAL_SUPABASE_DATABASE_URL }}
+      SEAMLESS_PRODUCTION_MIGRATION_VERIFY: 026_shopee_etax_available_window.sql
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: node scripts/verify-shopee-etax-window-rollout.cjs preflight
+      - run: npm run seamless:migrate
+      - run: node scripts/verify-shopee-etax-window-rollout.cjs verify

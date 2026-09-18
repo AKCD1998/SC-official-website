@@ -9,6 +9,23 @@ function evidence() { return {
   sourceValidation: { portalAccount: "mu3f314od9", selectedDate: "2026-09-16", exactDailyRangeVerified: true,
     resultRowCount: 0, searchResponseVerified: true, searchEndpoint: "/api/v1/seller/tax-documents/list" },
 }; }
+function windowEvidence() { return {
+  ...evidence(), resultStatus: "unavailable", reasonCode: "SHOPEE_ETAX_DATE_OUTSIDE_AVAILABLE_WINDOW",
+  sourceValidation: { portalAccount: "mu3f314od9", requestedDate: "2026-09-16", portalPath: "/tax/download",
+    endDateUnset: true, pickerLowerBoundVerified: true, earliestAvailableDate: "2026-09-17", requestedDateDisabled: true },
+}; }
+test("outside-window proof is distinct, exact, and rejects inferred or incomplete claims", () => {
+  expect(validateObservation(windowEvidence(), now).resultStatus).toBe("unavailable");
+  for (const patch of [{ requestedDate: "2026-09-15" }, { portalAccount: "142wuxqhgi" }, { portalPath: "/tax/download?sign=secret" },
+    { endDateUnset: false }, { pickerLowerBoundVerified: false }, { requestedDateDisabled: false },
+    { earliestAvailableDate: "2026-09-16" }, { earliestAvailableDate: "2026-09-15" }, { earliestAvailableDate: "2026-02-30" },
+    { earliestAvailableDate: "2027-01-01" }, { guessedRollingDays: 180 }]) {
+    expect(() => validateObservation({ ...windowEvidence(), sourceValidation: { ...windowEvidence().sourceValidation, ...patch } }, now)).toThrow();
+  }
+  expect(() => validateObservation({ ...windowEvidence(), reasonCode: "SHOPEE_ETAX_NO_DOCUMENT_FOR_DATE" }, now)).toThrow();
+  expect(() => validateObservation({ ...windowEvidence(), sourceValidation: evidence().sourceValidation }, now)).toThrow();
+  expect(() => validateObservation({ ...evidence(), sourceValidation: windowEvidence().sourceValidation }, now)).toThrow();
+});
 test("accepts only exact authenticated empty daily evidence", () => {
   expect(validateObservation(evidence(), now).resultStatus).toBe("no_file");
   for (const patch of [{ shopCode: "sc-drug-store" }, { shopCode: "DR_MOREPEN" }, { dateTo: "2026-09-17" },
@@ -34,6 +51,27 @@ test("immutable job replay is idempotent and changed evidence rolls back", async
   expect((await recordDocumentObservation({ body: evidence(), now, dbPool })).status).toBe("already_recorded");
   await expect(recordDocumentObservation({ body: { ...evidence(), observedAt: "2026-09-17T09:01:00Z" }, now, dbPool })).rejects.toMatchObject({ statusCode: 409 });
   expect(query).toHaveBeenLastCalledWith("ROLLBACK");
+});
+test("outside-window replay returns the original status and rejects changed lower-bound proof", async () => {
+  let saved;
+  const query = jest.fn(async (sql, args) => {
+    if (sql.startsWith("SELECT payload")) return { rows: saved ? [saved] : [] };
+    if (sql.startsWith("INSERT")) { saved = { payload_sha256: args[10], recorded_at: now }; return { rows: [saved] }; }
+    return { rows: [] };
+  });
+  const dbPool = { connect: async () => ({ query, release: jest.fn() }) };
+  expect(await recordDocumentObservation({ body: windowEvidence(), now, dbPool })).toMatchObject({ status: "recorded", resultStatus: "unavailable" });
+  expect(await recordDocumentObservation({ body: windowEvidence(), now, dbPool })).toMatchObject({ status: "already_recorded", resultStatus: "unavailable" });
+  await expect(recordDocumentObservation({ body: evidence(), now, dbPool })).rejects.toMatchObject({ statusCode: 409 });
+});
+test("window observations show checked coverage, real files win and income-pending is unchanged", () => {
+  const job = { ...windowEvidence(), importedAt: now.toISOString(), earliestAvailableDate: "2026-09-17" };
+  const getShop = (jobs) => buildDocumentSyncStatus({ days: 1, now, jobs }).shops.find((shop) => shop.shopCode === "dr-morepen");
+  const etax = (jobs) => getShop(jobs).rows.find((row) => row.reportType === "etax-receipt-invoice");
+  expect(etax([job])).toMatchObject({ status: "complete", expectedCount: 1, outsideWindowCount: 1, noFileCount: 0, ingestedCount: 0, sourceCount: 0 });
+  expect(etax([job]).cells[0]).toMatchObject({ status: "unavailable", evidence: { reasonCode: job.reasonCode, earliestAvailableDate: "2026-09-17" } });
+  expect(etax([job, { ...job, resultStatus: "imported", sourceSha256: "a".repeat(64) }]).cells[0].status).toBe("ingested");
+  expect(getShop([job]).rows.find((row) => row.reportType === "income-pending")).toMatchObject({ status: "unavailable", expectedCount: 0, outsideWindowCount: 0 });
 });
 test("unchecked days remain missing, verified empty days are no_file, actual files always win", () => {
   const job = { ...evidence(), importedAt: now.toISOString() };
