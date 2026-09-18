@@ -1,8 +1,10 @@
 const repository = require("../db/accountingIncomeOrderRepository");
 const fileStorage = require("./fileStorageService");
+const { buildAccountingIncomeCombinedPdf } = require("./accountingIncomePdfService");
 const { strToU8, zipSync } = require("fflate");
 
 const XLSX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const PDF_MIME_TYPE = "application/pdf";
 const EXPORT_PAGE_SIZE = 1000;
 const MAX_EXPORT_ROWS = 20000;
 const STATUS_LABELS = Object.freeze({
@@ -430,6 +432,10 @@ function buildAccountingIncomeExportFilename({ dateFrom, dateTo, shopCode }) {
   return `shopee-income-accounting${shopPart}-${dateFrom}-to-${dateTo}.xlsx`;
 }
 
+function buildAccountingIncomePdfFilename(filters) {
+  return buildAccountingIncomeExportFilename(filters).replace(/\.xlsx$/iu, "-with-shopee-appendix.pdf");
+}
+
 async function collectAllIncomeOrders(filters, incomeRepository = repository) {
   const first = await incomeRepository.listIncomeOrders({
     ...filters,
@@ -518,6 +524,22 @@ function buildAccountingIncomeExportPreview({
   };
 }
 
+function buildCombinedPdfPayload({ documents, filters, orders, publicOrigin }) {
+  const preview = buildAccountingIncomeExportPreview({
+    documents,
+    filters,
+    orders,
+    publicOrigin,
+  });
+  return {
+    ...preview,
+    documents: documents.map((document, index) => ({
+      ...document,
+      ...preview.documents[index],
+    })),
+  };
+}
+
 function safeZipSegment(value) {
   return String(value || "file")
     .replace(/[<>:"/\\|?*\u0000-\u001f]/gu, "-")
@@ -538,8 +560,14 @@ async function exportAccountingIncomeOrdersBundle(filters, {
     orders,
     publicOrigin,
   });
+  const combinedPdfFilename = buildAccountingIncomePdfFilename(filters);
+  const combinedPdfBuffer = await buildAccountingIncomeCombinedPdf({
+    ...buildCombinedPdfPayload({ documents, filters, orders, publicOrigin }),
+    storage,
+  });
   const entries = {
     [`เอกสารที่ระบบสร้าง/${workbookFilename}`]: new Uint8Array(workbookBuffer),
+    [`เอกสารที่ระบบสร้าง/${combinedPdfFilename}`]: new Uint8Array(combinedPdfBuffer),
   };
   const missing = [];
   for (const document of documents) {
@@ -570,6 +598,7 @@ async function exportAccountingIncomeOrdersBundle(filters, {
     isFullCalendarMonth(filters.dateFrom, filters.dateTo)
       ? "กติกา: เดือนเต็ม จึงรวมรายงานการเงินรายเดือนที่ตรงทั้งเดือน และรายสัปดาห์ที่ทับซ้อน"
       : "กติกา: ช่วงไม่ครบเดือน จึงรวมเฉพาะรายงานการเงินรายสัปดาห์ที่ทับซ้อน",
+    `PDF สำหรับพรีวิว/พิมพ์พร้อมภาคผนวก: เอกสารที่ระบบสร้าง/${combinedPdfFilename}`,
     "",
     missing.length
       ? `ไฟล์ต้นฉบับที่ยังขาด (${missing.length}):\n- ${missing.join("\n- ")}`
@@ -580,6 +609,22 @@ async function exportAccountingIncomeOrdersBundle(filters, {
     buffer: Buffer.from(zipSync(entries, { level: 6 })),
     filename: workbookFilename.replace(/\.xlsx$/iu, ".zip"),
     mimeType: "application/zip",
+  };
+}
+
+async function exportAccountingIncomeOrdersPdf(filters, {
+  incomeRepository = repository,
+  publicOrigin = "",
+  storage = fileStorage,
+} = {}) {
+  const { documents, orders } = await loadAccountingIncomeExportData(filters, incomeRepository);
+  return {
+    buffer: await buildAccountingIncomeCombinedPdf({
+      ...buildCombinedPdfPayload({ documents, filters, orders, publicOrigin }),
+      storage,
+    }),
+    filename: buildAccountingIncomePdfFilename(filters),
+    mimeType: PDF_MIME_TYPE,
   };
 }
 
@@ -617,15 +662,18 @@ module.exports = {
   EXPORT_PAGE_SIZE,
   KIND_LABELS,
   MAX_EXPORT_ROWS,
+  PDF_MIME_TYPE,
   SHOP_LABELS,
   STATUS_LABELS,
   XLSX_MIME_TYPE,
   buildAccountingIncomeExportFilename,
+  buildAccountingIncomePdfFilename,
   buildAccountingIncomeExportPreview,
   buildAccountingIncomeExportWorkbook,
   collectAllIncomeOrders,
   exportAccountingIncomeOrders,
   exportAccountingIncomeOrdersBundle,
+  exportAccountingIncomeOrdersPdf,
   formatDateLabel,
   loadAccountingIncomeExportData,
   isFullCalendarMonth,

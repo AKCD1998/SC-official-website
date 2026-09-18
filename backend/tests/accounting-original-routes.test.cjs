@@ -30,6 +30,7 @@ jest.mock(
   () => ({
     exportAccountingIncomeOrders: jest.fn(),
     exportAccountingIncomeOrdersBundle: jest.fn(),
+    exportAccountingIncomeOrdersPdf: jest.fn(),
     previewAccountingIncomeOrders: jest.fn(),
   }),
 );
@@ -77,6 +78,11 @@ beforeEach(() => {
     buffer: Buffer.from("zip-test"),
     filename: "shopee-income-accounting-2026-08-01-to-2026-08-31.zip",
     mimeType: "application/zip",
+  });
+  incomeExportService.exportAccountingIncomeOrdersPdf.mockResolvedValue({
+    buffer: Buffer.from("pdf-test"),
+    filename: "shopee-income-accounting-2026-08-01-to-2026-08-31-with-shopee-appendix.pdf",
+    mimeType: "application/pdf",
   });
   incomeExportService.previewAccountingIncomeOrders.mockResolvedValue({
     documents: [],
@@ -274,6 +280,30 @@ test("downloads a ZIP bundle only after the same transferred-date validation", a
   expect(result.headers["content-type"]).toContain("application/zip");
   expect(result.headers["content-disposition"]).toContain(".zip");
   expect(incomeExportService.exportAccountingIncomeOrdersBundle).toHaveBeenCalledWith({
+    dateColumn: "transferredAt",
+    dateFrom: "2026-08-01",
+    dateTo: "2026-08-31",
+    orderNumber: "",
+    shopCode: "sc-drug-store",
+  }, expect.objectContaining({ publicOrigin: expect.any(String) }));
+});
+
+test("serves one inline PDF containing the report and original appendices", async () => {
+  const result = await request(app)
+    .get("/batches/income-orders/preview.pdf")
+    .query({
+      dateColumn: "transferredAt",
+      dateFrom: "2026-08-01",
+      dateTo: "2026-08-31",
+      shopCode: "sc-drug-store",
+    })
+    .auth("staff", "staff-test");
+
+  expect(result.status).toBe(200);
+  expect(result.headers["content-type"]).toContain("application/pdf");
+  expect(result.headers["content-disposition"]).toContain("inline");
+  expect(result.headers["content-disposition"]).toContain(".pdf");
+  expect(incomeExportService.exportAccountingIncomeOrdersPdf).toHaveBeenCalledWith({
     dateColumn: "transferredAt",
     dateFrom: "2026-08-01",
     dateTo: "2026-08-31",

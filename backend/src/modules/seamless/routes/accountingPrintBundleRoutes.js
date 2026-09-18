@@ -11,6 +11,7 @@ const {
   exportIncomeOrders,
   listIncomeOrders,
   previewIncomeOrders,
+  previewIncomeOrdersPdf,
 } = require("../controllers/accountingIncomeOrderController");
 const service = require("../services/accountingOriginalPrintService");
 const router = express.Router();
@@ -48,6 +49,7 @@ router.post(
 // Keep named collection routes above /:id so "income-orders" is never parsed as a batch UUID.
 router.get("/income-orders/export.xlsx", asyncHandler(exportIncomeOrders));
 router.get("/income-orders/export.zip", asyncHandler(exportIncomeOrdersBundle));
+router.get("/income-orders/preview.pdf", asyncHandler(previewIncomeOrdersPdf));
 router.get("/income-orders/preview", asyncHandler(previewIncomeOrders));
 router.get("/income-orders", asyncHandler(listIncomeOrders));
 router.post(

@@ -1,4 +1,5 @@
 const ExcelJS = require("exceljs");
+const { PDFDocument } = require("pdf-lib");
 const {
   EXPORT_PAGE_SIZE,
   buildAccountingIncomeExportFilename,
@@ -7,6 +8,7 @@ const {
   collectAllIncomeOrders,
   exportAccountingIncomeOrders,
   exportAccountingIncomeOrdersBundle,
+  exportAccountingIncomeOrdersPdf,
   isFullCalendarMonth,
   selectAccountingSourceDocuments,
 } = require("../src/modules/seamless/services/accountingIncomeExportService");
@@ -63,6 +65,13 @@ function exampleDocuments() {
     shopCode: "sc-drug-store",
     startDate: "2026-08-01",
   }];
+}
+
+async function exampleOriginalPdf() {
+  const pdf = await PDFDocument.create();
+  pdf.addPage([400, 500]);
+  pdf.addPage([500, 400]);
+  return Buffer.from(await pdf.save());
 }
 
 test("accounting Income workbook explains transferred-date scope and links original Shopee evidence", async () => {
@@ -200,7 +209,7 @@ test("ZIP bundle contains the generated workbook, available originals, and a mis
     listIncomeOrders: jest.fn().mockResolvedValue({ orders: exampleOrders(), totalCount: 2 }),
   };
   const storage = {
-    readStoredFile: jest.fn().mockResolvedValue(Buffer.from("original-pdf")),
+    readStoredFile: jest.fn().mockResolvedValue(await exampleOriginalPdf()),
   };
   const bundle = await exportAccountingIncomeOrdersBundle({
     ...filters,
@@ -211,8 +220,33 @@ test("ZIP bundle contains the generated workbook, available originals, and a mis
 
   expect(bundle.filename).toMatch(/\.zip$/u);
   expect(names.some((name) => name.endsWith(".xlsx"))).toBe(true);
+  expect(names.some((name) => name.endsWith("with-shopee-appendix.pdf"))).toBe(true);
   expect(names.some((name) => name.endsWith("weekly_report_20260727.pdf"))).toBe(true);
   expect(strFromU8(entries["README.txt"])).toContain("ไฟล์ต้นฉบับที่ยังขาด");
+});
+
+test("combined PDF keeps the generated report first and appends every original Shopee PDF page", async () => {
+  const originalPdf = await exampleOriginalPdf();
+  const incomeRepository = {
+    listIncomeExportSourceDocuments: jest.fn().mockResolvedValue(exampleDocuments()),
+    listIncomeOrders: jest.fn().mockResolvedValue({ orders: exampleOrders(), totalCount: 2 }),
+  };
+  const storage = {
+    readStoredFile: jest.fn().mockResolvedValue(originalPdf),
+  };
+
+  const exported = await exportAccountingIncomeOrdersPdf({
+    ...filters,
+    shopCode: "sc-drug-store",
+  }, { incomeRepository, publicOrigin: "https://api.example.test", storage });
+  const combined = await PDFDocument.load(exported.buffer);
+
+  expect(exported.mimeType).toBe("application/pdf");
+  expect(exported.filename).toMatch(/with-shopee-appendix\.pdf$/u);
+  expect(combined.getPageCount()).toBe(5);
+  expect(combined.getPage(3).getSize()).toEqual({ width: 400, height: 500 });
+  expect(combined.getPage(4).getSize()).toEqual({ width: 500, height: 400 });
+  expect(storage.readStoredFile).toHaveBeenCalledTimes(1);
 });
 
 test("collectAllIncomeOrders requests every page without exposing pagination in the export", async () => {
