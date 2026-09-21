@@ -1,7 +1,7 @@
 const crypto = require("node:crypto");
 const path = require("node:path");
 const { PDFDocument } = require("pdf-lib");
-const { requireShopeeShopCode, SHOPEE_SHOP_PROFILES } = require("./shopeeShops");
+const { requireShopeeShopCode, isShopeeStatisticsUsername } = require("./shopeeShops");
 
 const INCOME_HEADERS = Object.freeze({
   orderNumber: "หมายเลขคำสั่งซื้อ",
@@ -217,10 +217,6 @@ async function excelRows(buffer, sheetName) {
   return { workbook, sheet, rows };
 }
 
-function sellerUsername(shopCode) {
-  return SHOPEE_SHOP_PROFILES[shopCode]?.statisticsUsername;
-}
-
 async function readFinancialStatementSourceBuffer(buffer, options) {
   const base = sourceBase({ buffer, ...options });
   const filenameMatch = /^weekly_report_(\d{4})(\d{2})(\d{2})(?: ?\(\d+\))?\.pdf$/iu.exec(base.sourceFilename);
@@ -246,7 +242,9 @@ async function readFinancialStatementSourceBuffer(buffer, options) {
   if (startDate !== compactDate(`${filenameMatch[1]}${filenameMatch[2]}${filenameMatch[3]}`)
     || addDays(startDate, 6) !== endDate) throw new Error("Financial Statement filename or weekly period mismatch.");
   validateCompletedPeriod(startDate, endDate, base.observedAt);
-  if (!items.includes(sellerUsername(base.shopCode))) throw new Error("Financial Statement does not identify the selected shop.");
+  if (!items.some((value) => isShopeeStatisticsUsername(base.shopCode, value))) {
+    throw new Error("Financial Statement does not identify the selected shop.");
+  }
   const detailIndex = items.findIndex((value) => value.replace(/\s/gu, "").includes("รายละเอียดการโอนเงิน"));
   const summaryItems = detailIndex < 0 ? items : items.slice(0, detailIndex);
   const currencyValues = summaryItems.filter((value) => /^฿[\d,]+(?:\.\d{1,2})?$/u.test(value));
@@ -276,7 +274,7 @@ async function readIncomeSourceBuffer(buffer, { reportType, ...options }) {
   const summary = workbook.getWorksheet("Summary");
   if (!summary) throw new Error("Missing Shopee Summary worksheet.");
   if (text(summary.getCell("A6").value) !== "ชื่อผู้ใช้ (ผู้ขาย)"
-    || text(summary.getCell("B6").value) !== sellerUsername(base.shopCode)) {
+    || !isShopeeStatisticsUsername(base.shopCode, text(summary.getCell("B6").value))) {
     throw new Error("My Income report does not identify the selected shop.");
   }
   if (isoDate(summary.getCell("B10").value) !== startDate
@@ -353,7 +351,8 @@ async function readSellerBalanceSourceBuffer(buffer, options) {
   const endDate = compactDate(filenameMatch[2]);
   validateCompletedPeriod(startDate, endDate, base.observedAt);
   const { rows } = await excelRows(buffer, "Transaction Report");
-  if (text(rows[5]?.[0]) !== "ชื่อผู้ใช้ของผู้ขาย" || text(rows[5]?.[1]) !== sellerUsername(base.shopCode)) {
+  if (text(rows[5]?.[0]) !== "ชื่อผู้ใช้ของผู้ขาย"
+    || !isShopeeStatisticsUsername(base.shopCode, text(rows[5]?.[1]))) {
     throw new Error("Seller Balance report does not identify the selected shop.");
   }
   if (isoDate(rows[6]?.[1]) !== startDate || isoDate(rows[7]?.[1]) !== endDate) {

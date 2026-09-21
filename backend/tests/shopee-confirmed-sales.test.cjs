@@ -56,6 +56,18 @@ test('confirmed gross stays primary; cancellations/counts separate, explicit zer
   expect(source.control).toMatchObject({ salesTotal: 100.25, orderCount: 2 });
 });
 
+test('SC full Business Insights accepts both exact official filename identities only', () => {
+  expect(parse(rows(), { sourceFilename: 'scdrug.shopee-shop-stats.20260801-20260802.xlsx' }))
+    .toMatchObject({ shopCode: 'sc-drug-store', startDate: '2026-08-01', endDate: '2026-08-02' });
+  expect(() => parse(rows(), {
+    sourceFilename: 'anything.shopee-shop-stats.20260801-20260802.xlsx',
+  })).toThrow(/does not identify/iu);
+  expect(() => parse(rows(), {
+    shopCode: 'dr-morepen',
+    sourceFilename: 'scdrug.shopee-shop-stats.20260801-20260802.xlsx',
+  })).toThrow(/does not identify/iu);
+});
+
 test.each([
   ['wrong shop', () => rows(), { shopCode: 'dr-morepen' }],
   ['bad observed date', () => rows(), { observedAt: '2026-09-31T00:00:00Z' }],

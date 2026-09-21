@@ -43,8 +43,26 @@ const {
   ingestShopeeSalesSource,
   multipartFilenameMatches,
   parseManifest,
+  sourceValidationError,
   validateUpload,
 } = require("../src/modules/seamless/services/shopeeSalesIngestService");
+
+test.each([
+  ["My Income report does not identify the selected shop.", "SHOPEE_SOURCE_SHOP_MISMATCH", "shop_identity"],
+  ["Expected original Income status filename.", "SHOPEE_SOURCE_FILENAME_REJECTED", "filename"],
+  ["My Income period does not match the filename.", "SHOPEE_SOURCE_PERIOD_MISMATCH", "period"],
+  ["Shopee My Income header schema has changed; review every column before import.", "SHOPEE_SOURCE_SCHEMA_CHANGED", "schema"],
+  ["My Income detail does not reconcile to its Summary worksheet.", "SHOPEE_SOURCE_CONTROL_MISMATCH", "control"],
+  ["Statistics daily coverage is incomplete.", "SHOPEE_SOURCE_COVERAGE_INCOMPLETE", "coverage"],
+])("422 validation exposes bounded reason for %s", (message, reasonCode, validationStage) => {
+  const error = sourceValidationError(new Error(message));
+  expect(error).toMatchObject({
+    statusCode: 422,
+    code: message.includes("coverage is incomplete") ? "SHOPEE_SOURCE_INCOMPLETE" : "SHOPEE_SOURCE_REJECTED",
+    details: { reasonCode, validationStage },
+  });
+  expect(error.message).not.toContain(message);
+});
 
 test("accepts only the lossless multipart latin1 view of an exact Thai Shopee filename", () => {
   const originalFilename = "Income.โอนเงินสำเร็จ.th.20260824_20260830.xlsx";
