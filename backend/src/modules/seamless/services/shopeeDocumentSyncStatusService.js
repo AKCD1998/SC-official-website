@@ -82,11 +82,12 @@ function mondayOfWeek(date) {
 function latestJobForDate(jobs, date) {
   const matches = jobs.filter((job) => job.dateFrom <= date && job.dateTo >= date);
   // A real downloaded document always takes precedence over an empty historical search.
-  return matches.find((job) => !["no_file", "unavailable"].includes(job.resultStatus)) || matches[0] || null;
+  return matches.find((job) => !["no_file", "unavailable", "not_ready"].includes(job.resultStatus)) || matches[0] || null;
 }
 
 function cellStatus(report, date, currentMonday, evidence, timing) {
-  if (evidence) return ["no_file", "unavailable"].includes(evidence.resultStatus) ? evidence.resultStatus : "ingested";
+  if (evidence) return ["no_file", "unavailable", "not_ready"].includes(evidence.resultStatus)
+    ? evidence.resultStatus : "ingested";
   if (report.unavailableUntilExported) return "unavailable";
   if (report.cadence === "weekly" && date >= currentMonday) return "not_due";
   if (report.cadence !== "weekly" && date === timing.latestExpectedDate) {
@@ -117,6 +118,7 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
           reasonCode: evidence.reasonCode,
           portalAccount: evidence.portalAccount,
           earliestAvailableDate: evidence.earliestAvailableDate,
+          documentStatusText: evidence.documentStatusText,
         },
       } : {}),
     };
@@ -126,9 +128,10 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
   const ingestedCount = expectedCells.filter((cell) => cell.status === "ingested").length;
   const noFileCount = expectedCells.filter((cell) => cell.status === "no_file").length;
   const outsideWindowCount = expectedCells.filter((cell) => cell.status === "unavailable").length;
+  const notReadyCount = expectedCells.filter((cell) => cell.status === "not_ready").length;
   const missingCount = expectedCells.filter((cell) => cell.status === "missing").length;
-  const pendingCount = cells.filter((cell) => ["waiting", "processing"].includes(cell.status)).length;
-  const ingestedJobs = jobs.filter((job) => !["no_file", "unavailable"].includes(job.resultStatus) && job.dateFrom <= dates[0] && job.dateTo >= dates.at(-1));
+  const pendingCount = cells.filter((cell) => ["waiting", "processing", "not_ready"].includes(cell.status)).length;
+  const ingestedJobs = jobs.filter((job) => !["no_file", "unavailable", "not_ready"].includes(job.resultStatus) && job.dateFrom <= dates[0] && job.dateTo >= dates.at(-1));
   const latestCoveredDate = jobs.length
     ? jobs.map((job) => job.dateTo).sort().at(-1)
     : null;
@@ -137,7 +140,8 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
     : null;
   let status = missingCount ? "incomplete" : "complete";
   if (!missingCount && pendingCount) {
-    status = cells.some((cell) => cell.status === "processing") ? "processing" : "waiting";
+    status = cells.some((cell) => cell.status === "not_ready") ? "not_ready"
+      : cells.some((cell) => cell.status === "processing") ? "processing" : "waiting";
   }
   if (!expectedCells.length && !pendingCount) {
     status = report.unavailableUntilExported ? "unavailable" : "not_due";
@@ -152,6 +156,7 @@ function summarizeRow({ currentMonday, dates, jobs, report, timing }) {
     latestCoveredDate,
     latestImportedAt,
     missingCount,
+    notReadyCount,
     pendingCount,
     reportType: report.key,
     scheduleTime: timing.scheduleTime,
@@ -189,7 +194,7 @@ function buildDocumentSyncStatus({ days, jobs, now = new Date() }) {
       shopName: profile.displayName,
       completeRowCount: requiredRows.filter((row) => row.status === "complete").length,
       incompleteRowCount: requiredRows.filter((row) => row.status === "incomplete").length,
-      pendingRowCount: requiredRows.filter((row) => ["waiting", "processing"].includes(row.status)).length,
+      pendingRowCount: requiredRows.filter((row) => ["waiting", "processing", "not_ready"].includes(row.status)).length,
       scheduleTime: schedule.time,
       latestImportedAt: shopJobs.length
         ? shopJobs.map((job) => job.importedAt).sort().at(-1)
