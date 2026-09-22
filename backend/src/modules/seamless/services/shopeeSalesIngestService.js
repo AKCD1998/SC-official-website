@@ -322,13 +322,33 @@ function validateUpload(file, manifest) {
 
 function sourceValidationError(error) {
   const incomplete = /coverage is incomplete/iu.test(error?.message || "");
+  const rawMessage = String(error?.message || "");
+  const reason = [
+    { pattern: /does not identify the selected shop|filename does not identify the selected shop/iu,
+      code: "SHOPEE_SOURCE_SHOP_MISMATCH", stage: "shop_identity" },
+    { pattern: /period|outside the source period|report date|selected date/iu,
+      code: "SHOPEE_SOURCE_PERIOD_MISMATCH", stage: "period" },
+    { pattern: /control|reconcile|summary|daily\/summary mismatch/iu,
+      code: "SHOPEE_SOURCE_CONTROL_MISMATCH", stage: "control" },
+    { pattern: /filename|archive name/iu,
+      code: "SHOPEE_SOURCE_FILENAME_REJECTED", stage: "filename" },
+    { pattern: /header|column|worksheet|sheet/iu,
+      code: "SHOPEE_SOURCE_SCHEMA_CHANGED", stage: "schema" },
+  ].find((item) => item.pattern.test(rawMessage)) || {
+    code: "SHOPEE_SOURCE_STRUCTURE_REJECTED",
+    stage: "structure",
+  };
   return new ApiError(
     422,
     incomplete
       ? "Shopee source report does not contain every declared day."
       : "Shopee source failed report, shop, date, structure, header, or control validation.",
     incomplete ? "SHOPEE_SOURCE_INCOMPLETE" : "SHOPEE_SOURCE_REJECTED",
-    { status: incomplete ? "incomplete" : "rejected" },
+    {
+      status: incomplete ? "incomplete" : "rejected",
+      reasonCode: incomplete ? "SHOPEE_SOURCE_COVERAGE_INCOMPLETE" : reason.code,
+      validationStage: incomplete ? "coverage" : reason.stage,
+    },
   );
 }
 

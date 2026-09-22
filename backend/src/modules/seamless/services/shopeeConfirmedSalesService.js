@@ -2,7 +2,12 @@ const crypto = require('node:crypto');
 const path = require('node:path');
 const { moneyCents } = require('./shopeeSalesAccounting');
 const { parseBangkokDate } = require('./shopeeSalesSourceService');
-const { requireShopeeShopCode, requireShopeeShopScope, SHOPEE_SHOP_PROFILES } = require('./shopeeShops');
+const {
+  requireShopeeShopCode,
+  requireShopeeShopScope,
+  isShopeeStatisticsUsername,
+  SHOPEE_SHOP_PROFILES,
+} = require('./shopeeShops');
 
 const SHEET = 'ยืนยันแล้ว';
 const OVERVIEW_SHEET = 'ภาพรวมยอดขาย';
@@ -60,7 +65,7 @@ function sourceIdentity(sourceFilename, shopCode) {
   const filename = path.basename(sourceFilename);
   const legacy = /^([a-z0-9]+)\.shopee-shop-stats\.(\d{4})(\d{2})(\d{2})-(\d{4})(\d{2})(\d{2})(?: ?\(\d+\))?\.xlsx$/iu.exec(filename);
   if (legacy) {
-    if (legacy[1] !== SHOPEE_SHOP_PROFILES[shopCode].statisticsUsername) {
+    if (!isShopeeStatisticsUsername(shopCode, legacy[1])) {
       throw new Error('Statistics filename does not identify the selected shop.');
     }
     return { filename, format: 'shop-stats-confirmed', sheetName: SHEET,

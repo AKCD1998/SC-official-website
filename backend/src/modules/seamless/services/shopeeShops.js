@@ -6,12 +6,14 @@ const SHOPEE_SHOP_PROFILES = Object.freeze({
     displayName: "SC Drug Store",
     outputSlug: "sc-drug-store",
     statisticsUsername: "142wuxqhgi",
+    statisticsUsernames: Object.freeze(["142wuxqhgi", "scdrug"]),
   }),
   "dr-morepen": Object.freeze({
     code: "dr-morepen",
     displayName: "DR.Morepen",
     outputSlug: "dr-morepen",
     statisticsUsername: "mu3f314od9",
+    statisticsUsernames: Object.freeze(["mu3f314od9"]),
   }),
 });
 
@@ -37,6 +39,11 @@ function normalizeShopeeShopCode(value) {
 function getShopeeShopProfile(value) {
   const shopCode = normalizeShopeeShopCode(value);
   return shopCode ? SHOPEE_SHOP_PROFILES[shopCode] : null;
+}
+
+function isShopeeStatisticsUsername(shopCode, value) {
+  const profile = SHOPEE_SHOP_PROFILES[shopCode];
+  return Boolean(profile?.statisticsUsernames.includes(String(value || "").trim().toLowerCase()));
 }
 
 function normalizeShopeeShopScope(value) {
@@ -91,6 +98,7 @@ module.exports = {
   SHOPEE_ALL_SHOPS_SCOPE,
   SHOPEE_SHOP_PROFILES,
   getShopeeShopProfile,
+  isShopeeStatisticsUsername,
   normalizeShopeeShopCode,
   normalizeShopeeShopScope,
   requireShopeeShopCode,

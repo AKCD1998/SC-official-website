@@ -5,10 +5,19 @@ const {
 const {
   getShopeeShopProfile,
   normalizeShopeeShopCode,
+  isShopeeStatisticsUsername,
   normalizeShopeeShopScope,
   requireShopeeShopCode,
   requireShopeeShopScope,
 } = require("../src/modules/seamless/services/shopeeShops");
+
+test("official seller usernames are exact per-shop aliases", () => {
+  expect(isShopeeStatisticsUsername("sc-drug-store", "142wuxqhgi")).toBe(true);
+  expect(isShopeeStatisticsUsername("sc-drug-store", "scdrug")).toBe(true);
+  expect(isShopeeStatisticsUsername("dr-morepen", "mu3f314od9")).toBe(true);
+  expect(isShopeeStatisticsUsername("dr-morepen", "scdrug")).toBe(false);
+  expect(isShopeeStatisticsUsername("sc-drug-store", "scdrug-extra")).toBe(false);
+});
 
 test("normalizes supported Shopee shop aliases to stable audit codes", () => {
   expect(normalizeShopeeShopCode("SC_DRUG_STORE")).toBe("sc-drug-store");

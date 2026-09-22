@@ -26,11 +26,11 @@ function options(sourceFilename, shopCode = "sc-drug-store") {
   };
 }
 
-async function incomeWorkbook() {
+async function incomeWorkbook(username = "142wuxqhgi") {
   const workbook = new ExcelJS.Workbook();
   const summary = workbook.addWorksheet("Summary");
   summary.getCell("A6").value = "ชื่อผู้ใช้ (ผู้ขาย)";
-  summary.getCell("B6").value = "142wuxqhgi";
+  summary.getCell("B6").value = username;
   summary.getCell("B10").value = "2026-09-01";
   summary.getCell("B11").value = "2026-09-06";
   summary.getCell("A15").value = "3. จำนวนเงินทั้งหมดที่โอนแล้ว";
@@ -57,11 +57,11 @@ async function incomeWorkbook() {
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
-async function balanceWorkbook() {
+async function balanceWorkbook(username = "142wuxqhgi") {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Transaction Report");
   sheet.getCell("A6").value = "ชื่อผู้ใช้ของผู้ขาย";
-  sheet.getCell("B6").value = "142wuxqhgi";
+  sheet.getCell("B6").value = username;
   sheet.getCell("B7").value = "2026-09-01";
   sheet.getCell("B8").value = "2026-09-06";
   sheet.getCell("E12").value = 100;
@@ -142,6 +142,23 @@ test("My Income validates exact shop, period, status and Summary total", async (
     ...options("Income.รอดำเนินการ.th.20260901_20260906.xlsx"),
     reportType: "income-transferred",
   })).rejects.toThrow(/status does not match/iu);
+});
+
+test("SC official workbooks accept the exact scdrug alias and reject it for DR", async () => {
+  const income = await incomeWorkbook("scdrug");
+  await expect(readIncomeSourceBuffer(income, {
+    ...options("Income.โอนเงินสำเร็จ.th.20260901_20260906.xlsx"),
+    reportType: "income-transferred",
+  })).resolves.toMatchObject({ shopCode: "sc-drug-store", control: { transferredTotal: 100 } });
+  await expect(readIncomeSourceBuffer(income, {
+    ...options("Income.โอนเงินสำเร็จ.th.20260901_20260906.xlsx", "dr-morepen"),
+    reportType: "income-transferred",
+  })).rejects.toThrow(/does not identify/iu);
+
+  await expect(readSellerBalanceSourceBuffer(
+    await balanceWorkbook("scdrug"),
+    options("my_balance_transaction_report.shopee.20260901_20260906.xlsx"),
+  )).resolves.toMatchObject({ shopCode: "sc-drug-store", control: { orderTotal: 100 } });
 });
 
 test("My Income fails closed when an unreviewed accounting column changes the 48-column schema", () => {
