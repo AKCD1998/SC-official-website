@@ -7,6 +7,10 @@ const { SHOPEE_SHOP_PROFILES } = require("./shopeeShops");
 const FIELDS = ["shopCode", "reportType", "dateFrom", "dateTo", "portalAccount", "jobId", "observedAt", "resultStatus", "reasonCode", "sourceValidation"];
 const PROOF_FIELDS = ["portalAccount", "selectedDate", "exactDailyRangeVerified", "resultRowCount", "searchResponseVerified", "searchEndpoint"];
 const WINDOW_PROOF_FIELDS = ["portalAccount", "requestedDate", "portalPath", "endDateUnset", "pickerLowerBoundVerified", "earliestAvailableDate", "requestedDateDisabled"];
+const NOT_READY_PROOF_FIELDS = [
+  "portalAccount", "selectedDate", "exactDailyRangeVerified", "resultRowCount", "searchResponseVerified",
+  "searchEndpoint", "documentStatusText", "retryExhausted", "attemptsObserved",
+];
 function validDate(value) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/u.test(value)) return false;
   const date = new Date(`${value}T00:00:00Z`);
@@ -19,7 +23,8 @@ function exactFields(value, fields) {
 }
 function validateObservation(body, now = new Date()) {
   const outsideWindow = body?.resultStatus === "unavailable";
-  const proofFields = outsideWindow ? WINDOW_PROOF_FIELDS : PROOF_FIELDS;
+  const notReady = body?.resultStatus === "not_ready";
+  const proofFields = outsideWindow ? WINDOW_PROOF_FIELDS : notReady ? NOT_READY_PROOF_FIELDS : PROOF_FIELDS;
   if (!exactFields(body, FIELDS) || !exactFields(body.sourceValidation, proofFields)) {
     throw badRequest("Document observation contains missing or unsupported fields.");
   }
@@ -29,7 +34,7 @@ function validateObservation(body, now = new Date()) {
   const observed = typeof body.observedAt === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/u.test(body.observedAt)
     ? new Date(body.observedAt) : null;
   if (!profile || body.portalAccount !== profile.statisticsUsername
-    || body.reportType !== "etax-receipt-invoice" || !["no_file", "unavailable"].includes(body.resultStatus)
+    || body.reportType !== "etax-receipt-invoice" || !["no_file", "unavailable", "not_ready"].includes(body.resultStatus)
     || !date || !Number.isFinite(date.getTime()) || date.toISOString().slice(0, 10) !== body.dateFrom
     || body.dateTo !== body.dateFrom
     || !observed || !Number.isFinite(observed.getTime()) || observed.getTime() > now.getTime() + 300000
@@ -45,7 +50,15 @@ function validateObservation(body, now = new Date()) {
       && proof.requestedDateDisabled === true && validDate(proof.earliestAvailableDate)
       && body.dateFrom < proof.earliestAvailableDate
       && new Date(`${proof.earliestAvailableDate}T00:00:00Z`).getTime() <= observed.getTime() + 7 * 3600000
-    : body.reasonCode === "SHOPEE_ETAX_NO_DOCUMENT_FOR_DATE"
+    : notReady
+      ? body.reasonCode === "SHOPEE_ETAX_DOCUMENT_NOT_READY"
+        && proof.selectedDate === body.dateFrom && proof.exactDailyRangeVerified === true
+        && proof.resultRowCount === 1 && proof.searchResponseVerified === true
+        && proof.searchEndpoint === "/api/v1/seller/tax-documents/list"
+        && typeof proof.documentStatusText === "string" && proof.documentStatusText.trim().length > 0
+        && proof.documentStatusText.length <= 200 && proof.retryExhausted === true
+        && Number.isSafeInteger(proof.attemptsObserved) && proof.attemptsObserved >= 4
+      : body.reasonCode === "SHOPEE_ETAX_NO_DOCUMENT_FOR_DATE"
       && proof.selectedDate === body.dateFrom && proof.exactDailyRangeVerified === true
       && proof.resultRowCount === 0 && proof.searchResponseVerified === true
       && proof.searchEndpoint === "/api/v1/seller/tax-documents/list";

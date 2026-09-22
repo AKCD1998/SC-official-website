@@ -14,6 +14,22 @@ function windowEvidence() { return {
   sourceValidation: { portalAccount: "mu3f314od9", requestedDate: "2026-09-16", portalPath: "/tax/download",
     endDateUnset: true, pickerLowerBoundVerified: true, earliestAvailableDate: "2026-09-17", requestedDateDisabled: true },
 }; }
+function notReadyEvidence() { return {
+  ...evidence(), resultStatus: "not_ready", reasonCode: "SHOPEE_ETAX_DOCUMENT_NOT_READY",
+  sourceValidation: { portalAccount: "mu3f314od9", selectedDate: "2026-09-16",
+    exactDailyRangeVerified: true, resultRowCount: 1, searchResponseVerified: true,
+    searchEndpoint: "/api/v1/seller/tax-documents/list", documentStatusText: "กำลังดำเนินการ",
+    retryExhausted: true, attemptsObserved: 4 },
+}; }
+test("not-ready proof is distinct from missing evidence and is bounded by retry exhaustion", () => {
+  expect(validateObservation(notReadyEvidence(), now).resultStatus).toBe("not_ready");
+  for (const patch of [{ resultRowCount: 0 }, { retryExhausted: false }, { attemptsObserved: 3 },
+    { documentStatusText: "" }, { documentStatusText: "x".repeat(201) }]) {
+    expect(() => validateObservation({ ...notReadyEvidence(),
+      sourceValidation: { ...notReadyEvidence().sourceValidation, ...patch } }, now)).toThrow();
+  }
+  expect(() => validateObservation({ ...notReadyEvidence(), reasonCode: "SHOPEE_ETAX_NO_DOCUMENT_FOR_DATE" }, now)).toThrow();
+});
 test("outside-window proof is distinct, exact, and rejects inferred or incomplete claims", () => {
   expect(validateObservation(windowEvidence(), now).resultStatus).toBe("unavailable");
   for (const patch of [{ requestedDate: "2026-09-15" }, { portalAccount: "142wuxqhgi" }, { portalPath: "/tax/download?sign=secret" },
@@ -75,6 +91,19 @@ test("window observations show checked coverage, real files win and income-pendi
   expect(etax([job]).cells[0]).toMatchObject({ status: "unavailable", evidence: { reasonCode: job.reasonCode, earliestAvailableDate: "2026-09-17" } });
   expect(etax([job, { ...job, resultStatus: "imported", sourceSha256: "a".repeat(64) }]).cells[0].status).toBe("ingested");
   expect(getShop([job]).rows.find((row) => row.reportType === "income-pending")).toMatchObject({ status: "unavailable", expectedCount: 0, outsideWindowCount: 0 });
+});
+test("not-ready evidence is pending rather than missing or ingested, and a later file wins", () => {
+  const job = { ...notReadyEvidence(), importedAt: now.toISOString(), documentStatusText: "กำลังดำเนินการ" };
+  const shop = (jobs) => buildDocumentSyncStatus({ days: 1, now, jobs }).shops
+    .find((item) => item.shopCode === "dr-morepen");
+  const row = (jobs) => shop(jobs).rows.find((item) => item.reportType === "etax-receipt-invoice");
+  expect(row([job])).toMatchObject({ status: "not_ready", missingCount: 0, notReadyCount: 1, pendingCount: 1 });
+  expect(shop([job])).toMatchObject({ incompleteRowCount: 3, pendingRowCount: 1 });
+  expect(row([job]).cells[0]).toMatchObject({ status: "not_ready", evidence: {
+    reasonCode: "SHOPEE_ETAX_DOCUMENT_NOT_READY", documentStatusText: "กำลังดำเนินการ",
+  } });
+  const file = { ...job, resultStatus: "imported", sourceSha256: "a".repeat(64), sourceFilename: "report.zip" };
+  expect(row([job, file]).cells[0].status).toBe("ingested");
 });
 test("unchecked days remain missing, verified empty days are no_file, actual files always win", () => {
   const job = { ...evidence(), importedAt: now.toISOString() };

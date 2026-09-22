@@ -53,6 +53,7 @@ async function listSuccessfulIngestJobs({ client, startDate, endDate }) {
     importedAt: new Date(row.recorded_at).toISOString(),
     resultStatus: row.result_status, reasonCode: row.reason_code, portalAccount: row.portal_account,
     earliestAvailableDate: row.source_validation?.earliestAvailableDate,
+    documentStatusText: row.source_validation?.documentStatusText,
   }))];
 }
 
