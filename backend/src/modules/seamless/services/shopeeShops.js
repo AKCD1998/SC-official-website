@@ -13,7 +13,7 @@ const SHOPEE_SHOP_PROFILES = Object.freeze({
     displayName: "DR.Morepen",
     outputSlug: "dr-morepen",
     statisticsUsername: "mu3f314od9",
-    statisticsUsernames: Object.freeze(["mu3f314od9"]),
+    statisticsUsernames: Object.freeze(["mu3f314od9", "morepen"]),
   }),
 });
 
