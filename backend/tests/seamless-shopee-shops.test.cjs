@@ -15,7 +15,9 @@ test("official seller usernames are exact per-shop aliases", () => {
   expect(isShopeeStatisticsUsername("sc-drug-store", "142wuxqhgi")).toBe(true);
   expect(isShopeeStatisticsUsername("sc-drug-store", "scdrug")).toBe(true);
   expect(isShopeeStatisticsUsername("dr-morepen", "mu3f314od9")).toBe(true);
+  expect(isShopeeStatisticsUsername("dr-morepen", "morepen")).toBe(true);
   expect(isShopeeStatisticsUsername("dr-morepen", "scdrug")).toBe(false);
+  expect(isShopeeStatisticsUsername("sc-drug-store", "morepen")).toBe(false);
   expect(isShopeeStatisticsUsername("sc-drug-store", "scdrug-extra")).toBe(false);
 });
 
