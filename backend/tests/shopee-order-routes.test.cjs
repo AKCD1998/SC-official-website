@@ -27,6 +27,10 @@ const orderRow = {
 
 const listOrdersMock = jest.fn(async () => ({ hasMore: true, orders: [orderRow], totalCount: 51 }));
 const listOrdersForSalesSummaryMock = jest.fn(async () => [orderRow]);
+const getAdaSmartCopyPlanMock = jest.fn(async filters => ({ ...filters, status: 'ready', rows: [], issues: [], targetCents: 0, totalCents: 0 }));
+jest.mock('../src/modules/seamless/services/shopeeAdaSmartCopyService', () => ({
+  getAdaSmartCopyPlan: (...args) => getAdaSmartCopyPlanMock(...args),
+}));
 const listConfirmedSalesDaysMock = jest.fn(async () => []);
 jest.mock('../src/modules/seamless/db/shopeeConfirmedSalesRepository', () => ({
   listConfirmedSalesDays: (...args) => listConfirmedSalesDaysMock(...args),
@@ -538,6 +542,25 @@ test('restricts new order-money JSON and ledger export to administrators', async
     expect(Boolean(workbook.getWorksheet('ยอดขายรายออเดอร์'))).toBe(allowed);
     expect(workbook.getWorksheet('พร้อมคีย์').columnCount).toBe(7);
   }
+});
+
+test('AdaSmart copy route requires admin, one shop/day and returns uncached prepared data', async () => {
+  process.env.SEAMLESS_APP_BASIC_USER = 'accounting-user';
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = 'local-test-password';
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = 'finance-admin';
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = 'local-test-admin-password';
+  const app = buildApp();
+  const route = '/api/app/shopee/orders/sales-summary/adasmart-copy';
+  const query = '?shopCode=sc-drug-store&startDate=2026-09-01&endDate=2026-09-01';
+  expect((await request(app).get(route + query)).status).toBe(401);
+  expect((await request(app).get(route + query).auth('accounting-user', 'local-test-password')).status).toBe(403);
+  expect(getAdaSmartCopyPlanMock).not.toHaveBeenCalled();
+  const response = await request(app).get(route + query).auth('finance-admin', 'local-test-admin-password');
+  expect(response.status).toBe(200);
+  expect(response.headers['cache-control']).toBe('no-store');
+  expect(response.body).toMatchObject({ shopCode: 'sc-drug-store', startDate: '2026-09-01', status: 'ready' });
+  expect(getAdaSmartCopyPlanMock).toHaveBeenCalledWith({ shopCode: 'sc-drug-store', startDate: '2026-09-01', endDate: '2026-09-01' });
+  expect((await request(app).get(route + query.replace('sc-drug-store', 'all')).auth('finance-admin', 'local-test-admin-password')).status).toBe(400);
 });
 
 test.each([

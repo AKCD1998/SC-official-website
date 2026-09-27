@@ -234,6 +234,17 @@ async function getSalesReconciliation(req, res) {
   res.json(await getShopeeFinancialReconciliation(filters));
 }
 
+async function getAdaSmartCopySummary(req, res) {
+  if (req.appRole !== 'admin') throw forbidden('AdaSmart copy prices are available to administrators only.');
+  const filters = parseSalesSummaryFilters(req.query);
+  if (filters.shopCode === 'all' || filters.startDate !== filters.endDate) {
+    throw badRequest('Select one shop and one day for AdaSmart copy columns.');
+  }
+  const { getAdaSmartCopyPlan } = require('../services/shopeeAdaSmartCopyService');
+  res.set('Cache-Control', 'no-store');
+  res.json(await getAdaSmartCopyPlan(filters));
+}
+
 async function exportSalesSummary(req, res) {
   const filters = parseSalesSummaryFilters(req.query);
   const exported = await exportShopeeSalesSummary({ ...filters, includeAccounting: req.appRole === 'admin' });
@@ -334,6 +345,7 @@ async function syncOrders(req, res) {
 }
 
 module.exports = {
+  getAdaSmartCopySummary,
   encodeCursor,
   exportSalesSummary,
   getFinancialVisibility,
