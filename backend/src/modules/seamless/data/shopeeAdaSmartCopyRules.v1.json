@@ -1,0 +1,987 @@
+{
+  "schemaVersion": 1,
+  "policyVersion": "sc004-shopee-bi-confirmed-value-2026-09-26-v1",
+  "masterEvidence": {
+    "filename": "branch-stock-samut-songkhram-2026-09-17.xlsx",
+    "sha256": "8e4b8f49b7242e1a9b19d9ef08cee4ede9123e3a54e62eb4d8a41ee0a96e5f3a",
+    "verifiedOn": "2026-09-26",
+    "scope": "SC004 ERP SKU base units; no master prices"
+  },
+  "masters": [
+    {
+      "companySku": "630010025",
+      "unit": "หลอด",
+      "name": "สามัญ สกาเจล 9 กรัม",
+      "sourceRow": 24
+    },
+    {
+      "companySku": "630010026",
+      "unit": "หลอด",
+      "name": "สามัญ สกาเจล 4 กรัม",
+      "sourceRow": 25
+    },
+    {
+      "companySku": "630010038",
+      "unit": "ซอง",
+      "name": "สามัญ ยาอมสเตร็ปซิลออริจินัล เอช เอช อาร์ 8 เม็ด",
+      "sourceRow": 35
+    },
+    {
+      "companySku": "630010040",
+      "unit": "ซอง",
+      "name": "สามัญ ยาอมสเตร็ปซิลคูล เอช เอช อาร์ 8 เม็ด",
+      "sourceRow": 37
+    },
+    {
+      "companySku": "630010065",
+      "unit": "ซอง",
+      "name": "สามัญ ยาอมเสตร็ปซิลวิตซี 8 เม็ด",
+      "sourceRow": 58
+    },
+    {
+      "companySku": "630010066",
+      "unit": "ซอง",
+      "name": "สามัญ ยาอมเสตร็ปซิลน้ำผึ้งมะนาว 8 เม็ด",
+      "sourceRow": 59
+    },
+    {
+      "companySku": "630010147",
+      "unit": "แผง",
+      "name": "สามัญ แอร์ เอ็กซ์ ส้ม 10 เม็ด",
+      "sourceRow": 136
+    },
+    {
+      "companySku": "630010148",
+      "unit": "แผง",
+      "name": "สามัญ แอร์ เอ็กซ์ มินต์ 10 เม็ด",
+      "sourceRow": 137
+    },
+    {
+      "companySku": "630010188",
+      "unit": "หลอด",
+      "name": "สามัญ บีแพนเธนออยเมนต์ 30 กรัม",
+      "sourceRow": 169
+    },
+    {
+      "companySku": "630010206",
+      "unit": "ชิ้น",
+      "name": "สามัญ จุกล้างจมูกคลีนแคร์เอเอ็นบี 2 ชิ้น",
+      "sourceRow": 184
+    },
+    {
+      "companySku": "630010253",
+      "unit": "หลอด",
+      "name": "สามัญ เบิร์นโนว่าเจล 25 กรัม",
+      "sourceRow": 231
+    },
+    {
+      "companySku": "630010261",
+      "unit": "หลอด",
+      "name": "สามัญ เดอร์มาติกซ์ อัลตร้า ลบรอยแผลเป็น 5 กรัม",
+      "sourceRow": 237
+    },
+    {
+      "companySku": "630020295",
+      "unit": "ขวด",
+      "name": "สามัญ น้ำเกลือเอเอ็นบีขวดดัมเบล 1000 มล.",
+      "sourceRow": 519
+    },
+    {
+      "companySku": "630020296",
+      "unit": "ขวด",
+      "name": "ปกติ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 500 มล.",
+      "sourceRow": 520
+    },
+    {
+      "companySku": "630020297",
+      "unit": "ขวด",
+      "name": "ปกติ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 1000 มล",
+      "sourceRow": 521
+    },
+    {
+      "companySku": "630020298",
+      "unit": "ขวด",
+      "name": "สามัญ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 100 มล.",
+      "sourceRow": 522
+    },
+    {
+      "companySku": "IC-000023",
+      "unit": "แผง",
+      "name": "สามัญ แอร์ เอ็กซ์ มะนาว 10 เม็ด",
+      "sourceRow": 848
+    },
+    {
+      "companySku": "IC-000066",
+      "unit": "ชิ้น",
+      "name": "สามัญ ถุงยางดูเร็กซ์ คิงเท็ค 3 ชิ้น",
+      "sourceRow": 890
+    },
+    {
+      "companySku": "IC-000067",
+      "unit": "ชิ้น",
+      "name": "สามัญ ถุงยางดูเร็กซ์ เพอร์ฟอร์มา 3 ชิ้น",
+      "sourceRow": 891
+    },
+    {
+      "companySku": "IC-000068",
+      "unit": "ชิ้น",
+      "name": "สามัญ ถุงยางดูเร็กซ์ เฟเทอร์ไลท์ 3 ชิ้น",
+      "sourceRow": 892
+    },
+    {
+      "companySku": "IC-000129",
+      "unit": "ชิ้น",
+      "name": "สามัญ ถุงยางดูเร็กซ์ เซนเซชั่น 3 ชิ้น",
+      "sourceRow": 951
+    },
+    {
+      "companySku": "IC-000178",
+      "unit": "ซอง",
+      "name": "สามัญ ไบโอฟาร์ม เจลลาตินผสมวิตามินซี 24 กรัม",
+      "sourceRow": 996
+    },
+    {
+      "companySku": "IC-000213",
+      "unit": "ชิ้น",
+      "name": "สามัญ เควายเจลภายใน 42 กรัม",
+      "sourceRow": 1030
+    },
+    {
+      "companySku": "IC-000214",
+      "unit": "หลอด",
+      "name": "สามัญ เควายเจลภายใน 82 กรัม",
+      "sourceRow": 1031
+    },
+    {
+      "companySku": "IC-000245",
+      "unit": "หลอด",
+      "name": "สามัญ เควายเจลภายนอก 15 กรัม",
+      "sourceRow": 1061
+    },
+    {
+      "companySku": "IC-000246",
+      "unit": "หลอด",
+      "name": "สามัญ เควายเจลภายนอก 50 กรัม",
+      "sourceRow": 1062
+    },
+    {
+      "companySku": "IC-000304",
+      "unit": "หลอด",
+      "name": "สามัญ เบิร์นโนว่าเจล 70 กรัม",
+      "sourceRow": 1116
+    },
+    {
+      "companySku": "IC-000330",
+      "unit": "กล่อง",
+      "name": "สามัญ อินทราไซท์เจล 25 กรัม",
+      "sourceRow": 1141
+    },
+    {
+      "companySku": "IC-000343",
+      "unit": "ขวด",
+      "name": "สามัญ เอ็กซ์เซ่กลูธาไธโอน 200 กรัม",
+      "sourceRow": 1153
+    },
+    {
+      "companySku": "IC-000357",
+      "unit": "กล่อง",
+      "name": "สามัญ ไวทาร่าอีครีม 25 กรัม",
+      "sourceRow": 1167
+    },
+    {
+      "companySku": "IC-000398",
+      "unit": "ขวด",
+      "name": "ปกติ กาวิสคอนเขียว 150 มล",
+      "sourceRow": 1207
+    },
+    {
+      "companySku": "IC-000626",
+      "unit": "หลอด",
+      "name": "สามัญ เดอร์มาติกซ์ อัลตร้า ลบรอยแผลเป็น 15 กรัม",
+      "sourceRow": 1426
+    },
+    {
+      "companySku": "IC-000665",
+      "unit": "แผง",
+      "name": "สามัญ คลอร์เฟนิรามีน 2 มก 10 เม็ด",
+      "sourceRow": 1462
+    },
+    {
+      "companySku": "IC-000711",
+      "unit": "กล่อง",
+      "name": "ปกติ โพรโพลิซ พลัส เอ็กเฮิร์บ 15 มล.",
+      "sourceRow": 1505
+    },
+    {
+      "companySku": "IC-001048",
+      "unit": "ซอง",
+      "name": "สามัญ กาวิสคอนซัสเพนชั่นเขียว 10 มล",
+      "sourceRow": 1786
+    },
+    {
+      "companySku": "IC-001230",
+      "unit": "กล่อง",
+      "name": "สามัญ ซิโนแคร์ ซอฟทวิสเข็ม 50 ชิ้น",
+      "sourceRow": 1961
+    },
+    {
+      "companySku": "IC-001270",
+      "unit": "ขวด",
+      "name": "ปกติ เดทตอลน้ำยาฆ่าเชื้อมงกุฏ 500 มล",
+      "sourceRow": 2000
+    },
+    {
+      "companySku": "IC-001292",
+      "unit": "กล่อง",
+      "name": "สามัญ โพรโพลิซ เมาท์ สเปรย์ 15 มล",
+      "sourceRow": 2022
+    },
+    {
+      "companySku": "IC-001359",
+      "unit": "กล่อง",
+      "name": "สามัญ ซิงก์พลัส 60 เม็ด",
+      "sourceRow": 2088
+    },
+    {
+      "companySku": "IC-001395",
+      "unit": "หลอด",
+      "name": "ปกติ ยูเดีย 20% 30 กรัม",
+      "sourceRow": 2107
+    },
+    {
+      "companySku": "IC-001510",
+      "unit": "ซอง",
+      "name": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่พลัส ชมพู 20 กรัม",
+      "sourceRow": 2206
+    },
+    {
+      "companySku": "IC-001612",
+      "unit": "กระป๋อง",
+      "name": "สามัญ เนสท์เล่บูสท์ออปติมัมวนิลา 800 กรัม",
+      "sourceRow": 2307
+    },
+    {
+      "companySku": "IC-001849",
+      "unit": "ซอง",
+      "name": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่ เหลือง 20 กรัม",
+      "sourceRow": 2527
+    },
+    {
+      "companySku": "IC-001886",
+      "unit": "ขวด",
+      "name": "สามัญ น้ำยาบ้วนปาก โพรโพลิซ เมาท์วอช 150 มล.",
+      "sourceRow": 2564
+    },
+    {
+      "companySku": "IC-001928",
+      "unit": "ชิ้น",
+      "name": "สามัญ สายดูดเสมหะไม่มีคอนโทรลซีเคียวเบอร์14 1 ชิ้น",
+      "sourceRow": 2605
+    },
+    {
+      "companySku": "IC-001984",
+      "unit": "ชิ้น",
+      "name": "สามัญ จุกล้างจมูกคลีนแคร์เอเอ็นบีแบบนุ่ม 1 ชิ้น",
+      "sourceRow": 2659
+    },
+    {
+      "companySku": "IC-001998",
+      "unit": "หลอด",
+      "name": "สามัญ เดอร์มาติกซ์ อัลตร้า ลบรอยแผลเป็น 9 กรัม",
+      "sourceRow": 2673
+    },
+    {
+      "companySku": "IC-002080",
+      "unit": "ซอง",
+      "name": "สามัญ โพรโพลิซเม็ดอมมะนาวขิง 8 เม็ด",
+      "sourceRow": 2755
+    },
+    {
+      "companySku": "IC-002109",
+      "unit": "กล่อง",
+      "name": "สามัญ ถุงยางดูเร็กซ์ เฟอร์ฟอร์มา 52.5 มม 10 ชิ้น",
+      "sourceRow": 2784
+    },
+    {
+      "companySku": "IC-002111",
+      "unit": "ชิ้น",
+      "name": "สามัญ ถุงยางดูเร็กซ์ โพรเทคท์ 52.5มม.3 ชิ้น",
+      "sourceRow": 2786
+    },
+    {
+      "companySku": "IC-002112",
+      "unit": "ขวด",
+      "name": "สามัญ เจลหล่อลื่น ดูเร็กซ์ เพลย์ คลาสสิค 50 มล",
+      "sourceRow": 2787
+    },
+    {
+      "companySku": "IC-002113",
+      "unit": "ขวด",
+      "name": "สามัญ เจลหล่อลื่น ดูเร็กซ์ เพลย์ สตรอเบอรี่ 50 มล.",
+      "sourceRow": 2788
+    },
+    {
+      "companySku": "IC-002300",
+      "unit": "ซอง",
+      "name": "สามัญ ไวต้าซี วิตามินซี กลิ่นสับปะรด 25 มก 30 เม็ด",
+      "sourceRow": 2970
+    },
+    {
+      "companySku": "IC-002353",
+      "unit": "ซอง",
+      "name": "สามัญ ไวต้าซี วิตามินซี กลิ่นองุ่น 25 มก 30 เม็ด",
+      "sourceRow": 3020
+    },
+    {
+      "companySku": "IC-002441",
+      "unit": "ซอง",
+      "name": "สามัญ วันเกิร์ด 10  มล",
+      "sourceRow": 3105
+    },
+    {
+      "companySku": "IC-002462",
+      "unit": "กระป๋อง",
+      "name": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 280 มล",
+      "sourceRow": 3125
+    },
+    {
+      "companySku": "IC-002484",
+      "unit": "ซอง",
+      "name": "สามัญ ไวต้าซี วิตามินซี กลิ่นเลมอน 25 มก 30 เม็ด",
+      "sourceRow": 3147
+    },
+    {
+      "companySku": "IC-002485",
+      "unit": "ซอง",
+      "name": "สามัญ ไวต้าซี วิตามินซีกลิ่นสตอเบอรี่ 25 มก 30 เม็ด",
+      "sourceRow": 3148
+    },
+    {
+      "companySku": "IC-002516",
+      "unit": "ซอง",
+      "name": "สามัญ ไวต้าซี วิตามินซี กลิ่นส้ม 25 มก 30 เม็ด",
+      "sourceRow": 3178
+    },
+    {
+      "companySku": "IC-002570",
+      "unit": "กล่อง",
+      "name": "สามัญ ถุงยางดูเร็กซ์คอมฟอร์ท 56 มม 3 ชิ้น",
+      "sourceRow": 3230
+    },
+    {
+      "companySku": "IC-002717",
+      "unit": "กล่อง",
+      "name": "ปกติ ยูเดีย10%  30 กรัม",
+      "sourceRow": 3375
+    },
+    {
+      "companySku": "IC-002892",
+      "unit": "ขวด",
+      "name": "สามัญ สเปรย์พ่นคอ ซิกกาเลส เมาท์ สเปรย์ 15 มล.",
+      "sourceRow": 3542
+    },
+    {
+      "companySku": "IC-002893",
+      "unit": "ขวด",
+      "name": "สามัญ โพรโพลิช คิด เมาท์ สเปรย์ ลิโคไรซ์ ซิงค์ 10 มล.",
+      "sourceRow": 3543
+    },
+    {
+      "companySku": "IC-002910",
+      "unit": "ขวด",
+      "name": "สามัญ ไวต้าซี วิตามินซี ส้ม 25 มก 1000 เม็ด",
+      "sourceRow": 3560
+    },
+    {
+      "companySku": "IC-002911",
+      "unit": "ขวด",
+      "name": "สามัญ ไวต้าซี วิตามินซี องุ่น 25 มก 1000 เม็ด",
+      "sourceRow": 3561
+    },
+    {
+      "companySku": "IC-002912",
+      "unit": "ขวด",
+      "name": "สามัญ ไวต้าซี วิตามินซี  สับปะรด 25 มก 1000 เม็ด",
+      "sourceRow": 3562
+    },
+    {
+      "companySku": "IC-002913",
+      "unit": "ขวด",
+      "name": "สามัญ ไวต้าซี วิตามินซี สตอร์เบอรี่ 25 มก 1000  เม็ด",
+      "sourceRow": 3563
+    },
+    {
+      "companySku": "IC-002928",
+      "unit": "ซอง",
+      "name": "สามัญ ยาแก้เมารถ เฟดรา 2 เม็ด",
+      "sourceRow": 3578
+    },
+    {
+      "companySku": "IC-003143",
+      "unit": "กระป๋อง",
+      "name": "สามัญ เอนทราซอล แพทตินัม 400 กรัม",
+      "sourceRow": 3791
+    },
+    {
+      "companySku": "IC-003211",
+      "unit": "หลอด",
+      "name": "สามัญ ซีเบลสกาเจล 19 กรัม",
+      "sourceRow": 3859
+    },
+    {
+      "companySku": "IC-003230",
+      "unit": "กล่อง",
+      "name": "สามัญ เครื่องตรวจน้ำตาล ดอกเตอร์ มอร์เป็น BG 03  1 ชุด",
+      "sourceRow": 3878
+    },
+    {
+      "companySku": "IC-003232",
+      "unit": "กล่อง",
+      "name": "สามัญ แถบตรวจน้ำตาลในเลือด กลูโค วัน BG-03 50 แถบ",
+      "sourceRow": 3880
+    },
+    {
+      "companySku": "IC-003233",
+      "unit": "ชุด",
+      "name": "สามัญ เครื่องตรวจน้ำตาล ดอกเตอร์ มอร์เป็น BG 03 แผ่นวัด 50 แผ่น  1 ชุด",
+      "sourceRow": 3881
+    },
+    {
+      "companySku": "IC-003387",
+      "unit": "กล่อง",
+      "name": "สามัญ ถุงยางดูเร็กซ์ เลิฟ 52.5 มม 3 ชิ้น",
+      "sourceRow": 4033
+    },
+    {
+      "companySku": "IC-003478",
+      "unit": "กล่อง",
+      "name": "สามัญ แผ่นตรวจน้ำตาลในเลือด กลูโค วัน BG-03 25 แถบ",
+      "sourceRow": 4123
+    },
+    {
+      "companySku": "IC-003493",
+      "unit": "ก้อน",
+      "name": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5 % 80 กรัม",
+      "sourceRow": 4138
+    },
+    {
+      "companySku": "IC-003560",
+      "unit": "ก้อน",
+      "name": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5% 30 กรัม",
+      "sourceRow": 4202
+    },
+    {
+      "companySku": "IC-003569",
+      "unit": "ซอง",
+      "name": "สามัญ โพรโพลิซเม็ดอมวิตามินซี  8 เม็ด",
+      "sourceRow": 4211
+    },
+    {
+      "companySku": "IC-003652",
+      "unit": "ซอง",
+      "name": "สามัญ ลูกอมสมุนไพร ไอเฮิร์บ สูตรปราศจากน้ำตาล 8 เม็ด",
+      "sourceRow": 4294
+    },
+    {
+      "companySku": "IC-003676",
+      "unit": "ชิ้น",
+      "name": "สามัญ อุปกรณ์ต่อขวดล้างจมูก คลีนแอนด์แคร์ 1 ชิ้น",
+      "sourceRow": 4317
+    },
+    {
+      "companySku": "IC-003778",
+      "unit": "ซอง",
+      "name": "สามัญ กาวิสคอน ดับเบิ้ล แอคชั่น มิ้นต์ 10 มล.",
+      "sourceRow": 4418
+    },
+    {
+      "companySku": "IC-003840",
+      "unit": "ชิ้น",
+      "name": "สามัญ โพรโพลิสผสมวิตามินซีและมะขามป้อม ชนิดเม็ดเคี้ยว 8 เม็ด",
+      "sourceRow": 4479
+    },
+    {
+      "companySku": "IC-004051",
+      "unit": "หลอด",
+      "name": "สามัญ ซีเบล สกาเจล พลัส 10 กรัม",
+      "sourceRow": 4690
+    },
+    {
+      "companySku": "IC-004055",
+      "unit": "กล่อง",
+      "name": "สามัญ เออบาท๊อป เอไอ 50 กรัม",
+      "sourceRow": 4694
+    },
+    {
+      "companySku": "IC-004143",
+      "unit": "กล่อง",
+      "name": "สามัญ จีเอชพี นาซิแคร์ นาซอล วอชเชอร์ ขวดล้างจมูกอัตโนมัติ 300 มล",
+      "sourceRow": 4782
+    },
+    {
+      "companySku": "IC-004177",
+      "unit": "ชิ้น",
+      "name": "สามัญ สายดูดเสมหะ ชนิดไม่มีคอนโทรล เอสเค แม็กซ์ เบอร์12 1 ชิ้น",
+      "sourceRow": 4816
+    },
+    {
+      "companySku": "IC-004199",
+      "unit": "แผง",
+      "name": "สามัญ ยาถ่ายพยาธิตัวกลม มีเบนดาโซล 100 มก 6 เม็ด",
+      "sourceRow": 4838
+    },
+    {
+      "companySku": "IC-004251",
+      "unit": "ซอง",
+      "name": "สามัญ โพรโพลิซ มิกซ์ ชนิดเม็ดอม 15 เม็ด",
+      "sourceRow": 4889
+    },
+    {
+      "companySku": "IC-004261",
+      "unit": "ขวด",
+      "name": "สามัญ ยาน้ำแก้ไอ ไอเฮิร์บ โอทีซี 60 มล",
+      "sourceRow": 4899
+    },
+    {
+      "companySku": "IC-004371",
+      "unit": "ซอง",
+      "name": "สามัญ ออรีด้า อาร์ โอ ออเรนจ์ 5.5 กรัม",
+      "sourceRow": 5008
+    },
+    {
+      "companySku": "IC-004446",
+      "unit": "หลอด",
+      "name": "สามัญ คลินิเจล 50 กรัม",
+      "sourceRow": 5082
+    },
+    {
+      "companySku": "IC-004453",
+      "unit": "กล่อง",
+      "name": "สามัญ โพรโพลิซ เอ็กซ์ เมาท์สเปรย์ 15 มล",
+      "sourceRow": 5089
+    },
+    {
+      "companySku": "IC-004601",
+      "unit": "แผง",
+      "name": "สามัญ โพรโพลิส เอ็กซ์ ชนิดเม็ดอม กลิ่นน้ำผึ้งมะนาว 8 เม็ด",
+      "sourceRow": 5236
+    },
+    {
+      "companySku": "IC-004642",
+      "unit": "กล่อง",
+      "name": "สามัญ เม็ดอมคอมฟีร์ กลิ่นน้ำผึ้งมะนาวและมิ้นท์ 8 เม็ด",
+      "sourceRow": 5277
+    },
+    {
+      "companySku": "IC-004787",
+      "unit": "หลอด",
+      "name": "สามัญ คลีน่า เอ็กซ์ แอนตี้ เมลาสม่า 15 กรัม",
+      "sourceRow": 5422
+    },
+    {
+      "companySku": "IC-004857",
+      "unit": "แผง",
+      "name": "สามัญ โพรโพลิซ เอ็กเฮิร์บ ชนิดเม็ดอม 8 เม็ด",
+      "sourceRow": 5492
+    },
+    {
+      "companySku": "IC-004860",
+      "unit": "กล่อง",
+      "name": "สามัญ อ๊อปตามิน โปร 30 แคปซูล",
+      "sourceRow": 5495
+    },
+    {
+      "companySku": "IC-004871",
+      "unit": "ชิ้น",
+      "name": "สามัญ สายให้อาหารซิลิโคน แฟรี่เมด เบอร์14 1 ชิ้น",
+      "sourceRow": 5506
+    },
+    {
+      "companySku": "IC-004872",
+      "unit": "ชิ้น",
+      "name": "สามัญ สายให้อาหารซิลิโคน แฟรี่เมด เบอร์16 1 ชิ้น",
+      "sourceRow": 5507
+    },
+    {
+      "companySku": "IC-004903",
+      "unit": "หลอด",
+      "name": "สามัญ ไวทาร่า อี ครีม 50 กรัม",
+      "sourceRow": 5538
+    },
+    {
+      "companySku": "IC-004912",
+      "unit": "กล่อง",
+      "name": "สามัญ หูฟังทางการแพทย์ รุ่น ST-01A 1 ชิ้น",
+      "sourceRow": 5547
+    },
+    {
+      "companySku": "IC-005014",
+      "unit": "กระป๋อง",
+      "name": "สามัญ เอนทราซอล แพลทตินั่ม กลิ่นวานิลลา 800 กรัม",
+      "sourceRow": 5649
+    },
+    {
+      "companySku": "IC-005056",
+      "unit": "ซอง",
+      "name": "สามัญ ยาอมสมุนไพร ไอ เฮิร์บ โอทีซี 18 เม็ด",
+      "sourceRow": 5691
+    },
+    {
+      "companySku": "IC-005104",
+      "unit": "กระป๋อง",
+      "name": "สามัญ โคลอชัวร์ กลิ่นวานิลลา 400 กรัม",
+      "sourceRow": 5739
+    },
+    {
+      "companySku": "IC-005169",
+      "unit": "กล่อง",
+      "name": "สามัญ ดีเดย์ ฟิชออย พลัส แอสต้าแซนธิน รสเปปเปอร์มิ้นท์ 30 แคปซูล",
+      "sourceRow": 5803
+    },
+    {
+      "companySku": "IC-005185",
+      "unit": "กระป๋อง",
+      "name": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 280 มล",
+      "sourceRow": 5819
+    },
+    {
+      "companySku": "IC-005294",
+      "unit": "ชิ้น",
+      "name": "สามัญ โพรโพลิซ แคนดี้ป๊อป รสฮันนี่เลม่อน 7 กรัม",
+      "sourceRow": 5928
+    },
+    {
+      "companySku": "IC-005323",
+      "unit": "ชิ้น",
+      "name": "สามัญ ไวต้าซี แคนดี้ป๊อป กลิ่นส้ม 7 กรัม",
+      "sourceRow": 5957
+    },
+    {
+      "companySku": "IC-005369",
+      "unit": "กล่อง",
+      "name": "สามัญ ดีเดย์ ไบโอติน เอช พลัส ซิงค์ 60 แคปซูล",
+      "sourceRow": 6003
+    },
+    {
+      "companySku": "IC-005370",
+      "unit": "กล่อง",
+      "name": "สามัญ ดีเดย์ ไบโอแมก พลัส วิตามิน 30 แคปซูล",
+      "sourceRow": 6004
+    },
+    {
+      "companySku": "IC-005371",
+      "unit": "ซอง",
+      "name": "สามัญ ดีเดย์ ไฟเบอร์ ไฟเบอร์ 18 กรัม",
+      "sourceRow": 6005
+    },
+    {
+      "companySku": "IC-005372",
+      "unit": "กล่อง",
+      "name": "สามัญ ดีเดย์ ไบโอ ซี 500 มก 15 ซอง",
+      "sourceRow": 6006
+    },
+    {
+      "companySku": "IC-005438",
+      "unit": "ขวด",
+      "name": "สามัญ ดีเดย์ ไบโอ ซี และมัลติวิตามิน พลัส เอลเดอร์เบอร์รี่ รสมิกซ์เบอร์รี่ 120 มล",
+      "sourceRow": 6072
+    },
+    {
+      "companySku": "IC-005439",
+      "unit": "ขวด",
+      "name": "สามัญ ดีเดย์ มัลติวิตามิน ฟอร์ท และโอเมก้า3 รสส้ม 120 มล",
+      "sourceRow": 6073
+    },
+    {
+      "companySku": "IC-005462",
+      "unit": "ขวด",
+      "name": "สามัญ ไวทาร่า เฟเชียล คลีนซิ่ง โฟม มูส 100 มล",
+      "sourceRow": 6096
+    },
+    {
+      "companySku": "IC-005465",
+      "unit": "ขวด",
+      "name": "สามัญ ยาน้ำแก้ไอ ไอเฮิร์บ โอทีซี 100 มล",
+      "sourceRow": 6099
+    },
+    {
+      "companySku": "IC-005480",
+      "unit": "กล่อง",
+      "name": "สามัญ เออบาท๊อป แอดวานซ์ อินเทนซีฟ เอนริช มอยซ์เจอร์ไรซิ่ง 9% ยูเรียครีม 50 กรัม",
+      "sourceRow": 6114
+    },
+    {
+      "companySku": "IC-005483",
+      "unit": "กล่อง",
+      "name": "สามัญ โคลอชัวร์ กลิ่นวานิลลา 800 กรัม",
+      "sourceRow": 6117
+    },
+    {
+      "companySku": "IC-005510",
+      "unit": "หลอด",
+      "name": "สามัญ เอ็กซ์เซ่ กลูตาไธโอน บอดี้ โลชั่น ไวท์เทนนิ่ง สกินแคร์ 50 กรัม",
+      "sourceRow": 6143
+    },
+    {
+      "companySku": "IC-005526",
+      "unit": "ชิ้น",
+      "name": "สามัญ เจลประคบร้อนและเย็น ข้อมือ รุ่นCSI-CS-V290 ไซส์L 1 ชิ้น",
+      "sourceRow": 6159
+    },
+    {
+      "companySku": "IC-005527",
+      "unit": "ชิ้น",
+      "name": "สามัญ เจลประคบร้อนและเย็น ข้อศอก รุ่นCSI-CS-V710 1 ชิ้น",
+      "sourceRow": 6160
+    },
+    {
+      "companySku": "IC-005528",
+      "unit": "ชิ้น",
+      "name": "สามัญ เจลประคบร้อนและเย็น เข่า รุ่นCSI-CS-V940 1 ชิ้น",
+      "sourceRow": 6161
+    },
+    {
+      "companySku": "IC-005529",
+      "unit": "ห่อ",
+      "name": "สามัญ แอปซอบา ผ้าอ้อมผู้ใหญ่แบบเทป ไซส์M 18 ชิ้น",
+      "sourceRow": 6162
+    },
+    {
+      "companySku": "IC-005530",
+      "unit": "ห่อ",
+      "name": "สามัญ แอปซอบา ผ้าอ้อมผู้ใหญ่แบบเทป ไซส์L 16 ชิ้น",
+      "sourceRow": 6163
+    },
+    {
+      "companySku": "IC-005531",
+      "unit": "ห่อ",
+      "name": "สามัญ แอปซอบา ผ้าอ้อมผู้ใหญ่แบบเทป ไซส์XL 14 ชิ้น",
+      "sourceRow": 6164
+    },
+    {
+      "companySku": "IC-005546",
+      "unit": "หลอด",
+      "name": "สามัญ เอ็กซ์เซ่ ไฟโตเซลล์ เฟเชียล คลีนซิ่ง มิลค์ 100 กรัม",
+      "sourceRow": 6179
+    },
+    {
+      "companySku": "IC-005547",
+      "unit": "กล่อง",
+      "name": "สามัญ เอ็กซ์เซ่ ไฟโตเซลล์ แอนทิ เอจจิ้ง แอนด์ ไวท์เทนนิ่ง ซีรั่ม 30 กรัม",
+      "sourceRow": 6180
+    },
+    {
+      "companySku": "IC-005549",
+      "unit": "กล่อง",
+      "name": "สามัญ เอ็กซ์เซ่ เคลียราซอฟท์ แอคเน่ เฟเชียล มอยซ์เจอไรเซอร์ 30 กรัม",
+      "sourceRow": 6182
+    },
+    {
+      "companySku": "IC-005557",
+      "unit": "กระป๋อง",
+      "name": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 80 มล",
+      "sourceRow": 6190
+    },
+    {
+      "companySku": "IC-005598",
+      "unit": "ชิ้น",
+      "name": "สามัญ ไวต้าซี แคนดี้ป๊อป กลิ่นแอปเปิ้ลเขียว 7 กรัม",
+      "sourceRow": 6231
+    },
+    {
+      "companySku": "IC-005600",
+      "unit": "กล่อง",
+      "name": "สามัญ เออบาท๊อป แอดวานซ์ อินเทนซีฟ โลชั่น 75 มล",
+      "sourceRow": 6233
+    },
+    {
+      "companySku": "IC-005605",
+      "unit": "กล่อง",
+      "name": "สามัญ บีรอคคา เพอร์ฟอร์มานซ์ เม็ดฟิล์ม 30 เม็ด",
+      "sourceRow": 6238
+    },
+    {
+      "companySku": "IC-005661",
+      "unit": "ชิ้น",
+      "name": "สามัญ หูฟังทางการแพทย์ รุ่น ST-07A 1 ชิ้น",
+      "sourceRow": 6294
+    },
+    {
+      "companySku": "IC-005804",
+      "unit": "ขวด",
+      "name": "เภสัช ฮาฟิฟ เฮอร์บัล 2 อิน 1 คอนดิชันนิ้ง แชมพู 50 มล",
+      "sourceRow": 6437
+    },
+    {
+      "companySku": "IC-005845",
+      "unit": "กล่อง",
+      "name": "สามัญ ชุดอุปกรณ์ล้างจมูก คลีนแอนด์แคร์ นาซาลคิท 1 ชุด",
+      "sourceRow": 6478
+    },
+    {
+      "companySku": "IC-005991",
+      "unit": "กระปุก",
+      "name": "สามัญ ซิงก์ ไบโอติน พลัส 350 มก 90 เม็ด",
+      "sourceRow": 6624
+    },
+    {
+      "companySku": "IC-005992",
+      "unit": "กระปุก",
+      "name": "สามัญ ซิงก์ ไบโอติน พลัส 350 มก 30 เม็ด",
+      "sourceRow": 6625
+    },
+    {
+      "companySku": "IC-005993",
+      "unit": "กระปุก",
+      "name": "สามัญ ไบโอติน ซิงก์ 250 มก 90 เม็ด",
+      "sourceRow": 6626
+    },
+    {
+      "companySku": "IC-005994",
+      "unit": "กระปุก",
+      "name": "สามัญ ไบโอติน ซิงก์ 250 มก 30 เม็ด",
+      "sourceRow": 6627
+    },
+    {
+      "companySku": "IC-005995",
+      "unit": "กล่อง",
+      "name": "สามัญ ดีเดย์ ลูติ เบอร์รี่ มิกซ์ 30 เม็ด",
+      "sourceRow": 6628
+    },
+    {
+      "companySku": "IC-005998",
+      "unit": "กล่อง",
+      "name": "สามัญ ชุดตรวจตั้งครรภ์ชนิดหยด ดอกเตอร์มอร์เพน 25 ชิ้น",
+      "sourceRow": 6631
+    },
+    {
+      "companySku": "IC-006023",
+      "unit": "กระป๋อง",
+      "name": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 80 มล",
+      "sourceRow": 6656
+    },
+    {
+      "companySku": "IC-006043",
+      "unit": "กล่อง",
+      "name": "สามัญ ไบโอ กาย่า แกสตรัส เม็ดเคี้ยว กลิ่นส้มแมนดาริน 10 เม็ด",
+      "sourceRow": 6676
+    }
+  ],
+  "rules": [
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
+      "variant": "เลมอน ไม่มีน้ำตาล",
+      "companySku": "630010066",
+      "quantityPerSale": 1,
+      "authority": "user_authorized_accounting_consolidation_2026-09-26"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "10 ซอง Oreda RO ผงเกลือแร่ รสส้ม 5.5 กรัม บรรเทาอาการท้องเสีย",
+      "variant": "10Pcs",
+      "companySku": "IC-004371",
+      "quantityPerSale": 10,
+      "authority": "verified_source_pack_and_erp_master"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 14 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "1 แพ๊ค",
+      "companySku": "IC-001928",
+      "quantityPerSale": 50,
+      "authority": "verified_source_pack_and_erp_master"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 14 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "3 แพ๊ค",
+      "companySku": "IC-001928",
+      "quantityPerSale": 150,
+      "authority": "verified_source_pack_and_erp_master"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "คลอเฟนิรามีน มาลีเอท 2mg ยาแก้แพ้ ลดน้ำมูก แก้คัดจมูก กล่อง 10 แผง ยาสามัญประจำบ้าน Chlorpheniramine Maleate BLHUA",
+      "variant": "",
+      "companySku": "IC-000665",
+      "quantityPerSale": 10,
+      "authority": "verified_source_pack_and_erp_master"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Berocca Performance บีรอคคา เพอร์ฟอร์มานซ์ เม็ดฟิล์ม 30 เม็ด ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "",
+      "companySku": "IC-005605",
+      "quantityPerSale": 1,
+      "authority": "exact_identity_verified_erp_master_2026-09-26"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "BioGaia Gastrus ไบโอ กาย่า แกสตรัส เม็ดเคี้ยวรสส้มแมนดาริน 10 เม็ด ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "",
+      "companySku": "IC-006043",
+      "quantityPerSale": 1,
+      "authority": "exact_identity_verified_erp_master_2026-09-26"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Fairymed Silicone Stomach Tube 14Fr 16Fr 125cm แฟร์เมด สายให้อาหารซิลิโคน NG Tube สเตอร์ไรด์",
+      "variant": "14 fr 1 ชิ้น",
+      "companySku": "IC-004871",
+      "quantityPerSale": 1,
+      "authority": "exact_identity_verified_erp_master_2026-09-26"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Fairymed Silicone Stomach Tube 14Fr 125cm แฟร์เมด สายให้อาหารซิลิโคน NG Tube สเตอร์ไรด์",
+      "variant": "14 fr 1 ชิ้น",
+      "companySku": "IC-004871",
+      "quantityPerSale": 1,
+      "authority": "exact_identity_verified_erp_master_2026-09-26"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Fairymed Silicone Stomach Tube 14Fr 16Fr 125cm แฟร์เมด สายให้อาหารซิลิโคน NG Tube สเตอร์ไรด์",
+      "variant": "16 fr 1 ชิ้น",
+      "companySku": "IC-004872",
+      "quantityPerSale": 1,
+      "authority": "exact_identity_verified_erp_master_2026-09-26"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Fairymed Silicone Stomach Tube 16Fr 125cm แฟร์เมด สายให้อาหารซิลิโคน NG Tube สเตอร์ไรด์",
+      "variant": "16 fr 1 ชิ้น",
+      "companySku": "IC-004872",
+      "quantityPerSale": 1,
+      "authority": "exact_identity_verified_erp_master_2026-09-26"
+    }
+  ],
+  "unitEquivalences": [
+    {
+      "companySku": "IC-005294",
+      "sourceQuantityUnit": "sachet",
+      "erpUnit": "ชิ้น",
+      "authority": "one_candy_pop_per_7g_sachet_verified_source_and_master_2026-09-26"
+    },
+    {
+      "companySku": "IC-005323",
+      "sourceQuantityUnit": "sachet",
+      "erpUnit": "ชิ้น",
+      "authority": "one_candy_pop_per_7g_sachet_verified_source_and_master_2026-09-26"
+    },
+    {
+      "companySku": "IC-005598",
+      "sourceQuantityUnit": "sachet",
+      "erpUnit": "ชิ้น",
+      "authority": "one_candy_pop_per_7g_sachet_verified_source_and_master_2026-09-26"
+    }
+  ],
+  "unitReviews": [
+    {
+      "companySku": "IC-003778",
+      "variant": "ชมพู 1 กล่อง",
+      "reason": "ยังไม่ยืนยันจำนวนซองต่อกล่องของ Gaviscon สีชมพู; หน่วย ERP เป็นซอง"
+    }
+  ]
+}
