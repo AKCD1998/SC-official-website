@@ -1,0 +1,13 @@
+# StockDay-backed Shopee copy mappings
+
+Changed Shopee titles and variations left otherwise identifiable source products out of the AdaSmart copy plan. The copy registry now adds 109 exact single-SKU identities (104 SC Drug Store, 5 Dr.Morepen) and records the components of three multi-SKU bundle identities. The earlier 26 rules and all existing ERP masters remain intact.
+
+The SC004 StockDay export downloaded on 28 September 2026 supplies SKU, barcode and ERP unit evidence. Its SHA-256 is `7de45a7ca0adc8108f7757fe9af93ce6a7de15fca1c883e10f6542da9c3c3dce`; the worksheet is `Stock 004`, synced at 08:21:02 Bangkok time. Thirty-five additional ERP masters are referenced by this evidence ID. Inventory balances, prices and source order records are not included in the registry.
+
+Multipliers count ERP units, not the contents of one ERP unit. For example, a One Gerd box gives 12 sachets, a Tylenol box gives 20 blisters, a 24-bottle alcohol case gives 24 bottles, and three Durex Sensation retail boxes give three ERP units labelled `ชิ้น`. A BioGaia Minipack ten-sachet retail box remains one ERP `กล่อง`. Formula, flavour and size remain part of the exact identity.
+
+Own Shopee listing evidence additionally verifies GHP dumbbell case SKU IC-005082 and ten bottles, Royal-D variation SKUs and ten-sachet boxes, Swisse formula variation SKUs, Fairymed closed-tip variation SKUs, and Polar bundle composition. The Polar listing explicitly contains two Eucalyptus Oil Plus Activ 280 ml cans (IC-002462) and one free Innocence 80 ml can (IC-005557); Innocence 280 ml (IC-005185) is a separate formula/size. The owner requested retaining component-price review for Polar. Meter/strip bundles also keep price review because no allocation method was approved.
+
+Rules persist in version control, without an expiry date. They apply to the same shop, exact title and variation on later copy-plan requests. A changed identity requires new evidence; stock reaching zero does not invalidate a saved product mapping. The original paid-date cohort, source merchandise amounts, funded discounts and Business Insights checks remain in force.
+
+Read-only verification covers imported paid orders from 20 July through 27 September. After the additions, no product identity or ERP unit remains unresolved in that imported set. Three mapped bundle identities retain component-price review. All 57 previously ready shop-days preserve their complete copy rows, amounts and source attribution. Seven SC Drug Store days and five Dr.Morepen days become ready. Separate source-price allocation and paid-date/Business Insights differences still prevent some daily copy plans from becoming ready; the mappings do not override those financial checks.

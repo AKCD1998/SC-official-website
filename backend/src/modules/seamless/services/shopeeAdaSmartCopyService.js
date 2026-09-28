@@ -16,6 +16,21 @@ function resolveCopyProduct(shopCode, item) {
   const override = rules.rules.find(row => row.shopCode === shopCode
     && row.productName === item.name && row.variant === (item.variant || ''));
   const originalMatch = item.productMatch;
+  // Component identity and quantity can be verified independently of price.
+  // Keep the owner's bundle price review in place until a separate allocation
+  // rule is approved; never assign the whole price to each component.
+  if (override?.components) {
+    const components = override.components.map(row => {
+      const master = masters.get(row.companySku);
+      return { sku: row.companySku, factor: row.quantityPerSale, unit: master?.unit, name: master?.name };
+    });
+    if (!components.length || components.some(row => !safeCode(row.sku) || !row.unit
+      || !Number.isSafeInteger(row.factor) || row.factor < 1)) {
+      return { reason: 'หลักฐาน SKU หรือจำนวนส่วนประกอบ Bundle ไม่ครบ' };
+    }
+    return { components, authority: override.authority, originalMatch,
+      reason: `Bundle จับคู่แล้ว (${components.map(row => `${row.sku} ×${row.factor}`).join(' + ')}) ยังต้องตรวจสอบราคาแยกแต่ละสินค้า` };
+  }
   let sku = override?.companySku || originalMatch?.companySku;
   let factor = override?.quantityPerSale || originalMatch?.quantityPerSale || 1;
   if (!override && originalMatch?.status === 'bundle') {
@@ -180,6 +195,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
     merchandiseCents, supportCents, sellerCents, cohortTotalCents: financialComplete ? cohortCents : null,
     totalCents: readyTotalCents, targetCents, varianceCents: targetCents == null ? null : readyTotalCents - targetCents,
     rows, issues, confirmedSales, sourceEvidence: [...evidence.values()], masterEvidence: rules.masterEvidence,
+    additionalMasterEvidence: rules.additionalMasterEvidence || [],
     columns: ready ? { sku: rows.map(row => row.sku).join('\n'),
       quantity: rows.map(row => String(row.quantity)).join('\n'),
       unitPrice: rows.map(row => row.unitPrice).join('\n') } : null };
