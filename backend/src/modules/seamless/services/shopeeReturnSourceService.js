@@ -265,8 +265,30 @@ function validateAssembledReturnArchive(buffer, sourceOriginalFiles) {
     const xlsxMagic = bytes[0] === 0x50 && bytes[1] === 0x4b
       && bytes[2] === 0x03 && bytes[3] === 0x04;
     const xlsMagic = bytes.subarray(0, 8).equals(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]));
-    if ((item.extension === "xlsx" && !xlsxMagic) || (item.extension === "xls" && !xlsMagic)) {
+    if ((item.extension === "xlsx" && !xlsxMagic) || (item.extension === "xls" && !xlsMagic && !xlsxMagic)) {
       throw new Error(`Assembled exceptional-case workbook magic differs for ${item.originalFilename}.`);
+    }
+    if (xlsxMagic) {
+      // Shopee also ships OOXML under the official .xls return/refund name.
+      // Keep filename/hash intact and validate the actual inner container.
+      let expandedBytes = 0;
+      let entryCount = 0;
+      const workbookEntries = unzipSync(new Uint8Array(bytes), {
+        filter(file) {
+          entryCount += 1;
+          expandedBytes += file.originalSize;
+          if (entryCount > 2000 || file.originalSize > MAX_ENTRY_BYTES || expandedBytes > MAX_UNCOMPRESSED_BYTES
+            || file.name.includes("\\") || file.name.startsWith("/") || file.name.split("/").includes("..")) {
+            throw new Error("Unsafe or oversized exceptional-case workbook container.");
+          }
+          return true;
+        },
+      });
+      const names = Object.keys(workbookEntries);
+      if (names.length !== entryCount || !workbookEntries["[Content_Types].xml"]?.length
+        || !workbookEntries["xl/workbook.xml"]?.length) {
+        throw new Error(`Assembled exceptional-case OOXML structure differs for ${item.originalFilename}.`);
+      }
     }
   }
   return entries;
