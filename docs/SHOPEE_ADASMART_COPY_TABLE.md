@@ -22,7 +22,7 @@ sum equals the recorded subtotal and there is no seller voucher or Shopee suppor
 Otherwise require review; never distribute an order total, use master prices or add a balancing item.
 
 Resolve existing catalog SKU matches and verified pack factors against ERP-unit evidence in
-`shopeeAdaSmartCopyRules.v1.json`. That registry contains 147 evidenced ERP SKU master units
+`shopeeAdaSmartCopyRules.v1.json`. That registry contains 148 evidenced ERP SKU master units
 from the hashed SC004 export, exact source-product corrections evidenced during the user's daily
 workflow, and the user's 2026-09-26 accounting consolidation of the specific Strepsils lemon variant
 into honey-lemon SKU 630010066. Original source identity and prior match remain in row evidence.
@@ -82,13 +82,20 @@ variant `1 กล่อง 10 แผง`, reuses the existing ten-blister IC-000
 Keep original source identities and prior unmapped matches; other formulas, colours,
 shops and unverified packs retain their review guards.
 
+The user's separate Swisse Biotin Forte confirmation supplies exact SKU IC-005481,
+unit กระปุก and barcode 9311770608275 in a product-row screenshot. Map only SC Drug
+Store's exact sixty-tablet Biotin Forte + Vitamin C/Zinc title with no variant to
+one ERP jar per sale. Export row 6115 and the screenshot agree on that identity;
+the registry retains the screenshot SHA-256. Other sizes, packs and shops do not
+inherit the rule. Preserve its original source price and quantity together.
+
 Group identical ERP SKUs without changing total quantity or satang. If division by quantity is
 fractional at two decimals, emit a higher-cent-price row first and the remaining lower-cent-price
 row. Preserve repeated SKU rows and return aligned strings only when every check passes.
 
 ## Validation
 
-- 141 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
+- 144 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
   accounting, matcher and reconciliation route.
 - Production database validation ran inside a REPEATABLE READ READ ONLY transaction and rolled
   back. SC Drug Store 2026-09-01 through 2026-09-08 paid cohorts match every day's BI total/count.
@@ -130,11 +137,11 @@ row. Preserve repeated SKU rows and return aligned strings only when every check
   source lines / 552.00, preserving every 01–11 Sep plan and every previously supported
   12 Sep row. Propoliz's three ERP boxes retain 320.00 as two at 106.67 and one at
   106.66; pink gummy is twelve sachets at 14.00; chlorpheniramine is ten blisters at
-  6.40. The supported plan has 22 rows / 91 ERP units / 8,927.00 against 34 orders /
-  34 source lines / 9,322.00 Business Insights. Swisse Biotin Forte's separate SKU
-  confirmation remains pending, so its 395.00 is unresolved and all copy buttons
-  remain blocked. A process-local proposed mapping reconciles the full amount but
-  does not modify the registry or authorize that mapping.
+  6.40. The separately confirmed Swisse Biotin Forte jar adds its source 395.00,
+  completing 34 orders / 34 source lines / 23 copy rows / 92 ERP units / 9,322.00
+  Business Insights with no review issues or variance. Every previously supported
+  row and every 01–11 Sep plan stays unchanged. All 23 aligned copy values multiply
+  to exactly 932,200 satang.
 - The broader `backend-integration.test.cjs` server-start checks cannot complete on this local
   checkout without a local database: existing startup migrations fail before listening. No
   production credentials were supplied to those startup tests. The new route's authenticated
