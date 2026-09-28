@@ -95,6 +95,10 @@ test('known multi-SKU bundles report verified components and remain blocked for 
   expect(plan.status).toBe('review_required');
   expect(plan.columns).toBeNull(); expect(plan.rows).toEqual([]);
   expect(plan.issues[0].reason).toContain('IC-002462 ×2 + IC-005557 ×1');
+  expect(plan.issues[0].components).toEqual([
+    expect.objectContaining({ sku: 'IC-002462', factor: 2, unit: 'กระป๋อง' }),
+    expect.objectContaining({ sku: 'IC-005557', factor: 1, unit: 'กระป๋อง' }),
+  ]);
   expect(plan.issues[0].reason).toContain('ราคา');
   expect(plan.cohortTotalCents).toBe(49000);
   const meterRule = additions.find(r => r.shopCode === 'dr-morepen' && r.components);

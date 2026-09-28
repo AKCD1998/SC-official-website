@@ -117,7 +117,8 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
   const keys = new Set();
   let merchandiseCents = 0; let supportCents = 0; let sellerCents = 0;
   let cohortCents = 0; let financialComplete = true; let sourceLineCount = 0;
-  const addIssue = (reason, order, item, index, sku) => issues.push({ reason, sku: sku || null,
+  const addIssue = (reason, order, item, index, sku, components) => issues.push({ reason, sku: sku || null,
+    ...(components?.length ? { components } : {}),
     orderNumber: order?.orderNumber || null, sourceRow: order?.sourceRows?.[index] || null,
     productName: item?.name || null, variant: item?.variant || null, listingQuantity: item?.quantity || null });
   if (shopCode === 'all' || startDate !== endDate) {
@@ -149,7 +150,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
         addIssue('จำนวนสินค้าในไฟล์ไม่ถูกต้อง', order, item, index); return;
       }
       const product = resolveCopyProduct(shopCode, item);
-      if (product.reason) { addIssue(product.reason, order, item, index, product.sku); return; }
+      if (product.reason) { addIssue(product.reason, order, item, index, product.sku, product.components); return; }
       const quantity = item.quantity * product.factor;
       if (!Number.isSafeInteger(quantity)) { addIssue('จำนวนหน่วยเกินที่รองรับ', order, item, index); return; }
       const group = groups.get(product.sku) || { sku: product.sku, productName: product.name, unit: product.unit,
