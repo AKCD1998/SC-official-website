@@ -333,6 +333,58 @@ test.each([confirmedSwisse, confirmedRoyalGrape, confirmedRoyalFruit])(
     }
   });
 
+const historicalMouthSpray = { name: 'Propoliz Mouth Spray สเปรย์พ่นปากและคอ โพรโพลิซ พรอพอลิส ปราศจากน้ำตาล',
+  variant: '1 ขวด', quantity: 1, unitPrice: 110, productMatch: { status: 'unmapped' } };
+const historicalPinkGummy = { name: 'Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน ซองสีชมพู',
+  variant: '12 ซอง', quantity: 1, unitPrice: 168, productMatch: { status: 'unmapped' } };
+const historicalChlorBox = { name: 'คลอเฟนิรามีน มาลีเอท 2mg กล่อง 10 แผง ยาสามัญประจำบ้าน Chlorpheniramine Maleate BLHUA',
+  variant: '1 กล่อง 10 แผง', quantity: 1, unitPrice: 64, productMatch: { status: 'unmapped' } };
+
+test('historical mouth spray, pink gummy and chlorpheniramine box keep base units and all four source amounts', () => {
+  const plan = buildAdaSmartCopyPlan([
+    order({ items: [historicalMouthSpray], sourceRows: [1218], itemSubtotal: 110 }),
+    order({ orderNumber: '260901SPRAY02', items: [{ ...historicalMouthSpray, quantity: 2, unitPrice: 105 }],
+      sourceRows: [1233], itemSubtotal: 210 }),
+    order({ orderNumber: '260901PINKGUMMY', items: [historicalPinkGummy], sourceRows: [1217], itemSubtotal: 168 }),
+    order({ orderNumber: '260901CHLORBOX', items: [historicalChlorBox], sourceRows: [1232], itemSubtotal: 64 }),
+  ], confirmed(552, 4), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.sourceLineCount).toBe(4);
+  expect(plan.totalQuantity).toBe(25);
+  expect(plan.totalCents).toBe(55200);
+  expect(plan.columns).toEqual({ sku: 'IC-000665\nIC-001292\nIC-001292\nIC-001510',
+    quantity: '10\n2\n1\n12', unitPrice: '6.40\n106.67\n106.66\n14.00' });
+  expect(plan.rows.map(row => row.unit)).toEqual(['แผง', 'กล่อง', 'กล่อง', 'ซอง']);
+  expect(plan.rows[0].sources[0]).toMatchObject({ sourceRow: 1232, listingQuantity: 1,
+    quantityPerSale: 10, amountCents: 6400, originalMatch: { status: 'unmapped' } });
+  expect(plan.rows[1].sources.map(row => [row.sourceRow, row.amountCents])).toEqual([[1218, 11000], [1233, 21000]]);
+  expect(plan.rows[3].sources[0]).toMatchObject({ sourceRow: 1217, listingQuantity: 1,
+    quantityPerSale: 12, amountCents: 16800, productName: historicalPinkGummy.name });
+});
+
+test.each([historicalMouthSpray, historicalPinkGummy, historicalChlorBox])(
+  'September 12 identity corrections do not broaden to another shop, formula or pack ($variant)', changed => {
+    expect(resolveCopyProduct('dr-morepen', changed).reason).toBeTruthy();
+    expect(resolveCopyProduct(filters.shopCode, { ...changed, variant: 'unverified pack' }).reason).toBeTruthy();
+    expect(resolveCopyProduct(filters.shopCode, { ...changed, name: changed.name.replace(/Mouth Spray|สีชมพู|2mg/u,
+      'different formula') }).reason).toBeTruthy();
+  });
+
+test('existing pink/yellow gummy variants and canonical mouth spray and chlorpheniramine keep their matches', () => {
+  const catalog = require('../src/modules/seamless/data/shopeeProductCatalog.v1.json');
+  const { matchShopeeProduct } = require('../src/modules/seamless/services/shopeeProductMatcher');
+  for (const sourceRow of [33, 34, 35, 36, 84, 148, 149, 150, 164]) {
+    const record = catalog.records.find(row => row.sourceRow === sourceRow);
+    const original = matchShopeeProduct(record.shopCode, { name: record.productName, variant: record.variant });
+    const factor = sourceRow === 36 ? 10 : Number(record.variant.replace(' ซอง', '')) || 1;
+    expect(original.companySku).toBe(record.match.companySku);
+    expect(resolveCopyProduct(record.shopCode, { name: record.productName, variant: record.variant,
+      productMatch: original })).toMatchObject({ sku: record.match.companySku, factor });
+  }
+  expect(resolveCopyProduct(filters.shopCode, { ...historicalPinkGummy,
+    name: historicalPinkGummy.name.replace('สีชมพู', 'สีเหลือง') }).reason).toBeTruthy();
+});
+
 test('repository uses source products and paid-date bounds after snapshot selection, no cancellation exclusion', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
   await listPaidOrdersForCopy(filters);
