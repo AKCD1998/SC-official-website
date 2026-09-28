@@ -52,13 +52,24 @@ per sale. Its box unit and barcode `8851802020374` match row 5727 of the same ha
 export and the user's screenshot. Do not multiply that quantity by twenty tablets.
 Unrecognized SKUs or unverified unit conversions continue to require review.
 
+Some Order All snapshots retain historical listing names or expanded variant labels.
+For the exact SC Drug Store Propoliz Kids 10 ml variant `1 ขวด 10 มล.`, reuse the
+existing catalog's `1 ขวด` mapping to IC-002893 at one ERP bottle per sale.
+For the exact historical eight-tablet Propoliz Lozenge title, reuse the orange
+`1 ซอง วิตซี ส้ม` identity as IC-003569 and honey-lemon `1 ซอง น้ำผึ้งมะนาว` as
+IC-002080, each one ERP sachet per sale. Keep the flavours separate.
+For the shorter `Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด` title with no variant,
+reuse the user's existing IC-005092 twenty-tablet box confirmation at factor one.
+These exact copy corrections retain the original unmapped catalog result and source
+identity in the audit, and do not broaden matching to unknown titles or packs.
+
 Group identical ERP SKUs without changing total quantity or satang. If division by quantity is
 fractional at two decimals, emit a higher-cent-price row first and the remaining lower-cent-price
 row. Preserve repeated SKU rows and return aligned strings only when every check passes.
 
 ## Validation
 
-- 126 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
+- 132 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
   accounting, matcher and reconciliation route.
 - Production database validation ran inside a REPEATABLE READ READ ONLY transaction and rolled
   back. SC Drug Store 2026-09-01 through 2026-09-08 paid cohorts match every day's BI total/count.
@@ -86,6 +97,12 @@ row. Preserve repeated SKU rows and return aligned strings only when every check
   2,832.00, emitted at 29.50 per sachet. The complete table is ready with 27 copy rows /
   696 total ERP units / 23,554.00, exactly matching Business Insights.
 - DR.Morepen 01 Sep has independently evidenced zero sales/orders; there are no values to copy.
+- The historical Propoliz and Senhami identities on 11 Sep resolve five source lines /
+  568.00 without changing any 01–10 Sep result. Their unit tests retain original source
+  rows, flavours, base units and amounts, and reject other shops, names and packs.
+  Before any separately confirmed Swisse/Royal-D correction, 11 Sep retains three
+  review rows / 385.00 and blocks all copy columns; the supported amount is 19,703.00
+  against the unchanged 60-order / 69-source-line / 20,088.00 Business Insights cohort.
 - The broader `backend-integration.test.cjs` server-start checks cannot complete on this local
   checkout without a local database: existing startup migrations fail before listening. No
   production credentials were supplied to those startup tests. The new route's authenticated

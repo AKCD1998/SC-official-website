@@ -876,6 +876,66 @@
   "rules": [
     {
       "shopCode": "sc-drug-store",
+      "productName": "สเปรย์ช่องปาก Propoliz Kids 10 มล. สำหรับเด็ก ลดอาการเจ็บคอและระคายเคือง",
+      "variant": "1 ขวด 10 มล.",
+      "companySku": "IC-002893",
+      "quantityPerSale": 1,
+      "authority": "existing_catalog_identity_alias_2026-09-28",
+      "evidence": {
+        "basis": "same_ten_ml_bottle_as_confirmed_catalog_identity",
+        "catalogSourceRow": 129,
+        "canonicalVariant": "1 ขวด",
+        "requestScreenshotSha256": "47b82024c478da79f01ee23a49b4da689fa48cc2465bce210a5dd915b8068690"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz Lozenge 1 ซอง 8 เม็ด ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอระคายคอ แบบซอง กลิ่นน้ำผึ้งมะนาวและขิง/ส้ม Vit C",
+      "variant": "1 ซอง วิตซี ส้ม",
+      "companySku": "IC-003569",
+      "quantityPerSale": 1,
+      "authority": "existing_catalog_identity_alias_2026-09-28",
+      "evidence": {
+        "basis": "same_orange_eight_tablet_sachet_as_confirmed_catalog_identity",
+        "catalogSourceRow": 14,
+        "canonicalProductName": "Propoliz Lozenge ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอ ระคายคอ มี 2 รส ส้ม Vit C / มะนาว-ขิง 8 เม็ด/ซอง",
+        "canonicalVariant": "1 ซอง ส้ม",
+        "requestScreenshotSha256": "47b82024c478da79f01ee23a49b4da689fa48cc2465bce210a5dd915b8068690"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz Lozenge 1 ซอง 8 เม็ด ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอระคายคอ แบบซอง กลิ่นน้ำผึ้งมะนาวและขิง/ส้ม Vit C",
+      "variant": "1 ซอง น้ำผึ้งมะนาว",
+      "companySku": "IC-002080",
+      "quantityPerSale": 1,
+      "authority": "existing_catalog_identity_alias_2026-09-28",
+      "evidence": {
+        "basis": "same_honey_lemon_eight_tablet_sachet_as_confirmed_catalog_identity",
+        "catalogSourceRow": 15,
+        "canonicalProductName": "Propoliz Lozenge ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอ ระคายคอ มี 2 รส ส้ม Vit C / มะนาว-ขิง 8 เม็ด/ซอง",
+        "canonicalVariant": "1 ซอง น้ำผึ้งมะนาว",
+        "requestScreenshotSha256": "47b82024c478da79f01ee23a49b4da689fa48cc2465bce210a5dd915b8068690"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด",
+      "variant": "",
+      "companySku": "IC-005092",
+      "quantityPerSale": 1,
+      "authority": "existing_confirmed_copy_identity_alias_2026-09-28",
+      "sourcePackBarcode": "8851802020374",
+      "erpBaseUnitBarcode": "8851802020374",
+      "evidence": {
+        "basis": "same_twenty_tablet_box_as_user_confirmed_copy_identity",
+        "canonicalProductName": "Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด บรรเทาอาการไอและขับเสมหะ",
+        "canonicalVariant": "",
+        "requestScreenshotSha256": "47b82024c478da79f01ee23a49b4da689fa48cc2465bce210a5dd915b8068690"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
       "productName": "กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon",
       "variant": "เขียว 1 กล่อง",
       "companySku": "IC-001048",

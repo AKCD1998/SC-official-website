@@ -238,6 +238,54 @@ test('mixed confirmed green and pink Gaviscon boxes preserve each source amount 
   expect(plan.varianceCents).toBe(0);
 });
 
+const historicalKids = { ...item('IC-002893', 2, 75),
+  name: 'สเปรย์ช่องปาก Propoliz Kids 10 มล. สำหรับเด็ก ลดอาการเจ็บคอและระคายเคือง',
+  variant: '1 ขวด 10 มล.', productMatch: { status: 'unmapped' } };
+const historicalLozengeName = 'Propoliz Lozenge 1 ซอง 8 เม็ด ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอระคายคอ แบบซอง กลิ่นน้ำผึ้งมะนาวและขิง/ส้ม Vit C';
+const historicalOrange = { ...item('IC-003569', 1, 25), name: historicalLozengeName,
+  variant: '1 ซอง วิตซี ส้ม', productMatch: { status: 'unmapped' } };
+const historicalLemon = { ...historicalOrange, variant: '1 ซอง น้ำผึ้งมะนาว' };
+const historicalSenhami = { ...senhamiBox(), name: 'Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด' };
+
+test('historical names and variants reuse confirmed SKUs, preserve flavours and reconcile all five source lines', () => {
+  const plan = buildAdaSmartCopyPlan([
+    order({ items: [historicalKids, historicalOrange], sourceRows: [1139, 1140], itemSubtotal: 175 }),
+    order({ orderNumber: '260901ALIAS02', items: [historicalLemon], sourceRows: [1150], itemSubtotal: 25 }),
+    order({ orderNumber: '260901ALIAS03', items: [{ ...historicalSenhami, quantity: 2 }], sourceRows: [1166], itemSubtotal: 92 }),
+    order({ orderNumber: '260901ALIAS04', items: [{ ...historicalSenhami, quantity: 6 }], sourceRows: [1199], itemSubtotal: 276 }),
+  ], confirmed(568, 4), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.sourceLineCount).toBe(5);
+  expect(plan.columns).toEqual({ sku: 'IC-002080\nIC-002893\nIC-003569\nIC-005092',
+    quantity: '1\n2\n1\n8', unitPrice: '25.00\n75.00\n25.00\n46.00' });
+  expect(plan.rows.map(row => row.unit)).toEqual(['ซอง', 'ขวด', 'ซอง', 'กล่อง']);
+  expect(plan.totalCents).toBe(56800);
+  expect(plan.varianceCents).toBe(0);
+  expect(plan.rows[1].sources[0]).toMatchObject({ sourceRow: 1139, listingQuantity: 2,
+    quantityPerSale: 1, amountCents: 15000, originalMatch: { status: 'unmapped' } });
+  expect(plan.rows[3].sources.map(row => row.sourceRow)).toEqual([1166, 1199]);
+});
+
+test.each([historicalKids, historicalOrange, historicalLemon, historicalSenhami])(
+  'historical copy identity corrections remain scoped to their shop, name and exact pack ($variant)', changed => {
+    expect(resolveCopyProduct('dr-morepen', changed).reason).toBeTruthy();
+    expect(resolveCopyProduct(filters.shopCode, { ...changed, name: 'another product' }).reason).toBeTruthy();
+    expect(resolveCopyProduct(filters.shopCode, { ...changed, variant: 'unconfirmed two-pack' }).reason).toBeTruthy();
+  });
+
+test('existing canonical Propoliz flavours and packs keep their original catalogue matches', () => {
+  const { matchShopeeProduct } = require('../src/modules/seamless/services/shopeeProductMatcher');
+  const catalog = require('../src/modules/seamless/data/shopeeProductCatalog.v1.json');
+  for (const sourceRow of [14, 15, 129, 167, 168]) {
+    const record = catalog.records.find(row => row.sourceRow === sourceRow);
+    const original = matchShopeeProduct(record.shopCode, { name: record.productName, variant: record.variant });
+    expect(original.companySku).toBe(record.match.companySku);
+    expect(original.matchSource).toBe('exact_name_variant');
+    expect(resolveCopyProduct(record.shopCode, { name: record.productName, variant: record.variant,
+      productMatch: original })).toMatchObject({ sku: record.match.companySku, factor: sourceRow >= 167 ? 10 : 1 });
+  }
+});
+
 test('repository uses source products and paid-date bounds after snapshot selection, no cancellation exclusion', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
   await listPaidOrdersForCopy(filters);
