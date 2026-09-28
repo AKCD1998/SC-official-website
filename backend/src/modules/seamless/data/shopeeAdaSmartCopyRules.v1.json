@@ -9,6 +9,12 @@
   },
   "masters": [
     {
+      "companySku": "IC-005481",
+      "unit": "กระปุก",
+      "name": "สามัญ สวิสเซ ไบโอติน ฟอร์เต้ และ วิตามินซี+ซิงค์ 60 เม็ด",
+      "sourceRow": 6115
+    },
+    {
       "companySku": "IC-004777",
       "unit": "กระปุก",
       "name": "สามัญ สวิสเซ วิตามินซี 1000 มก 60 เม็ด",
@@ -892,6 +898,22 @@
     }
   ],
   "rules": [
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Swisse Biotin Forte สวิสเซ ไบโอติน ฟอร์เต้ วิตามินซี + ซิงค์ 60 เม็ด ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "",
+      "companySku": "IC-005481",
+      "quantityPerSale": 1,
+      "authority": "user_confirmed_swisse_biotin_identity_2026-09-28",
+      "erpBaseUnitBarcode": "9311770608275",
+      "evidence": {
+        "basis": "user_supplied_exact_sku_screenshot_and_erp_export",
+        "erpSourceRow": 6115,
+        "erpScreenshotSha256": "4e9edc007abdba2c36c0fed9cac5ef7a43f27f38d8b0273323066dc31a87de57",
+        "stockdayVerifiedOn": "2026-09-28",
+        "stockdaySyncAt": "2026-09-28T08:21:02+07:00"
+      }
+    },
     {
       "shopCode": "sc-drug-store",
       "productName": "Propoliz Mouth Spray สเปรย์พ่นปากและคอ โพรโพลิซ พรอพอลิส ปราศจากน้ำตาล",

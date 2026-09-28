@@ -339,27 +339,41 @@ const historicalPinkGummy = { name: 'Vita-C วิตามินซี กั�
   variant: '12 ซอง', quantity: 1, unitPrice: 168, productMatch: { status: 'unmapped' } };
 const historicalChlorBox = { name: 'คลอเฟนิรามีน มาลีเอท 2mg กล่อง 10 แผง ยาสามัญประจำบ้าน Chlorpheniramine Maleate BLHUA',
   variant: '1 กล่อง 10 แผง', quantity: 1, unitPrice: 64, productMatch: { status: 'unmapped' } };
+const confirmedBiotin = { name: 'Swisse Biotin Forte สวิสเซ ไบโอติน ฟอร์เต้ วิตามินซี + ซิงค์ 60 เม็ด ผลิตภัณฑ์เสริมอาหาร',
+  variant: '', quantity: 1, unitPrice: 395, productMatch: { status: 'unmapped' } };
 
-test('historical mouth spray, pink gummy and chlorpheniramine box keep base units and all four source amounts', () => {
+test('September 12 identities and confirmed Biotin jar keep base units and all five source amounts', () => {
   const plan = buildAdaSmartCopyPlan([
     order({ items: [historicalMouthSpray], sourceRows: [1218], itemSubtotal: 110 }),
     order({ orderNumber: '260901SPRAY02', items: [{ ...historicalMouthSpray, quantity: 2, unitPrice: 105 }],
       sourceRows: [1233], itemSubtotal: 210 }),
     order({ orderNumber: '260901PINKGUMMY', items: [historicalPinkGummy], sourceRows: [1217], itemSubtotal: 168 }),
     order({ orderNumber: '260901CHLORBOX', items: [historicalChlorBox], sourceRows: [1232], itemSubtotal: 64 }),
-  ], confirmed(552, 4), filters);
+    order({ orderNumber: '260901BIOTIN', items: [confirmedBiotin], sourceRows: [1216], itemSubtotal: 395 }),
+  ], confirmed(947, 5), filters);
   expect(plan.status).toBe('ready');
-  expect(plan.sourceLineCount).toBe(4);
-  expect(plan.totalQuantity).toBe(25);
-  expect(plan.totalCents).toBe(55200);
-  expect(plan.columns).toEqual({ sku: 'IC-000665\nIC-001292\nIC-001292\nIC-001510',
-    quantity: '10\n2\n1\n12', unitPrice: '6.40\n106.67\n106.66\n14.00' });
-  expect(plan.rows.map(row => row.unit)).toEqual(['แผง', 'กล่อง', 'กล่อง', 'ซอง']);
+  expect(plan.sourceLineCount).toBe(5);
+  expect(plan.totalQuantity).toBe(26);
+  expect(plan.totalCents).toBe(94700);
+  expect(plan.columns).toEqual({ sku: 'IC-000665\nIC-001292\nIC-001292\nIC-001510\nIC-005481',
+    quantity: '10\n2\n1\n12\n1', unitPrice: '6.40\n106.67\n106.66\n14.00\n395.00' });
+  expect(plan.rows.map(row => row.unit)).toEqual(['แผง', 'กล่อง', 'กล่อง', 'ซอง', 'กระปุก']);
   expect(plan.rows[0].sources[0]).toMatchObject({ sourceRow: 1232, listingQuantity: 1,
     quantityPerSale: 10, amountCents: 6400, originalMatch: { status: 'unmapped' } });
   expect(plan.rows[1].sources.map(row => [row.sourceRow, row.amountCents])).toEqual([[1218, 11000], [1233, 21000]]);
   expect(plan.rows[3].sources[0]).toMatchObject({ sourceRow: 1217, listingQuantity: 1,
     quantityPerSale: 12, amountCents: 16800, productName: historicalPinkGummy.name });
+  expect(plan.rows[4].sources[0]).toMatchObject({ sourceRow: 1216, listingQuantity: 1,
+    quantityPerSale: 1, amountCents: 39500, originalMatch: { status: 'unmapped' },
+    authority: 'user_confirmed_swisse_biotin_identity_2026-09-28' });
+});
+
+test.each([
+  ['dr-morepen', confirmedBiotin],
+  [filters.shopCode, { ...confirmedBiotin, name: confirmedBiotin.name.replace('60 เม็ด', '30 เม็ด') }],
+  [filters.shopCode, { ...confirmedBiotin, variant: '2 กระปุก' }],
+])('Biotin confirmation leaves other shops, sizes and packs unresolved (%s)', (shopCode, changed) => {
+  expect(resolveCopyProduct(shopCode, changed).reason).toBeTruthy();
 });
 
 test.each([historicalMouthSpray, historicalPinkGummy, historicalChlorBox])(
