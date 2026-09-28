@@ -886,6 +886,20 @@
     },
     {
       "shopCode": "sc-drug-store",
+      "productName": "10 ซอง Oreda RO ผงเกลือแร่ รสส้ม 5.5 กรัม บรรเทาอาการท้องเสีย",
+      "variant": "1 กล่อง 10 ซอง",
+      "companySku": "IC-004371",
+      "quantityPerSale": 10,
+      "authority": "user_confirmed_pack_identity_2026-09-28",
+      "sourcePackBarcode": "8852914302211",
+      "erpBaseUnitBarcode": "8852914302204",
+      "evidence": {
+        "basis": "user_confirmation_and_erp_screenshot",
+        "erpScreenshotSha256": "e987a9c6128e406f73b388c2c7aa5c623b632dfc98a3429ca8caf53488221ee5"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
       "productName": "SK Max สายดูดเสมหะ เบอร์ 14 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
       "variant": "1 แพ๊ค",
       "companySku": "IC-001928",

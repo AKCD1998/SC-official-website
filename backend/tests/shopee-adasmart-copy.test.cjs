@@ -87,6 +87,54 @@ test('verified Oreda packaging uses ten ERP sachets, not one 10Pcs item', () => 
   expect(plan.columns).toEqual({ sku: 'IC-004371', quantity: '10', unitPrice: '2.10' });
 });
 
+const oredaBox = (quantity = 1, unitPrice = 29) => ({
+  name: '10 ซอง Oreda RO ผงเกลือแร่ รสส้ม 5.5 กรัม บรรเทาอาการท้องเสีย',
+  variant: '1 กล่อง 10 ซอง', quantity, unitPrice, productMatch: { status: 'unmapped' },
+});
+
+test('user-confirmed Oreda box resolves an unmapped variant to ten ERP sachets per box', () => {
+  const plan = buildAdaSmartCopyPlan([order({ items: [oredaBox(2, 21)], itemSubtotal: 42 })], confirmed(42), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.columns).toEqual({ sku: 'IC-004371', quantity: '20', unitPrice: '2.10' });
+  expect(plan.rows[0].unit).toBe('ซอง');
+  expect(plan.rows[0].sources[0]).toMatchObject({ listingQuantity: 2, quantityPerSale: 10,
+    amountCents: 4200, variant: '1 กล่อง 10 ซอง', authority: 'user_confirmed_pack_identity_2026-09-28',
+    originalMatch: { status: 'unmapped' } });
+});
+
+test('Oreda box and previous 10Pcs sales preserve mixed source prices and exact cents after consolidation', () => {
+  const plan = buildAdaSmartCopyPlan([
+    order({ items: [{ ...oredaBox(9, 21), variant: '10Pcs' }], itemSubtotal: 189 }),
+    order({ orderNumber: '260901BOX02', items: [oredaBox(2, 21)], itemSubtotal: 42 }),
+    order({ orderNumber: '260901BOX03', items: [oredaBox()], itemSubtotal: 29 }),
+    order({ orderNumber: '260901BOX04', items: [oredaBox()], itemSubtotal: 29 }),
+  ], confirmed(289, 4), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.columns).toEqual({ sku: 'IC-004371\nIC-004371', quantity: '40\n90', unitPrice: '2.23\n2.22' });
+  expect(plan.totalQuantity).toBe(130);
+  expect(plan.totalCents).toBe(28900);
+  expect(plan.varianceCents).toBe(0);
+  expect(plan.rows[0].sources.map(row => row.amountCents)).toEqual([18900, 4200, 2900, 2900]);
+});
+
+test.each([
+  ['dr-morepen', oredaBox()],
+  ['sc-drug-store', { ...oredaBox(), variant: '1 ซอง' }],
+  ['sc-drug-store', { ...oredaBox(), variant: '1 กล่อง 50 ซอง' }],
+  ['sc-drug-store', { ...oredaBox(), name: '50 ซอง Oreda RO ผงเกลือแร่ รสส้ม 5.5 กรัม บรรเทาอาการท้องเสีย' }],
+])('Oreda user confirmation does not broaden to another shop, pack or product (%s)', (shopCode, changed) => {
+  expect(resolveCopyProduct(shopCode, changed).reason).toBeTruthy();
+});
+
+test('Oreda mapping records the confirmed box barcode separately from the ERP sachet barcode', () => {
+  const rules = require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
+  const rule = rules.rules.find(row => row.shopCode === filters.shopCode
+    && row.productName === oredaBox().name && row.variant === oredaBox().variant);
+  expect(rule).toMatchObject({ companySku: 'IC-004371', quantityPerSale: 10,
+    sourcePackBarcode: '8852914302211', erpBaseUnitBarcode: '8852914302204',
+    authority: 'user_confirmed_pack_identity_2026-09-28' });
+});
+
 test('repository uses source products and paid-date bounds after snapshot selection, no cancellation exclusion', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
   await listPaidOrdersForCopy(filters);
