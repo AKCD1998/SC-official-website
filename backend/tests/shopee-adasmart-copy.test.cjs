@@ -138,6 +138,8 @@ test('Oreda mapping records the confirmed box barcode separately from the ERP sa
 const gavisconName = 'กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon';
 const gavisconBox = (quantity = 1) => ({ ...item('IC-003778', quantity, 410), name: gavisconName,
   variant: 'ชมพู 1 กล่อง' });
+const gavisconGreenBox = (quantity = 1) => ({ ...item('IC-001048', quantity, 354), name: gavisconName,
+  variant: 'เขียว 1 กล่อง' });
 const senhamiBox = (quantity = 1) => ({ ...item('IC-005092', quantity, 46),
   name: 'Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด บรรเทาอาการไอและขับเสมหะ',
   productMatch: { status: 'unmapped' } });
@@ -161,6 +163,42 @@ test.each([
   expect(resolveCopyProduct(shopCode, changed).reason).toBeTruthy();
 });
 
+test('confirmed Gaviscon green box converts eight source boxes to ninety-six ERP sachets without changing money', () => {
+  expect(resolveCopyProduct(filters.shopCode, gavisconGreenBox())).toMatchObject({ sku: 'IC-001048',
+    factor: 12, unit: 'ซอง', authority: 'user_confirmed_green_12_sachet_box_2026-09-28' });
+  const plan = buildAdaSmartCopyPlan([order({ items: [gavisconGreenBox(8)], itemSubtotal: 2832 })], confirmed(2832), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.columns).toEqual({ sku: 'IC-001048', quantity: '96', unitPrice: '29.50' });
+  expect(plan.totalCents).toBe(283200);
+  expect(plan.varianceCents).toBe(0);
+  expect(plan.rows[0].sources[0]).toMatchObject({ listingQuantity: 8, quantityPerSale: 12,
+    amountCents: 283200, originalMatch: { status: 'matched', companySku: 'IC-001048' } });
+});
+
+test.each([
+  ['dr-morepen', gavisconGreenBox()],
+  ['sc-drug-store', { ...gavisconGreenBox(), name: 'another source product' }],
+  ['sc-drug-store', { ...gavisconGreenBox(), variant: 'เขียว 2 กล่อง', productMatch: { status: 'unmapped' } }],
+])('Gaviscon green confirmation keeps other shops, identities and pack sizes unresolved (%s)', (shopCode, changed) => {
+  expect(resolveCopyProduct(shopCode, changed).reason).toBeTruthy();
+});
+
+test('green box factor does not multiply green bottles or individual ERP sachets', () => {
+  expect(resolveCopyProduct(filters.shopCode, { ...gavisconGreenBox(), variant: 'เขียว 1 ขวด',
+    productMatch: { status: 'matched', companySku: 'IC-000398' } }))
+    .toMatchObject({ sku: 'IC-000398', factor: 1, unit: 'ขวด' });
+  expect(resolveCopyProduct(filters.shopCode, { ...gavisconGreenBox(), variant: 'เขียว 1 ซอง' }))
+    .toMatchObject({ sku: 'IC-001048', factor: 1, unit: 'ซอง' });
+});
+
+test('green mapping records the confirmed box barcode separately from the existing ERP sachet barcode', () => {
+  const rules = require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
+  expect(rules.rules.find(row => row.shopCode === filters.shopCode
+    && row.productName === gavisconName && row.variant === 'เขียว 1 กล่อง'))
+    .toMatchObject({ companySku: 'IC-001048', quantityPerSale: 12,
+      sourcePackBarcode: '8850360032249', erpBaseUnitBarcode: '50230112' });
+});
+
 test('Senhami twenty-tablet box maps the confirmed SKU in ERP boxes without multiplying tablets', () => {
   const plan = buildAdaSmartCopyPlan([order({ items: [senhamiBox(2)], itemSubtotal: 92 })], confirmed(92), filters);
   expect(plan.status).toBe('ready');
@@ -172,27 +210,32 @@ test('Senhami twenty-tablet box maps the confirmed SKU in ERP boxes without mult
   expect(resolveCopyProduct(filters.shopCode, { ...senhamiBox(), variant: '40 เม็ด' }).reason).toBeTruthy();
 });
 
-test('mixed Gaviscon source lines keep exact pink amounts while the unconfirmed green box blocks copying', () => {
-  const green = { ...item('IC-001048', 8, 354), name: gavisconName, variant: 'เขียว 1 กล่อง' };
+test('mixed confirmed green and pink Gaviscon boxes preserve each source amount and reconcile all copy columns', () => {
+  const green = gavisconGreenBox(8);
   const plan = buildAdaSmartCopyPlan([
     order({ items: [green, gavisconBox(9)], sourceRows: [1082, 1083], itemSubtotal: 6522 }),
     order({ orderNumber: '260901SENHAMI', items: [senhamiBox()], itemSubtotal: 46 }),
     order({ orderNumber: '260901PINK02', items: [gavisconBox()], itemSubtotal: 410 }),
     order({ orderNumber: '260901PINK03', items: [gavisconBox()], itemSubtotal: 410 }),
   ], confirmed(7388, 4), filters);
-  expect(plan.status).toBe('review_required');
-  expect(plan.columns).toBeNull();
-  expect(plan.issues).toContainEqual(expect.objectContaining({ sku: 'IC-001048', variant: 'เขียว 1 กล่อง' }));
+  expect(plan.status).toBe('ready');
+  expect(plan.issues).toEqual([]);
+  expect(plan.columns).toEqual({ sku: 'IC-001048\nIC-003778\nIC-003778\nIC-005092',
+    quantity: '96\n88\n44\n1', unitPrice: '29.50\n34.17\n34.16\n46.00' });
   const pink = plan.rows.filter(row => row.sku === 'IC-003778');
   expect(pink.map(row => [row.quantity, row.unitPrice])).toEqual([[88, '34.17'], [44, '34.16']]);
   expect(pink.reduce((sum, row) => sum + row.amountCents, 0)).toBe(451000);
   expect(pink[0].sources[0]).toMatchObject({ sourceRow: 1083, listingQuantity: 9,
     quantityPerSale: 12, amountCents: 369000, priceBasis: 'source_unit_prices_exact_subtotal' });
-  expect(plan.rows.some(row => row.sku === 'IC-001048')).toBe(false);
+  const greenRow = plan.rows.find(row => row.sku === 'IC-001048');
+  expect(greenRow).toMatchObject({ quantity: 96, unit: 'ซอง', unitPrice: '29.50', amountCents: 283200 });
+  expect(greenRow.sources[0]).toMatchObject({ sourceRow: 1082, listingQuantity: 8,
+    quantityPerSale: 12, amountCents: 283200, priceBasis: 'source_unit_prices_exact_subtotal' });
   expect(plan.rows.find(row => row.sku === 'IC-005092')).toMatchObject({ quantity: 1,
     unit: 'กล่อง', unitPrice: '46.00', amountCents: 4600 });
-  expect(plan.totalCents).toBe(455600);
+  expect(plan.totalCents).toBe(738800);
   expect(plan.cohortTotalCents).toBe(738800);
+  expect(plan.varianceCents).toBe(0);
 });
 
 test('repository uses source products and paid-date bounds after snapshot selection, no cancellation exclusion', async () => {

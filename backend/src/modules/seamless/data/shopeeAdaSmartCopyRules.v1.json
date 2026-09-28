@@ -877,6 +877,20 @@
     {
       "shopCode": "sc-drug-store",
       "productName": "กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon",
+      "variant": "เขียว 1 กล่อง",
+      "companySku": "IC-001048",
+      "quantityPerSale": 12,
+      "authority": "user_confirmed_green_12_sachet_box_2026-09-28",
+      "sourcePackBarcode": "8850360032249",
+      "erpBaseUnitBarcode": "50230112",
+      "evidence": {
+        "basis": "user_confirmed_12_sachets_per_box",
+        "requestScreenshotSha256": "e03a9dabf3c8dfbca0a4fe0a496ea412850912cb335c086bac272144400f6e42"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon",
       "variant": "ชมพู 1 กล่อง",
       "companySku": "IC-003778",
       "quantityPerSale": 12,
