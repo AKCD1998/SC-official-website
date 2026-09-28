@@ -895,6 +895,286 @@
       "unit": "กล่อง",
       "name": "สามัญ ไบโอ กาย่า แกสตรัส เม็ดเคี้ยว กลิ่นส้มแมนดาริน 10 เม็ด",
       "sourceRow": 6676
+    },
+    {
+      "companySku": "IC-000270",
+      "name": "สามัญ แอลกอฮอล์ศิริบัญชา 450 มล",
+      "unit": "ขวด",
+      "sourceRow": 1085,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8851124104592"
+    },
+    {
+      "companySku": "630010105",
+      "name": "สามัญ ไทลินอล 500 มก 10 เม็ด",
+      "unit": "แผง",
+      "sourceRow": 97,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850007850229"
+    },
+    {
+      "companySku": "IC-002092",
+      "name": "สามัญ มายบาซิน โอทีซี มินต์ 8 เม็ด",
+      "unit": "ซอง",
+      "sourceRow": 2768,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852294016012"
+    },
+    {
+      "companySku": "IC-003712",
+      "name": "สามัญ เลซิตินเมกกะ 1200 มก 30 แคปซูล",
+      "unit": "ขวด",
+      "sourceRow": 4355,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850769002010"
+    },
+    {
+      "companySku": "IC-002100",
+      "name": "สามัญ อาหารผู้ป่วยล้างไต วันซ์รีนอล รสนม 400 กรัม",
+      "unit": "กระป๋อง",
+      "sourceRow": 2776,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852629000174"
+    },
+    {
+      "companySku": "630010225",
+      "name": "สามัญ แอลกอฮอล์เสือดาว ขวดฟ้า 450 มล.",
+      "unit": "ขวด",
+      "sourceRow": 204,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8853042000536"
+    },
+    {
+      "companySku": "IC-001104",
+      "name": "สามัญ เอนชัวร์กลิ่นวานิลลา 380 กรัม",
+      "unit": "กระป๋อง",
+      "sourceRow": 1841,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8710428021137"
+    },
+    {
+      "companySku": "IC-005082",
+      "name": "สามัญ น้ำเกลือ จีเอชพี นอร์มอล ซาไลน์ 1000 มล",
+      "unit": "ขวด",
+      "sourceRow": 5719,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8853644004192"
+    },
+    {
+      "companySku": "IC-000105",
+      "name": "สามัญ เลซิตินเมกกะ 1200 มก 100 แคป",
+      "unit": "ขวด",
+      "sourceRow": 928,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850769001662"
+    },
+    {
+      "companySku": "IC-005490",
+      "name": "สามัญ บีรอคคา อิมมูดี พลัส รสส้ม 15 เม็ด",
+      "unit": "กล่อง",
+      "sourceRow": 6126,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "4057599011456"
+    },
+    {
+      "companySku": "IC-003977",
+      "name": "สามัญ แนท แมก 350 มก 30 เม็ด",
+      "unit": "ขวด",
+      "sourceRow": 4618,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850769022155"
+    },
+    {
+      "companySku": "630010005",
+      "name": "สามัญ กระเทียมเมกกะ 100 แคปซูล",
+      "unit": "ขวด",
+      "sourceRow": 7,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850769002379"
+    },
+    {
+      "companySku": "630010224",
+      "name": "สามัญ แอลกอฮอล์ศิริบัญชา 60 มล.",
+      "unit": "ขวด",
+      "sourceRow": 203,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8851124100600"
+    },
+    {
+      "companySku": "IC-002641",
+      "name": "สามัญ มาร์เบบี้โนสนาซอลสเปร์ย 100 มล.",
+      "unit": "กล่อง",
+      "sourceRow": 3302,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "4897003381566"
+    },
+    {
+      "companySku": "IC-004646",
+      "name": "สามัญ มายบาซิน โอทีซี ส้ม 8 เม็ด",
+      "unit": "ซอง",
+      "sourceRow": 5283,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852294017019"
+    },
+    {
+      "companySku": "IC-004509",
+      "name": "สามัญ มายบาซิน โอทีซี รสมะนาว 8 เม็ด",
+      "unit": "ซอง",
+      "sourceRow": 5147,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852294018016"
+    },
+    {
+      "companySku": "IC-004754",
+      "name": "สามัญ วิคส์ วาโปดรอป รสน้ำผึ้งมะนาว 8 เม็ด",
+      "unit": "ซอง",
+      "sourceRow": 5391,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "4987176019950"
+    },
+    {
+      "companySku": "630010149",
+      "name": "สามัญ คาอาบอน 10 แคป",
+      "unit": "แผง",
+      "sourceRow": 139,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852294358013"
+    },
+    {
+      "companySku": "IC-004406",
+      "name": "สามัญ ไบโอ กาย่า ชนิดเม็ดเคี้ยว กลิ่นเลมอน ไลม์ 13.5 มก 10 เม็ด",
+      "unit": "กล่อง",
+      "sourceRow": 5044,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8002660038067"
+    },
+    {
+      "companySku": "IC-000481",
+      "name": "สามัญ บีแพนเธนออยเมนต์ 50 กรัม",
+      "unit": "หลอด",
+      "sourceRow": 1288,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850172243048"
+    },
+    {
+      "companySku": "IC-000455",
+      "name": "สามัญ แอลกอฮอล์ศิริบัญชา 180 มล",
+      "unit": "ขวด",
+      "sourceRow": 1262,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8851124101805"
+    },
+    {
+      "companySku": "IC-000249",
+      "name": "สามัญ แนทซีเมกกะ 1000 มก 60 เม็ด",
+      "unit": "ขวด",
+      "sourceRow": 1066,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850769010749"
+    },
+    {
+      "companySku": "IC-000109",
+      "name": "สามัญ แนทซีเมกกะ 1000 มก 30 เม็ด",
+      "unit": "ขวด",
+      "sourceRow": 932,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850769010732"
+    },
+    {
+      "companySku": "IC-005209",
+      "name": "สามัญ บีรอคคา เอลเดอร์เบอร์รี่ พลัส โคลีน ซิงค์ รสมิกซ์เบอร์รี่ 10 มล",
+      "unit": "ซอง",
+      "sourceRow": 5845,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850172294293"
+    },
+    {
+      "companySku": "IC-000482",
+      "name": "สามัญ บีแพนเธนเซนซิเดร์ม 20 กรัม",
+      "unit": "หลอด",
+      "sourceRow": 1289,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8850172243055"
+    },
+    {
+      "companySku": "IC-005879",
+      "name": "สามัญ สบู่ ออยลาตุ้ม เจนเทิล โซป บาร์ 100 กรัม",
+      "unit": "กล่อง",
+      "sourceRow": 6514,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "5011309025514"
+    },
+    {
+      "companySku": "IC-002099",
+      "name": "สามัญ อาหารผู้ป่วยล้างไต วันซ์ไดอะไลซ์ 400 กรัม.",
+      "unit": "กระป๋อง",
+      "sourceRow": 2775,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852629000334"
+    },
+    {
+      "companySku": "IC-000295",
+      "name": "สามัญ แบคติกราส 1 แผ่น",
+      "unit": "แผ่น",
+      "sourceRow": 1108,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "5000223421984"
+    },
+    {
+      "companySku": "IC-004770",
+      "name": "สามัญ ซูโดเครม มอยซ์เจอไรซิ่งครีม 125 กรัม",
+      "unit": "ชิ้น",
+      "sourceRow": 5407,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8851102005217"
+    },
+    {
+      "companySku": "IC-004755",
+      "name": "สามัญ วิคส์ วาโปดรอป รสส้ม 8 เม็ด",
+      "unit": "ซอง",
+      "sourceRow": 5392,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "4987176019974"
+    },
+    {
+      "companySku": "IC-006114",
+      "name": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+      "unit": "ชิ้น",
+      "sourceRow": 6749,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8857129045090"
+    },
+    {
+      "companySku": "IC-006042",
+      "name": "สามัญ ไบโอ กาย่า มินิแพ็ค ชนิดผง 10 ซอง",
+      "unit": "กล่อง",
+      "sourceRow": 6677,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8002660034489"
+    },
+    {
+      "companySku": "IC-000804",
+      "name": "สามัญ เบลนเดอร่า เอ็มเอฟ 2.5 กก",
+      "unit": "ถุง",
+      "sourceRow": 1594,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852629220022"
+    },
+    {
+      "companySku": "IC-005764",
+      "name": "สามัญ ผงเกลือแร่รอแยล ดี รสส้ม 25 กรัม",
+      "unit": "ซอง",
+      "sourceRow": 6399,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8852612000600"
+    },
+    {
+      "companySku": "IC-005594",
+      "name": "สามัญ สวิสเซ อัลติไวท์ มัลติวิตามินผสมวิตามินบี 30 เม็ด",
+      "unit": "ขวด",
+      "sourceRow": 6229,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "9311770608053"
     }
   ],
   "rules": [
@@ -1212,6 +1492,2212 @@
       "companySku": "IC-004872",
       "quantityPerSale": 1,
       "authority": "exact_identity_verified_erp_master_2026-09-26"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "น้ำเกลือ Klean&Kare ขวดดัมเบล 1000 มล. 1 ลัง 10 ขวด (1ลัง/คำสั่งซื้อ)",
+      "variant": "1ลัง 10 ขวด ดัมเบล",
+      "companySku": "630020295",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 520,
+        "erpName": "สามัญ น้ำเกลือเอเอ็นบีขวดดัมเบล 1000 มล.",
+        "erpBarcode": "8854060615344",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          211
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+      "variant": "1000 มล. ดัมเบล",
+      "companySku": "630020295",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 520,
+        "erpName": "สามัญ น้ำเกลือเอเอ็นบีขวดดัมเบล 1000 มล.",
+        "erpBarcode": "8854060615344",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          211
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "10 ซอง Oreda RO ผงเกลือแร่ รสส้ม 5.5 กรัม",
+      "variant": "1 กล่อง 10 ซอง",
+      "companySku": "IC-004371",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5010,
+        "erpName": "สามัญ ออรีด้า อาร์ โอ ออเรนจ์ 5.5 กรัม",
+        "erpBarcode": "8852914302204",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          74,
+          189
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แอลกอฮอล์ ศิริบัญชา 70% ขนาด 450 มล. แบบยกแพ็ค (1 แพ็ค 6 ขวด)",
+      "variant": "1 แพ็ค",
+      "companySku": "IC-000270",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1085,
+        "erpName": "สามัญ แอลกอฮอล์ศิริบัญชา 450 มล",
+        "erpBarcode": "8851124104592",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ไทลินอล 500 TYLENOL พาราเซตามอล 500 มก. 1 กล่อง 20 แผง",
+      "variant": "1 กล่อง 20 แผง",
+      "companySku": "630010105",
+      "quantityPerSale": 20,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 97,
+        "erpName": "สามัญ ไทลินอล 500 มก 10 เม็ด",
+        "erpBarcode": "8850007850229",
+        "erpUnit": "แผง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "One Gerd วันเกิร์ด รสมินท์ ปราศจากน้ำตาล 12 ซอง x 10 มล.",
+      "variant": "1 กล่อง 12 ซอง",
+      "companySku": "IC-002441",
+      "quantityPerSale": 12,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3106,
+        "erpName": "สามัญ วันเกิร์ด 10  มล",
+        "erpBarcode": "8852673000830",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          17,
+          29
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์พ่นปากและคอ Mouth Spray 15 มล. / X 15 มล. / Kid 10 มล. เลือกรุ่น",
+      "variant": "Mouth Spray 15 มล.",
+      "companySku": "IC-001292",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2023,
+        "erpName": "สามัญ โพรโพลิซ เมาท์ สเปรย์ 15 มล",
+        "erpBarcode": "8857121535131",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          164
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MYBACIN OTC มายบาซิน โอทีซี ยาอม 8 เม็ด เลือกรสมะนาว ส้ม มิ้นต์",
+      "variant": "มิ้นต์",
+      "companySku": "IC-002092",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2768,
+        "erpName": "สามัญ มายบาซิน โอทีซี มินต์ 8 เม็ด",
+        "erpBarcode": "8852294016012",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาถ่ายพยาธิ มีเบนดาโซล Mebendazole 100mg BLHUA ยาสามัญประจำบ้าน",
+      "variant": "1 แผง 6 เม็ด",
+      "companySku": "IC-004199",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4840,
+        "erpName": "สามัญ ยาถ่ายพยาธิตัวกลม มีเบนดาโซล 100 มก 6 เม็ด",
+        "erpBarcode": "8852914107700",
+        "erpUnit": "แผง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          37,
+          62
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+      "variant": "500 มล. ฝาแหลม",
+      "companySku": "630020296",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 521,
+        "erpName": "ปกติ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 500 มล.",
+        "erpBarcode": "8854060615023",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          213
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care Lecithin 1200 mg เลซิติน 1200 มก. ผลิตภัณฑ์เสริมอาหาร 30/100 แคปซูล",
+      "variant": "30 แคปซูล",
+      "companySku": "IC-003712",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4355,
+        "erpName": "สามัญ เลซิตินเมกกะ 1200 มก 30 แคปซูล",
+        "erpBarcode": "8850769002010",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "GHP NasiCare Nasal Washer ขวดล้างจมูก ชนิดอัตโนมัติ ปุ่มกด On/Off ขนาด 300ml ใช้ได้กับน้ำเกลือ",
+      "variant": "1 ขวด",
+      "companySku": "IC-004143",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4784,
+        "erpName": "สามัญ จีเอชพี นาซิแคร์ นาซอล วอชเชอร์ ขวดล้างจมูกอัตโนมัติ 300 มล",
+        "erpBarcode": "8853644004260",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          46
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ONCE Renal วันซ์ รีนอล กลิ่นนม 400 กรัม อาหารทางการแพทย์ 1 กระป๋อง",
+      "variant": "1 กระป๋อง",
+      "companySku": "IC-002100",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2776,
+        "erpName": "สามัญ อาหารผู้ป่วยล้างไต วันซ์รีนอล รสนม 400 กรัม",
+        "erpBarcode": "8852629000174",
+        "erpUnit": "กระป๋อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ไทลินอล 500 TYLENOL พาราเซตามอล 500 มก. ชนิดเม็ด 1 แผง 10 เม็ด",
+      "variant": "1 แผง",
+      "companySku": "630010105",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 97,
+        "erpName": "สามัญ ไทลินอล 500 มก 10 เม็ด",
+        "erpBarcode": "8850007850229",
+        "erpUnit": "แผง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF แอลซอฟ ตราเสือดาว แอลกอฮอล์ทำความสะอาดมือ 70% V/V สีฟ้า 450 มล. (แพ็ค 6 ขวด)",
+      "variant": "1 เเพ็ค",
+      "companySku": "630010225",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 204,
+        "erpName": "สามัญ แอลกอฮอล์เสือดาว ขวดฟ้า 450 มล.",
+        "erpBarcode": "8853042000536",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Ensure Gold AdvancePro เอนชัวร์ โกลด์ แอดวานซ์โปร กลิ่นวานิลลา 380 กรัม 1 กระป๋อง",
+      "variant": "",
+      "companySku": "IC-001104",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1841,
+        "erpName": "สามัญ เอนชัวร์กลิ่นวานิลลา 380 กรัม",
+        "erpBarcode": "8710428021137",
+        "erpUnit": "กระป๋อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+      "variant": "1000 มล. ฝาแหลม",
+      "companySku": "630020297",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 522,
+        "erpName": "ปกติ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 1000 มล",
+        "erpBarcode": "8854060615030",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          214
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ลูกอมสมุนไพรไอ-เฮิร์บ 18 เม็ดปราศจากน้ำตาล เหมาะสำหรับผู้ที่ใส่ใจสุขภาพ",
+      "variant": "1 ซอง 18 เม็ด",
+      "companySku": "IC-005056",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5693,
+        "erpName": "สามัญ ยาอมสมุนไพร ไอ เฮิร์บ โอทีซี 18 เม็ด",
+        "erpBarcode": "8855459009485",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          145
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาถ่ายพยาธิ มีเบนดาโซล Mebendazole 100mg BLHUA ยาสามัญประจำบ้าน",
+      "variant": "1 กล่อง 5 แผง",
+      "companySku": "IC-004199",
+      "quantityPerSale": 5,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4840,
+        "erpName": "สามัญ ยาถ่ายพยาธิตัวกลม มีเบนดาโซล 100 มก 6 เม็ด",
+        "erpBarcode": "8852914107700",
+        "erpUnit": "แผง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          37,
+          62
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แอลกอฮอล์ ศิริบัญชา 70% ขนาด 450 มล. ยกลัง 24 ขวด",
+      "variant": "1 ลัง 24 ขวด",
+      "companySku": "IC-000270",
+      "quantityPerSale": 24,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1085,
+        "erpName": "สามัญ แอลกอฮอล์ศิริบัญชา 450 มล",
+        "erpBarcode": "8851124104592",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 ซอง Strepsils HHR 8 เม็ด ยาอมบรรเทาอาการ",
+      "variant": "น้ำผึ้งมะนาว 8 เม็ด",
+      "companySku": "630010066",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 60,
+        "erpName": "สามัญ ยาอมเสตร็ปซิลน้ำผึ้งมะนาว 8 เม็ด",
+        "erpBarcode": "8850360310040",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          185
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แอลกอฮอล์ ศิริบัญชา 70% ขนาด 60 / 180 / 450 ซีซี (แบบขวด)",
+      "variant": "450 ซีซี",
+      "companySku": "IC-000270",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1085,
+        "erpName": "สามัญ แอลกอฮอล์ศิริบัญชา 450 มล",
+        "erpBarcode": "8851124104592",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Comfy Lozenge เม็ดอมคอมฟีร์ ขิง ไม่ง่วง รสน้ำผึ้งมะนาวมิ้นท์ 8 เม็ด",
+      "variant": "1 กล่อง 8 เม็ด",
+      "companySku": "IC-004642",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5279,
+        "erpName": "สามัญ เม็ดอมคอมฟีร์ กลิ่นน้ำผึ้งมะนาวและมิ้นท์ 8 เม็ด",
+        "erpBarcode": "8856513014384",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          155
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Clinigel คลินิเจล เจลหล่อลื่นทางการแพทย์ 50 กรัม ล้างออกง่าย ใช้กับอุปกรณ์การแพทย์ และใช้ได้กับถุงยางอนามัย",
+      "variant": "50 g",
+      "companySku": "IC-004446",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5084,
+        "erpName": "สามัญ คลินิเจล 50 กรัม",
+        "erpBarcode": "8853348004276",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          126
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "GHP Normal Saline จีเอชพี นอร์มอล ซาไลน์ น้ำเกลือปราศจากเชื้อ 0.9% ขวดดัมเบล 1000 มล. (ยกลัง 10 ขวด)",
+      "variant": "1 ลัง 10 ขวด ดัมเบล",
+      "companySku": "IC-005082",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5719,
+        "erpName": "สามัญ น้ำเกลือ จีเอชพี นอร์มอล ซาไลน์ 1000 มล",
+        "erpBarcode": "8853644004192",
+        "erpUnit": "ขวด",
+        "packBasis": "Own Shopee dumbbell case listing: seller SKU IC-005082, 10 bottles per case",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/53718413929",
+        "productId": "53718413929",
+        "variationId": "196436365683"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care Lecithin 1200 mg เลซิติน 1200 มก. ผลิตภัณฑ์เสริมอาหาร 30/100 แคปซูล",
+      "variant": "100 แคปซูล",
+      "companySku": "IC-000105",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 928,
+        "erpName": "สามัญ เลซิตินเมกกะ 1200 มก 100 แคป",
+        "erpBarcode": "8850769001662",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Cybele Scagel / Scagel Plus ซีเบล สกาเจล / สกาเจลพลัส เจลสำหรับดูแลรอยแผลเป็น เลือกสูตรและขนาด",
+      "variant": "4 กรัม",
+      "companySku": "630010026",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 26,
+        "erpName": "สามัญ สกาเจล 4 กรัม",
+        "erpBarcode": "8858663807151",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          113
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Berocca IMMU D+ บีรอคคา อิมมู ดี พลัส เม็ดฟู่รสส้ม 15 เม็ด ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "",
+      "companySku": "IC-005490",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6126,
+        "erpName": "สามัญ บีรอคคา อิมมูดี พลัส รสส้ม 15 เม็ด",
+        "erpBarcode": "4057599011456",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Cybele Scagel / Scagel Plus ซีเบล สกาเจล / สกาเจลพลัส เจลสำหรับดูแลรอยแผลเป็น เลือกสูตรและขนาด",
+      "variant": "9 กรัม",
+      "companySku": "630010025",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 25,
+        "erpName": "สามัญ สกาเจล 9 กรัม",
+        "erpBarcode": "8858663805508",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          111
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care NAT MAG แนท-แมก แมกนีเซียม 350 มก. วิตามินบี 1 บี 6 ผลิตภัณฑ์เสริมอาหาร 30 เม็ด",
+      "variant": "30 เม็ด",
+      "companySku": "IC-003977",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4618,
+        "erpName": "สามัญ แนท แมก 350 มก 30 เม็ด",
+        "erpBarcode": "8850769022155",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care Garlic Oil เมก้า วีแคร์ น้ำมันกระเทียม 100 แคปซูล",
+      "variant": "100 เม็ด",
+      "companySku": "630010005",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 7,
+        "erpName": "สามัญ กระเทียมเมกกะ 100 แคปซูล",
+        "erpBarcode": "8850769002379",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 ซอง Strepsils HHR 8 เม็ด ยาอมบรรเทาอาการ",
+      "variant": "ส้ม 8 เม็ด",
+      "companySku": "630010065",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 59,
+        "erpName": "สามัญ ยาอมเสตร็ปซิลวิตซี 8 เม็ด",
+        "erpBarcode": "8850360320049",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          183
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แอลกอฮอล์ ศิริบัญชา 70% ขนาด 60 / 180 / 450 ซีซี (แบบขวด)",
+      "variant": "60 ซีซี",
+      "companySku": "630010224",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 203,
+        "erpName": "สามัญ แอลกอฮอล์ศิริบัญชา 60 มล.",
+        "erpBarcode": "8851124100600",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Bepanthen บีแพนเธน ออยเมนต์ Ointment 30 กรัม / เซนซิเดิร์ม ครีม Sensiderm 20 กรัม เลือกรุ่น",
+      "variant": "ออยเมนต์ 30 กรัม",
+      "companySku": "630010188",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 170,
+        "erpName": "สามัญ บีแพนเธนออยเมนต์ 30 กรัม",
+        "erpBarcode": "8850172243017",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          86
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "mar Baby Nose มาร์ เบบี้ โนส สเปรย์น้ำทะเลทำความสะอาดโพรงจมูก 100 มล.",
+      "variant": "1 ขวด 100 มล.",
+      "companySku": "IC-002641",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3302,
+        "erpName": "สามัญ มาร์เบบี้โนสนาซอลสเปร์ย 100 มล.",
+        "erpBarcode": "4897003381566",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MYBACIN OTC มายบาซิน โอทีซี ยาอม 8 เม็ด เลือกรสมะนาว ส้ม มิ้นต์",
+      "variant": "ส้ม",
+      "companySku": "IC-004646",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5283,
+        "erpName": "สามัญ มายบาซิน โอทีซี ส้ม 8 เม็ด",
+        "erpBarcode": "8852294017019",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "ส้ม,1 กระปุก 1000 เม็ด",
+      "companySku": "IC-002910",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3562,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี ส้ม 25 มก 1000 เม็ด",
+        "erpBarcode": "8856513000103",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          58,
+          186,
+          187,
+          188
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MYBACIN OTC มายบาซิน โอทีซี ยาอม 8 เม็ด เลือกรสมะนาว ส้ม มิ้นต์",
+      "variant": "มะนาว",
+      "companySku": "IC-004509",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5147,
+        "erpName": "สามัญ มายบาซิน โอทีซี รสมะนาว 8 เม็ด",
+        "erpBarcode": "8852294018016",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Swisse สวิสเซ ผลิตภัณฑ์เสริมอาหาร Vitamin C 1000 mg / Biotin Forte / Sunneday / Multivitamin เลือกสูตร",
+      "variant": "วิตามินซี สีเหลือง",
+      "companySku": "IC-004777",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5414,
+        "erpName": "สามัญ สวิสเซ วิตามินซี 1000 มก 60 เม็ด",
+        "erpBarcode": "9311770614917",
+        "erpUnit": "กระปุก",
+        "packBasis": "Own Shopee exact formula variation seller SKU checked against StockDay master",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/44967278960",
+        "productId": "44967278960"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "VICKS VapoDrops วิคส์ วาโปดรอป 8 เม็ด รสน้ำผึ้งมะนาว / รสส้ม",
+      "variant": "EXP12-2026น้ำผึ้ง",
+      "companySku": "IC-004754",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5391,
+        "erpName": "สามัญ วิคส์ วาโปดรอป รสน้ำผึ้งมะนาว 8 เม็ด",
+        "erpBarcode": "4987176019950",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 กล่อง 10 แผง เกร๊ทเตอร์ คา-อา-บอน GREATER CA-R-BON แคปซูล 260 มก.",
+      "variant": "1 กล่อง 10 แผง",
+      "companySku": "630010149",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 139,
+        "erpName": "สามัญ คาอาบอน 10 แคป",
+        "erpBarcode": "8852294358013",
+        "erpUnit": "แผง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "BioGaia ไบโอ กาย่า โพรไบโอติก Gastrus / เม็ดเคี้ยวเลมอน-ไลม์ / ผง Minipack / Drops ชนิดหยด เลือกสูตร",
+      "variant": "เลมอน-ไลม์",
+      "companySku": "IC-004406",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5044,
+        "erpName": "สามัญ ไบโอ กาย่า ชนิดเม็ดเคี้ยว กลิ่นเลมอน ไลม์ 13.5 มก 10 เม็ด",
+        "erpBarcode": "8002660038067",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "One Gerd วันเกิร์ด รสมินท์ ปราศจากน้ำตาล 1 ซอง x 10 มล.",
+      "variant": "1 ซอง 10 มล",
+      "companySku": "IC-002441",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3106,
+        "erpName": "สามัญ วันเกิร์ด 10  มล",
+        "erpBarcode": "8852673000830",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          17,
+          29
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์พ่นปากและคอ Mouth Spray 15 มล. / X 15 มล. / Kid 10 มล. เลือกรุ่น",
+      "variant": "Kid 10 มล.",
+      "companySku": "IC-002893",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3545,
+        "erpName": "สามัญ โพรโพลิช คิด เมาท์ สเปรย์ ลิโคไรซ์ ซิงค์ 10 มล.",
+        "erpBarcode": "8856513013059",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          129
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz Lozenge (1 กล่อง 10 ซอง) ลูกอมโพรโพลิส ผสมน้ำผึ้ง แก้เจ็บคอ ระคายคอ ส้ม Vit C / มะนาว-ขิง",
+      "variant": "10 ซอง น้ำผึงมะนาว",
+      "companySku": "IC-002080",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2756,
+        "erpName": "สามัญ โพรโพลิซเม็ดอมมะนาวขิง 8 เม็ด",
+        "erpBarcode": "8856513011215",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          15,
+          168
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "บีแพนเธน ออยเมนต์ Bepanthen Ointment 50 กรัม บำรุงและช่วยปกป้องผิวใต้ผ้าอ้อม",
+      "variant": "",
+      "companySku": "IC-000481",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1288,
+        "erpName": "สามัญ บีแพนเธนออยเมนต์ 50 กรัม",
+        "erpBarcode": "8850172243048",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แอลกอฮอล์ ศิริบัญชา 70% ขนาด 60 / 180 / 450 ซีซี (แบบขวด)",
+      "variant": "180 ซีซี",
+      "companySku": "IC-000455",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1262,
+        "erpName": "สามัญ แอลกอฮอล์ศิริบัญชา 180 มล",
+        "erpBarcode": "8851124101805",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Cybele Scagel / Scagel Plus ซีเบล สกาเจล / สกาเจลพลัส เจลสำหรับดูแลรอยแผลเป็น เลือกสูตรและขนาด",
+      "variant": "19 กรัม",
+      "companySku": "IC-003211",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3861,
+        "erpName": "สามัญ ซีเบลสกาเจล 19 กรัม",
+        "erpBarcode": "8858663805515",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          112
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร เลือกสูตร Biotin Zinc Night’s Story Bio C Fish Oil BioMag Luti-berry Fiber",
+      "variant": "Fish Oil Astaxanthin",
+      "companySku": "IC-005169",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5805,
+        "erpName": "สามัญ ดีเดย์ ฟิชออย พลัส แอสต้าแซนธิน รสเปปเปอร์มิ้นท์ 30 แคปซูล",
+        "erpBarcode": "8859612214242",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          156,
+          157,
+          158
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care NAT C 1000 เมก้า วีแคร์ แนทซี 1000 วิตามินซี ผลิตภัณฑ์เสริมอาหาร 30/60/150 เม็ด",
+      "variant": "60 เม็ด",
+      "companySku": "IC-000249",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1066,
+        "erpName": "สามัญ แนทซีเมกกะ 1000 มก 60 เม็ด",
+        "erpBarcode": "8850769010749",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care NAT C 1000 เมก้า วีแคร์ แนทซี 1000 วิตามินซี ผลิตภัณฑ์เสริมอาหาร 30/60/150 เม็ด",
+      "variant": "30 เม็ด",
+      "companySku": "IC-000109",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 932,
+        "erpName": "สามัญ แนทซีเมกกะ 1000 มก 30 เม็ด",
+        "erpBarcode": "8850769010732",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์พ่นปากและคอ Mouth Spray 15 มล. / X 15 มล. / Kid 10 มล. เลือกรุ่น",
+      "variant": "X 15 มล.",
+      "companySku": "IC-004453",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5091,
+        "erpName": "สามัญ โพรโพลิซ เอ็กซ์ เมาท์สเปรย์ 15 มล",
+        "erpBarcode": "8856513014711",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          200
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "ส้ม,6 ซอง",
+      "companySku": "IC-002516",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3179,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี กลิ่นส้ม 25 มก 30 เม็ด",
+        "erpBarcode": "8856513000127",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          23,
+          24,
+          25,
+          26,
+          50
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "15 เม็ด โพรโพลิซ มิกซ์ ชนิดเม็ดอม ชุ่มคอ ไม่มีน้ำตาล ผสมไซลิทอล",
+      "variant": "1 ซอง 15 เม็ด",
+      "companySku": "IC-004251",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4891,
+        "erpName": "สามัญ โพรโพลิซ มิกซ์ ชนิดเม็ดอม 15 เม็ด",
+        "erpBarcode": "8856513005221",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          143
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 ซอง Strepsils HHR 8 เม็ด ยาอมบรรเทาอาการ",
+      "variant": "เลมอน ไม่มีน้ำตาล",
+      "companySku": "630010066",
+      "quantityPerSale": 1,
+      "authority": "user_authorized_strepsils_accounting_identity_alias_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 60,
+        "erpName": "สามัญ ยาอมเสตร็ปซิลน้ำผึ้งมะนาว 8 เม็ด",
+        "erpBarcode": "8850360310040",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          185
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Berocca Elderberry Plus Choline & Zinc บีรอคคา เอลเดอร์เบอร์รี่ รสมิกซ์เบอร์รี่ 10 มล. x 7 ซอง",
+      "variant": "1 กล่อง",
+      "companySku": "IC-005209",
+      "quantityPerSale": 7,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5845,
+        "erpName": "สามัญ บีรอคคา เอลเดอร์เบอร์รี่ พลัส โคลีน ซิงค์ รสมิกซ์เบอร์รี่ 10 มล",
+        "erpBarcode": "8850172294293",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "CU Phar Biotin Zinc / Biotin Zinc Plus ไบโอติน ซิงค์ / ไบโอติน ซิงค์ พลัส ผลิตภัณฑ์เสริมอาหาร เลือกสูตรและขนาด",
+      "variant": "ซิงค์ พลัส 90 เม็ด",
+      "companySku": "IC-005991",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6626,
+        "erpName": "สามัญ ซิงก์ ไบโอติน พลัส 350 มก 90 เม็ด",
+        "erpBarcode": "8856351007050",
+        "erpUnit": "กระปุก",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          179
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Gaviscon กาวิสคอน ชนิดซอง 10 มล. เลือกสูตร ดับเบิ้ล แอคชั่น มิ้นต์ / ซัสเพนชั่น (แบบซอง)",
+      "variant": "ดับเบิ้ลแอคชั่นมินต์",
+      "companySku": "IC-003778",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4420,
+        "erpName": "สามัญ กาวิสคอน ดับเบิ้ล แอคชั่น มิ้นต์ 10 มล.",
+        "erpBarcode": "8850360035622",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          197
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ONCE Renal วันซ์ รีนอล กลิ่นนม 400 กรัม อาหารทางการแพทย์ 1 กระป๋อง",
+      "variant": "3 กระป๋อง",
+      "companySku": "IC-002100",
+      "quantityPerSale": 3,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2776,
+        "erpName": "สามัญ อาหารผู้ป่วยล้างไต วันซ์รีนอล รสนม 400 กรัม",
+        "erpBarcode": "8852629000174",
+        "erpUnit": "กระป๋อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ONCE Renal วันซ์ รีนอล กลิ่นนม 400 กรัม อาหารทางการแพทย์ 1 กระป๋อง",
+      "variant": "2 กระป๋อง",
+      "companySku": "IC-002100",
+      "quantityPerSale": 2,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2776,
+        "erpName": "สามัญ อาหารผู้ป่วยล้างไต วันซ์รีนอล รสนม 400 กรัม",
+        "erpBarcode": "8852629000174",
+        "erpUnit": "กระป๋อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 ซอง Strepsils HHR 8 เม็ด ยาอมบรรเทาอาการ",
+      "variant": "คลู ฟ้า 8 เม็ด",
+      "companySku": "630010040",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 38,
+        "erpName": "สามัญ ยาอมสเตร็ปซิลคูล เอช เอช อาร์ 8 เม็ด",
+        "erpBarcode": "8850360330024",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          184
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 ซอง Strepsils HHR 8 เม็ด ยาอมบรรเทาอาการ",
+      "variant": "ออริจินอล แดง 8 เม็ด",
+      "companySku": "630010038",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 36,
+        "erpName": "สามัญ ยาอมสเตร็ปซิลออริจินัล เอช เอช อาร์ 8 เม็ด",
+        "erpBarcode": "8850360300041",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          181
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ สีฟ้า แบบยกลัง 24 ขวด (4 แพ็ค แพ็คละ 6 ขวด)",
+      "variant": "1 ลัง สีฟ้า 24 ขวด",
+      "companySku": "630010225",
+      "quantityPerSale": 24,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 204,
+        "erpName": "สามัญ แอลกอฮอล์เสือดาว ขวดฟ้า 450 มล.",
+        "erpBarcode": "8853042000536",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Bepanthen บีแพนเธน ออยเมนต์ Ointment 30 กรัม / เซนซิเดิร์ม ครีม Sensiderm 20 กรัม เลือกรุ่น",
+      "variant": "เซนซิเดิร์ม 20 กรัม",
+      "companySku": "IC-000482",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1289,
+        "erpName": "สามัญ บีแพนเธนเซนซิเดร์ม 20 กรัม",
+        "erpBarcode": "8850172243055",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "BioGaia ไบโอ กาย่า โพรไบโอติก Gastrus / เม็ดเคี้ยวเลมอน-ไลม์ / ผง Minipack / Drops ชนิดหยด เลือกสูตร",
+      "variant": "ส้มแมนดาริน",
+      "companySku": "IC-006043",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6678,
+        "erpName": "สามัญ ไบโอ กาย่า แกสตรัส เม็ดเคี้ยว กลิ่นส้มแมนดาริน 10 เม็ด",
+        "erpBarcode": "8002660038081",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Gaviscon กาวิสคอน ชนิดซอง 10 มล. เลือกสูตร ดับเบิ้ล แอคชั่น มิ้นต์ / ซัสเพนชั่น (แบบซอง)",
+      "variant": "ซัสเพนชั่น",
+      "companySku": "IC-001048",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1787,
+        "erpName": "สามัญ กาวิสคอนซัสเพนชั่นเขียว 10 มล",
+        "erpBarcode": "50230112",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          199
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Oilatum Soap Bar ออยลาตุ้ม สบู่ก้อนทำความสะอาดผิว สำหรับผิวแห้ง 100 กรัม",
+      "variant": "1 ก้อน",
+      "companySku": "IC-005879",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6514,
+        "erpName": "สามัญ สบู่ ออยลาตุ้ม เจนเทิล โซป บาร์ 100 กรัม",
+        "erpBarcode": "5011309025514",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ONCE Dialyze วันซ์ ไดอะไลซ์ กลิ่นวานิลลา 400 กรัม อาหารทางการแพทย์ 1 กระป๋อง",
+      "variant": "1 กระป๋อง",
+      "companySku": "IC-002099",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2775,
+        "erpName": "สามัญ อาหารผู้ป่วยล้างไต วันซ์ไดอะไลซ์ 400 กรัม.",
+        "erpBarcode": "8852629000334",
+        "erpUnit": "กระป๋อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz Chewy Vit C เม็ดเคี้ยวโพรโพลิส วิตามินซี มะขามป้อม น้ำผึ้ง ส้ม ขิง เคี้ยวง่าย ชื่นใจ 8 เม็ด",
+      "variant": "1 กล่อง",
+      "companySku": "IC-003840",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4481,
+        "erpName": "สามัญ โพรโพลิสผสมวิตามินซีและมะขามป้อม ชนิดเม็ดเคี้ยว 8 เม็ด",
+        "erpBarcode": "8856513013745",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          144
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Royal-D รอแยล-ดี เครื่องดื่มชนิดผง สูตรเกลือแร่ / สูตรวิตามินบีและซี แบบกล่อง เลือกสูตร",
+      "variant": "ผลไม้รวม",
+      "companySku": "630010187",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 169,
+        "erpName": "สามัญ ผงเกลือแร่รอแยล ดี กลื่นไม้รวม 25 กรัม",
+        "erpBarcode": "8852612000044",
+        "erpUnit": "ซอง",
+        "packBasis": "Own Shopee box listing, exact variation seller SKU, 10 sachets per box; mixed-fruit pack also previously confirmed by owner",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/58167710434",
+        "productId": "58167710434",
+        "variationId": "416536110617"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Smith+Nephew BACTIGRAS แบคติกราส แผ่นปิดแผล 10x10 ซม. (กล่อง / 10 แผ่น)",
+      "variant": "1 กล่อง",
+      "companySku": "IC-000295",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1108,
+        "erpName": "สามัญ แบคติกราส 1 แผ่น",
+        "erpBarcode": "5000223421984",
+        "erpUnit": "แผ่น",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Sudocrem ซูโดเครม Moisturizing Cream มอยซ์เจอไรซิ่งครีม 125 กรัม ครีมบำรุงผิว",
+      "variant": "",
+      "companySku": "IC-004770",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5407,
+        "erpName": "สามัญ ซูโดเครม มอยซ์เจอไรซิ่งครีม 125 กรัม",
+        "erpBarcode": "8851102005217",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "VICKS VapoDrops วิคส์ วาโปดรอป 8 เม็ด รสน้ำผึ้งมะนาว / รสส้ม",
+      "variant": "EXP12-2026 ส้ม",
+      "companySku": "IC-004755",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5392,
+        "erpName": "สามัญ วิคส์ วาโปดรอป รสส้ม 8 เม็ด",
+        "erpBarcode": "4987176019974",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "องุ่น,6 ซอง",
+      "companySku": "IC-002353",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3021,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี กลิ่นองุ่น 25 มก 30 เม็ด",
+        "erpBarcode": "8857121535056",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          38,
+          39,
+          40,
+          41,
+          57
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สตรอว์เบอร์รี่,1 กระปุก 1000 เม็ด",
+      "companySku": "IC-002913",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3565,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี สตอร์เบอรี่ 25 มก 1000  เม็ด",
+        "erpBarcode": "8857121535841",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          47,
+          48,
+          49,
+          53
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สับปะรด,1 กระปุก 1000 เม็ด",
+      "companySku": "IC-002912",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3564,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี  สับปะรด 25 มก 1000 เม็ด",
+        "erpBarcode": "8857121535773",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          52,
+          105,
+          106,
+          107
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สตรอว์เบอร์รี่,6 ซอง",
+      "companySku": "IC-002485",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3149,
+        "erpName": "สามัญ ไวต้าซี วิตามินซีกลิ่นสตอเบอรี่ 25 มก 30 เม็ด",
+        "erpBarcode": "8857121535858",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          54,
+          169,
+          170,
+          171,
+          172
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "เกร๊ทเตอร์ คา-อา-บอน GREATER CA-R-BON แคปซูล 260 มก. 1 แผง 10 แคปซูล",
+      "variant": "1 แผง",
+      "companySku": "630010149",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 139,
+        "erpName": "สามัญ คาอาบอน 10 แคป",
+        "erpBarcode": "8852294358013",
+        "erpUnit": "แผง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดม ตรา แทนใจ กลิ่นยูคาลิปตัส 5 กรัม แบบหัวคู่ เลือกสีได้ 6 สี",
+      "variant": "เขียวมิ้นต์",
+      "companySku": "IC-006114",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6749,
+        "erpName": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+        "erpBarcode": "8857129045090",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดม ตรา แทนใจ กลิ่นยูคาลิปตัส 5 กรัม แบบหัวคู่ เลือกสีได้ 6 สี",
+      "variant": "ดำ",
+      "companySku": "IC-006114",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6749,
+        "erpName": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+        "erpBarcode": "8857129045090",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ สีฟ้า แบบยกลัง 24 ขวด (450มล. 4 แพ็ค แพ็คละ 6 ขวด)",
+      "variant": "1 ลัง สีฟ้า 24 ขวด",
+      "companySku": "630010225",
+      "quantityPerSale": 24,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 204,
+        "erpName": "สามัญ แอลกอฮอล์เสือดาว ขวดฟ้า 450 มล.",
+        "erpBarcode": "8853042000536",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Bepanthen บีแพนเธน ออยเมนต์ Ointment 30 กรัม / เซนซิเดิร์ม ครีม Sensiderm 20 กรัม เลือกรุ่น",
+      "variant": "ออยเมนต์ 50 กรัม",
+      "companySku": "IC-000481",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1288,
+        "erpName": "สามัญ บีแพนเธนออยเมนต์ 50 กรัม",
+        "erpBarcode": "8850172243048",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "BioGaia ไบโอ กาย่า โพรไบโอติก Gastrus / เม็ดเคี้ยวเลมอน-ไลม์ / ผง Minipack / Drops ชนิดหยด เลือกสูตร",
+      "variant": "มินิแพ็ค ผง",
+      "companySku": "IC-006042",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6677,
+        "erpName": "สามัญ ไบโอ กาย่า มินิแพ็ค ชนิดผง 10 ซอง",
+        "erpBarcode": "8002660034489",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Blendera-MF เบลนเดอร่า เอ็มเอฟ 2.5 กก. อาหารทางการแพทย์ 1 ถุง",
+      "variant": "2ถุง",
+      "companySku": "IC-000804",
+      "quantityPerSale": 2,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1594,
+        "erpName": "สามัญ เบลนเดอร่า เอ็มเอฟ 2.5 กก",
+        "erpBarcode": "8852629220022",
+        "erpUnit": "ถุง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Blendera-MF เบลนเดอร่า เอ็มเอฟ 2.5 กก. อาหารทางการแพทย์ 1 ถุง",
+      "variant": "1 ถุง",
+      "companySku": "IC-000804",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 1594,
+        "erpName": "สามัญ เบลนเดอร่า เอ็มเอฟ 2.5 กก",
+        "erpBarcode": "8852629220022",
+        "erpUnit": "ถุง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Comfy Lozenge เม็ดอมคอมฟีร์ ขิง แก้เมารถ เมาเรือ คลื่นไส้ อาเจียน ท้องอืด ท้องเฟ้อ ไม่ง่วง รสน้ำผึ้งมะนาวมิ้นท์ 8 เม็ด",
+      "variant": "1 กล่อง 8 เม็ด",
+      "companySku": "IC-004642",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5279,
+        "erpName": "สามัญ เม็ดอมคอมฟีร์ กลิ่นน้ำผึ้งมะนาวและมิ้นท์ 8 เม็ด",
+        "erpBarcode": "8856513014384",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          155
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "CU Phar Biotin Zinc / Biotin Zinc Plus ไบโอติน ซิงค์ / ไบโอติน ซิงค์ พลัส ผลิตภัณฑ์เสริมอาหาร เลือกสูตรและขนาด",
+      "variant": "ซิงค์ 30 เม็ด",
+      "companySku": "IC-005994",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6629,
+        "erpName": "สามัญ ไบโอติน ซิงก์ 250 มก 30 เม็ด",
+        "erpBarcode": "8856351007098",
+        "erpUnit": "กระปุก",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          27
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Cybele Scagel / Scagel Plus ซีเบล สกาเจล / สกาเจลพลัส เจลสำหรับดูแลรอยแผลเป็น เลือกสูตรและขนาด",
+      "variant": "สกาเจลพลัส 10 กรัม",
+      "companySku": "IC-004051",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4692,
+        "erpName": "สามัญ ซีเบล สกาเจล พลัส 10 กรัม",
+        "erpBarcode": "8859243305241",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          166
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร เลือกสูตร Biotin Zinc Night’s Story Bio C Fish Oil BioMag Luti-berry Fiber",
+      "variant": "BioMag Plus Vitamins",
+      "companySku": "IC-005370",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6006,
+        "erpName": "สามัญ ดีเดย์ ไบโอแมก พลัส วิตามิน 30 แคปซูล",
+        "erpBarcode": "8859612214716",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          180
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Deeday ดีเดย์ วิตามินสูตรน้ำสำหรับเด็ก 120 มล. รสส้ม Omega-3 / มิกซ์เบอร์รี่ Bio C",
+      "variant": "รสส้ม สีฟ้า",
+      "companySku": "IC-005439",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6075,
+        "erpName": "สามัญ ดีเดย์ มัลติวิตามิน ฟอร์ท และโอเมก้า3 รสส้ม 120 มล",
+        "erpBarcode": "8859612254415",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          78
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Durex Sensation ถุงยางอนามัย ดูเร็กซ์ เซนเซชั่น ผิวไม่เรียบ แบบปุ่ม ขนาด 52 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "3 กล่อง",
+      "companySku": "IC-000129",
+      "quantityPerSale": 3,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 952,
+        "erpName": "สามัญ ถุงยางดูเร็กซ์ เซนเซชั่น 3 ชิ้น",
+        "erpBarcode": "5038483166970",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          44,
+          45
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Erbatop เออบาท๊อป ครีมยูเรีย 9% 60 กรัม / โลชั่น 75 มล. / แฮนด์ครีม 50 กรัม เลือกสูตร",
+      "variant": "แถบเขียว โลชั่น",
+      "companySku": "IC-005600",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6235,
+        "erpName": "สามัญ เออบาท๊อป แอดวานซ์ อินเทนซีฟ โลชั่น 75 มล",
+        "erpBarcode": "8858663809179",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          204
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Fairymed Silicone Stomach Tube 14Fr 16Fr 125cm แฟร์เมด สายให้อาหารซิลิโคน NG Tube สเตอร์ไรด์",
+      "variant": "16 fr 1 ชิ้น ปลายปิด",
+      "companySku": "IC-004872",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5509,
+        "erpName": "สามัญ สายให้อาหารซิลิโคน แฟรี่เมด เบอร์16 1 ชิ้น",
+        "erpBarcode": "6974429972153",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Own Shopee closed-tip 16Fr/14Fr variation seller SKU; one sterile tube",
+        "catalogSourceRows": [
+          114
+        ],
+        "listingUrl": "https://seller.shopee.co.th/portal/product/50614350644",
+        "productId": "50614350644",
+        "variationId": "356235288350"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Fairymed Silicone Stomach Tube 14Fr 16Fr 125cm แฟร์เมด สายให้อาหารซิลิโคน NG Tube สเตอร์ไรด์",
+      "variant": "14 fr 1 ชิ้น ปลายปิด",
+      "companySku": "IC-004871",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 5508,
+        "erpName": "สามัญ สายให้อาหารซิลิโคน แฟรี่เมด เบอร์14 1 ชิ้น",
+        "erpBarcode": "6974429972122",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Own Shopee closed-tip 16Fr/14Fr variation seller SKU; one sterile tube",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/50614350644",
+        "productId": "50614350644",
+        "variationId": "292928964102"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz Dente Mouth Wash 150 ml. น้ำยาบ้วนปาก โพรโพลิส สารสกัดจากรังผึ้ง ปราศจากแอลกอฮอล์ ไม่มีน้ำตาล กลิ่นมิ้นท์ 150ml",
+      "variant": "1 ขวด 150 มล.",
+      "companySku": "IC-001886",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2565,
+        "erpName": "สามัญ น้ำยาบ้วนปาก โพรโพลิซ เมาท์วอช 150 มล.",
+        "erpBarcode": "8856513004590",
+        "erpUnit": "ขวด",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          87
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Royal-D รอแยล-ดี เครื่องดื่มชนิดผง สูตรเกลือแร่ / สูตรวิตามินบีและซี แบบกล่อง เลือกสูตร",
+      "variant": "ส้ม",
+      "companySku": "IC-005764",
+      "quantityPerSale": 10,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6399,
+        "erpName": "สามัญ ผงเกลือแร่รอแยล ดี รสส้ม 25 กรัม",
+        "erpBarcode": "8852612000600",
+        "erpUnit": "ซอง",
+        "packBasis": "Own Shopee box listing, exact variation seller SKU, 10 sachets per box; mixed-fruit pack also previously confirmed by owner",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/58167710434",
+        "productId": "58167710434",
+        "variationId": "416536110619"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SK Max สายดูดเสมหะ เบอร์ 12 FR ไม่มีคอนโทรล 50 เส้น/แพ็ค",
+      "variant": "2 แพ๊ค",
+      "companySku": "IC-004177",
+      "quantityPerSale": 100,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4818,
+        "erpName": "สามัญ สายดูดเสมหะ ชนิดไม่มีคอนโทรล เอสเค แม็กซ์ เบอร์12 1 ชิ้น",
+        "erpBarcode": "8859226878403",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          175,
+          176,
+          177
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Swisse สวิสเซ ผลิตภัณฑ์เสริมอาหาร Vitamin C 1000 mg / Biotin Forte / Sunneday / Multivitamin เลือกสูตร",
+      "variant": "ฟอเต้ สีเทา",
+      "companySku": "IC-005481",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6117,
+        "erpName": "สามัญ สวิสเซ ไบโอติน ฟอร์เต้ และ วิตามินซี+ซิงค์ 60 เม็ด",
+        "erpBarcode": "9311770608275",
+        "erpUnit": "กระปุก",
+        "packBasis": "Own Shopee exact formula variation seller SKU checked against StockDay master",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/44967278960",
+        "productId": "44967278960"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Swisse สวิสเซ ผลิตภัณฑ์เสริมอาหาร Vitamin C 1000 mg / Biotin Forte / Sunneday / Multivitamin เลือกสูตร",
+      "variant": "มัลติวิตามิน น้ำเงิน",
+      "companySku": "IC-005594",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6229,
+        "erpName": "สามัญ สวิสเซ อัลติไวท์ มัลติวิตามินผสมวิตามินบี 30 เม็ด",
+        "erpBarcode": "9311770608053",
+        "erpUnit": "ขวด",
+        "packBasis": "Own Shopee exact formula variation seller SKU checked against StockDay master",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/44967278960",
+        "productId": "44967278960"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "เลมอน,6 ซอง",
+      "companySku": "IC-002484",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3148,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี กลิ่นเลมอน 25 มก 30 เม็ด",
+        "erpBarcode": "8856513005573",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          51,
+          138,
+          139,
+          140,
+          141
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สับปะรด,6 ซอง",
+      "companySku": "IC-002300",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2971,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี กลิ่นสับปะรด 25 มก 30 เม็ด",
+        "erpBarcode": "8857121535223",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          55,
+          91,
+          92,
+          93,
+          94
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "ส้ม,12 ซอง",
+      "companySku": "IC-002516",
+      "quantityPerSale": 12,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3179,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี กลิ่นส้ม 25 มก 30 เม็ด",
+        "erpBarcode": "8856513000127",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          23,
+          24,
+          25,
+          26,
+          50
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "ส้ม,25 ซอง",
+      "companySku": "IC-002516",
+      "quantityPerSale": 25,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3179,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี กลิ่นส้ม 25 มก 30 เม็ด",
+        "erpBarcode": "8856513000127",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          23,
+          24,
+          25,
+          26,
+          50
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน ซองสีชมพู",
+      "variant": "6 ซอง",
+      "companySku": "IC-001510",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 2207,
+        "erpName": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่พลัส ชมพู 20 กรัม",
+        "erpBarcode": "8856513008963",
+        "erpUnit": "ซอง",
+        "packBasis": "Exact source title/variant package in ERP base units",
+        "catalogSourceRows": [
+          148,
+          149,
+          150
+        ]
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "productName": "แผ่นตรวจน้ำตาลในเลือด Dr.Morepen GlucoOne BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 50 ชิ้น",
+      "companySku": "IC-003232",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3882,
+        "erpName": "สามัญ แถบตรวจน้ำตาลในเลือด กลูโค วัน BG-03 50 แถบ",
+        "erpBarcode": "8904124004574",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "productName": "แผ่นตรวจน้ำตาลในเลือด Dr.Morepen Gluco One BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 50 ชิ้น",
+      "companySku": "IC-003232",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 3882,
+        "erpName": "สามัญ แถบตรวจน้ำตาลในเลือด กลูโค วัน BG-03 50 แถบ",
+        "erpBarcode": "8904124004574",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "productName": "แผ่นตรวจน้ำตาลในเลือด Dr.Morepen GlucoOne BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 25 1 กล่อง",
+      "companySku": "IC-003478",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4125,
+        "erpName": "สามัญ แผ่นตรวจน้ำตาลในเลือด กลูโค วัน BG-03 25 แถบ",
+        "erpBarcode": "8904124004581",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "productName": "แผ่นตรวจน้ำตาลในเลือด Dr.Morepen GlucoOne BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 25 3 กล่อง",
+      "companySku": "IC-003478",
+      "quantityPerSale": 3,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4125,
+        "erpName": "สามัญ แผ่นตรวจน้ำตาลในเลือด กลูโค วัน BG-03 25 แถบ",
+        "erpBarcode": "8904124004581",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "dr-morepen",
+      "productName": "แผ่นตรวจน้ำตาลในเลือด Dr.Morepen Gluco One BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "แผ่นตรวจ 25 3 กล่อง",
+      "companySku": "IC-003478",
+      "quantityPerSale": 3,
+      "authority": "stockday_verified_exact_identity_20260928",
+      "verifiedOn": "2026-09-28",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4125,
+        "erpName": "สามัญ แผ่นตรวจน้ำตาลในเลือด กลูโค วัน BG-03 25 แถบ",
+        "erpBarcode": "8904124004581",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title/variant package in ERP base units"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ แพ็คคู่ 280 มล. ฟ้า 2 ขวด แถม ขาว 80 มล. 1 ขวด",
+      "variant": "ฝาฟ้า 2 แถม ฝาขาว",
+      "components": [
+        {
+          "companySku": "IC-002462",
+          "quantityPerSale": 2
+        },
+        {
+          "companySku": "IC-005557",
+          "quantityPerSale": 1
+        }
+      ],
+      "authority": "stockday_and_shopee_listing_verified_bundle_20260928",
+      "priceAllocationStatus": "review_required",
+      "evidence": {
+        "url": "https://seller.shopee.co.th/portal/product/47918272377",
+        "productId": "47918272377",
+        "variationId": "361535425898",
+        "bundleBarcode": "8856513011093",
+        "pack": "Eucalyptus Oil Plus Activ 280 ml ×2; Innocence 80 ml ×1",
+        "priceDecision": "User requested retaining price allocation review on 2026-09-28.",
+        "masterEvidenceId": "stockday-004-20260928",
+        "components": [
+          {
+            "companySku": "IC-002462",
+            "erpBarcode": "8856513006853",
+            "erpUnit": "กระป๋อง",
+            "masterSourceRow": 3126
+          },
+          {
+            "companySku": "IC-005557",
+            "erpBarcode": "8856513015213",
+            "erpUnit": "กระป๋อง",
+            "masterSourceRow": 6192
+          }
+        ]
+      },
+      "verifiedOn": "2026-09-28"
+    },
+    {
+      "shopCode": "dr-morepen",
+      "productName": "Gluco One แผ่นตรวจน้ำตาลในเลือด Dr.Morepen BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "เครื่อง + แผ่นตรวจ25",
+      "components": [
+        {
+          "companySku": "IC-003230",
+          "quantityPerSale": 1
+        },
+        {
+          "companySku": "IC-003478",
+          "quantityPerSale": 1
+        }
+      ],
+      "authority": "existing_catalog_bundle_components_stockday_verified_20260928",
+      "priceAllocationStatus": "review_required",
+      "evidence": {
+        "catalogSourceRows": [
+          11,
+          12
+        ],
+        "pack": "BG-03 meter ×1; BG-03 25-strip box ×1",
+        "priceDecision": "No approved component price allocation.",
+        "masterEvidenceId": "stockday-004-20260928",
+        "components": [
+          {
+            "companySku": "IC-003230",
+            "erpBarcode": "8904124004482",
+            "erpUnit": "กล่อง",
+            "masterSourceRow": 3880
+          },
+          {
+            "companySku": "IC-003478",
+            "erpBarcode": "8904124004581",
+            "erpUnit": "กล่อง",
+            "masterSourceRow": 4125
+          }
+        ]
+      },
+      "verifiedOn": "2026-09-28"
+    },
+    {
+      "shopCode": "dr-morepen",
+      "productName": "แผ่นตรวจน้ำตาลในเลือด Dr.Morepen Gluco One BG-03 Test Strip (25/50 ชิ้น) สำหรับเครื่อง BG-03 เท่านั้น",
+      "variant": "เครื่อง + แผ่นตรวจ25",
+      "components": [
+        {
+          "companySku": "IC-003230",
+          "quantityPerSale": 1
+        },
+        {
+          "companySku": "IC-003478",
+          "quantityPerSale": 1
+        }
+      ],
+      "authority": "existing_catalog_bundle_components_stockday_verified_20260928",
+      "priceAllocationStatus": "review_required",
+      "evidence": {
+        "catalogSourceRows": [
+          11,
+          12
+        ],
+        "pack": "BG-03 meter ×1; BG-03 25-strip box ×1",
+        "priceDecision": "No approved component price allocation.",
+        "masterEvidenceId": "stockday-004-20260928",
+        "components": [
+          {
+            "companySku": "IC-003230",
+            "erpBarcode": "8904124004482",
+            "erpUnit": "กล่อง",
+            "masterSourceRow": 3880
+          },
+          {
+            "companySku": "IC-003478",
+            "erpBarcode": "8904124004581",
+            "erpUnit": "กล่อง",
+            "masterSourceRow": 4125
+          }
+        ]
+      },
+      "verifiedOn": "2026-09-28"
     }
   ],
   "unitEquivalences": [
@@ -1244,6 +3730,19 @@
       "companySku": "IC-003778",
       "variant": "ชมพู 1 กล่อง",
       "reason": "ยังไม่ยืนยันจำนวนซองต่อกล่องของ Gaviscon สีชมพู; หน่วย ERP เป็นซอง"
+    }
+  ],
+  "additionalMasterEvidence": [
+    {
+      "id": "stockday-004-20260928",
+      "filename": "stockday-004-20260928.xlsx",
+      "sha256": "7de45a7ca0adc8108f7757fe9af93ce6a7de15fca1c883e10f6542da9c3c3dce",
+      "url": "https://sc-stockday-ordering.onrender.com/#/branch-stock",
+      "sheet": "Stock 004",
+      "branch": "004",
+      "verifiedOn": "2026-09-28",
+      "syncAt": "2026-09-28T08:21:02+07:00",
+      "scope": "SC004 ERP SKU identity, barcode and base unit only; no master prices or stock balances"
     }
   ]
 }
