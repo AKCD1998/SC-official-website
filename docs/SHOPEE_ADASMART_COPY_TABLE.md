@@ -73,13 +73,22 @@ SKU 630010187 as text. No box barcode was supplied for Royal-D; do not substitut
 sachet barcode as a box barcode. Current inventory is supporting identity evidence,
 not a multiplier, price source or filter for historical confirmed sales.
 
+The shorter Propoliz Mouth Spray title with variant `1 ขวด` reuses catalog row 164's
+IC-001292 mapping, one packaged bottle per sale in the ERP unit กล่อง. The historical
+Vita-C gummy title explicitly naming `ซองสีชมพู`, variant `12 ซอง`, reuses catalog
+row 150's pink IC-001510 identity at twelve ERP sachets per sale. It does not use the
+yellow gummy SKU IC-001849. The shortened BLHUA chlorpheniramine 2 mg box title,
+variant `1 กล่อง 10 แผง`, reuses the existing ten-blister IC-000665 copy identity.
+Keep original source identities and prior unmapped matches; other formulas, colours,
+shops and unverified packs retain their review guards.
+
 Group identical ERP SKUs without changing total quantity or satang. If division by quantity is
 fractional at two decimals, emit a higher-cent-price row first and the remaining lower-cent-price
 row. Preserve repeated SKU rows and return aligned strings only when every check passes.
 
 ## Validation
 
-- 136 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
+- 141 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
   accounting, matcher and reconciliation route.
 - Production database validation ran inside a REPEATABLE READ READ ONLY transaction and rolled
   back. SC Drug Store 2026-09-01 through 2026-09-08 paid cohorts match every day's BI total/count.
@@ -117,6 +126,15 @@ row. Preserve repeated SKU rows and return aligned strings only when every check
   Read-only validation retains every 01–10 Sep result and every previously supported
   11 Sep row, source amount and source identity unchanged. All three copy columns
   have 31 aligned values and multiply to 2,008,800 satang.
+- On 12 Sep the Propoliz, pink gummy and chlorpheniramine corrections resolve four
+  source lines / 552.00, preserving every 01–11 Sep plan and every previously supported
+  12 Sep row. Propoliz's three ERP boxes retain 320.00 as two at 106.67 and one at
+  106.66; pink gummy is twelve sachets at 14.00; chlorpheniramine is ten blisters at
+  6.40. The supported plan has 22 rows / 91 ERP units / 8,927.00 against 34 orders /
+  34 source lines / 9,322.00 Business Insights. Swisse Biotin Forte's separate SKU
+  confirmation remains pending, so its 395.00 is unresolved and all copy buttons
+  remain blocked. A process-local proposed mapping reconciles the full amount but
+  does not modify the registry or authorize that mapping.
 - The broader `backend-integration.test.cjs` server-start checks cannot complete on this local
   checkout without a local database: existing startup migrations fail before listening. No
   production credentials were supplied to those startup tests. The new route's authenticated

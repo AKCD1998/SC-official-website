@@ -894,6 +894,54 @@
   "rules": [
     {
       "shopCode": "sc-drug-store",
+      "productName": "Propoliz Mouth Spray สเปรย์พ่นปากและคอ โพรโพลิซ พรอพอลิส ปราศจากน้ำตาล",
+      "variant": "1 ขวด",
+      "companySku": "IC-001292",
+      "quantityPerSale": 1,
+      "authority": "existing_catalog_identity_alias_2026-09-28",
+      "erpBaseUnitBarcode": "8857121535131",
+      "evidence": {
+        "basis": "same_single_mouth_spray_as_confirmed_catalog_identity",
+        "catalogSourceRow": 164,
+        "canonicalProductName": "Propoliz Mouth Spray สเปรย์พ่นปากและคอ โพรโพลิซ พรอพอลิส เจ็บคอ แผลในปาก กลิ่นปาก ปราศจากน้ำตาล",
+        "canonicalVariant": "1 ขวด",
+        "stockdayVerifiedOn": "2026-09-28"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน ซองสีชมพู",
+      "variant": "12 ซอง",
+      "companySku": "IC-001510",
+      "quantityPerSale": 12,
+      "authority": "existing_catalog_identity_alias_2026-09-28",
+      "erpBaseUnitBarcode": "8856513008963",
+      "evidence": {
+        "basis": "same_pink_gummy_twelve_sachet_pack_as_confirmed_catalog_identity",
+        "catalogSourceRow": 150,
+        "canonicalProductName": "[EXP 10/2026] Vita-C วิตามินซี กัมมี่ รสผลไม้รวม 3 รส | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน",
+        "canonicalVariant": "12 ซอง",
+        "stockdayVerifiedOn": "2026-09-28"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "คลอเฟนิรามีน มาลีเอท 2mg กล่อง 10 แผง ยาสามัญประจำบ้าน Chlorpheniramine Maleate BLHUA",
+      "variant": "1 กล่อง 10 แผง",
+      "companySku": "IC-000665",
+      "quantityPerSale": 10,
+      "authority": "existing_verified_copy_identity_alias_2026-09-28",
+      "erpBaseUnitBarcode": "8852914101401",
+      "evidence": {
+        "basis": "same_two_mg_ten_blister_box_as_verified_copy_identity",
+        "catalogSourceRow": 36,
+        "canonicalProductName": "คลอเฟนิรามีน มาลีเอท 2mg ยาแก้แพ้ ลดน้ำมูก แก้คัดจมูก กล่อง 10 แผง ยาสามัญประจำบ้าน Chlorpheniramine Maleate BLHUA",
+        "canonicalVariant": "",
+        "stockdayVerifiedOn": "2026-09-28"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
       "productName": "Swisse Vitamin C 1000 mg สวิสเซ วิตามินซี 1000 มก. 60 เม็ด ผลิตภัณฑ์เสริมอาหาร",
       "variant": "",
       "companySku": "IC-004777",
