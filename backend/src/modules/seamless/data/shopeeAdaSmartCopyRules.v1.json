@@ -627,6 +627,12 @@
       "sourceRow": 5691
     },
     {
+      "companySku": "IC-005092",
+      "unit": "กล่อง",
+      "name": "สามัญ ยาอมเซนฮามี่ 20 เม็ด",
+      "sourceRow": 5727
+    },
+    {
       "companySku": "IC-005104",
       "unit": "กระป๋อง",
       "name": "สามัญ โคลอชัวร์ กลิ่นวานิลลา 400 กรัม",
@@ -870,6 +876,36 @@
   "rules": [
     {
       "shopCode": "sc-drug-store",
+      "productName": "กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon",
+      "variant": "ชมพู 1 กล่อง",
+      "companySku": "IC-003778",
+      "quantityPerSale": 12,
+      "authority": "user_confirmed_12_sachet_box_2026-09-28",
+      "reportedPackBarcode": "885360035639",
+      "reportedBarcodeStatus": "requires_confirmation",
+      "erpBaseUnitBarcode": "8850360035622",
+      "evidence": {
+        "basis": "user_confirmed_12_sachets_per_box",
+        "reportedBarcodeAlsoOnSachet": true,
+        "requestScreenshotSha256": "c5ec9e7cb2001fddf995a735155dbb611509bc9dee0ac1caee48b75526be0a66"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด บรรเทาอาการไอและขับเสมหะ",
+      "variant": "",
+      "companySku": "IC-005092",
+      "quantityPerSale": 1,
+      "authority": "identity_verified_erp_export_and_user_screenshot_2026-09-28",
+      "sourcePackBarcode": "8851802020374",
+      "erpBaseUnitBarcode": "8851802020374",
+      "evidence": {
+        "basis": "erp_box_unit_and_user_screenshot",
+        "erpScreenshotSha256": "d4ced032d67b44a16a0c5d1d349a312fc86b91a471733188bab7669b0f75bbb5"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
       "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
       "variant": "เลมอน ไม่มีน้ำตาล",
       "companySku": "630010066",
@@ -992,6 +1028,11 @@
     }
   ],
   "unitReviews": [
+    {
+      "companySku": "IC-001048",
+      "variant": "เขียว 1 กล่อง",
+      "reason": "ยังไม่ยืนยันจำนวนซองต่อกล่องของ Gaviscon สีเขียว; หน่วย ERP เป็นซอง"
+    },
     {
       "companySku": "IC-003778",
       "variant": "ชมพู 1 กล่อง",
