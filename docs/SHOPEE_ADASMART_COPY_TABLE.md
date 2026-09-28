@@ -40,9 +40,13 @@ SKU/variant. The reported barcode `885360035639` is retained as pending confirma
 because it differs from the exported sachet barcode `8850360035622`; it is not used to
 resolve products or change a master barcode. The twelve-sachet conversion is independently
 authorized by the user's explicit pack confirmation.
-The green-box variant IC-001048 also has an ERP sachet unit but previously defaulted to
-one sachet per source box. Keep it under unit review until its exact pack factor is evidenced;
-the pink-box confirmation alone does not establish the green box's contents.
+The user's separate 2026-09-28 confirmation maps the exact Gaviscon product's
+`เขียว 1 กล่อง` variant to IC-001048 at twelve ERP sachets per purchased box.
+Record the confirmed box barcode `8850360032249` separately from the existing ERP
+sachet barcode `50230112`, with the request screenshot's SHA-256 as evidence.
+This exact rule resolves the green box's old unit hold without changing source money.
+Other shops, product identities and unverified packs retain their review guards;
+green bottles and individual sachets do not inherit the box multiplier.
 Senhami's exact twenty-tablet product with no variant maps to IC-005092 at one ERP box
 per sale. Its box unit and barcode `8851802020374` match row 5727 of the same hashed ERP
 export and the user's screenshot. Do not multiply that quantity by twenty tablets.
@@ -54,7 +58,7 @@ row. Preserve repeated SKU rows and return aligned strings only when every check
 
 ## Validation
 
-- 141 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
+- 126 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
   accounting, matcher and reconciliation route.
 - Production database validation ran inside a REPEATABLE READ READ ONLY transaction and rolled
   back. SC Drug Store 2026-09-01 through 2026-09-08 paid cohorts match every day's BI total/count.
@@ -68,12 +72,19 @@ row. Preserve repeated SKU rows and return aligned strings only when every check
   40 at 2.23 and 90 at 2.22 to preserve the exact amount.
 - The confirmed pink-box factor resolves its unit issues on 02, 04, 06, 07, 08 and 10 Sep.
   Read-only rechecks retain every 01-10 Sep paid cohort's order count, source-line count and
-  independent BI target. Days 01, 04, 05, 06, 07, 08 and 09 are ready. Days 02, 03 and 10
-  now correctly require the green-box factor rather than copying one sachet per box.
+  independent BI target. Before the separate green confirmation, days 02, 03 and 10
+  required the green-box factor rather than copying one sachet per box.
+- After the separate green-box confirmation, all 01-10 Sep copy plans are ready with zero
+  variance and no review issues. Every paid order count, source-line count and BI target is
+  unchanged; every other SKU's quantities, prices and amounts are identical to the prior
+  snapshot. Copy-column multiplication is verified in integer satang for every day.
+  Green sales on 02 Sep are two boxes / 24 sachets / 708.00; on 03 Sep, one box /
+  12 sachets / 354.00. The corrected 03 Sep table contains 154 total ERP units.
 - 10 Sep's three pink lines are 11 boxes / 132 sachets / 4,510.00, emitted as 88 at 34.17
   and 44 at 34.16. Senhami is one ERP box at 46.00. The full paid cohort is 64 orders /
-  70 source lines / 23,554.00. Copying remains blocked on the green source line (eight
-  boxes / 2,832.00) while its factor is unresolved; the supported table is 26 rows / 20,722.00.
+  70 source lines / 23,554.00. The green source line is eight boxes / 96 ERP sachets /
+  2,832.00, emitted at 29.50 per sachet. The complete table is ready with 27 copy rows /
+  696 total ERP units / 23,554.00, exactly matching Business Insights.
 - DR.Morepen 01 Sep has independently evidenced zero sales/orders; there are no values to copy.
 - The broader `backend-integration.test.cjs` server-start checks cannot complete on this local
   checkout without a local database: existing startup migrations fail before listening. No
