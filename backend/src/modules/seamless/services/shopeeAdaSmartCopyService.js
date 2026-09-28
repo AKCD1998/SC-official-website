@@ -1,15 +1,13 @@
 const { moneyCents } = require('./shopeeSalesAccounting');
 const { enrichShopeeOrderItems } = require('./shopeeProductMatcher');
 const rules = require('../data/shopeeAdaSmartCopyRules.v1.json');
+const { selectCopyCohort } = require('./shopeeCopyBusinessDate');
+const { applyCopyLineEvidence } = require('./shopeeCopyLineEvidence');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
   pack: 'แพ็ก', piece: 'ชิ้น', sachet: 'ซอง' };
 const safeCode = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/u.test(value);
-const localDate = value => {
-  const instant = Date.parse(value);
-  return Number.isFinite(instant) ? new Date(instant + 7 * 3600000).toISOString().slice(0, 10) : null;
-};
 const priceText = cents => `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
 
 function resolveCopyProduct(shopCode, item) {
@@ -109,7 +107,7 @@ function resolveLineAmounts(order) {
   return { merchandise, support, seller, orderTotal, amounts, basis: 'source_unit_prices_exact_subtotal' };
 }
 
-function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
+function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorrections = [], lineFinancialEvidence = []) {
   const { shopCode, startDate, endDate } = filters;
   const issues = [];
   const groups = new Map();
@@ -124,10 +122,13 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
   if (shopCode === 'all' || startDate !== endDate) {
     addIssue('เลือกหนึ่งร้านและวันเดียวสำหรับคัดลอกเข้า AdaSmart');
   }
-  const scoped = orders.filter(order => order.shopCode === shopCode && localDate(order.paidAt) === startDate);
-  for (const order of scoped) {
+  const lineEvidence = applyCopyLineEvidence(orders, lineFinancialEvidence, filters);
+  lineEvidence.issues.forEach(issue => addIssue(issue.reason, issue.order));
+  const cohort = selectCopyCohort(lineEvidence.orders, businessDateCorrections, filters);
+  cohort.issues.forEach(issue => addIssue(issue.reason, issue.order));
+  for (const order of cohort.orders) {
     const key = `${order.shopCode}:${order.orderNumber}`;
-    if (keys.has(key)) { addIssue('พบออเดอร์ซ้ำในกลุ่มที่ชำระสินค้า', order); continue; }
+    if (keys.has(key)) { addIssue('พบออเดอร์ซ้ำในกลุ่มที่ใช้คำนวณ', order); continue; }
     keys.add(key);
     const items = order.items || [];
     sourceLineCount += items.length;
@@ -159,7 +160,10 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
       group.sources.push({ orderNumber: order.orderNumber, sourceRow: order.sourceRows?.[index],
         sourceSha256: order.sourceSha256, listingQuantity: item.quantity, quantityPerSale: product.factor,
         productName: item.name, variant: item.variant, amountCents: money.amounts[index],
-        priceBasis: money.basis, authority: product.authority, originalMatch: product.originalMatch });
+        priceBasis: money.basis, authority: product.authority, originalMatch: product.originalMatch,
+        businessDate: order.copyBusinessDate, dateBasis: order.copyDateBasis,
+        ...(order.copyDateCorrection ? { dateCorrectionCaseId: order.copyDateCorrection.evidence.caseId } : {}),
+        ...(order.copyLineEvidenceCaseId ? { lineFinancialCaseId: order.copyLineEvidenceCaseId } : {}) });
       groups.set(product.sku, group);
     });
   }
@@ -185,12 +189,13 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
   if (targetCents != null && (cohortCents !== targetCents || !financialComplete)) {
     addIssue('ค่าสินค้ารวมส่วนลดที่ Shopee สนับสนุน ยังไม่ตรงกับ Business Insights');
   }
-  if (confirmedSales?.orderCount !== keys.size) addIssue('จำนวนออเดอร์ที่ชำระสินค้าไม่ตรงกับ Business Insights');
+  if (confirmedSales?.orderCount !== keys.size) addIssue('จำนวนออเดอร์ที่ใช้คำนวณไม่ตรงกับ Business Insights');
   if (![readyTotalCents, cohortCents, merchandiseCents, supportCents, sellerCents].every(Number.isSafeInteger)) {
     throw new Error('Copy-plan totals exceed supported precision.');
   }
   const ready = issues.length === 0 && financialComplete && targetCents === readyTotalCents;
-  return { ...filters, timezone: 'Asia/Bangkok', dateBasis: 'paid_at', policyVersion: rules.policyVersion,
+  return { ...filters, timezone: 'Asia/Bangkok', dateBasis: cohort.corrections.length ? 'verified_business_date' : 'paid_at',
+    businessDateCorrections: cohort.corrections, lineFinancialEvidence: lineEvidence.evidence, policyVersion: rules.policyVersion,
     status: ready ? 'ready' : 'review_required', orderCount: keys.size, sourceLineCount,
     skuCount: groups.size, rowCount: rows.length, totalQuantity: rows.reduce((sum, row) => sum + row.quantity, 0),
     merchandiseCents, supportCents, sellerCents, cohortTotalCents: financialComplete ? cohortCents : null,
@@ -203,11 +208,11 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters) {
 }
 
 async function getAdaSmartCopyPlan(filters) {
-  const { listPaidOrdersForCopy } = require('../db/shopeeAdaSmartCopyRepository');
+  const { getOrdersForCopyCohort } = require('../db/shopeeAdaSmartCopyRepository');
   const { getConfirmedSalesSummary } = require('./shopeeConfirmedSalesService');
-  const [orders, confirmed] = await Promise.all([listPaidOrdersForCopy(filters), getConfirmedSalesSummary(filters)]);
+  const [{ orders, businessDateCorrections, lineFinancialEvidence }, confirmed] = await Promise.all([getOrdersForCopyCohort(filters), getConfirmedSalesSummary(filters)]);
   const enriched = orders.map(order => ({ ...order, items: enrichShopeeOrderItems(order.shopCode, order.items) }));
-  return buildAdaSmartCopyPlan(enriched, confirmed, filters);
+  return buildAdaSmartCopyPlan(enriched, confirmed, filters, businessDateCorrections, lineFinancialEvidence);
 }
 
 module.exports = { buildAdaSmartCopyPlan, getAdaSmartCopyPlan, resolveCopyProduct, resolveLineAmounts };
