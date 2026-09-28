@@ -135,6 +135,66 @@ test('Oreda mapping records the confirmed box barcode separately from the ERP sa
     authority: 'user_confirmed_pack_identity_2026-09-28' });
 });
 
+const gavisconName = 'กาวิสคอน เลือกสูตรและขนาดได้ ชนิดน้ำ 150 มล. / Suspension Mint / Double Action Mint | Gaviscon';
+const gavisconBox = (quantity = 1) => ({ ...item('IC-003778', quantity, 410), name: gavisconName,
+  variant: 'ชมพู 1 กล่อง' });
+const senhamiBox = (quantity = 1) => ({ ...item('IC-005092', quantity, 46),
+  name: 'Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด บรรเทาอาการไอและขับเสมหะ',
+  productMatch: { status: 'unmapped' } });
+
+test('confirmed Gaviscon pink box resolves its old unit hold and converts each box to twelve sachets', () => {
+  const resolved = resolveCopyProduct(filters.shopCode, gavisconBox(2));
+  expect(resolved).toMatchObject({ sku: 'IC-003778', factor: 12, unit: 'ซอง',
+    authority: 'user_confirmed_12_sachet_box_2026-09-28' });
+  const plan = buildAdaSmartCopyPlan([order({ items: [gavisconBox(2)], itemSubtotal: 820 })], confirmed(820), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.totalQuantity).toBe(24);
+  expect(plan.totalCents).toBe(82000);
+  expect(plan.columns).toEqual({ sku: 'IC-003778\nIC-003778', quantity: '16\n8', unitPrice: '34.17\n34.16' });
+});
+
+test.each([
+  ['dr-morepen', gavisconBox()],
+  ['sc-drug-store', { ...gavisconBox(), name: 'another source product' }],
+  ['sc-drug-store', { ...gavisconBox(), variant: 'ชมพู 2 กล่อง', productMatch: { status: 'unmapped' } }],
+])('Gaviscon confirmation keeps other shops, identities and pack sizes unresolved (%s)', (shopCode, changed) => {
+  expect(resolveCopyProduct(shopCode, changed).reason).toBeTruthy();
+});
+
+test('Senhami twenty-tablet box maps the confirmed SKU in ERP boxes without multiplying tablets', () => {
+  const plan = buildAdaSmartCopyPlan([order({ items: [senhamiBox(2)], itemSubtotal: 92 })], confirmed(92), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.columns).toEqual({ sku: 'IC-005092', quantity: '2', unitPrice: '46.00' });
+  expect(plan.rows[0].unit).toBe('กล่อง');
+  expect(plan.rows[0].sources[0]).toMatchObject({ listingQuantity: 2, quantityPerSale: 1,
+    amountCents: 9200, originalMatch: { status: 'unmapped' } });
+  expect(resolveCopyProduct('dr-morepen', senhamiBox()).reason).toBeTruthy();
+  expect(resolveCopyProduct(filters.shopCode, { ...senhamiBox(), variant: '40 เม็ด' }).reason).toBeTruthy();
+});
+
+test('mixed Gaviscon source lines keep exact pink amounts while the unconfirmed green box blocks copying', () => {
+  const green = { ...item('IC-001048', 8, 354), name: gavisconName, variant: 'เขียว 1 กล่อง' };
+  const plan = buildAdaSmartCopyPlan([
+    order({ items: [green, gavisconBox(9)], sourceRows: [1082, 1083], itemSubtotal: 6522 }),
+    order({ orderNumber: '260901SENHAMI', items: [senhamiBox()], itemSubtotal: 46 }),
+    order({ orderNumber: '260901PINK02', items: [gavisconBox()], itemSubtotal: 410 }),
+    order({ orderNumber: '260901PINK03', items: [gavisconBox()], itemSubtotal: 410 }),
+  ], confirmed(7388, 4), filters);
+  expect(plan.status).toBe('review_required');
+  expect(plan.columns).toBeNull();
+  expect(plan.issues).toContainEqual(expect.objectContaining({ sku: 'IC-001048', variant: 'เขียว 1 กล่อง' }));
+  const pink = plan.rows.filter(row => row.sku === 'IC-003778');
+  expect(pink.map(row => [row.quantity, row.unitPrice])).toEqual([[88, '34.17'], [44, '34.16']]);
+  expect(pink.reduce((sum, row) => sum + row.amountCents, 0)).toBe(451000);
+  expect(pink[0].sources[0]).toMatchObject({ sourceRow: 1083, listingQuantity: 9,
+    quantityPerSale: 12, amountCents: 369000, priceBasis: 'source_unit_prices_exact_subtotal' });
+  expect(plan.rows.some(row => row.sku === 'IC-001048')).toBe(false);
+  expect(plan.rows.find(row => row.sku === 'IC-005092')).toMatchObject({ quantity: 1,
+    unit: 'กล่อง', unitPrice: '46.00', amountCents: 4600 });
+  expect(plan.totalCents).toBe(455600);
+  expect(plan.cohortTotalCents).toBe(738800);
+});
+
 test('repository uses source products and paid-date bounds after snapshot selection, no cancellation exclusion', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
   await listPaidOrdersForCopy(filters);

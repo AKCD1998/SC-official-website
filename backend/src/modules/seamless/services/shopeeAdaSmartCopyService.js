@@ -33,7 +33,9 @@ function resolveCopyProduct(shopCode, item) {
   const master = masters.get(sku);
   if (!master) return { sku, reason: 'ยังไม่มีหลักฐานหน่วยฐานของ SKU นี้ใน ERP' };
   const unitReview = rules.unitReviews.find(row => row.companySku === sku && row.variant === item.variant);
-  if (unitReview) return { sku, reason: unitReview.reason };
+  // An evidenced exact shop/product/variant correction resolves its old unit hold.
+  // Keep the hold for other identities that happen to share the same SKU/variant.
+  if (unitReview && !override) return { sku, reason: unitReview.reason };
   if (!Number.isSafeInteger(factor) || factor < 1 || (!override && (
     originalMatch.quantityRuleStatus === 'requires_validation'
     || (factor > 1 && originalMatch.quantityRuleStatus !== 'verified')
