@@ -9,6 +9,24 @@
   },
   "masters": [
     {
+      "companySku": "IC-004777",
+      "unit": "กระปุก",
+      "name": "สามัญ สวิสเซ วิตามินซี 1000 มก 60 เม็ด",
+      "sourceRow": 5412
+    },
+    {
+      "companySku": "IC-005091",
+      "unit": "ซอง",
+      "name": "สามัญ เกลือแร่ รอแยล ดี แบบผง กลิ่นองุ่น 25 กรัม",
+      "sourceRow": 5726
+    },
+    {
+      "companySku": "630010187",
+      "unit": "ซอง",
+      "name": "สามัญ ผงเกลือแร่รอแยล ดี กลื่นไม้รวม 25 กรัม",
+      "sourceRow": 168
+    },
+    {
       "companySku": "630010025",
       "unit": "หลอด",
       "name": "สามัญ สกาเจล 9 กรัม",
@@ -874,6 +892,51 @@
     }
   ],
   "rules": [
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Swisse Vitamin C 1000 mg สวิสเซ วิตามินซี 1000 มก. 60 เม็ด ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "",
+      "companySku": "IC-004777",
+      "quantityPerSale": 1,
+      "authority": "user_confirmed_swisse_royald_identity_2026-09-28",
+      "erpBaseUnitBarcode": "9311770614917",
+      "evidence": {
+        "basis": "user_confirmation_and_erp_export_with_live_stockday_verification",
+        "erpSourceRow": 5412,
+        "stockdayVerifiedOn": "2026-09-28",
+        "stockdaySyncAt": "2026-09-28T08:21:02+07:00"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Royal-D รอแยล-ดี เครื่องดื่มเกลือแร่ชนิดผง รสองุ่น 25 กรัม x 10 ซอง 1 กล่อง",
+      "variant": "",
+      "companySku": "IC-005091",
+      "quantityPerSale": 10,
+      "authority": "user_confirmed_swisse_royald_identity_2026-09-28",
+      "erpBaseUnitBarcode": "8852612000181",
+      "evidence": {
+        "basis": "user_confirmation_and_erp_export_with_live_stockday_verification",
+        "erpSourceRow": 5726,
+        "stockdayVerifiedOn": "2026-09-28",
+        "stockdaySyncAt": "2026-09-28T08:21:02+07:00"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Royal-D รอแยล-ดี เครื่องดื่มเกลือแร่ชนิดผง รสผลไม้รวม 25 กรัม x 10 ซอง 1 กล่อง",
+      "variant": "",
+      "companySku": "630010187",
+      "quantityPerSale": 10,
+      "authority": "user_confirmed_swisse_royald_identity_2026-09-28",
+      "erpBaseUnitBarcode": "8852612000044",
+      "evidence": {
+        "basis": "user_confirmation_and_erp_export_with_live_stockday_verification",
+        "erpSourceRow": 168,
+        "stockdayVerifiedOn": "2026-09-28",
+        "stockdaySyncAt": "2026-09-28T08:21:02+07:00"
+      }
+    },
     {
       "shopCode": "sc-drug-store",
       "productName": "สเปรย์ช่องปาก Propoliz Kids 10 มล. สำหรับเด็ก ลดอาการเจ็บคอและระคายเคือง",
