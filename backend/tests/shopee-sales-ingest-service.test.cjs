@@ -260,7 +260,7 @@ async function xlsxWithHeaders(headers) {
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
 
-async function assembledReturnSource() {
+async function assembledReturnSource({ returnFormat = "xls" } = {}) {
   const files = [
     {
       kind: "cancelled", extension: "xlsx", part: 1, totalParts: 1,
@@ -273,7 +273,7 @@ async function assembledReturnSource() {
       buffer: Buffer.from(XLSX.write({
         SheetNames: ["orders"],
         Sheets: { orders: XLSX.utils.aoa_to_sheet([Object.values(RETURN_HEADERS)]) },
-      }, { type: "buffer", bookType: "xls" })),
+      }, { type: "buffer", bookType: returnFormat })),
     },
     {
       kind: "failed_delivery", extension: "xlsx", part: 1, totalParts: 1,
@@ -511,6 +511,36 @@ test("assembled manifest rejects incomplete, ambiguous, local-path and incorrect
   })).toThrow(/unsupported fields/iu);
   expect(() => parseManifest(withSources("[" + " ".repeat(33 * 1024) + "]")))
     .toThrow(/malformed or exceeds/iu);
+});
+
+test("assembled Shopee return_refund .xls containing OOXML imports without renaming source evidence", async () => {
+  const input = await assembledReturnSource({ returnFormat: "xlsx" });
+  const imported = await ingestShopeeSalesSource(input);
+  expect(imported.status).toBe("imported");
+  const source = imported.assembledProvenance.sourceOriginalFiles.find((item) => item.kind === "return_refund");
+  expect(source.originalFilename).toBe("Order.return_refund.20260912_20260913_part_1_of_1.xls");
+  expect(source.sha256).toBe(input.files.find((item) => item.kind === "return_refund").sha256);
+});
+
+test("assembled .xls rejects HTML, fake PK and non-workbook ZIP even when provenance hashes match", async () => {
+  const input = await assembledReturnSource();
+  for (const invalidBytes of [
+    Buffer.from("<html>login required</html>"),
+    Buffer.from("PK\u0003\u0004truncated workbook"),
+    Buffer.from(zipSync({ "login.html": new Uint8Array([1]) })),
+  ]) {
+    const files = input.files.map((item) => item.kind === "return_refund" ? {
+      ...item, buffer: invalidBytes, bytes: invalidBytes.length,
+      sha256: crypto.createHash("sha256").update(invalidBytes).digest("hex"),
+    } : item);
+    const buffer = Buffer.from(zipSync(Object.fromEntries(files.map((item) => [item.originalFilename, new Uint8Array(item.buffer)]))));
+    await expect(ingestShopeeSalesSource({
+      body: { ...input.body, sha256: crypto.createHash("sha256").update(buffer).digest("hex"),
+        sourceOriginalFiles: JSON.stringify(files.map(({ buffer: ignored, ...item }) => item)) },
+      file: { ...input.file, buffer, size: buffer.length },
+    })).rejects.toMatchObject({ statusCode: 422, code: "SHOPEE_SOURCE_REJECTED" });
+  }
+  expect(mockClient.query).not.toHaveBeenCalled();
 });
 
 test("assembled archive rejects extra, missing, hash and byte-length member evidence before database access", async () => {
