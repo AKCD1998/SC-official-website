@@ -286,6 +286,53 @@ test('existing canonical Propoliz flavours and packs keep their original catalog
   }
 });
 
+const confirmedSwisse = { name: 'Swisse Vitamin C 1000 mg สวิสเซ วิตามินซี 1000 มก. 60 เม็ด ผลิตภัณฑ์เสริมอาหาร',
+  variant: '', quantity: 1, unitPrice: 295, productMatch: { status: 'unmapped' } };
+const confirmedRoyalGrape = { name: 'Royal-D รอแยล-ดี เครื่องดื่มเกลือแร่ชนิดผง รสองุ่น 25 กรัม x 10 ซอง 1 กล่อง',
+  variant: '', quantity: 1, unitPrice: 45, productMatch: { status: 'unmapped' } };
+const confirmedRoyalFruit = { ...confirmedRoyalGrape,
+  name: 'Royal-D รอแยล-ดี เครื่องดื่มเกลือแร่ชนิดผง รสผลไม้รวม 25 กรัม x 10 ซอง 1 กล่อง' };
+
+test('confirmed Swisse jar and two Royal-D ten-sachet boxes preserve source amounts, units and flavour identities', () => {
+  const plan = buildAdaSmartCopyPlan([
+    order({ items: [confirmedSwisse], sourceRows: [1142], itemSubtotal: 295 }),
+    order({ orderNumber: '260901ROYALD', items: [confirmedRoyalGrape, confirmedRoyalFruit],
+      sourceRows: [1156, 1157], itemSubtotal: 90 }),
+  ], confirmed(385, 2), filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.issues).toEqual([]);
+  expect(plan.sourceLineCount).toBe(3);
+  expect(plan.totalQuantity).toBe(21);
+  expect(plan.totalCents).toBe(38500);
+  expect(plan.varianceCents).toBe(0);
+  expect(plan.columns).toEqual({ sku: '630010187\nIC-004777\nIC-005091',
+    quantity: '10\n1\n10', unitPrice: '4.50\n295.00\n4.50' });
+  expect(plan.rows.map(row => row.unit)).toEqual(['ซอง', 'กระปุก', 'ซอง']);
+  expect(plan.rows[0].sources[0]).toMatchObject({ sourceRow: 1157, listingQuantity: 1,
+    quantityPerSale: 10, amountCents: 4500, originalMatch: { status: 'unmapped' },
+    productName: confirmedRoyalFruit.name, priceBasis: 'source_unit_prices_exact_subtotal' });
+  expect(plan.rows[1].sources[0]).toMatchObject({ sourceRow: 1142, listingQuantity: 1,
+    quantityPerSale: 1, amountCents: 29500, originalMatch: { status: 'unmapped' } });
+  expect(plan.rows[2].sources[0]).toMatchObject({ sourceRow: 1156, listingQuantity: 1,
+    quantityPerSale: 10, amountCents: 4500, originalMatch: { status: 'unmapped' },
+    productName: confirmedRoyalGrape.name });
+});
+
+test.each([confirmedSwisse, confirmedRoyalGrape, confirmedRoyalFruit])(
+  'Swisse and Royal-D confirmation leaves other shops, titles and unconfirmed packs for review ($name)', changed => {
+    for (const [shopCode, candidate] of [
+      ['dr-morepen', changed],
+      [filters.shopCode, { ...changed, name: changed.name.replace(/60 เม็ด|10 ซอง/u, '20 ซอง') }],
+      [filters.shopCode, { ...changed, variant: '2 กล่อง' }],
+    ]) {
+      expect(resolveCopyProduct(shopCode, candidate).reason).toBeTruthy();
+      const plan = buildAdaSmartCopyPlan([order({ shopCode, items: [candidate], itemSubtotal: candidate.unitPrice })],
+        { ...confirmed(candidate.unitPrice), shopCode }, { ...filters, shopCode });
+      expect(plan.status).toBe('review_required');
+      expect(plan.columns).toBeNull();
+    }
+  });
+
 test('repository uses source products and paid-date bounds after snapshot selection, no cancellation exclusion', async () => {
   pool.query.mockResolvedValueOnce({ rows: [] });
   await listPaidOrdersForCopy(filters);

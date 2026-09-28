@@ -22,7 +22,7 @@ sum equals the recorded subtotal and there is no seller voucher or Shopee suppor
 Otherwise require review; never distribute an order total, use master prices or add a balancing item.
 
 Resolve existing catalog SKU matches and verified pack factors against ERP-unit evidence in
-`shopeeAdaSmartCopyRules.v1.json`. That registry contains 144 evidenced ERP SKU master units
+`shopeeAdaSmartCopyRules.v1.json`. That registry contains 147 evidenced ERP SKU master units
 from the hashed SC004 export, exact source-product corrections evidenced during the user's daily
 workflow, and the user's 2026-09-26 accounting consolidation of the specific Strepsils lemon variant
 into honey-lemon SKU 630010066. Original source identity and prior match remain in row evidence.
@@ -63,13 +63,23 @@ reuse the user's existing IC-005092 twenty-tablet box confirmation at factor one
 These exact copy corrections retain the original unmapped catalog result and source
 identity in the audit, and do not broaden matching to unknown titles or packs.
 
+The user's 2026-09-28 confirmation adds the exact sixty-tablet Swisse Vitamin C 1000 mg
+title with no variant as IC-004777, one ERP jar per sale. The exact Royal-D grape and
+mixed-fruit 25 g `x 10 ซอง 1 กล่อง` titles with no variant map to IC-005091 and
+630010187 respectively, ten ERP sachets per purchased box. Their units and base-unit
+barcodes match export rows 5412, 5726 and 168, and a live StockDay snapshot synced on
+28 Sep at 08:21:02 Bangkok time. Keep the Royal-D flavours separate and retain numeric
+SKU 630010187 as text. No box barcode was supplied for Royal-D; do not substitute its
+sachet barcode as a box barcode. Current inventory is supporting identity evidence,
+not a multiplier, price source or filter for historical confirmed sales.
+
 Group identical ERP SKUs without changing total quantity or satang. If division by quantity is
 fractional at two decimals, emit a higher-cent-price row first and the remaining lower-cent-price
 row. Preserve repeated SKU rows and return aligned strings only when every check passes.
 
 ## Validation
 
-- 132 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
+- 136 relevant backend tests pass: builder, repository, route permissions, legacy sales summary,
   accounting, matcher and reconciliation route.
 - Production database validation ran inside a REPEATABLE READ READ ONLY transaction and rolled
   back. SC Drug Store 2026-09-01 through 2026-09-08 paid cohorts match every day's BI total/count.
@@ -100,9 +110,13 @@ row. Preserve repeated SKU rows and return aligned strings only when every check
 - The historical Propoliz and Senhami identities on 11 Sep resolve five source lines /
   568.00 without changing any 01–10 Sep result. Their unit tests retain original source
   rows, flavours, base units and amounts, and reject other shops, names and packs.
-  Before any separately confirmed Swisse/Royal-D correction, 11 Sep retains three
-  review rows / 385.00 and blocks all copy columns; the supported amount is 19,703.00
-  against the unchanged 60-order / 69-source-line / 20,088.00 Business Insights cohort.
+  The separately confirmed Swisse/Royal-D correction resolves the remaining three
+  source rows / 385.00: one Swisse jar at 295.00 and ten sachets of each Royal-D flavour
+  at 4.50 per sachet. The complete 11 Sep plan is ready with 60 orders / 69 source
+  lines / 31 copy rows / 253 ERP units / 20,088.00 and no review issues or variance.
+  Read-only validation retains every 01–10 Sep result and every previously supported
+  11 Sep row, source amount and source identity unchanged. All three copy columns
+  have 31 aligned values and multiply to 2,008,800 satang.
 - The broader `backend-integration.test.cjs` server-start checks cannot complete on this local
   checkout without a local database: existing startup migrations fail before listening. No
   production credentials were supplied to those startup tests. The new route's authenticated
