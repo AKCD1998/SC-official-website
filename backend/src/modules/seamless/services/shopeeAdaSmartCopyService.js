@@ -3,6 +3,8 @@ const { enrichShopeeOrderItems } = require('./shopeeProductMatcher');
 const rules = require('../data/shopeeAdaSmartCopyRules.v1.json');
 const { selectCopyCohort } = require('./shopeeCopyBusinessDate');
 const { applyCopyLineEvidence } = require('./shopeeCopyLineEvidence');
+const { allocateCents, sellerAllocationPolicy, bundleAllocation, policyReference } = require('./shopeeCopyAllocation');
+const { resolveCopySellerVoucher } = require('./shopeeCopySellerVoucher');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
@@ -66,11 +68,11 @@ function resolveCopyProduct(shopCode, item) {
 // Financial amounts stay tied to their source line. Old immutable imports have
 // unit prices but no net-sale column per item: use them only when their exact
 // total equals the recorded order subtotal and no order discount needs splitting.
-function resolveLineAmounts(order) {
+function resolveLineAmounts(order, { sellerCents = null, allocationPolicies = [] } = {}) {
   const merchandise = moneyCents(order.itemSubtotal);
   const support = moneyCents(order.shopeeProductDiscount);
-  const seller = moneyCents(order.sellerVoucher);
-  if ([merchandise, support, seller].some(value => value == null) || seller > merchandise) {
+  const seller = sellerCents == null ? moneyCents(order.sellerVoucher) : sellerCents;
+  if ([merchandise, support, seller].some(value => value == null || !Number.isSafeInteger(value) || value < 0) || seller > merchandise) {
     return { reason: 'องค์ประกอบค่าสินค้าของออเดอร์ไม่ครบหรือไม่ถูกต้อง' };
   }
   const items = order.items || [];
@@ -78,7 +80,7 @@ function resolveLineAmounts(order) {
   const orderTotal = merchandise - seller + support;
   if (!Number.isSafeInteger(orderTotal)) return { reason: 'ยอดเงินเกินความละเอียดที่รองรับ' };
   const financials = order.lineFinancials;
-  let sourceAmounts;
+  let sourceAmounts; let sourceNet;
   if (financials != null) {
     if (!Array.isArray(financials) || financials.length !== items.length) return { merchandise, support, seller, orderTotal,
       reason: 'ยอดรายสินค้าต้นทางไม่ตรงกับองค์ประกอบทั้งออเดอร์' };
@@ -87,6 +89,7 @@ function resolveLineAmounts(order) {
     if (net.every(value => value != null) && discounts.every(value => value != null)
       && net.reduce((sum, value) => sum + value, 0) === merchandise
       && discounts.reduce((sum, value) => sum + value, 0) === support) {
+      sourceNet = net;
       sourceAmounts = net.map((value, index) => value + discounts[index]);
     } else {
       return { merchandise, support, seller, orderTotal, reason: 'ยอดรายสินค้าต้นทางไม่ตรงกับองค์ประกอบทั้งออเดอร์' };
@@ -94,10 +97,27 @@ function resolveLineAmounts(order) {
   }
   if (items.length === 1) return { merchandise, support, seller, orderTotal,
     amounts: [orderTotal], basis: 'single_source_product_order_components' };
-  // A repeated order-level seller voucher still lacks a line allocation, even
-  // when the workbook contains exact merchandise and Shopee product support.
-  if (seller) return { merchandise, support, seller, orderTotal,
-    reason: 'ส่วนลดผู้ขายของออเดอร์หลายสินค้า ยังไม่มีหลักฐานแยกแต่ละรายการ' };
+  if (seller) {
+    const record = sellerAllocationPolicy(allocationPolicies, order.shopCode);
+    if (!record) return { merchandise, support, seller, orderTotal,
+      reason: 'ส่วนลดผู้ขายของออเดอร์หลายสินค้า ยังไม่มีหลักฐานแยกแต่ละรายการ' };
+    if (!sourceNet && !support) {
+      const prices = items.map(item => moneyCents(item.unitPrice) * item.quantity);
+      if (items.every(item => moneyCents(item.unitPrice) != null) && prices.every(Number.isSafeInteger)
+        && prices.reduce((sum, value) => sum + value, 0) === merchandise) {
+        sourceNet = prices; sourceAmounts = prices;
+      }
+    }
+    if (!sourceNet) return { merchandise, support, seller, orderTotal,
+      reason: 'ไม่มีค่าสินค้ารายรายการที่ตรวจยอดได้สำหรับแบ่งส่วนลดร้านค้าตามสัดส่วน' };
+    const allocatedSellerCents = allocateCents(seller, sourceNet);
+    if (!allocatedSellerCents || allocatedSellerCents.some((value, index) => value > sourceNet[index])) {
+      return { merchandise, support, seller, orderTotal, reason: 'แบ่งส่วนลดร้านค้าเป็นสตางค์ไม่ได้ ต้องตรวจสอบ' };
+    }
+    return { merchandise, support, seller, orderTotal,
+      amounts: sourceAmounts.map((value, index) => value - allocatedSellerCents[index]),
+      basis: 'user_approved_proportional_seller_voucher', sellerAllocation: record, allocatedSellerCents };
+  }
   if (sourceAmounts) return { merchandise, support, seller, orderTotal,
     amounts: sourceAmounts, basis: 'source_line_components' };
   if (support) return { merchandise, support, seller, orderTotal,
@@ -114,12 +134,14 @@ function resolveLineAmounts(order) {
   return { merchandise, support, seller, orderTotal, amounts, basis: 'source_unit_prices_exact_subtotal' };
 }
 
-function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorrections = [], lineFinancialEvidence = []) {
+function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorrections = [], lineFinancialEvidence = [], context = {}) {
   const { shopCode, startDate, endDate } = filters;
   const issues = [];
   const groups = new Map();
   const evidence = new Map();
   const keys = new Set();
+  const allocationPolicies = context.allocationPolicies || [];
+  const usedPolicies = new Map(); const voucherRestorations = [];
   let merchandiseCents = 0; let supportCents = 0; let sellerCents = 0;
   let cohortCents = 0; let financialComplete = true; let sourceLineCount = 0;
   const addIssue = (reason, order, item, index, sku, components) => issues.push({ reason, sku: sku || null,
@@ -146,7 +168,12 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
     }
     evidence.set(order.sourceSha256, { sourceFilename: order.sourceFilename,
       sourceSha256: order.sourceSha256, observedAt: order.observedAt });
-    const money = resolveLineAmounts(order);
+    const voucher = resolveCopySellerVoucher(order, context.orderSnapshots, context.sellerVoucherEvidence);
+    if (voucher.reason) addIssue(voucher.reason, order);
+    if (voucher.sellerCents != null) voucherRestorations.push({ orderNumber: order.orderNumber,
+      ...voucher.restoration });
+    const money = resolveLineAmounts(order, { sellerCents: voucher.sellerCents, allocationPolicies });
+    if (money.sellerAllocation) usedPolicies.set(money.sellerAllocation.policyKey, policyReference(money.sellerAllocation));
     if (money.orderTotal == null) financialComplete = false;
     else {
       cohortCents += money.orderTotal;
@@ -158,24 +185,37 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
         addIssue('จำนวนสินค้าในไฟล์ไม่ถูกต้อง', order, item, index); return;
       }
       const product = resolveCopyProduct(shopCode, item);
-      if (product.reason) { addIssue(product.reason, order, item, index, product.sku, product.components); return; }
-      const quantity = item.quantity * product.factor;
-      if (!Number.isSafeInteger(quantity)) { addIssue('จำนวนหน่วยเกินที่รองรับ', order, item, index); return; }
-      const group = groups.get(product.sku) || { sku: product.sku, productName: product.name, unit: product.unit,
-        quantity: 0, amountCents: 0, sources: [] };
-      group.quantity += quantity; group.amountCents += money.amounts[index];
-      group.sources.push({ orderNumber: order.orderNumber, sourceRow: order.sourceRows?.[index],
-        sourceSha256: order.sourceSha256, listingQuantity: item.quantity, quantityPerSale: product.factor,
-        productName: item.name, variant: item.variant, amountCents: money.amounts[index],
-        priceBasis: money.basis, authority: product.authority, originalMatch: product.originalMatch,
-        businessDate: order.copyBusinessDate, dateBasis: order.copyDateBasis,
-        ...(order.copyDateCorrection ? { dateCorrectionCaseId: order.copyDateCorrection.evidence.caseId } : {}),
-        ...(order.copyLineEvidenceCaseId ? { lineFinancialCaseId: order.copyLineEvidenceCaseId } : {}) });
-      groups.set(product.sku, group);
+      const bundle = product.components && bundleAllocation(allocationPolicies, shopCode, item, product.components, money.amounts[index]);
+      if (product.reason && !bundle) { addIssue(product.reason, order, item, index, product.sku, product.components); return; }
+      if (bundle) usedPolicies.set(bundle.record.policyKey, policyReference(bundle.record));
+      const parts = bundle?.components || [{ ...product, amountCents: money.amounts[index] }];
+      for (const part of parts) {
+        const quantity = item.quantity * part.factor;
+        if (!Number.isSafeInteger(quantity)) { addIssue('จำนวนหน่วยเกินที่รองรับ', order, item, index); continue; }
+        // Do not average gifts into paid sales of the same ERP SKU.
+        const groupKey = `${part.sku}:${part.freeGift ? 'gift' : 'paid'}`;
+        const group = groups.get(groupKey) || { sku: part.sku, productName: part.name, unit: part.unit,
+          ...(part.freeGift ? { freeGift: true } : {}), quantity: 0, amountCents: 0, sources: [] };
+        group.quantity += quantity; group.amountCents += part.amountCents;
+        group.sources.push({ orderNumber: order.orderNumber, sourceRow: order.sourceRows?.[index],
+          sourceSha256: order.sourceSha256, listingQuantity: item.quantity, quantityPerSale: part.factor,
+          productName: item.name, variant: item.variant, amountCents: part.amountCents,
+          priceBasis: bundle ? 'user_approved_bundle_allocation' : money.basis,
+          ...(bundle ? { bundleAllocationPolicyKey: bundle.record.policyKey } : {}),
+          ...(money.sellerAllocation ? { sellerAllocationPolicyKey: money.sellerAllocation.policyKey,
+            sourceLineSellerDiscountCents: money.allocatedSellerCents[index] } : {}),
+          ...(voucher.sellerCents != null ? { sellerVoucherBasis: 'restored_from_explicit_campaign_evidence',
+            voucherId: voucher.restoration.campaignEvidence.voucherId } : {}),
+          authority: product.authority, originalMatch: product.originalMatch,
+          businessDate: order.copyBusinessDate, dateBasis: order.copyDateBasis,
+          ...(order.copyDateCorrection ? { dateCorrectionCaseId: order.copyDateCorrection.evidence.caseId } : {}),
+          ...(order.copyLineEvidenceCaseId ? { lineFinancialCaseId: order.copyLineEvidenceCaseId } : {}) });
+        groups.set(groupKey, group);
+      }
     });
   }
   const rows = [];
-  for (const group of [...groups.values()].sort((a, b) => a.sku.localeCompare(b.sku))) {
+  for (const group of [...groups.values()].sort((a, b) => a.sku.localeCompare(b.sku) || Number(Boolean(a.freeGift)) - Number(Boolean(b.freeGift)))) {
     if (!Number.isSafeInteger(group.quantity) || !Number.isSafeInteger(group.amountCents)) {
       addIssue('ยอดรวม SKU เกินที่รองรับ', null, null, null, group.sku); continue;
     }
@@ -184,6 +224,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
     for (const [quantity, cents] of [[highQuantity, low + 1], [group.quantity - highQuantity, low]]) {
       if (quantity) rows.push({ sku: group.sku, productName: group.productName, unit: group.unit,
         quantity, unitPrice: priceText(cents), amountCents: quantity * cents,
+        ...(group.freeGift ? { freeGift: true } : {}),
         splitPrice: highQuantity > 0, sources: group.sources });
     }
   }
@@ -203,8 +244,9 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
   const ready = issues.length === 0 && financialComplete && targetCents === readyTotalCents;
   return { ...filters, timezone: 'Asia/Bangkok', dateBasis: cohort.corrections.length ? 'verified_business_date' : 'paid_at',
     businessDateCorrections: cohort.corrections, lineFinancialEvidence: lineEvidence.evidence, policyVersion: rules.policyVersion,
+    allocationPolicies: [...usedPolicies.values()], sellerVoucherRestorations: voucherRestorations,
     status: ready ? 'ready' : 'review_required', orderCount: keys.size, sourceLineCount,
-    skuCount: groups.size, rowCount: rows.length, totalQuantity: rows.reduce((sum, row) => sum + row.quantity, 0),
+    skuCount: new Set(rows.map(row => row.sku)).size, rowCount: rows.length, totalQuantity: rows.reduce((sum, row) => sum + row.quantity, 0),
     merchandiseCents, supportCents, sellerCents, cohortTotalCents: financialComplete ? cohortCents : null,
     totalCents: readyTotalCents, targetCents, varianceCents: targetCents == null ? null : readyTotalCents - targetCents,
     rows, issues, confirmedSales, sourceEvidence: [...evidence.values()], masterEvidence: rules.masterEvidence,
@@ -217,9 +259,10 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
 async function getAdaSmartCopyPlan(filters) {
   const { getOrdersForCopyCohort } = require('../db/shopeeAdaSmartCopyRepository');
   const { getConfirmedSalesSummary } = require('./shopeeConfirmedSalesService');
-  const [{ orders, businessDateCorrections, lineFinancialEvidence }, confirmed] = await Promise.all([getOrdersForCopyCohort(filters), getConfirmedSalesSummary(filters)]);
+  const [cohort, confirmed] = await Promise.all([getOrdersForCopyCohort(filters), getConfirmedSalesSummary(filters)]);
+  const { orders, businessDateCorrections, lineFinancialEvidence } = cohort;
   const enriched = orders.map(order => ({ ...order, items: enrichShopeeOrderItems(order.shopCode, order.items) }));
-  return buildAdaSmartCopyPlan(enriched, confirmed, filters, businessDateCorrections, lineFinancialEvidence);
+  return buildAdaSmartCopyPlan(enriched, confirmed, filters, businessDateCorrections, lineFinancialEvidence, cohort);
 }
 
 module.exports = { buildAdaSmartCopyPlan, getAdaSmartCopyPlan, resolveCopyProduct, resolveLineAmounts };

@@ -802,6 +802,7 @@ async function getShopeeFinancialReconciliation(filters) {
 }
 
 module.exports = {
+  sellerVoucherRestoration,
   aggregateRows,
   bangkokDate,
   buildFinancialReconciliation,
