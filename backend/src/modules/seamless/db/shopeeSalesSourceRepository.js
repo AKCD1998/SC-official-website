@@ -34,6 +34,12 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
           paid_at: fact.paidAt,
           completed_at: fact.completedAt,
           voucher_codes: fact.voucherCodes,
+          source_line_components: fact.lineFinancials || null,
+          items: fact.items,
+          source_rows: fact.sourceRows,
+          item_subtotal: fact.itemSubtotal,
+          seller_voucher: fact.sellerVoucher,
+          shopee_product_discount: fact.shopeeProductDiscount,
         }));
         if (lineageRows.length) {
           const conflicts = await client.query(`
@@ -41,34 +47,47 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
             FROM ${tables.shopeeSalesOrderFacts} f
             JOIN jsonb_to_recordset($1::jsonb) AS item(
               shop_code text, source_sha256 text, order_number text,
-              paid_at timestamptz, completed_at timestamptz, voucher_codes jsonb
+              paid_at timestamptz, completed_at timestamptz, voucher_codes jsonb,
+              source_line_components jsonb, items jsonb, source_rows jsonb,
+              item_subtotal numeric, seller_voucher numeric, shopee_product_discount numeric
             ) USING (shop_code, source_sha256, order_number)
             WHERE (f.paid_at IS NOT NULL AND f.paid_at IS DISTINCT FROM item.paid_at)
                OR (f.completed_at IS NOT NULL AND f.completed_at IS DISTINCT FROM item.completed_at)
                OR (f.voucher_codes IS NOT NULL AND f.voucher_codes IS DISTINCT FROM item.voucher_codes)
+               OR (item.source_line_components IS NOT NULL AND (
+                 (f.source_line_components IS NOT NULL AND f.source_line_components IS DISTINCT FROM item.source_line_components)
+                 OR f.items IS DISTINCT FROM item.items
+                 OR f.source_rows IS DISTINCT FROM item.source_rows
+                 OR f.item_subtotal IS DISTINCT FROM item.item_subtotal
+                 OR f.seller_voucher IS DISTINCT FROM item.seller_voucher
+                 OR f.shopee_product_discount IS DISTINCT FROM item.shopee_product_discount
+               ))
             LIMIT 1
           `, [JSON.stringify(lineageRows)]);
           if (conflicts.rows.length) {
             throw new Error('Existing immutable order lineage differs from the replayed source.');
           }
-          // Migrations 021/022 introduced these fields after earlier source
+          // Migrations 021/022/031 introduced these fields after earlier source
           // imports. Same-hash replay may fill only NULL lineage columns from
           // the exact same immutable workbook; it never changes existing values.
           await client.query(`
             UPDATE ${tables.shopeeSalesOrderFacts} f
             SET paid_at = COALESCE(f.paid_at, item.paid_at),
                 completed_at = COALESCE(f.completed_at, item.completed_at),
-                voucher_codes = COALESCE(f.voucher_codes, item.voucher_codes)
+                voucher_codes = COALESCE(f.voucher_codes, item.voucher_codes),
+                source_line_components = COALESCE(f.source_line_components, item.source_line_components)
             FROM jsonb_to_recordset($1::jsonb) AS item(
               shop_code text, source_sha256 text, order_number text,
-              paid_at timestamptz, completed_at timestamptz, voucher_codes jsonb
+              paid_at timestamptz, completed_at timestamptz, voucher_codes jsonb,
+              source_line_components jsonb
             )
             WHERE f.shop_code = item.shop_code
               AND f.source_sha256 = item.source_sha256
               AND f.order_number = item.order_number
               AND ((f.paid_at IS NULL AND item.paid_at IS NOT NULL)
                 OR (f.completed_at IS NULL AND item.completed_at IS NOT NULL)
-                OR (f.voucher_codes IS NULL AND item.voucher_codes IS NOT NULL))
+                OR (f.voucher_codes IS NULL AND item.voucher_codes IS NOT NULL)
+                OR (f.source_line_components IS NULL AND item.source_line_components IS NOT NULL))
           `, [JSON.stringify(lineageRows)]);
         }
         unchanged += 1;
@@ -104,6 +123,7 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
           shopee_product_discount: fact.shopeeProductDiscount,
           items: fact.items,
           source_rows: fact.sourceRows,
+          source_line_components: fact.lineFinancials || null,
         };
       });
       if (factRows.length) {
@@ -113,10 +133,10 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
         await client.query(`
           INSERT INTO ${tables.shopeeSalesOrderFacts}
             (shop_code, source_sha256, order_number, ordered_at, paid_at, completed_at, status, excluded,
-             item_subtotal, seller_voucher, shopee_product_discount, voucher_codes, items, source_rows)
+             item_subtotal, seller_voucher, shopee_product_discount, voucher_codes, items, source_rows, source_line_components)
           SELECT fact.shop_code, fact.source_sha256, fact.order_number, fact.ordered_at,
                  fact.paid_at, fact.completed_at, fact.status, fact.excluded, fact.item_subtotal, fact.seller_voucher,
-                 fact.shopee_product_discount, fact.voucher_codes, fact.items, fact.source_rows
+                 fact.shopee_product_discount, fact.voucher_codes, fact.items, fact.source_rows, fact.source_line_components
           FROM jsonb_to_recordset($1::jsonb) AS fact(
             shop_code text,
             source_sha256 text,
@@ -131,7 +151,8 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
             shopee_product_discount numeric,
             voucher_codes jsonb,
             items jsonb,
-            source_rows jsonb
+            source_rows jsonb,
+            source_line_components jsonb
           )
         `, [JSON.stringify(factRows)]);
       }

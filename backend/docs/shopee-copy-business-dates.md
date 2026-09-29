@@ -26,6 +26,16 @@ or incomplete correction evidence, disable all three copy columns on both dates.
 An unchanged later file import remains valid even when its filename, row numbers
 or delivery/cancellation status change.
 
+Migration `031_shopee_source_line_financials.sql` retains the original Order All
+`ราคาขายสุทธิ` and `ส่วนลดจาก Shopee` cells as `source_line_components` in item order.
+New uploads preserve these components automatically. Replaying an already
+imported exact file hash may fill a NULL column only after matching the original
+items, source rows and all order financial components; existing financials cannot
+be overwritten. Raw prices and source timestamps remain unchanged. Line sums must
+match both the merchandise and Shopee support controls before copy is enabled.
+Order-level seller vouchers and multi-SKU bundle prices still require independent
+line attribution and are not allocated by this recovery.
+
 The admin response includes correction dates and evidence for moved-in and
 moved-out orders, and each included product source records its business date.
 The original creation-date product table, exports and financial timeline are
