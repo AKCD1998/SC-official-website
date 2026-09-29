@@ -126,3 +126,15 @@ test('repository reads both sides and missing candidates from one latest-source 
   expect(sql.indexOf('DISTINCT ON')).toBeLessThan(sql.indexOf('WHERE (paid_at'));
   expect(sql).not.toMatch(/UPDATE|INSERT|DELETE|excluded =/u);
 });
+
+test('repository uses complete source components without interpreting an older partial financial field', async () => {
+  const raw = { shop_code: shopCode, order_number: moved[0].orderNumber, items: moved[0].items,
+    paid_at: moved[0].paidAt, ordered_at: moved[0].orderedAt,
+    line_financials: [{ netSale: 30, sourceRow: 2 }],
+    source_line_components: [{ netSale: 30, shopeeProductDiscount: 0 }],
+  };
+  pool.query.mockResolvedValueOnce({ rows: [{ orders: [raw], corrections: [], allocations: [] }] });
+  expect((await getOrdersForCopyCohort(first)).orders[0].lineFinancials).toEqual(raw.source_line_components);
+  pool.query.mockResolvedValueOnce({ rows: [{ orders: [{ ...raw, source_line_components: null }], corrections: [], allocations: [] }] });
+  expect((await getOrdersForCopyCohort(first)).orders[0].lineFinancials).toBeNull();
+});

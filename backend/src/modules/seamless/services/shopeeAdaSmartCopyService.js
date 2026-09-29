@@ -77,22 +77,29 @@ function resolveLineAmounts(order) {
   if (!items.length) return { reason: 'ไม่มีรายการสินค้าในไฟล์คำสั่งซื้อ' };
   const orderTotal = merchandise - seller + support;
   if (!Number.isSafeInteger(orderTotal)) return { reason: 'ยอดเงินเกินความละเอียดที่รองรับ' };
-  if (items.length === 1) return { merchandise, support, seller, orderTotal,
-    amounts: [orderTotal], basis: 'single_source_product_order_components' };
-  if (seller) return { merchandise, support, seller, orderTotal,
-    reason: 'ส่วนลดผู้ขายของออเดอร์หลายสินค้า ยังไม่มีหลักฐานแยกแต่ละรายการ' };
   const financials = order.lineFinancials;
-  if (Array.isArray(financials) && financials.length === items.length) {
-    const net = financials.map(row => moneyCents(row.netSale));
-    const discounts = financials.map(row => moneyCents(row.shopeeProductDiscount));
+  let sourceAmounts;
+  if (financials != null) {
+    if (!Array.isArray(financials) || financials.length !== items.length) return { merchandise, support, seller, orderTotal,
+      reason: 'ยอดรายสินค้าต้นทางไม่ตรงกับองค์ประกอบทั้งออเดอร์' };
+    const net = financials.map(row => moneyCents(row?.netSale));
+    const discounts = financials.map(row => moneyCents(row?.shopeeProductDiscount));
     if (net.every(value => value != null) && discounts.every(value => value != null)
       && net.reduce((sum, value) => sum + value, 0) === merchandise
       && discounts.reduce((sum, value) => sum + value, 0) === support) {
-      return { merchandise, support, seller, orderTotal,
-        amounts: net.map((value, index) => value + discounts[index]), basis: 'source_line_components' };
+      sourceAmounts = net.map((value, index) => value + discounts[index]);
+    } else {
+      return { merchandise, support, seller, orderTotal, reason: 'ยอดรายสินค้าต้นทางไม่ตรงกับองค์ประกอบทั้งออเดอร์' };
     }
-    return { merchandise, support, seller, orderTotal, reason: 'ยอดรายสินค้าต้นทางไม่ตรงกับองค์ประกอบทั้งออเดอร์' };
   }
+  if (items.length === 1) return { merchandise, support, seller, orderTotal,
+    amounts: [orderTotal], basis: 'single_source_product_order_components' };
+  // A repeated order-level seller voucher still lacks a line allocation, even
+  // when the workbook contains exact merchandise and Shopee product support.
+  if (seller) return { merchandise, support, seller, orderTotal,
+    reason: 'ส่วนลดผู้ขายของออเดอร์หลายสินค้า ยังไม่มีหลักฐานแยกแต่ละรายการ' };
+  if (sourceAmounts) return { merchandise, support, seller, orderTotal,
+    amounts: sourceAmounts, basis: 'source_line_components' };
   if (support) return { merchandise, support, seller, orderTotal,
     reason: 'ส่วนลดสินค้าที่ Shopee สนับสนุน ยังไม่มีหลักฐานแยกแต่ละสินค้าในออเดอร์' };
   const amounts = items.map(item => {

@@ -124,7 +124,7 @@ function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, ob
     let order = orders.get(id);
     if (!order) {
       order = { shopCode, orderNumber: id, orderedAt, paidAt, completedAt, ...status,
-        subtotalCents: 0, sellerVoucherCents, discountCents: 0, voucherCodes, items: [], sourceRows: [] };
+        subtotalCents: 0, sellerVoucherCents, discountCents: 0, voucherCodes, items: [], lineFinancials: [], sourceRows: [] };
       orders.set(id, order);
     } else if (order.status !== status.status || order.orderedAt !== orderedAt
       || order.paidAt !== paidAt || order.completedAt !== completedAt
@@ -132,14 +132,19 @@ function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, ob
       || JSON.stringify(order.voucherCodes) !== JSON.stringify(voucherCodes)) {
       throw new Error(`Inconsistent order-level date/status/voucher: ${id}`);
     }
-    order.subtotalCents += readCents(get('itemSubtotal'), 'net sale');
-    order.discountCents += readCents(get('shopeeProductDiscount'), 'Shopee product discount');
+    const lineNetCents = readCents(get('itemSubtotal'), 'net sale');
+    const lineDiscountCents = readCents(get('shopeeProductDiscount'), 'Shopee product discount');
+    order.subtotalCents += lineNetCents;
+    order.discountCents += lineDiscountCents;
     const item = { name, variant: text(get('variant')), quantity, unitPrice: readCents(get('unitPrice'), 'unit price') / 100 };
     const safeItem = sanitizeShopeeOrderItem(item);
     if (!safeItem || safeItem.name !== item.name || safeItem.variant !== item.variant || order.items.length >= 100) {
       throw new Error(`Source product fields exceed the privacy/size contract: ${id}`);
     }
     order.items.push(safeItem);
+    // These are already separate source cells. Retaining them avoids losing
+    // attribution when several products share one order; no allocation is made.
+    order.lineFinancials.push({ netSale: lineNetCents / 100, shopeeProductDiscount: lineDiscountCents / 100 });
     order.sourceRows.push(index + 2);
   });
   const facts = [...orders.values()].map(({ subtotalCents, sellerVoucherCents, discountCents, ...order }) => {

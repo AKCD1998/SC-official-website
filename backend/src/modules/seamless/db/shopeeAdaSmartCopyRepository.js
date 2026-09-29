@@ -27,7 +27,7 @@ function mapSourceOrder(row) {
   return { shopCode: row.shop_code, orderNumber: row.order_number,
     paidAt: row.paid_at, orderedAt: row.ordered_at, status: row.status, excluded: row.excluded,
     itemSubtotal: row.item_subtotal, sellerVoucher: row.seller_voucher,
-    shopeeProductDiscount: row.shopee_product_discount, items: row.items,
+    shopeeProductDiscount: row.shopee_product_discount, items: row.items, lineFinancials: row.source_line_components,
     sourceRows: row.source_rows, sourceSha256: row.source_sha256,
     sourceFilename: row.source_filename, observedAt: row.observed_at };
 }
