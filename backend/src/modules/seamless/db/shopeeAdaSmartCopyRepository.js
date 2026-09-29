@@ -27,6 +27,7 @@ function mapSourceOrder(row) {
   return { shopCode: row.shop_code, orderNumber: row.order_number,
     paidAt: row.paid_at, orderedAt: row.ordered_at, status: row.status, excluded: row.excluded,
     itemSubtotal: row.item_subtotal, sellerVoucher: row.seller_voucher,
+    voucherCodes: row.voucher_codes,
     shopeeProductDiscount: row.shopee_product_discount, items: row.items, lineFinancials: row.source_line_components,
     sourceRows: row.source_rows, sourceSha256: row.source_sha256,
     sourceFilename: row.source_filename, observedAt: row.observed_at };
@@ -61,6 +62,13 @@ async function getOrdersForCopyCohort({ shopCode, startDate, endDate }) {
         AND paid_at < (($3::date::timestamp + INTERVAL '1 day') AT TIME ZONE 'Asia/Bangkok'))
         OR order_number IN (SELECT order_number FROM corrections)
         OR order_number IN (SELECT order_number FROM allocations)
+    ), history AS (
+      SELECT f.shop_code, f.order_number, f.paid_at, f.ordered_at, f.status, f.excluded,
+        f.item_subtotal, f.seller_voucher, f.shopee_product_discount, f.voucher_codes,
+        f.items, f.source_rows, f.source_sha256, s.source_filename, s.observed_at
+      FROM ${tables.shopeeSalesOrderFacts} f
+      JOIN ${tables.shopeeSalesSources} s USING (shop_code, source_sha256)
+      WHERE f.shop_code = $1 AND f.order_number IN (SELECT order_number FROM candidates)
     )
     SELECT COALESCE((SELECT jsonb_agg(to_jsonb(candidates) ORDER BY paid_at, order_number)
       FROM candidates), '[]'::jsonb) AS orders,
@@ -77,10 +85,26 @@ async function getOrdersForCopyCohort({ shopCode, startDate, endDate }) {
         'businessDate', to_char(business_date, 'YYYY-MM-DD'),
         'sourceFactFingerprint', source_fact_fingerprint, 'lineFinancials', line_financials,
         'evidence', evidence, 'verifiedBy', verified_by, 'verifiedAt', verified_at, 'enabled', enabled
-      ) ORDER BY order_number) FROM allocations), '[]'::jsonb) AS allocations
+      ) ORDER BY order_number) FROM allocations), '[]'::jsonb) AS allocations,
+      COALESCE((SELECT jsonb_agg(to_jsonb(history) ORDER BY observed_at, source_sha256)
+        FROM history), '[]'::jsonb) AS history,
+      COALESCE((SELECT jsonb_agg(jsonb_build_object(
+        'shopCode', shop_code, 'voucherId', voucher_id, 'voucherName', voucher_name,
+        'validFrom', valid_from, 'validTo', valid_to, 'discountRate', discount_rate,
+        'maxDiscount', max_discount, 'minSpend', min_spend, 'appliesToAllProducts', applies_to_all_products,
+        'sourceUrl', source_url, 'sourceObservedAt', source_observed_at,
+        'sourceObservedPrecision', source_observed_precision, 'sourceNotes', source_notes,
+        'recordedBy', recorded_by, 'recordedAt', recorded_at
+      ) ORDER BY voucher_id) FROM ${tables.shopeeSellerVoucherEvidence} WHERE shop_code = $1), '[]'::jsonb) AS campaigns,
+      COALESCE((SELECT jsonb_agg(jsonb_build_object(
+        'shopCode', shop_code, 'policyKey', policy_key, 'policy', policy, 'approval', approval,
+        'approvedBy', approved_by, 'approvedAt', approved_at, 'enabled', enabled
+      ) ORDER BY policy_key) FROM ${tables.shopeeCopyAllocationPolicies} WHERE shop_code = $1 AND enabled), '[]'::jsonb) AS policies
   `, [shopCode, startDate, endDate]);
   return { orders: rows[0].orders.map(mapSourceOrder), businessDateCorrections: rows[0].corrections,
-    lineFinancialEvidence: rows[0].allocations };
+    lineFinancialEvidence: rows[0].allocations,
+    orderSnapshots: (rows[0].history || []).map(mapSourceOrder),
+    sellerVoucherEvidence: rows[0].campaigns || [], allocationPolicies: rows[0].policies || [] };
 }
 
 module.exports = { listPaidOrdersForCopy, getOrdersForCopyCohort };
