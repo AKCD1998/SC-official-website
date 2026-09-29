@@ -1175,6 +1175,22 @@
       "sourceRow": 6229,
       "evidenceId": "stockday-004-20260928",
       "barcode": "9311770608053"
+    },
+    {
+      "companySku": "IC-005488",
+      "name": "สามัญ บีแพนเธน เซนซิเดิร์ม ครีม 50 กรัม",
+      "unit": "หลอด",
+      "sourceRow": 6124,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "4057599004427"
+    },
+    {
+      "companySku": "IC-003816",
+      "name": "สามัญ บาลานซ์แอคทีฟ 5 มล 7 ชิ้น",
+      "unit": "กล่อง",
+      "sourceRow": 4457,
+      "evidenceId": "stockday-004-20260928",
+      "barcode": "8858741500905"
     }
   ],
   "rules": [
@@ -3698,6 +3714,108 @@
         ]
       },
       "verifiedOn": "2026-09-28"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดม ตรา แทนใจ กลิ่นยูคาลิปตัส 5 กรัม แบบหัวคู่ เลือกสีได้ 6 สี",
+      "variant": "ม่วง",
+      "companySku": "IC-006114",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260929",
+      "verifiedOn": "2026-09-29",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6749,
+        "erpName": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+        "erpBarcode": "8857129045090",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title and selected variant size/formula, one ERP base unit per sale"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดม ตรา แทนใจ กลิ่นยูคาลิปตัส 5 กรัม แบบหัวคู่ เลือกสีได้ 6 สี",
+      "variant": "ชมพู",
+      "companySku": "IC-006114",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260929",
+      "verifiedOn": "2026-09-29",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6749,
+        "erpName": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+        "erpBarcode": "8857129045090",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Exact source title and selected variant size/formula, one ERP base unit per sale"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดม ตรา แทนใจ กลิ่นยูคาลิปตัส 5 กรัม แบบหัวคู่ เลือกสีได้ 6 สี",
+      "variant": "1 เซ็ต 6 สี",
+      "companySku": "IC-006114",
+      "quantityPerSale": 6,
+      "authority": "stockday_verified_exact_identity_20260929",
+      "verifiedOn": "2026-09-29",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6749,
+        "erpName": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+        "erpBarcode": "8857129045090",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Explicit source variant: one set contains six pieces in the six colors; ERP base unit is piece"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Bepanthen บีแพนเธน ออยเมนต์ Ointment 30 กรัม / เซนซิเดิร์ม ครีม Sensiderm 20 กรัม เลือกรุ่น",
+      "variant": "เซนซิเดิร์ม 50 กรัม",
+      "companySku": "IC-005488",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260929",
+      "verifiedOn": "2026-09-29",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6124,
+        "erpName": "สามัญ บีแพนเธน เซนซิเดิร์ม ครีม 50 กรัม",
+        "erpBarcode": "4057599004427",
+        "erpUnit": "หลอด",
+        "packBasis": "Exact source title and selected variant size/formula, one ERP base unit per sale"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "BalanceActiv บาลานซ์แอคทีฟ เจลปรับสมดุลช่องคลอด 5 มล. บรรจุ 7 หลอด",
+      "variant": "1 กล่อง",
+      "companySku": "IC-003816",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260929",
+      "verifiedOn": "2026-09-29",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 4457,
+        "erpName": "สามัญ บาลานซ์แอคทีฟ 5 มล 7 ชิ้น",
+        "erpBarcode": "8858741500905",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title and selected variant size/formula, one ERP base unit per sale"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร เลือกสูตร Biotin Zinc Night’s Story Bio C Fish Oil BioMag Luti-berry Fiber",
+      "variant": "Biotin (H) Plus Zinc",
+      "companySku": "IC-005369",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260929",
+      "verifiedOn": "2026-09-29",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6005,
+        "erpName": "สามัญ ดีเดย์ ไบโอติน เอช พลัส ซิงค์ 60 แคปซูล",
+        "erpBarcode": "8859612265848",
+        "erpUnit": "กล่อง",
+        "packBasis": "Exact source title and selected variant size/formula, one ERP base unit per sale"
+      }
     }
   ],
   "unitEquivalences": [
