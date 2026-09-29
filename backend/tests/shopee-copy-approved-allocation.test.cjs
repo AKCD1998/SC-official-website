@@ -125,6 +125,13 @@ test('the same existing exact campaign evidence restores a cancelled single-item
   expect(plan.sellerCents).toBe(1000); expect(JSON.stringify(cancelled)).toBe(before);
 });
 
+test('an unrelated campaign period leaves already-reconciled original cancelled sales unchanged', () => {
+  const inactive = { ...campaign, validFrom: '2020-01-02T00:00:00Z', validTo: '2020-01-03T00:00:00Z' };
+  const plan = build([cancelled], 231, { orderSnapshots: history, sellerVoucherEvidence: [inactive] });
+  expect(plan.status).toBe('ready'); expect(plan.columns.unitPrice).toBe('231.00');
+  expect(plan.sellerVoucherRestorations).toEqual([]);
+});
+
 test.each([
   ['no campaign', history, []], ['wrong shop', history, [{ ...campaign, shopCode: 'dr-morepen' }]],
   ['outside payment window', history, [{ ...campaign, validFrom: '2020-01-02T00:00:00Z' }]],

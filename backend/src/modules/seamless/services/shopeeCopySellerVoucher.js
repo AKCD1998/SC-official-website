@@ -8,6 +8,11 @@ function resolveCopySellerVoucher(order, snapshots = [], campaigns = []) {
   if (!history.length) return {};
   const basis = history.find(row => row.paidAt != null);
   if (!basis) return {};
+  const paidAt = Date.parse(basis.paidAt);
+  // Campaign restoration is scoped to an evidenced code and its active period.
+  // Other cancelled sales keep their original source components and BI gate.
+  if (!campaigns.some(rule => rule.shopCode === order.shopCode && paidAt >= Date.parse(rule.validFrom)
+    && paidAt <= Date.parse(rule.validTo) && history.some(row => row.voucherCodes?.includes(rule.voucherId)))) return {};
   const { sellerVoucherRestoration } = require('./shopeeFinancialReconciliationService');
   const restoration = sellerVoucherRestoration(history, basis, history.at(-1), campaigns);
   if (restoration.status !== 'restored_from_explicit_campaign_evidence') {
@@ -21,7 +26,7 @@ function resolveCopySellerVoucher(order, snapshots = [], campaigns = []) {
     return {};
   }
   // Never repair a changed price, payment date or product identity by a voucher.
-  const sourceItems = row => JSON.stringify((row.items || []).map(item => [item.name, item.variant || '', item.quantity, item.unitPrice]));
+  const sourceItems = row => JSON.stringify((row.items || []).map(item => [item.name, item.variant || '', item.quantity, moneyCents(item.unitPrice)]));
   const latest = history.at(-1);
   if (latest.sourceSha256 !== order.sourceSha256 || !latest.excluded
     || Date.parse(basis.paidAt) !== Date.parse(order.paidAt)
