@@ -1191,6 +1191,54 @@
       "sourceRow": 4457,
       "evidenceId": "stockday-004-20260928",
       "barcode": "8858741500905"
+    },
+    {
+      "companySku": "IC-000988",
+      "unit": "กระป๋อง",
+      "name": "สามัญ เอนชัวร์กลิ่นธัญพืช 380 กรัม",
+      "barcode": "8886451000576",
+      "sourceRow": 1732,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-001203",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 2 x 4 นิ้ว 2 แผ่น",
+      "barcode": "8857122406300",
+      "sourceRow": 1935,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-000521",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 10X25 ซม T4 2 แผ่น",
+      "barcode": "8857122406546",
+      "sourceRow": 1327,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-005339",
+      "unit": "กระปุก",
+      "name": "สามัญ สวิสเซ ซันนี่เดย์ 30 แคปซูล",
+      "barcode": "9311770612906",
+      "sourceRow": 5975,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-005707",
+      "unit": "ขวด",
+      "name": "สามัญ แป้งโยคีในรัสมีวงกลม 100 กรัม",
+      "barcode": "8858672900034",
+      "sourceRow": 6342,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-004806",
+      "unit": "ซอง",
+      "name": "สามัญ เม็ดอมสมุนไพร ไอ เฮิร์บ สูตรปราศจากน้ำตาล ซองซิป 8 เม็ด",
+      "barcode": "8858923910096",
+      "sourceRow": 5443,
+      "evidenceId": "stockday-004-20260930"
     }
   ],
   "rules": [
@@ -3816,6 +3864,212 @@
         "erpUnit": "กล่อง",
         "packBasis": "Exact source title and selected variant size/formula, one ERP base unit per sale"
       }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Ensure Gold AdvancePro เอนชัวร์ โกลด์ แอดวานซ์โปร กลิ่นธัญพืช 380 กรัม 1 กระป๋อง",
+      "variant": "",
+      "companySku": "IC-000988",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 1732,
+        "erpName": "สามัญ เอนชัวร์กลิ่นธัญพืช 380 กรัม",
+        "erpBarcode": "8886451000576",
+        "erpUnit": "กระป๋อง",
+        "packBasis": "Cereal flavour, 380 g can; distinct from vanilla and larger sizes."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Smith+Nephew BACTIGRAS แบคติกราส แผ่นปิดแผล 10x10 ซม. (กล่อง / 10 แผ่น)",
+      "variant": "3 กล่อง",
+      "companySku": "IC-000295",
+      "quantityPerSale": 30,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 1108,
+        "erpName": "สามัญ แบคติกราส 1 แผ่น",
+        "erpBarcode": "5000223421984",
+        "erpUnit": "แผ่น",
+        "packBasis": "3 boxes ×10 dressings per box = 30 ERP sheets per listing sale; same exact title has a verified 1-box ×10 rule."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T 9x15 ซม.",
+      "companySku": "IC-001203",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 1935,
+        "erpName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 2 x 4 นิ้ว 2 แผ่น",
+        "erpBarcode": "8857122406300",
+        "erpUnit": "กล่อง",
+        "packBasis": "T transparent waterproof 9×15 cm = T2×4 inch pad model; 2 sheets per retail box, ERP unit is box. Not S/SB gauze.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T4 10x25 ซม.",
+      "companySku": "IC-000521",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 1327,
+        "erpName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 10X25 ซม T4 2 แผ่น",
+        "erpBarcode": "8857122406546",
+        "erpUnit": "กล่อง",
+        "packBasis": "T4 transparent waterproof 10×25 cm, 2 sheets per retail box; ERP unit is box.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Durex Protect ถุงยางอนามัยดูเร็กซ์ โพรเทคท์ 52.5 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "3 กล่อง",
+      "companySku": "IC-002111",
+      "quantityPerSale": 3,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 2787,
+        "erpName": "สามัญ ถุงยางดูเร็กซ์ โพรเทคท์ 52.5มม.3 ชิ้น",
+        "erpBarcode": "8850360034854",
+        "erpUnit": "ชิ้น",
+        "packBasis": "3 retail boxes per sale; ERP ชิ้น denotes one 3-condom retail box, not an individual condom. Protect 52.5 mm."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "I-HERB OTC ยาน้ำแก้ไอ ตราไอ-เฮิร์บ โอทีซี 60 มล./100 มล. บรรเทาอาการไอ ขับเสมหะ 0% Alcohol",
+      "variant": "60 มล",
+      "companySku": "IC-004261",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 4901,
+        "erpName": "สามัญ ยาน้ำแก้ไอ ไอเฮิร์บ โอทีซี 60 มล",
+        "erpBarcode": "8855459008754",
+        "erpUnit": "ขวด",
+        "packBasis": "OTC cough syrup 60 mL bottle; existing catalog row 152 matches this formula and size. Not 100 mL or lozenges."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Swisse สวิสเซ ผลิตภัณฑ์เสริมอาหาร Vitamin C 1000 mg / Biotin Forte / Sunneday / Multivitamin เลือกสูตร",
+      "variant": "ซันนี่เดย์ สีม่วง",
+      "companySku": "IC-005339",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 5975,
+        "erpName": "สามัญ สวิสเซ ซันนี่เดย์ 30 แคปซูล",
+        "erpBarcode": "9311770612906",
+        "erpUnit": "กระปุก",
+        "packBasis": "Sunneday purple formula, 30 capsules per jar; distinct from Vitamin C, Biotin Forte and multivitamin."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดม ตรา แทนใจ กลิ่นยูคาลิปตัส 5 กรัม แบบหัวคู่ เลือกสีได้ 6 สี",
+      "variant": "ฟ้า",
+      "companySku": "IC-006114",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 6749,
+        "erpName": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+        "erpBarcode": "8857129045090",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Tan Jai eucalyptus 5 g twin-head inhaler, one blue piece; existing other-colour rules use the same SKU. Not a 6-piece set."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Durex ดูเร็กซ์ ถุงยางอนามัย 3 ชิ้น/กล่อง",
+      "variant": "คิงเท็ค 1 กล่อง",
+      "companySku": "IC-000066",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 891,
+        "erpName": "สามัญ ถุงยางดูเร็กซ์ คิงเท็ค 3 ชิ้น",
+        "erpBarcode": "8850163000377",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Kingtex 49 mm retail box of 3 condoms; existing catalog rows 206/207 map this box to ERP ชิ้น. One box per sale."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "องุ่น,1 กระปุก 1000 เม็ด",
+      "companySku": "IC-002911",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 3563,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี องุ่น 25 มก 1000 เม็ด",
+        "erpBarcode": "8857121535063",
+        "erpUnit": "ขวด",
+        "packBasis": "Grape 25 mg, one bottle of 1000 tablets; distinct from 30-tablet sachets and other flavours."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แป้งโยคีในรัศมีวงกลม ขนาด 60 กรัม และ 100 กรัม",
+      "variant": "100 กรัม",
+      "companySku": "IC-005707",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 6342,
+        "erpName": "สามัญ แป้งโยคีในรัสมีวงกลม 100 กรัม",
+        "erpBarcode": "8858672900034",
+        "erpUnit": "ขวด",
+        "packBasis": "Yoki in the circle brand, 100 g bottle; not 60 g or the differently branded Yoki master 630010244."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "I-Herb ไอ-เฮิร์บ เม็ดอมสมุนไพร 8 เม็ด และยาอม OTC โอทีซี 18 เม็ด เลือกสูตรได้",
+      "variant": "เม็ดอม 8 เม็ด",
+      "companySku": "IC-004806",
+      "quantityPerSale": 1,
+      "authority": "user_confirmed_pack_and_stockday_exact_identity_20260930",
+      "verifiedOn": "2026-09-30",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 5443,
+        "erpName": "สามัญ เม็ดอมสมุนไพร ไอ เฮิร์บ สูตรปราศจากน้ำตาล ซองซิป 8 เม็ด",
+        "erpBarcode": "8858923910096",
+        "erpUnit": "ซอง",
+        "packBasis": "User confirmed zip 8-lozenge sachet barcode 8858923910096; distinct from standard sachet IC-003652 and OTC 18 count."
+      }
     }
   ],
   "unitEquivalences": [
@@ -3860,6 +4114,17 @@
       "branch": "004",
       "verifiedOn": "2026-09-28",
       "syncAt": "2026-09-28T08:21:02+07:00",
+      "scope": "SC004 ERP SKU identity, barcode and base unit only; no master prices or stock balances"
+    },
+    {
+      "id": "stockday-004-20260930",
+      "filename": "stockday-004-20260930.xlsx",
+      "sha256": "e5fb358d36946bda528db9c6c99836ba43800bf137ed768528bdde47c2454afe",
+      "url": "https://sc-stockday-ordering.onrender.com/#/branch-stock",
+      "sheet": "Stock 004",
+      "branch": "004",
+      "verifiedOn": "2026-09-30",
+      "syncAt": "2026-09-30T08:21:03+07:00",
       "scope": "SC004 ERP SKU identity, barcode and base unit only; no master prices or stock balances"
     }
   ]
