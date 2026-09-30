@@ -11,10 +11,18 @@ import {
 } from "../controllers/organicReportsController.js";
 import { getPatientDispenseHistory } from "../controllers/dispenseController.js";
 import { getIncidentReportById } from "../controllers/adminIncidentsController.js";
+import { getKy11BulkSourceSnapshot } from "../controllers/ky11BulkSnapshotsController.js";
 import { requireRole, verifyToken } from "../middleware/authMiddleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
+
+router.get(
+  "/reports/ky11-bulk-source-snapshots/:snapshotKey",
+  verifyToken,
+  requireRole("ADMIN"),
+  asyncHandler(getKy11BulkSourceSnapshot)
+);
 
 router.get(
   "/stock/on-hand",
