@@ -412,5 +412,5 @@ test('repository uses source products and paid-date bounds after snapshot select
 test('financial copy endpoint rejects non-admins and aggregate scopes before queries', async () => {
   await expect(getAdaSmartCopySummary({ appRole: 'viewer', query: filters }, {})).rejects.toMatchObject({ statusCode: 403 });
   await expect(getAdaSmartCopySummary({ appRole: 'admin', query: { ...filters, shopCode: 'all' } }, {})).rejects.toMatchObject({ statusCode: 400 });
-  await expect(getAdaSmartCopySummary({ appRole: 'admin', query: { ...filters, endDate: '2026-09-02' } }, {})).rejects.toMatchObject({ statusCode: 400 });
+  await expect(getAdaSmartCopySummary({ appRole: 'admin', query: { ...filters, endDate: '2026-08-31' } }, {})).rejects.toMatchObject({ statusCode: 400 });
 });

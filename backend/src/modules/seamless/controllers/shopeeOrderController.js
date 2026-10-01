@@ -237,8 +237,8 @@ async function getSalesReconciliation(req, res) {
 async function getAdaSmartCopySummary(req, res) {
   if (req.appRole !== 'admin') throw forbidden('AdaSmart copy prices are available to administrators only.');
   const filters = parseSalesSummaryFilters(req.query);
-  if (filters.shopCode === 'all' || filters.startDate !== filters.endDate) {
-    throw badRequest('Select one shop and one day for AdaSmart copy columns.');
+  if (filters.shopCode === 'all') {
+    throw badRequest('Select one shop for AdaSmart copy columns.');
   }
   const { getAdaSmartCopyPlan } = require('../services/shopeeAdaSmartCopyService');
   res.set('Cache-Control', 'no-store');
