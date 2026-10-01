@@ -6,6 +6,7 @@ const { applyCopyLineEvidence } = require('./shopeeCopyLineEvidence');
 const { allocateCents, sellerAllocationPolicy, bundleAllocation, policyReference } = require('./shopeeCopyAllocation');
 const { resolveCopySellerVoucher } = require('./shopeeCopySellerVoucher');
 const { VERIFIED_COPY_MATCH_VERSION, resolveVerifiedCopyMatch, sourceIdentifierConflict } = require('./shopeeVerifiedCopyMatcher');
+const { datesInRange, summarizeConfirmedSales } = require('./shopeeConfirmedSalesService');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
@@ -172,9 +173,10 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
     ...(matchingReview ? { matchingReview } : {}),
     orderNumber: order?.orderNumber || null, sourceRow: order?.sourceRows?.[index] || null,
     productName: item?.name || null, variant: item?.variant || null, listingQuantity: item?.quantity || null });
-  if (shopCode === 'all' || startDate !== endDate) {
-    addIssue('เลือกหนึ่งร้านและวันเดียวสำหรับคัดลอกเข้า AdaSmart');
+  if (shopCode === 'all') {
+    addIssue('เลือกหนึ่งร้านสำหรับคัดลอกเข้า AdaSmart');
   }
+  const dates = datesInRange(startDate, endDate);
   const lineEvidence = applyCopyLineEvidence(orders, lineFinancialEvidence, filters);
   lineEvidence.issues.forEach(issue => addIssue(issue.reason, issue.order));
   const cohort = selectCopyCohort(lineEvidence.orders, businessDateCorrections, filters);
@@ -263,6 +265,35 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
     addIssue('ค่าสินค้ารวมส่วนลดที่ Shopee สนับสนุน ยังไม่ตรงกับ Business Insights');
   }
   if (confirmedSales?.orderCount !== keys.size) addIssue('จำนวนออเดอร์ที่ใช้คำนวณไม่ตรงกับ Business Insights');
+  // Reuse the proven single-day builder, including private date corrections,
+  // line evidence and approved allocations. A matching range total cannot hide
+  // opposite daily differences or an absent BI day (distinct from an explicit 0).
+  let dailyReconciliation;
+  if (dates.length > 1 && shopCode !== 'all') {
+    dailyReconciliation = dates.map(date => {
+      const dailyFilters = { ...filters, startDate: date, endDate: date };
+      const facts = (confirmedSales?.daily || []).filter(row => row.shopCode === shopCode && row.date === date);
+      const dailyConfirmed = summarizeConfirmedSales(facts, dailyFilters);
+      const dailyPlan = buildAdaSmartCopyPlan(orders, dailyConfirmed, dailyFilters,
+        businessDateCorrections, lineFinancialEvidence, context);
+      return { date, status: dailyPlan.status, orderCount: dailyPlan.orderCount,
+        confirmedOrderCount: dailyConfirmed.orderCount, sourceLineCount: dailyPlan.sourceLineCount,
+        totalQuantity: dailyPlan.totalQuantity, totalCents: dailyPlan.totalCents,
+        cohortTotalCents: dailyPlan.cohortTotalCents, targetCents: dailyPlan.targetCents,
+        varianceCents: dailyPlan.varianceCents, issueCount: dailyPlan.issues.length,
+        reasons: [...new Set(dailyPlan.issues.map(issue => issue.reason))] };
+    });
+    for (const day of dailyReconciliation.filter(day => day.status !== 'ready')) {
+      issues.push({ reason: 'ข้อมูลหรือยอด Business Insights รายวันยังไม่ผ่านการตรวจ',
+        date: day.date, sku: null, orderNumber: null, sourceRow: null, productName: null,
+        variant: null, listingQuantity: null });
+    }
+    if (dailyReconciliation.every(day => day.targetCents != null)
+      && (dailyReconciliation.reduce((sum, day) => sum + day.targetCents, 0) !== targetCents
+        || dailyReconciliation.reduce((sum, day) => sum + day.confirmedOrderCount, 0) !== confirmedSales?.orderCount)) {
+      addIssue('ยอดหรือจำนวนออเดอร์ Business Insights รายวันรวมไม่ตรงกับช่วงวันที่เลือก');
+    }
+  }
   if (![readyTotalCents, cohortCents, merchandiseCents, supportCents, sellerCents].every(Number.isSafeInteger)) {
     throw new Error('Copy-plan totals exceed supported precision.');
   }
@@ -275,7 +306,8 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
     skuCount: new Set(rows.map(row => row.sku)).size, rowCount: rows.length, totalQuantity: rows.reduce((sum, row) => sum + row.quantity, 0),
     merchandiseCents, supportCents, sellerCents, cohortTotalCents: financialComplete ? cohortCents : null,
     totalCents: readyTotalCents, targetCents, varianceCents: targetCents == null ? null : readyTotalCents - targetCents,
-    rows, issues, confirmedSales, sourceEvidence: [...evidence.values()], masterEvidence: rules.masterEvidence,
+    rows, issues, confirmedSales, ...(dailyReconciliation ? { dailyReconciliation } : {}),
+    sourceEvidence: [...evidence.values()], masterEvidence: rules.masterEvidence,
     additionalMasterEvidence: rules.additionalMasterEvidence || [],
     columns: ready ? { sku: rows.map(row => row.sku).join('\n'),
       quantity: rows.map(row => String(row.quantity)).join('\n'),

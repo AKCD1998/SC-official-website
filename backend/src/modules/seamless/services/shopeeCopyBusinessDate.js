@@ -61,7 +61,7 @@ function selectCopyCohort(orders, corrections, filters) {
   const selected = scopedOrders.flatMap(order => {
     const entry = byOrder.get(keyOf(order));
     const businessDate = entry?.valid ? entry.correction.businessDate : localDate(order.paidAt);
-    if (businessDate !== filters.startDate) return [];
+    if (!businessDate || businessDate < filters.startDate || businessDate > filters.endDate) return [];
     return [{ ...order, copyBusinessDate: businessDate,
       copyDateBasis: entry?.valid ? 'verified_business_date' : 'paid_at',
       copyDateCorrection: entry?.valid ? entry.correction : null }];

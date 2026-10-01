@@ -544,7 +544,7 @@ test('restricts new order-money JSON and ledger export to administrators', async
   }
 });
 
-test('AdaSmart copy route requires admin, one shop/day and returns uncached prepared data', async () => {
+test('AdaSmart copy route requires admin, one shop and returns uncached day or range data', async () => {
   process.env.SEAMLESS_APP_BASIC_USER = 'accounting-user';
   process.env.SEAMLESS_APP_BASIC_PASSWORD = 'local-test-password';
   process.env.SEAMLESS_APP_ADMIN_BASIC_USER = 'finance-admin';
@@ -561,6 +561,12 @@ test('AdaSmart copy route requires admin, one shop/day and returns uncached prep
   expect(response.body).toMatchObject({ shopCode: 'sc-drug-store', startDate: '2026-09-01', status: 'ready' });
   expect(getAdaSmartCopyPlanMock).toHaveBeenCalledWith({ shopCode: 'sc-drug-store', startDate: '2026-09-01', endDate: '2026-09-01' });
   expect((await request(app).get(route + query.replace('sc-drug-store', 'all')).auth('finance-admin', 'local-test-admin-password')).status).toBe(400);
+  const range = await request(app).get(route + '?shopCode=sc-drug-store&startDate=2026-09-01&endDate=2026-09-30')
+    .auth('finance-admin', 'local-test-admin-password');
+  expect(range.status).toBe(200); expect(range.headers['cache-control']).toBe('no-store');
+  expect(getAdaSmartCopyPlanMock).toHaveBeenLastCalledWith({ shopCode: 'sc-drug-store', startDate: '2026-09-01', endDate: '2026-09-30' });
+  expect((await request(app).get(route + '?shopCode=sc-drug-store&startDate=2026-09-30&endDate=2026-09-01')
+    .auth('finance-admin', 'local-test-admin-password')).status).toBe(400);
 });
 
 test.each([
