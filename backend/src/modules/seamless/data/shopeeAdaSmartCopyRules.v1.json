@@ -1239,6 +1239,118 @@
       "barcode": "8858923910096",
       "sourceRow": 5443,
       "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-004134",
+      "unit": "กล่อง",
+      "name": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ S 2x2 4 ชิ้น",
+      "barcode": "8857122406317",
+      "sourceRow": 4775,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-002039",
+      "unit": "แผง",
+      "name": "สามัญ บาคามอล พาราเซตามอล 10 เม็ด",
+      "barcode": "8855451003306",
+      "sourceRow": 2715,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "630010166",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์กันน้ำ T2 6X7 ซม 3 ชิ้น",
+      "barcode": "8857122406102",
+      "sourceRow": 154,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-002739",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ใสปิดแผล กันน้ำ T1B 3*7 ซม 9 ชิ้น",
+      "barcode": "8859243302240",
+      "sourceRow": 3399,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-000818",
+      "unit": "กระป๋อง",
+      "name": "สามัญ แป้งโยคีในรัศมีวงกลม 60 กรัม",
+      "barcode": "8858672900027",
+      "sourceRow": 1605,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "630010167",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์กันน้ำ T1 2.5 X 5.6 ซม 10 แผ่น",
+      "barcode": "8857122406096",
+      "sourceRow": 155,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-003439",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ใสกันน้ำ T1 S 2.2X3.5  ซม 10 ชิ้น",
+      "barcode": "8859243304718",
+      "sourceRow": 4087,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "630010162",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ยา S2 6X7 ซม 5 ชิ้น",
+      "barcode": "8857122406126",
+      "sourceRow": 150,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-004135",
+      "unit": "กล่อง",
+      "name": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ M 4x7 ซม. 5 ชิ้น",
+      "barcode": "8859243303407",
+      "sourceRow": 4776,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-002067",
+      "unit": "กล่อง",
+      "name": "สามัญ กระชายโพรโพลิซเมาท์สเปรย์ 15 มล.",
+      "barcode": "8856513012144",
+      "sourceRow": 2743,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-002706",
+      "unit": "กล่อง",
+      "name": "สามัญ โพรพลิช คิด เมาท์ สเปรย์ 15 มล.",
+      "barcode": "8856513012175",
+      "sourceRow": 3367,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "630010161",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ S3 6X10 ซม 4 ชิ้น",
+      "barcode": "8857122406133",
+      "sourceRow": 149,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-004095",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น ที ซีรีส์ M 4x7 ซม. 3 ชิ้น",
+      "barcode": "8859243303384",
+      "sourceRow": 4736,
+      "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "IC-004132",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ เอสโอเอส พลัส รุ่น ที ซีรีส์ T 2x2 3 ชิ้น",
+      "barcode": "8859243300659",
+      "sourceRow": 4773,
+      "evidenceId": "stockday-004-20260930"
     }
   ],
   "rules": [
@@ -4069,6 +4181,373 @@
         "erpBarcode": "8858923910096",
         "erpUnit": "ซอง",
         "packBasis": "User confirmed zip 8-lozenge sachet barcode 8858923910096; distinct from standard sachet IC-003652 and OTC 18 count."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S 8x8 ซม.",
+      "companySku": "IC-004134",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 4775,
+        "erpName": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ S 2x2 4 ชิ้น",
+        "erpBarcode": "8857122406317",
+        "erpUnit": "กล่อง",
+        "packBasis": "Blue S-series S2x2 pad model has overall dimensions 8x8 cm. ERP retail box, master barcode 8857122406317; distinct from red T and skin-colour SB.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "I-HERB OTC ยาน้ำแก้ไอ ตราไอ-เฮิร์บ โอทีซี 60 มล./100 มล. บรรเทาอาการไอ ขับเสมหะ 0% Alcohol",
+      "variant": "100 มล.",
+      "companySku": "IC-005465",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 6101,
+        "erpName": "สามัญ ยาน้ำแก้ไอ ไอเฮิร์บ โอทีซี 100 มล",
+        "erpBarcode": "8855459009300",
+        "erpUnit": "ขวด",
+        "packBasis": "OTC cough syrup, one 100 mL bottle; distinct from 60 mL and lozenges."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+      "variant": "บาคามอล 500",
+      "companySku": "IC-002039",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 2715,
+        "erpName": "สามัญ บาคามอล พาราเซตามอล 10 เม็ด",
+        "erpBarcode": "8855451003306",
+        "erpUnit": "แผง",
+        "packBasis": "Bakamol 500 mg, one strip of 10 tablets as explicitly sold by the strip. Not a 100-tablet bottle or another paracetamol brand."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T2 6x7 ซม.",
+      "companySku": "630010166",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 154,
+        "erpName": "สามัญ พลาสเตอร์กันน้ำ T2 6X7 ซม 3 ชิ้น",
+        "erpBarcode": "8857122406102",
+        "erpUnit": "กล่อง",
+        "packBasis": "Red T2 transparent waterproof 6x7 cm retail box. Master contains 3 pieces; ERP unit is box, not sheet.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T1-B 3x7 ซม.",
+      "companySku": "IC-002739",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 3399,
+        "erpName": "สามัญ พลาสเตอร์ใสปิดแผล กันน้ำ T1B 3*7 ซม 9 ชิ้น",
+        "erpBarcode": "8859243302240",
+        "erpUnit": "กล่อง",
+        "packBasis": "Red T1-B transparent waterproof 3x7 cm retail box. Master contains 9 pieces; ERP unit is box.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "I-Herb ไอ-เฮิร์บ เม็ดอมสมุนไพร 8 เม็ด และยาอม OTC โอทีซี 18 เม็ด เลือกสูตรได้",
+      "variant": "ยาอมโอทีซี 18 เม็ด",
+      "companySku": "IC-005056",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 5693,
+        "erpName": "สามัญ ยาอมสมุนไพร ไอ เฮิร์บ โอทีซี 18 เม็ด",
+        "erpBarcode": "8855459009485",
+        "erpUnit": "ซอง",
+        "packBasis": "One OTC 18-lozenge sachet, matching catalog row 145. Distinct from both 8-count regular and user-confirmed 8-count zip packaging."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แป้งโยคีในรัศมีวงกลม ขนาด 60 กรัม และ 100 กรัม",
+      "variant": "60 กรัม",
+      "companySku": "IC-000818",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 1605,
+        "erpName": "สามัญ แป้งโยคีในรัศมีวงกลม 60 กรัม",
+        "erpBarcode": "8858672900027",
+        "erpUnit": "กระป๋อง",
+        "packBasis": "Yoki in the circle brand, 60 g can; not 100 g or the other Yoki-brand master 630010243."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T1 2.5x5.6 ซม.",
+      "companySku": "630010167",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 155,
+        "erpName": "สามัญ พลาสเตอร์กันน้ำ T1 2.5 X 5.6 ซม 10 แผ่น",
+        "erpBarcode": "8857122406096",
+        "erpUnit": "กล่อง",
+        "packBasis": "Red T1 transparent waterproof 2.5x5.6 cm, retail box of 10. Distinct from the 100-piece master IC-004742.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "S 2.2x3.5 ซม.",
+      "companySku": "IC-003439",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 4087,
+        "erpName": "สามัญ พลาสเตอร์ใสกันน้ำ T1 S 2.2X3.5  ซม 10 ชิ้น",
+        "erpBarcode": "8859243304718",
+        "erpUnit": "กล่อง",
+        "packBasis": "Mini red T1 S transparent waterproof 2.2x3.5 cm, retail box of 10. The S option in the red listing is not blue S-series gauze.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S2 6x7 ซม.",
+      "companySku": "630010162",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 150,
+        "erpName": "สามัญ พลาสเตอร์ยา S2 6X7 ซม 5 ชิ้น",
+        "erpBarcode": "8857122406126",
+        "erpUnit": "กล่อง",
+        "packBasis": "Blue S2 ready-to-use gauze dressing 6x7 cm, retail box of 5; distinct from red T2 of the same dimensions.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "M 4x7 ซม.",
+      "companySku": "IC-004135",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 4776,
+        "erpName": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ M 4x7 ซม. 5 ชิ้น",
+        "erpBarcode": "8859243303407",
+        "erpUnit": "กล่อง",
+        "packBasis": "Blue S-series M 4x7 cm gauze dressing, retail box of 5; distinct from red T-series M waterproof dressing.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์ช่องปาก Mouth Spray X Plus กระชาย และ Kid 10/15 มล. เลือกรุ่น",
+      "variant": "กระชาย 15 มล.",
+      "companySku": "IC-002067",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 2743,
+        "erpName": "สามัญ กระชายโพรโพลิซเมาท์สเปรย์ 15 มล.",
+        "erpBarcode": "8856513012144",
+        "erpUnit": "กล่อง",
+        "packBasis": "Krachai formula, packaged 15 mL mouth spray, one ERP box. Not X or the other Plus/Extherb formula."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดม ตรา แทนใจ กลิ่นยูคาลิปตัส 5 กรัม แบบหัวคู่ เลือกสีได้ 6 สี",
+      "variant": "ส้ม",
+      "companySku": "IC-006114",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 6749,
+        "erpName": "สามัญ ยาดม ตราแทนใจ กลิ่นยูคาลิปตัส 5 กรัม",
+        "erpBarcode": "8857129045090",
+        "erpUnit": "ชิ้น",
+        "packBasis": "Tan Jai eucalyptus 5 g twin-head inhaler, one orange piece; same verified master as other colour options. Not the six-piece set."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์ช่องปาก Mouth Spray X Plus กระชาย และ Kid 10/15 มล. เลือกรุ่น",
+      "variant": "Mouth Spray 15 มล.",
+      "companySku": "IC-001292",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 2023,
+        "erpName": "สามัญ โพรโพลิซ เมาท์ สเปรย์ 15 มล",
+        "erpBarcode": "8857121535131",
+        "erpUnit": "กล่อง",
+        "packBasis": "Original Mouth Spray 15 mL, one packaged bottle in ERP box unit. Same identity as catalog row 164; not X, Krachai or Kids."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์ช่องปาก Mouth Spray X Plus กระชาย และ Kid 10/15 มล. เลือกรุ่น",
+      "variant": "Kid 10 มล.",
+      "companySku": "IC-002893",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 3545,
+        "erpName": "สามัญ โพรโพลิช คิด เมาท์ สเปรย์ ลิโคไรซ์ ซิงค์ 10 มล.",
+        "erpBarcode": "8856513013059",
+        "erpUnit": "ขวด",
+        "packBasis": "Kids Lico Zinc mouth spray 10 mL, one ERP bottle; same identity as catalog row 129. Not Kids 15 mL."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์ช่องปาก Mouth Spray X Plus กระชาย และ Kid 10/15 มล. เลือกรุ่น",
+      "variant": "Kid 15 มล.",
+      "companySku": "IC-002706",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 3367,
+        "erpName": "สามัญ โพรพลิช คิด เมาท์ สเปรย์ 15 มล.",
+        "erpBarcode": "8856513012175",
+        "erpUnit": "กล่อง",
+        "packBasis": "Kids mouth spray 15 mL, one ERP box; master barcode 8856513012175. Not Kids 10 mL."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S3 6x10 ซม.",
+      "companySku": "630010161",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 149,
+        "erpName": "สามัญ พลาสเตอร์ S3 6X10 ซม 4 ชิ้น",
+        "erpBarcode": "8857122406133",
+        "erpUnit": "กล่อง",
+        "packBasis": "Blue S3 ready-to-use gauze dressing 6x10 cm, retail box of 4.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "กล่อง One Gerd วันเกิร์ด รสมินท์ ปราศจากน้ำตาล 12 ซอง x 10 มล.",
+      "variant": "1 กล่อง 12 ซอง",
+      "companySku": "IC-002441",
+      "quantityPerSale": 12,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 3106,
+        "erpName": "สามัญ วันเกิร์ด 10  มล",
+        "erpBarcode": "8852673000830",
+        "erpUnit": "ซอง",
+        "packBasis": "New title explicitly sells a box of 12 x 10 mL mint sachets. ERP unit is sachet, so one listing sale is 12 ERP units. Same product as catalog row 29."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "M 4x7 ซม.",
+      "companySku": "IC-004095",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 4736,
+        "erpName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น ที ซีรีส์ M 4x7 ซม. 3 ชิ้น",
+        "erpBarcode": "8859243303384",
+        "erpUnit": "กล่อง",
+        "packBasis": "Red T-series M transparent waterproof 4x7 cm, retail box of 3; distinct from blue M gauze box of 5.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T 8x8 ซม.",
+      "companySku": "IC-004132",
+      "quantityPerSale": 1,
+      "authority": "stockday_verified_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 4773,
+        "erpName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ เอสโอเอส พลัส รุ่น ที ซีรีส์ T 2x2 3 ชิ้น",
+        "erpBarcode": "8859243300659",
+        "erpUnit": "กล่อง",
+        "packBasis": "Red T-series T2x2 pad model has overall dimensions 8x8 cm. One ERP retail box, master barcode 8859243300659, currently described as 3 pieces. No conversion to individual pieces; distinct from blue S and skin-colour SB.",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร เลือกสูตร Biotin Zinc Night’s Story Bio C Fish Oil BioMag Luti-berry Fiber",
+      "variant": "Fiber Fiber",
+      "companySku": "IC-005371",
+      "quantityPerSale": 10,
+      "authority": "user_confirmed_pack_and_stockday_exact_identity_20261001",
+      "verifiedOn": "2026-10-01",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260930",
+        "masterSourceRow": 6007,
+        "erpName": "สามัญ ดีเดย์ ไฟเบอร์ ไฟเบอร์ 18 กรัม",
+        "erpBarcode": "8859612272143",
+        "erpUnit": "ซอง",
+        "packBasis": "User confirmed this exact combined-listing Fiber Fiber option sells one box of 10 x 18 g sachets. ERP unit is sachet, so one listing sale is 10 ERP units."
       }
     }
   ],

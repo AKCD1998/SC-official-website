@@ -2,7 +2,7 @@ const rules = require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.j
 const { resolveCopyProduct, buildAdaSmartCopyPlan } = require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
 const shopCode = 'sc-drug-store';
 const evidenceId = 'stockday-004-20260930';
-const additions = rules.rules.filter(r => r.evidence?.masterEvidenceId === evidenceId);
+const additions = rules.rules.filter(r => r.evidence?.masterEvidenceId === evidenceId && r.verifiedOn === '2026-09-30');
 const fixtures = [
   ['Ensure Gold AdvancePro', '', 'IC-000988', 1, 'กระป๋อง'],
   ['BACTIGRAS', '3 กล่อง', 'IC-000295', 30, 'แผ่น'],
