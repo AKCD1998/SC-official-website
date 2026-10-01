@@ -5,17 +5,39 @@ const { selectCopyCohort } = require('./shopeeCopyBusinessDate');
 const { applyCopyLineEvidence } = require('./shopeeCopyLineEvidence');
 const { allocateCents, sellerAllocationPolicy, bundleAllocation, policyReference } = require('./shopeeCopyAllocation');
 const { resolveCopySellerVoucher } = require('./shopeeCopySellerVoucher');
+const { VERIFIED_COPY_MATCH_VERSION, resolveVerifiedCopyMatch, sourceIdentifierConflict } = require('./shopeeVerifiedCopyMatcher');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
   pack: 'แพ็ก', piece: 'ชิ้น', sachet: 'ซอง' };
 const safeCode = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/u.test(value);
 const priceText = cents => `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+const AUTOMATIC_REVIEW_LABELS = {
+  automatic_attributes_or_pack_incomplete: 'ข้อมูลสูตร ขนาด หรือจำนวนต่อแพ็กยังไม่ครบหรือขัดกัน',
+  automatic_attributes_or_pack_not_verified: 'ยังไม่มีหลักฐานยืนยันสูตร ขนาด และแพ็กที่ตรงกัน',
+  automatic_evidence_conflict: 'หลักฐานจับคู่ระบุรหัสหรือจำนวนต่อแพ็กไม่ตรงกัน',
+  automatic_bundle_or_special_authority_hold: 'ชุดหลายสินค้าหรือกฎเฉพาะต้องใช้การจับคู่ที่ยืนยันไว้',
+};
 
 function resolveCopyProduct(shopCode, item) {
-  const override = rules.rules.find(row => row.shopCode === shopCode
+  let override = rules.rules.find(row => row.shopCode === shopCode
     && row.productName === item.name && row.variant === (item.variant || ''));
   const originalMatch = item.productMatch;
+  let automaticMatch;
+  // Exact catalog results (including unit holds and bundles) keep precedence.
+  // Automatic reuse is only for an otherwise unmapped item.
+  if (!override && (!originalMatch || originalMatch.status === 'unmapped')) {
+    automaticMatch = resolveVerifiedCopyMatch(shopCode, item);
+    if (automaticMatch.status === 'matched') override = automaticMatch.rule;
+    else return { reason: AUTOMATIC_REVIEW_LABELS[automaticMatch.reasonCode]
+      ? `ยังจับคู่รหัส IC/SKU ไม่สำเร็จ: ${AUTOMATIC_REVIEW_LABELS[automaticMatch.reasonCode]}`
+      : 'ยังจับคู่รหัส IC/SKU ไม่สำเร็จ', matchingReview: automaticMatch };
+  }
+  if (override?.companySku || originalMatch?.companySku) {
+    const conflict = sourceIdentifierConflict(shopCode, item, override || originalMatch);
+    if (conflict) return { reason: 'รหัสต้นทางหรือบาร์โค้ดยังไม่ตรงกับหลักฐานสินค้าและแพ็ก',
+      matchingReview: { status: 'review', reasonCode: conflict, candidates: [] } };
+  }
   // Component identity and quantity can be verified independently of price.
   // Keep the owner's bundle price review in place until a separate allocation
   // rule is approved; never assign the whole price to each component.
@@ -62,7 +84,8 @@ function resolveCopyProduct(shopCode, item) {
     return { sku, reason: `หน่วยชุดขาย ${unit} ยังไม่ตรงกับหน่วย ERP ${master.unit}` };
   }
   return { sku, factor, unit: master.unit, name: master.name,
-    authority: override?.authority || 'existing_verified_catalog', originalMatch };
+    authority: override?.authority || 'existing_verified_catalog', originalMatch,
+    ...(automaticMatch?.provenance ? { matchingProvenance: automaticMatch.provenance } : {}) };
 }
 
 // Financial amounts stay tied to their source line. Old immutable imports have
@@ -144,8 +167,9 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
   const usedPolicies = new Map(); const voucherRestorations = [];
   let merchandiseCents = 0; let supportCents = 0; let sellerCents = 0;
   let cohortCents = 0; let financialComplete = true; let sourceLineCount = 0;
-  const addIssue = (reason, order, item, index, sku, components) => issues.push({ reason, sku: sku || null,
+  const addIssue = (reason, order, item, index, sku, components, matchingReview) => issues.push({ reason, sku: sku || null,
     ...(components?.length ? { components } : {}),
+    ...(matchingReview ? { matchingReview } : {}),
     orderNumber: order?.orderNumber || null, sourceRow: order?.sourceRows?.[index] || null,
     productName: item?.name || null, variant: item?.variant || null, listingQuantity: item?.quantity || null });
   if (shopCode === 'all' || startDate !== endDate) {
@@ -186,7 +210,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
       }
       const product = resolveCopyProduct(shopCode, item);
       const bundle = product.components && bundleAllocation(allocationPolicies, shopCode, item, product.components, money.amounts[index]);
-      if (product.reason && !bundle) { addIssue(product.reason, order, item, index, product.sku, product.components); return; }
+      if (product.reason && !bundle) { addIssue(product.reason, order, item, index, product.sku, product.components, product.matchingReview); return; }
       if (bundle) usedPolicies.set(bundle.record.policyKey, policyReference(bundle.record));
       const parts = bundle?.components || [{ ...product, amountCents: money.amounts[index] }];
       for (const part of parts) {
@@ -207,6 +231,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
           ...(voucher.sellerCents != null ? { sellerVoucherBasis: 'restored_from_explicit_campaign_evidence',
             voucherId: voucher.restoration.campaignEvidence.voucherId } : {}),
           authority: product.authority, originalMatch: product.originalMatch,
+          ...(product.matchingProvenance ? { matchingProvenance: product.matchingProvenance } : {}),
           businessDate: order.copyBusinessDate, dateBasis: order.copyDateBasis,
           ...(order.copyDateCorrection ? { dateCorrectionCaseId: order.copyDateCorrection.evidence.caseId } : {}),
           ...(order.copyLineEvidenceCaseId ? { lineFinancialCaseId: order.copyLineEvidenceCaseId } : {}) });
@@ -242,7 +267,8 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
     throw new Error('Copy-plan totals exceed supported precision.');
   }
   const ready = issues.length === 0 && financialComplete && targetCents === readyTotalCents;
-  return { ...filters, timezone: 'Asia/Bangkok', dateBasis: cohort.corrections.length ? 'verified_business_date' : 'paid_at',
+  return { ...filters, matchingAlgorithmVersion: VERIFIED_COPY_MATCH_VERSION,
+    timezone: 'Asia/Bangkok', dateBasis: cohort.corrections.length ? 'verified_business_date' : 'paid_at',
     businessDateCorrections: cohort.corrections, lineFinancialEvidence: lineEvidence.evidence, policyVersion: rules.policyVersion,
     allocationPolicies: [...usedPolicies.values()], sellerVoucherRestorations: voucherRestorations,
     status: ready ? 'ready' : 'review_required', orderCount: keys.size, sourceLineCount,
