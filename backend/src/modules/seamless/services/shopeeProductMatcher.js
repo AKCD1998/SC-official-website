@@ -8,6 +8,7 @@ const {
   getValidatedSkuUnit,
 } = require("./shopeeAutomaticQuantityRules");
 const { normalizeShopeeShopCode } = require("./shopeeShops");
+const { getVerifiedCopyMatcherDigest } = require('./shopeeVerifiedCopyMatcher');
 
 const SUPPORTED_MATCH_STATUSES = new Set(["matched", "bundle", "visibility_only"]);
 
@@ -315,6 +316,7 @@ function getShopeeProductCatalogSummary() {
 
 function getShopeeProductCatalogDigest() {
   return crypto.createHash("sha256").update(JSON.stringify({
+    verifiedCopyMatcherDigest: getVerifiedCopyMatcherDigest(),
     automaticQuantityRuleVersion: AUTOMATIC_QUANTITY_RULE_VERSION,
     catalog,
     productAliases,

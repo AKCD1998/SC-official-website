@@ -51,7 +51,7 @@ test('Protect 4 bundles of 3 boxes produces 12 ERP retail boxes, not 36 condoms'
 test('user-confirmed zip sachet remains separate from the historical standard sachet and OTC 18-count', () => {
   const zip = itemFor('I-Herb ไอ-เฮิร์บ', 'เม็ดอม 8 เม็ด');
   expect(resolveCopyProduct(shopCode, zip)).toMatchObject({ sku: 'IC-004806', factor: 1 });
-  expect(resolveCopyProduct(shopCode, { ...zip, variant: 'ยาอม OTC 18 เม็ด' }).reason).toBeTruthy();
+  expect(resolveCopyProduct(shopCode, { ...zip, variant: 'ยาอม OTC 18 เม็ด' })).toMatchObject({ sku: 'IC-005056', factor: 1 });
   const { enrichShopeeOrderItems } = require('../src/modules/seamless/services/shopeeProductMatcher');
   const catalog = require('../src/modules/seamless/data/shopeeProductCatalog.v1.json');
   const original = catalog.records.find(r => r.productId === '40483166601');
