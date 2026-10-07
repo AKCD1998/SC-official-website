@@ -4711,7 +4711,7 @@
       "shopCode": "sc-drug-store",
       "productName": "Klean&Kare Normal Kare น้ำเกลือคลีนแอนด์แคร์ ฝาแหลม 500 มล. / 1000 มล. (แบบยกลัง)",
       "variant": "500 มล. ยกลัง แหลม",
-      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "authority": "user_confirmed_sku_pack_and_stockday_exact_identity_20261007",
       "verifiedOn": "2026-10-07",
       "evidence": {
         "masterEvidenceId": "stockday-all-branches-20261007",
@@ -4722,7 +4722,15 @@
         "masterSourceRow": 4700,
         "erpName": "สามัญ น้ำเกลือคลีนแอนด์แคร์ซาไลน์ ฝาจุก 500 มล",
         "erpBarcode": "8854060609114",
-        "erpUnit": "ขวด"
+        "erpUnit": "ขวด",
+        "sellerGtin": "8854060609121",
+        "identityStatus": "owner_confirmed_company_sku_and_24_bottles_per_sale",
+        "ownerConfirmation": {
+          "caseId": "klean-crate-identity-20261007",
+          "responseSha256": "f6abc5403bb5572ca8f67e8632e7dcf05668e2b75fe60b3a745290b2ffeacdb2",
+          "confirmedOn": "2026-10-07",
+          "scope": "IC-004060, 24 base bottles per crate despite the observed seller/ERP barcode difference; no ERP barcode edits."
+        }
       },
       "companySku": "IC-004060",
       "quantityPerSale": 24

@@ -5,6 +5,15 @@ const { bundleAllocation } = require('../src/modules/seamless/services/shopeeCop
 const shop = 'sc-drug-store';
 const input = (name, variant) => ({ name, variant, quantity: 1, unitPrice: 495, productMatch: { status: 'unmapped' } });
 
+test('owner-confirmed Klean crate uses 24 base bottles and retains both conflicting barcode observations', () => {
+  const rule = rules.rules.find(r => r.variant === '500 มล. ยกลัง แหลม');
+  expect(resolveCopyProduct(shop, input(rule.productName, rule.variant))).toMatchObject({sku:'IC-004060',factor:24,unit:'ขวด'});
+  expect(rule.authority).toContain('user_confirmed');
+  expect(rule.evidence).toMatchObject({sellerGtin:'8854060609121',erpBarcode:'8854060609114',
+    identityStatus:'owner_confirmed_company_sku_and_24_bottles_per_sale'});
+  expect(resolveCopyProduct(shop, input(rule.productName, '500 มล. ยกลัง 12 ขวด')).reason).toBeTruthy();
+});
+
 test.each([
   ['SOS Plus S Series ผ้าก๊อซพร้อมใช้', 'S1-B 3x7 cm 1 box 10 pieces', 'IC-001199', 1],
   ['SOS Plus T Series waterproof dressing', 'T 12x12 cm 1 box 2 pieces', 'IC-001204', 1],

@@ -35,6 +35,10 @@ historical sales quantities or amounts.
 - Keep Polar blue 280 mL ×2 / blue 80 mL ×1 mapped but price-held pending the
   owner's separate allocation answer. A white-gift approval does not authorize
   a blue-gift price allocation.
+- Klean&Kare's seller GTIN 8854060609121 differs from StockDay barcode
+  8854060609114. The owner explicitly confirmed IC-004060 and 24 bottles per
+  crate on 7 October; retain both observations and the hashed confirmation.
+  This confirmation does not edit the ERP barcode or authorize other packs.
 - Bump the matcher version so cached copy results cannot reuse an old digest.
 
 ## Separate business-date issue
