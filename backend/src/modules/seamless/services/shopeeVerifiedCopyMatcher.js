@@ -3,7 +3,7 @@ const rules = require('../data/shopeeAdaSmartCopyRules.v1.json');
 const catalog = require('../data/shopeeProductCatalog.v1.json');
 const { buildAutomaticQuantityRules, extractPackagingQuantities } = require('./shopeeAutomaticQuantityRules');
 
-const VERIFIED_COPY_MATCH_VERSION = 'verified-structural-copy-2026-10-01-v1';
+const VERIFIED_COPY_MATCH_VERSION = 'verified-structural-copy-2026-10-07-v2';
 const UNIT_LABELS = { box: 'กล่อง', sachet: 'ซอง', can: 'กระป๋อง', jar: 'กระปุก',
   piece: 'ชิ้น', blister: 'แผง', pack: 'แพ็ก', bar: 'ก้อน' };
 const MAX_FACTOR = 1000;
@@ -97,9 +97,9 @@ function parseSosPart(text) {
   const dims = values(rest, /(\d+(?:\.\d+)?x\d+(?:\.\d+)?)\s*cm\b/gu);
   if (dims.length && !one(dims)) return null;
   rest = strip(rest, /\d+(?:\.\d+)?x\d+(?:\.\d+)?\s*cm\b/gu);
-  const models = values(rest, /(?:^|\s)(t1-?b|t[1-4]|s[23]|s|m|t)(?=\s|$)/gu).map(v => v.replace('-', ''));
+  const models = values(rest, /(?:^|\s)(t1-?b|s1-?b|t[1-4]|s[23]|s|m|t)(?=\s|$)/gu).map(v => v.replace('-', ''));
   if (models.length && !one(models)) return null;
-  rest = strip(rest, /(?:^|\s)(?:t1-?b|t[1-4]|s[23]|s|m|t)(?=\s|$)/gu);
+  rest = strip(rest, /(?:^|\s)(?:t1-?b|s1-?b|t[1-4]|s[23]|s|m|t)(?=\s|$)/gu);
   if (rest) return null;
   return { model: one(models), dimensions: one(dims), ...pack.quantities };
 }
@@ -158,6 +158,61 @@ function sprayProfile(name, variant, knownTitle) {
   if (!facts?.formula || !facts.volume) return null;
   return { key: JSON.stringify(['propoliz-spray', facts.formula, facts.volume]),
     saleCount: facts.count || 1, saleUnit: 'retail-bottle' };
+}
+
+function lozengeProfile(name, variant, knownTitle, seed) {
+  if (!/lozenge|เม็ดอม/u.test(name) || /spray|สเปรย์|wash|น้ำยาบ้วนปาก/u.test(name)) return null;
+  const part = text => {
+    // Preserve tablets per retail unit separately from units per box.
+    const counts = values(text, /(\d+)\s*(?:เม็ด|\btablets?\b)/gu);
+    if (counts.length && !one(counts)) return null;
+    let rest = strip(text, /\d+\s*(?:เม็ด|\btablets?\b)/gu);
+    const blisters = values(rest, /(\d+)\s*(?:แผง|\bblisters?\b)/gu);
+    if (blisters.length && !one(blisters)) return null;
+    const blister = blisters.length ? Number(one(blisters)) : /แผง|\bblisters?\b/u.test(rest) ? 1 : null;
+    rest = strip(rest, /(?:\d+\s*)?(?:แผง|\bblisters?\b)/gu);
+    const pack = packaging(rest); if (!pack || pack.quantities.bottle || pack.quantities.sheet) return null;
+    rest = pack.rest;
+    const formulae = [];
+    // X must retain its explicit formula. Honey/lemon alone is original only
+    // in a confirmed listing frame; it cannot identify a new X flavour.
+    for (const [formula, pattern] of [
+      ['x', /\bx\b|เอ็กซ์/gu], ['vitc', /\bvit\s*c\b|วิต\s*ซี|ส้ม/gu],
+      ['lozenge', /\blozenge\b|น้ำผึ้งมะนาว|honey\s*lemon|\boriginal\b/gu],
+    ]) {
+      if (pattern.test(rest)) formulae.push(formula);
+      pattern.lastIndex = 0; rest = strip(rest, pattern);
+    }
+    rest = strip(rest, /เม็ดอม/gu);
+    if (rest || unique(formulae).length > 1) return null;
+    return { formula: one(formulae), tablets: counts.length ? Number(one(counts)) : null,
+      ...pack.quantities, ...(blister ? { blister } : {}) };
+  };
+  const title = removeBrand(name, 'propoliz');
+  let facts = knownTitle ? part(variant) : mergeFacts(part(title), part(variant));
+  if (!facts) return null;
+  if (knownTitle && !facts.tablets) {
+    const titleCounts = values(name, /(\d+)\s*เม็ด/gu);
+    const masterCounts = values(normalizeStructuralText(seed?.master?.name || ''), /(\d+)\s*เม็ด/gu);
+    facts.tablets = Number(one(titleCounts) || one(masterCounts)) || null;
+  }
+  if (facts.tablets !== 8 || !facts.formula) return null;
+  const wrap = facts.formula === 'x' ? 'blister' : 'sachet';
+  if ((wrap === 'blister' && facts.sachet) || (wrap === 'sachet' && facts.blister)) return null;
+  if (facts.box) {
+    const content = facts[wrap];
+    if (!content || facts.box > 1) return null;
+    return { key: JSON.stringify(['propoliz-lozenge', facts.formula, 8]),
+      saleUnit: 'box', saleCount: facts.box, content };
+  }
+  if (!knownTitle && !facts[wrap]) return null;
+  return { key: JSON.stringify(['propoliz-lozenge', facts.formula, 8]),
+    saleUnit: wrap, saleCount: facts[wrap] || 1 };
+}
+
+function propolizProfile(name, variant, knownTitle, seed) {
+  return /lozenge|เม็ดอม/u.test(name) ? lozengeProfile(name, variant, knownTitle, seed)
+    : sprayProfile(name, variant, knownTitle);
 }
 
 function parseIherbPart(text) {
@@ -271,7 +326,7 @@ function profileFor(seedOrItem, knownTitle, seed) {
   const variant = normalizeStructuralText(seedOrItem.variant);
   if (hasBundle(`${name} ${variant}`)) return null;
   const family = familyFor(name);
-  const parsers = { sos: sosProfile, propoliz: sprayProfile, iherb: iherbProfile,
+  const parsers = { sos: sosProfile, propoliz: propolizProfile, iherb: iherbProfile,
     bactigras: bactigrasProfile };
   const profile = parsers[family] ? parsers[family](name, variant, knownTitle, seed)
     : ['onegerd', 'deeday'].includes(family) ? sachetProfile(name, variant, knownTitle, family, seed) : null;
