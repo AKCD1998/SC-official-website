@@ -74,3 +74,21 @@ are retained in the private October review output, not copied into this document
 Rollback the matcher/mapping change by reverting its commit. Disable only the
 specific fingerprint- and case-matching private date correction to reverse that
 ledger change; do not rewrite raw source orders or disable unrelated cases.
+
+## Follow-up: positive gift prices
+
+The owner subsequently instructed that gift prices must always be positive and
+authorized a nominal allocation such as 0.10 THB while preserving the original
+bundle amount. This supersedes the earlier zero-price white-gift agreement and
+resolves the blue-gift allocation question. The approved method charges each
+gift ERP base unit 10 satang and assigns the exact remainder to the paid
+component. Quantities, source amounts and BI controls remain unchanged; this
+allocation is explicitly distinguished from an observed Shopee item price.
+
+Both Polar gift identities retain separate, exact private approval records.
+Ordinary paid sales of their gift SKUs stay in separate groups. Invalid or
+nonpositive nominal amounts, changed component factors, ambiguous approval or
+an insufficient bundle amount keep the copy plan under review. Existing methods
+remain supported so deployment can precede the guarded policy replacement.
+The private ledger retains the superseded policy, new approval and rollback
+instructions. No saved AdaSmart document is changed by this follow-up.
