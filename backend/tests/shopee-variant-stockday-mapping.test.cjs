@@ -30,6 +30,7 @@ const fixtures = [
   ['spray', 'Mouth Spray 15 มล.', 'IC-001292', 1, 'กล่อง'],
   ['spray', 'Kid 10 มล.', 'IC-002893', 1, 'ขวด'],
   ['spray', 'Kid 15 มล.', 'IC-002706', 1, 'กล่อง'],
+  ['spray', 'X 15 มล.', 'IC-004453', 1, 'กล่อง'],
   ['blue', 'S3 6x10 ซม.', '630010161', 1, 'กล่อง'],
   ['oneGerd', '1 กล่อง 12 ซอง', 'IC-002441', 12, 'ซอง'],
   ['red', 'M 4x7 ซม.', 'IC-004095', 1, 'กล่อง'],
@@ -75,7 +76,7 @@ test('formula, volume, packaging and brand boundaries remain exact', () => {
   expect(resolveCopyProduct(shopCode, itemFor('lozenges', 'ยาอมโอทีซี 18 เม็ด')).sku).toBe('IC-005056');
   expect(resolveCopyProduct(shopCode, itemFor('syrup', '60 มล')).sku).toBe('IC-004261');
   expect(resolveCopyProduct(shopCode, itemFor('yoki', '100 กรัม')).sku).toBe('IC-005707');
-  expect(resolveCopyProduct(shopCode, itemFor('spray', 'X 15 มล.')).reason).toBeTruthy();
+  expect(resolveCopyProduct(shopCode, itemFor('spray', 'X 20 มล.')).reason).toBeTruthy();
   expect(resolveCopyProduct(shopCode, itemFor('spray', 'Plus 15 มล.')).reason).toBeTruthy();
   expect(resolveCopyProduct(shopCode, itemFor('bakamol', 'ซาร่า 500')).reason).toBeTruthy();
 });
