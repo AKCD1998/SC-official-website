@@ -32,8 +32,19 @@ function sellerAllocationPolicy(policies, shopCode) {
 }
 
 function bundleAllocation(policies, shopCode, item, components, totalCents) {
+  // A renamed listing may reuse an approval only through an exact, evidenced
+  // rule with the same component identities and quantities. Never infer an
+  // approval from a brand name, similar wording, or an equal bundle amount.
+  const rules = require('../data/shopeeAdaSmartCopyRules.v1.json');
+  const alias = rules.rules.find(row => row.shopCode === shopCode
+    && row.productName === item.name && row.variant === (item.variant || '')
+    && row.allocationIdentity && row.evidence?.allocationReuseBasis
+    && row.components?.length === components.length
+    && row.components.every(part => components.some(component =>
+      component.sku === part.companySku && component.factor === part.quantityPerSale)));
+  const identity = alias?.allocationIdentity || { productName: item.name, variant: item.variant || '' };
   const record = approvedPolicy(policies, shopCode, policy => policy?.type === 'bundle'
-    && policy.productName === item.name && policy.variant === (item.variant || ''));
+    && policy.productName === identity.productName && policy.variant === identity.variant);
   const policy = record?.policy;
   if (!policy || !['paid_component_and_free_gift', 'equal_components'].includes(policy.method)
     || !Array.isArray(policy.components) || policy.components.length !== components.length) return null;

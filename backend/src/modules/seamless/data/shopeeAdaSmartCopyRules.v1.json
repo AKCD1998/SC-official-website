@@ -1351,6 +1351,60 @@
       "barcode": "8859243300659",
       "sourceRow": 4773,
       "evidenceId": "stockday-004-20260930"
+    },
+    {
+      "companySku": "630010140",
+      "unit": "แผง",
+      "name": "สามัญ ซาร่า 500 มก เม็ดยาว 10 เม็ด",
+      "sourceRow": 129
+    },
+    {
+      "companySku": "630010165",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์กันน้ำ T3 6X10 ซม 2 แผ่น",
+      "sourceRow": 152
+    },
+    {
+      "companySku": "IC-001204",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 3x3 นิ้ว 2 แผ่น",
+      "sourceRow": 1935
+    },
+    {
+      "companySku": "IC-001199",
+      "unit": "กล่อง",
+      "name": "สามัญ ผ้าก๊อซพร้อมใช้ S1-B 3x7 ซม 10 แผ่น",
+      "sourceRow": 1930
+    },
+    {
+      "companySku": "IC-004060",
+      "unit": "ขวด",
+      "name": "สามัญ น้ำเกลือคลีนแอนด์แคร์ซาไลน์ ฝาจุก 500 มล",
+      "sourceRow": 4700
+    },
+    {
+      "companySku": "IC-004238",
+      "unit": "แผง",
+      "name": "สามัญ พาราแมน เม็ด 500 มก 10 เม็ด",
+      "sourceRow": 4877
+    },
+    {
+      "companySku": "IC-000645",
+      "unit": "กล่อง",
+      "name": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ S 3x3 นิ้ว 3 แผ่น",
+      "sourceRow": 1444
+    },
+    {
+      "companySku": "IC-002909",
+      "unit": "ขวด",
+      "name": "สามัญ ไวต้าซี วิตามินซี มะนาว 25 มก 1000 เม็ด",
+      "sourceRow": 3560
+    },
+    {
+      "companySku": "IC-005200",
+      "unit": "ขวด",
+      "name": "สามัญ ไบโอ กาย่า ดรอปส์ 5 มล",
+      "sourceRow": 5835
     }
   ],
   "rules": [
@@ -4549,6 +4603,495 @@
         "erpUnit": "ซอง",
         "packBasis": "User confirmed this exact combined-listing Fiber Fiber option sells one box of 10 x 18 g sachets. ERP unit is sachet, so one listing sale is 10 ERP units."
       }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+      "variant": "ซาร่า เม็ดยาว",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "57567808462",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57567808462",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "SARA long tablet 500 mg; one retail blister of 10 tablets. Exact seller variant and ERP identity.",
+        "masterSourceRow": 129,
+        "erpName": "สามัญ ซาร่า 500 มก เม็ดยาว 10 เม็ด",
+        "erpBarcode": "8851473006233",
+        "erpUnit": "แผง"
+      },
+      "companySku": "630010140",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T3 6x10 ซม.",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "50268515652",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/50268515652",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Red T-series T3 6x10 cm waterproof dressing; one ERP box of 2 pieces.",
+        "masterSourceRow": 152,
+        "erpName": "สามัญ พลาสเตอร์กันน้ำ T3 6X10 ซม 2 แผ่น",
+        "erpBarcode": "8857122406119",
+        "erpUnit": "กล่อง",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      },
+      "companySku": "630010165",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T 12x12 ซม.",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "50268515652",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/50268515652",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Red T-series T3x3 inch pad, overall 12x12 cm; one ERP retail box of 2 pieces.",
+        "masterSourceRow": 1935,
+        "erpName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 3x3 นิ้ว 2 แผ่น",
+        "erpBarcode": "8859243300666",
+        "erpUnit": "กล่อง",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-พลาสเตอร์ปิดแผลกันน้ำ-tseries"
+      },
+      "companySku": "IC-001204",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Royal-D รอแยล-ดี เครื่องดื่มชนิดผง สูตรเกลือแร่ / สูตรวิตามินบีและซี แบบกล่อง เลือกสูตร",
+      "variant": "องุ่น",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "58167710434",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/58167710434",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Royal-D grape 25 g; seller listing sells one box of 10 sachets. Same confirmed box contents as previous grape listing.",
+        "masterSourceRow": 5727,
+        "erpName": "สามัญ เกลือแร่ รอแยล ดี แบบผง กลิ่นองุ่น 25 กรัม",
+        "erpBarcode": "8852612000181",
+        "erpUnit": "ซอง"
+      },
+      "companySku": "IC-005091",
+      "quantityPerSale": 10
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S1-B 3x7 ซม.",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "29695968791",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/29695968791",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Blue S-series S1-B 3x7 cm ready-to-use gauze; one ERP box of 10 pieces, distinct from red T1-B.",
+        "masterSourceRow": 1930,
+        "erpName": "สามัญ ผ้าก๊อซพร้อมใช้ S1-B 3x7 ซม 10 แผ่น",
+        "erpBarcode": "8859243302141",
+        "erpUnit": "กล่อง",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      },
+      "companySku": "IC-001199",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Klean&Kare Normal Kare น้ำเกลือคลีนแอนด์แคร์ ฝาแหลม 500 มล. / 1000 มล. (แบบยกลัง)",
+      "variant": "500 มล. ยกลัง แหลม",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "46968082376",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/46968082376",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Seller description explicitly states 500 mL pointed cap crate contains 24 bottles. Exact seller SKU IC-004060; ERP base unit bottle. Current stock zero is not a historical-sales exclusion.",
+        "masterSourceRow": 4700,
+        "erpName": "สามัญ น้ำเกลือคลีนแอนด์แคร์ซาไลน์ ฝาจุก 500 มล",
+        "erpBarcode": "8854060609114",
+        "erpUnit": "ขวด"
+      },
+      "companySku": "IC-004060",
+      "quantityPerSale": 24
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+      "variant": "พาราแมน",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "57567808462",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57567808462",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "PARAMAN paracetamol 500 mg; one retail blister of 10 tablets.",
+        "masterSourceRow": 4877,
+        "erpName": "สามัญ พาราแมน เม็ด 500 มก 10 เม็ด",
+        "erpBarcode": "8856513009908",
+        "erpUnit": "แผง"
+      },
+      "companySku": "IC-004238",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S 12x12 ซม.",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "29695968791",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/29695968791",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Blue S-series S3x3 inch pad, overall 12x12 cm; one ERP retail box of 3 pieces.",
+        "masterSourceRow": 1444,
+        "erpName": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ S 3x3 นิ้ว 3 แผ่น",
+        "erpBarcode": "8857122406324",
+        "erpUnit": "กล่อง",
+        "productSpecificationUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      },
+      "companySku": "IC-000645",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "เลมอน,1 กระปุก 1000 เม็ด",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "55662773608",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/55662773608",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Vita-C lemon 25 mg, one jar of 1000 tablets; ERP base unit bottle. Do not convert tablets into ERP quantity.",
+        "masterSourceRow": 3560,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี มะนาว 25 มก 1000 เม็ด",
+        "erpBarcode": "8856513006372",
+        "erpUnit": "ขวด"
+      },
+      "companySku": "IC-002909",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ ลดสิว ผิวหน้า ผิวกาย ลดกลิ่นตัว ขนาด 30g / 80g ของแท้ 100%",
+      "variant": "80 กรัม 3 ก้อน",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "54164731217",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/54164731217",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Myda sulfur soap 80 g, seller variant explicitly sells three bars; ERP base unit bar.",
+        "masterSourceRow": 4139,
+        "erpName": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5 % 80 กรัม",
+        "erpBarcode": "8856513013615",
+        "erpUnit": "ก้อน"
+      },
+      "companySku": "IC-003493",
+      "quantityPerSale": 3
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ สเปรย์ช่องปาก Mouth Spray X Plus กระชาย และ Kid 10/15 มล. เลือกรุ่น",
+      "variant": "X 15 มล.",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "46066159377",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/46066159377",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Propoliz X Mouth Spray 15 mL, one retail bottle/ERP box; existing verified SKU and formula.",
+        "masterSourceRow": 5090,
+        "erpName": "สามัญ โพรโพลิซ เอ็กซ์ เมาท์สเปรย์ 15 มล",
+        "erpBarcode": "8856513014711",
+        "erpUnit": "กล่อง"
+      },
+      "companySku": "IC-004453",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "BioGaia ไบโอ กาย่า โพรไบโอติก Gastrus / เม็ดเคี้ยวเลมอน-ไลม์ / ผง Minipack / Drops ชนิดหยด เลือกสูตร",
+      "variant": "Drops หยด",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "42034154034",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/42034154034",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "BioGaia Drops 5 mL, one bottle. Distinct from Gastrus, lemon-lime tablets and Minipack powder.",
+        "masterSourceRow": 5835,
+        "erpName": "สามัญ ไบโอ กาย่า ดรอปส์ 5 มล",
+        "erpBarcode": "8002660027443",
+        "erpUnit": "ขวด"
+      },
+      "companySku": "IC-005200",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "องุ่น,25 ซอง",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "55662773608",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/55662773608",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Vita-C grape 25 mg, variant explicitly sells 25 sachets of 30 tablets; ERP unit sachet.",
+        "masterSourceRow": 3020,
+        "erpName": "สามัญ ไวต้าซี วิตามินซี กลิ่นองุ่น 25 มก 30 เม็ด",
+        "erpBarcode": "8857121535056",
+        "erpUnit": "ซอง"
+      },
+      "companySku": "IC-002353",
+      "quantityPerSale": 25
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แพ็คคู่ 280 มล. 2 ขวด แถม 80 มล. เลือกฝาฟ้า / Innocence ฝาขาว",
+      "variant": "ฝาฟ้า 2 แถม ฝาฟ้า",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "47918272377",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/47918272377",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Blue 280 mL pair plus blue 80 mL gift; identity verified separately from owner-approved price allocation.",
+        "components": [
+          {
+            "companySku": "IC-002462",
+            "masterSourceRow": 3125,
+            "erpName": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 280 มล",
+            "erpBarcode": "8856513006853",
+            "erpUnit": "กระป๋อง"
+          },
+          {
+            "companySku": "IC-006023",
+            "masterSourceRow": 6657,
+            "erpName": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 80 มล",
+            "erpBarcode": "8856513009113",
+            "erpUnit": "กระป๋อง"
+          }
+        ]
+      },
+      "components": [
+        {
+          "companySku": "IC-002462",
+          "quantityPerSale": 2
+        },
+        {
+          "companySku": "IC-006023",
+          "quantityPerSale": 1
+        }
+      ]
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แพ็คคู่ 280 มล. 2 ขวด แถม 80 มล. เลือกฝาฟ้า / Innocence ฝาขาว",
+      "variant": "ฝาฟ้า 2 แถม ฝาขาว",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "47918272377",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/47918272377",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Blue 280 mL pair plus white 80 mL gift; identical contents to the previously owner-approved white-gift bundle, renamed combined listing.",
+        "components": [
+          {
+            "companySku": "IC-002462",
+            "masterSourceRow": 3125,
+            "erpName": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 280 มล",
+            "erpBarcode": "8856513006853",
+            "erpUnit": "กระป๋อง"
+          },
+          {
+            "companySku": "IC-005557",
+            "masterSourceRow": 6191,
+            "erpName": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 80 มล",
+            "erpBarcode": "8856513015213",
+            "erpUnit": "กระป๋อง"
+          }
+        ],
+        "allocationReuseBasis": "Same paid and gift SKU quantities, same white-gift option; reuse only the existing enabled owner-approved policy after matching its exact component vector."
+      },
+      "components": [
+        {
+          "companySku": "IC-002462",
+          "quantityPerSale": 2
+        },
+        {
+          "companySku": "IC-005557",
+          "quantityPerSale": 1
+        }
+      ],
+      "allocationIdentity": {
+        "productName": "Polar Spray โพลาร์ สเปรย์ แพ็คคู่ 280 มล. ฟ้า 2 ขวด แถม ขาว 80 มล. 1 ขวด",
+        "variant": "ฝาฟ้า 2 แถม ฝาขาว"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด 30 เม็ด 1000 เม็ด | Vitamin C Tablet",
+      "variant": "สตรอว์เบอร์รี่,25 ซอง",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "55662773608",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/55662773608",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Vita-C strawberry 25 mg, variant explicitly sells 25 sachets of 30 tablets; ERP unit sachet.",
+        "masterSourceRow": 3148,
+        "erpName": "สามัญ ไวต้าซี วิตามินซีกลิ่นสตอเบอรี่ 25 มก 30 เม็ด",
+        "erpBarcode": "8857121535858",
+        "erpUnit": "ซอง"
+      },
+      "companySku": "IC-002485",
+      "quantityPerSale": 25
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+      "variant": "ไทลินอล 500",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "57567808462",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57567808462",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "TYLENOL 500 mg, exact seller SKU; one ERP retail blister of 10 tablets, distinct from TYLENOL 4-tablet pack.",
+        "masterSourceRow": 96,
+        "erpName": "สามัญ ไทลินอล 500 มก 10 เม็ด",
+        "erpBarcode": "8850007850229",
+        "erpUnit": "แผง"
+      },
+      "companySku": "630010105",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม แบบยกกล่อง Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "Lozenge กล่อง 10 ซอง",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "45666159990",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/45666159990",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Propoliz original Lozenge honey-lemon, explicitly one box of 10 sachets; each ERP sachet contains 8 tablets.",
+        "masterSourceRow": 2755,
+        "erpName": "สามัญ โพรโพลิซเม็ดอมมะนาวขิง 8 เม็ด",
+        "erpBarcode": "8856513011215",
+        "erpUnit": "ซอง"
+      },
+      "companySku": "IC-002080",
+      "quantityPerSale": 10
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม 8 เม็ด Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "น้ำผึ้งมะนาว",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "57666141262",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57666141262",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Propoliz original Lozenge honey-lemon, one sachet of 8 tablets; exact seller variant/SKU, not Propoliz X.",
+        "masterSourceRow": 2755,
+        "erpName": "สามัญ โพรโพลิซเม็ดอมมะนาวขิง 8 เม็ด",
+        "erpBarcode": "8856513011215",
+        "erpUnit": "ซอง"
+      },
+      "companySku": "IC-002080",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม 8 เม็ด Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "ส้ม วิต ซี",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "57666141262",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57666141262",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Propoliz Vit C orange, one sachet of 8 tablets; exact seller variant/SKU.",
+        "masterSourceRow": 4212,
+        "erpName": "สามัญ โพรโพลิซเม็ดอมวิตามินซี  8 เม็ด",
+        "erpBarcode": "8856513013721",
+        "erpUnit": "ซอง"
+      },
+      "companySku": "IC-003569",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม 8 เม็ด Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "X 8 เม็ด",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "57666141262",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57666141262",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Propoliz X 8 tablets, one blister; exact live seller SKU and GTIN 8856513015084.",
+        "masterSourceRow": 5237,
+        "erpName": "สามัญ โพรโพลิส เอ็กซ์ ชนิดเม็ดอม กลิ่นน้ำผึ้งมะนาว 8 เม็ด",
+        "erpBarcode": "8856513015084",
+        "erpUnit": "แผง"
+      },
+      "companySku": "IC-004601",
+      "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แป้งโยคี ในรัศมีวงกลม / โยคี (1997) รวมรุ่นและขนาด เลือกได้",
+      "variant": "รัศมีวงกลม 60 กรัม",
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261007",
+      "verifiedOn": "2026-10-07",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261007",
+        "sellerProductId": "42584807676",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/42584807676",
+        "sellerCatalogCapturedAt": "2026-10-07T02:21:21.733Z",
+        "packBasis": "Yoki in circle logo original powder 60 g, one can; distinct from Yoki 1997 and other sizes.",
+        "masterSourceRow": 1604,
+        "erpName": "สามัญ แป้งโยคีในรัศมีวงกลม 60 กรัม",
+        "erpBarcode": "8858672900027",
+        "erpUnit": "กระป๋อง"
+      },
+      "companySku": "IC-000818",
+      "quantityPerSale": 1
     }
   ],
   "unitEquivalences": [
@@ -4605,6 +5148,17 @@
       "verifiedOn": "2026-09-30",
       "syncAt": "2026-09-30T08:21:03+07:00",
       "scope": "SC004 ERP SKU identity, barcode and base unit only; no master prices or stock balances"
+    },
+    {
+      "id": "stockday-all-branches-20261007",
+      "filename": "StockDay-all-branches-20261007.xlsx",
+      "sha256": "5e9729a0138db359dedc1aac393e400e88d7571548b5b695d72e439264ec4cd9",
+      "url": "https://sc-stockday-ordering.onrender.com/#/branch-stock",
+      "sheet": "ทุกสาขา",
+      "branch": "004",
+      "verifiedOn": "2026-10-07",
+      "syncAt": "2026-10-07T01:21:09.675000Z",
+      "scope": "ERP SKU identity, barcode and base unit only; no master prices or stock balances"
     }
   ]
 }

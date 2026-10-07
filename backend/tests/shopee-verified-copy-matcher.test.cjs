@@ -173,5 +173,5 @@ test('real sanitized/enriched copy flow reuses renamed mappings and preserves sa
 test('the cache digest accounts for the matcher version and durable mapping evidence', () => {
   expect(getVerifiedCopyMatcherDigest()).toMatch(/^[a-f0-9]{64}$/u);
   expect(getShopeeProductCatalogDigest()).toMatch(/^[a-f0-9]{64}$/u);
-  expect(VERIFIED_COPY_MATCH_VERSION).toBe('verified-structural-copy-2026-10-01-v1');
+  expect(VERIFIED_COPY_MATCH_VERSION).toBe('verified-structural-copy-2026-10-07-v2');
 });
