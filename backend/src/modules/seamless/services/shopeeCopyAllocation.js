@@ -46,19 +46,39 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
   const record = approvedPolicy(policies, shopCode, policy => policy?.type === 'bundle'
     && policy.productName === identity.productName && policy.variant === identity.variant);
   const policy = record?.policy;
-  if (!policy || !['paid_component_and_free_gift', 'equal_components'].includes(policy.method)
+  if (!policy || !['paid_component_and_free_gift', 'paid_component_with_nominal_gift_price', 'equal_components'].includes(policy.method)
     || !Array.isArray(policy.components) || policy.components.length !== components.length) return null;
   const parts = components.map(component => ({ ...component,
     allocation: policy.components.find(row => row.sku === component.sku && row.factor === component.factor) }));
   if (parts.some(row => !row.allocation || !Number.isSafeInteger(row.allocation.weight) || row.allocation.weight < 0)
     || new Set(policy.components.map(row => row.sku)).size !== components.length) return null;
-  if (policy.method === 'paid_component_and_free_gift' && (parts.filter(row => row.allocation.weight > 0).length !== 1
+  if (['paid_component_and_free_gift', 'paid_component_with_nominal_gift_price'].includes(policy.method)
+    && (parts.filter(row => row.allocation.weight > 0).length !== 1
     || parts.some(row => row.allocation.weight === 0 && row.allocation.freeGift !== true)
     || parts.some(row => row.allocation.weight > 0 && row.allocation.freeGift === true))) return null;
   if (policy.method === 'equal_components' && (parts.some(row => row.allocation.weight !== 1 || row.allocation.freeGift)
     || !Number.isSafeInteger(policy.sourcePriceCentsPerSale)
     || totalCents !== policy.sourcePriceCentsPerSale * item.quantity)) return null;
-  const amounts = allocateCents(totalCents, parts.map(row => row.allocation.weight));
+  let amounts;
+  if (policy.method === 'paid_component_with_nominal_gift_price') {
+    // This is an approved accounting allocation, not a source selling price.
+    // Charge each gift base unit its positive nominal amount, then assign the
+    // exact remainder to the one paid component. Never add money to the bundle.
+    if (!Number.isSafeInteger(totalCents) || totalCents < 0
+      || !Number.isSafeInteger(item.quantity) || item.quantity < 1
+      || parts.some(row => !Number.isSafeInteger(row.factor) || row.factor < 1)
+      || !parts.some(row => row.allocation.freeGift === true)
+      || parts.some(row => row.allocation.freeGift
+        ? !Number.isSafeInteger(row.allocation.giftUnitPriceCents) || row.allocation.giftUnitPriceCents < 1
+        : row.allocation.giftUnitPriceCents !== undefined)) return null;
+    const fixed = parts.map(row => row.allocation.freeGift
+      ? BigInt(row.allocation.giftUnitPriceCents) * BigInt(row.factor) * BigInt(item.quantity) : 0n);
+    const remaining = BigInt(totalCents) - fixed.reduce((sum, amount) => sum + amount, 0n);
+    const paid = parts.find(row => !row.allocation.freeGift);
+    if (remaining < BigInt(paid.factor) * BigInt(item.quantity)) return null;
+    amounts = fixed.map((amount, index) => Number(parts[index].allocation.freeGift ? amount : remaining));
+    if (amounts.some(amount => !Number.isSafeInteger(amount))) return null;
+  } else amounts = allocateCents(totalCents, parts.map(row => row.allocation.weight));
   if (!amounts) return null;
   return { record, components: parts.map((row, index) => ({ sku: row.sku, factor: row.factor,
     name: row.name, unit: row.unit, amountCents: amounts[index], freeGift: row.allocation.freeGift === true })) };
