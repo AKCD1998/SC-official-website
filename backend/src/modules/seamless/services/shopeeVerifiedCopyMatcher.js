@@ -3,7 +3,7 @@ const rules = require('../data/shopeeAdaSmartCopyRules.v1.json');
 const catalog = require('../data/shopeeProductCatalog.v1.json');
 const { buildAutomaticQuantityRules, extractPackagingQuantities } = require('./shopeeAutomaticQuantityRules');
 
-const VERIFIED_COPY_MATCH_VERSION = 'verified-structural-copy-2026-10-07-v2';
+const VERIFIED_COPY_MATCH_VERSION = 'verified-structural-copy-2026-10-08-v3';
 const UNIT_LABELS = { box: 'กล่อง', sachet: 'ซอง', can: 'กระป๋อง', jar: 'กระปุก',
   piece: 'ชิ้น', blister: 'แผง', pack: 'แพ็ก', bar: 'ก้อน' };
 const MAX_FACTOR = 1000;
@@ -61,6 +61,9 @@ function familyFor(name) {
   if (/\bbactigras\b|แบคติกราส/u.test(name)) return 'bactigras';
   if (/\bone\s*gerd\b|วันเกิร์ด/u.test(name)) return 'onegerd';
   if (/\bdeeday\b|ดีเดย์/u.test(name)) return 'deeday';
+  if (/\bpolar\b|โพลาร์/u.test(name) && /spray|สเปรย์/u.test(name)) return 'polar';
+  if (/\bmyda\b|ไมด้า/u.test(name) && /soap|สบู่/u.test(name)) return 'myda';
+  if (/\byoki\b|โยคี/u.test(name) && /powder|แป้ง/u.test(name)) return 'yoki';
   return null;
 }
 function removeBrand(text, family) {
@@ -177,13 +180,18 @@ function lozengeProfile(name, variant, knownTitle, seed) {
     // X must retain its explicit formula. Honey/lemon alone is original only
     // in a confirmed listing frame; it cannot identify a new X flavour.
     for (const [formula, pattern] of [
-      ['x', /\bx\b|เอ็กซ์/gu], ['vitc', /\bvit\s*c\b|วิต\s*ซี|ส้ม/gu],
-      ['lozenge', /\blozenge\b|น้ำผึ้งมะนาว|honey\s*lemon|\boriginal\b/gu],
+      // Remove the full Extherb name before testing the shorter Thai X token.
+      ['extherb', /\bextherb\b|เอ็ก(?:ซ์|ซ)?(?:เฮิร์บ|เธิร์บ)/gu], ['x', /\bx\b|เอ็กซ์/gu],
+      ['vitc', /\bvit\s*c\b|วิต\s*ซี|ส้ม/gu],
+      ['lozenge', /น้ำผึ้งมะนาว|honey\s*lemon|\boriginal\b/gu],
     ]) {
       if (pattern.test(rest)) formulae.push(formula);
       pattern.lastIndex = 0; rest = strip(rest, pattern);
     }
-    rest = strip(rest, /เม็ดอม/gu);
+    // Lozenge is also a category word in "Extherb Lozenge". The explicit
+    // formula takes precedence; Lozenge alone retains the original profile.
+    if (!formulae.length && /\blozenge\b/u.test(rest)) formulae.push('lozenge');
+    rest = strip(rest, /เม็ดอม|\blozenge\b/gu);
     if (rest || unique(formulae).length > 1) return null;
     return { formula: one(formulae), tablets: counts.length ? Number(one(counts)) : null,
       ...pack.quantities, ...(blister ? { blister } : {}) };
@@ -197,7 +205,7 @@ function lozengeProfile(name, variant, knownTitle, seed) {
     facts.tablets = Number(one(titleCounts) || one(masterCounts)) || null;
   }
   if (facts.tablets !== 8 || !facts.formula) return null;
-  const wrap = facts.formula === 'x' ? 'blister' : 'sachet';
+  const wrap = ['x', 'extherb'].includes(facts.formula) ? 'blister' : 'sachet';
   if ((wrap === 'blister' && facts.sachet) || (wrap === 'sachet' && facts.blister)) return null;
   if (facts.box) {
     const content = facts[wrap];
@@ -321,13 +329,96 @@ function bactigrasProfile(name, variant, knownTitle) {
     saleCount: facts.box, content: facts.sheet || null };
 }
 
+// Packs of one verified ERP SKU can scale without a new hand-written mapping
+// for each count. Formula/model and per-unit size remain part of the identity.
+function retailCount(text, aliases) {
+  const counts = values(text, new RegExp(`(\\d+)\\s*(?:${aliases.source})`, 'gu'));
+  if (counts.length && !one(counts)) return null;
+  const bare = new RegExp(aliases.source, 'gu').test(text);
+  const count = counts.length ? Number(one(counts)) : bare ? 1 : null;
+  if (count != null && (!Number.isSafeInteger(count) || count < 1 || count > MAX_FACTOR)) return null;
+  return { count, rest: strip(text, new RegExp(`(?:\\d+\\s*)?(?:${aliases.source})`, 'gu')) };
+}
+function mydaProfile(name, variant, knownTitle, seed) {
+  const part = text => {
+    const size = parseSize(text, 'g'); if (!size) return null;
+    const pack = retailCount(size.rest, /ก้อน|\bbars?\b/gu); if (!pack) return null;
+    return { size: size.size, count: pack.count, rest: pack.rest };
+  };
+  const option = part(variant); if (!option) return null;
+  let facts = option;
+  if (!knownTitle) {
+    const title = strip(name, /\bmyda\b|ไมด้า|\bsoap\b|สบู่|\bsulfur\b|ซัลเฟอร์|2\.5\s*%/gu);
+    const header = part(title); if (!header || header.rest) return null;
+    facts = mergeFacts(header, option);
+    if (!facts || !/\bsulfur\b|ซัลเฟอร์/u.test(name) || !/2\.5\s*%/u.test(name)) return null;
+  }
+  if (facts.rest || !facts.size || (!knownTitle && !facts.count)) return null;
+  if (knownTitle && !/2\.5\s*%/u.test(name) && !/2\.5\s*%/u.test(normalizeStructuralText(seed?.master?.name))) return null;
+  return { key: JSON.stringify(['myda-soap', 'sulfur-2.5', facts.size]), saleUnit: 'bar',
+    saleCount: facts.count || seed?.quantityPerSale || 1 };
+}
+function polarProfile(name, variant, knownTitle, seed) {
+  const part = text => {
+    const size = parseSize(text, 'ml'); if (!size) return null;
+    const pack = retailCount(size.rest, /กระป๋อง|กป\.?|\bcans?\b/gu); if (!pack) return null;
+    const formulae = [];
+    if (/ฝาฟ้า|\bblue\b/u.test(pack.rest)) formulae.push('blue');
+    if (/ฝาขาว|\bwhite\b|\binnocence\b|อินโนเซนส์|สูตรอ่อนโยน/u.test(pack.rest)) formulae.push('white');
+    if (unique(formulae).length > 1) return null;
+    const rest = strip(pack.rest, /ฝาฟ้า|ฝาขาว|\bblue\b|\bwhite\b|\binnocence\b|อินโนเซนส์|สูตรอ่อนโยน/gu);
+    return { size: size.size, count: pack.count, formula: one(formulae), rest };
+  };
+  let facts = part(variant); if (!facts) return null;
+  if (!knownTitle) {
+    const header = part(strip(name, /\bpolar\b|โพลาร์|\bspray\b|สเปรย์/gu));
+    if (!header || header.rest) return null;
+    facts = mergeFacts(header, facts);
+  }
+  if (!facts || facts.rest || (!knownTitle && (!facts.count || !facts.formula || !facts.size))) return null;
+  if (knownTitle) {
+    const master = normalizeStructuralText(seed?.master?.name);
+    if (!facts.size) facts.size = parseSize(master, 'ml')?.size;
+    if (!facts.formula && /โพลาร์.*ยูคาลิปตัส/u.test(master)) facts.formula = /อินโนเซนส์|สูตรอ่อนโยน/u.test(master) ? 'white' : 'blue';
+  }
+  if (!facts.size || !facts.formula) return null;
+  return { key: JSON.stringify(['polar-spray', facts.formula, facts.size]), saleUnit: 'can',
+    saleCount: facts.count || seed?.quantityPerSale || 1 };
+}
+function yokiProfile(name, variant, knownTitle, seed) {
+  const part = text => {
+    const size = parseSize(text, 'g'); if (!size) return null;
+    const pack = retailCount(size.rest, /ขวด|กระป๋อง|\bbottles?\b|\bcans?\b/gu); if (!pack) return null;
+    const models = [];
+    if (/1997/u.test(pack.rest)) models.push('1997');
+    if (/รัศมีวงกลม|รัสมีวงกลม|\bcircle\b/u.test(pack.rest)) models.push('circle');
+    if (unique(models).length > 1) return null;
+    return { size: size.size, count: pack.count, model: one(models),
+      rest: strip(pack.rest, /\byoki\b|โยคี|1997|ในรัศมีวงกลม|รัศมีวงกลม|ในรัสมีวงกลม|รัสมีวงกลม|\bcircle\b/gu) };
+  };
+  let facts = part(variant); if (!facts) return null;
+  if (!knownTitle) {
+    const header = part(strip(name, /\bpowder\b|แป้ง/gu)); if (!header || header.rest) return null;
+    facts = mergeFacts(header, facts);
+  }
+  if (!facts || facts.rest || !facts.size || (!knownTitle && (!facts.count || !facts.model))) return null;
+  if (knownTitle && !facts.model) {
+    const master = normalizeStructuralText(seed?.master?.name);
+    if (/รัศมีวงกลม|รัสมีวงกลม/u.test(master)) facts.model = 'circle';
+    else if (/1997/u.test(normalizeStructuralText(seed?.variant))) facts.model = '1997';
+  }
+  if (!facts.model) return null;
+  return { key: JSON.stringify(['yoki-powder', facts.model, facts.size]), saleUnit: 'retail-unit',
+    saleCount: facts.count || seed?.quantityPerSale || 1 };
+}
+
 function profileFor(seedOrItem, knownTitle, seed) {
   const name = normalizeStructuralText(seedOrItem.productName || seedOrItem.name);
   const variant = normalizeStructuralText(seedOrItem.variant);
   if (hasBundle(`${name} ${variant}`)) return null;
   const family = familyFor(name);
   const parsers = { sos: sosProfile, propoliz: propolizProfile, iherb: iherbProfile,
-    bactigras: bactigrasProfile };
+    bactigras: bactigrasProfile, myda: mydaProfile, polar: polarProfile, yoki: yokiProfile };
   const profile = parsers[family] ? parsers[family](name, variant, knownTitle, seed)
     : ['onegerd', 'deeday'].includes(family) ? sachetProfile(name, variant, knownTitle, family, seed) : null;
   return profile ? { ...profile, family } : null;
