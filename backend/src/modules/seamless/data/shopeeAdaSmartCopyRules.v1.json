@@ -1405,6 +1405,38 @@
       "unit": "ขวด",
       "name": "สามัญ ไบโอ กาย่า ดรอปส์ 5 มล",
       "sourceRow": 5835
+    },
+    {
+      "companySku": "IC-004133",
+      "unit": "กล่อง",
+      "name": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ S 2x4 3 ชิ้น",
+      "sourceRow": 4773,
+      "barcode": "8857122406331",
+      "masterEvidenceId": "stockday-all-branches-20261008"
+    },
+    {
+      "companySku": "IC-000522",
+      "unit": "กล่อง",
+      "name": "สามัญ พลาสเตอร์ผ้าก๊อซ 10X20 CM S 2แผ่น",
+      "sourceRow": 1327,
+      "barcode": "8857122406263",
+      "masterEvidenceId": "stockday-all-branches-20261008"
+    },
+    {
+      "companySku": "630010243",
+      "unit": "ขวด",
+      "name": "สามัญ แป้งโยคี 60 กรัม",
+      "sourceRow": 221,
+      "barcode": "8851124890600",
+      "masterEvidenceId": "stockday-all-branches-20261008"
+    },
+    {
+      "companySku": "630010244",
+      "unit": "ขวด",
+      "name": "สามัญ แป้งโยคี 100 กรัม",
+      "sourceRow": 222,
+      "barcode": "8851124891003",
+      "masterEvidenceId": "stockday-all-branches-20261008"
     }
   ],
   "rules": [
@@ -5100,6 +5132,428 @@
       },
       "companySku": "IC-000818",
       "quantityPerSale": 1
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม แบบยกกล่อง Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "Vit C กล่อง 10 ซอง",
+      "companySku": "IC-003569",
+      "quantityPerSale": 10,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 4212,
+        "erpName": "สามัญ โพรโพลิซเม็ดอมวิตามินซี  8 เม็ด",
+        "erpBarcode": "8856513013721",
+        "erpUnit": "ซอง",
+        "sellerProductId": "45666159990",
+        "sellerVariationId": "326376723748",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/45666159990",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Propoliz formula and explicit sachets or blisters per purchased box; ERP retail sachet/blister contains eight tablets."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม แบบยกกล่อง Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "Extherb กล่อง 15 แผง",
+      "companySku": "IC-004857",
+      "quantityPerSale": 15,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 5493,
+        "erpName": "สามัญ โพรโพลิซ เอ็กเฮิร์บ ชนิดเม็ดอม 8 เม็ด",
+        "erpBarcode": "8856513015152",
+        "erpUnit": "แผง",
+        "sellerProductId": "45666159990",
+        "sellerVariationId": "188881401905",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/45666159990",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Propoliz formula and explicit sachets or blisters per purchased box; ERP retail sachet/blister contains eight tablets."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม แบบยกกล่อง Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "X กล่อง 15 แผง",
+      "companySku": "IC-004601",
+      "quantityPerSale": 15,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 5237,
+        "erpName": "สามัญ โพรโพลิส เอ็กซ์ ชนิดเม็ดอม กลิ่นน้ำผึ้งมะนาว 8 เม็ด",
+        "erpBarcode": "8856513015084",
+        "erpUnit": "แผง",
+        "sellerProductId": "45666159990",
+        "sellerVariationId": "188881401906",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/45666159990",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Propoliz formula and explicit sachets or blisters per purchased box; ERP retail sachet/blister contains eight tablets."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาฟ้า 80 มล. 48 กป.",
+      "companySku": "IC-006023",
+      "quantityPerSale": 48,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 6657,
+        "erpName": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 80 มล",
+        "erpBarcode": "8856513009113",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "297997283546",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาฟ้า 280 มล. 12 กป.",
+      "companySku": "IC-002462",
+      "quantityPerSale": 12,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 3125,
+        "erpName": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 280 มล",
+        "erpBarcode": "8856513006853",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "297997283547",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาขาว 80 มล. 48 กป.",
+      "companySku": "IC-005557",
+      "quantityPerSale": 48,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 6191,
+        "erpName": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 80 มล",
+        "erpBarcode": "8856513015213",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "297997283548",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาขาว 280 มล. 12 กป.",
+      "companySku": "IC-005185",
+      "quantityPerSale": 12,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 5820,
+        "erpName": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 280 มล",
+        "erpBarcode": "8856513012731",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "297997283549",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาฟ้า 80 มล. 12 กป.",
+      "companySku": "IC-006023",
+      "quantityPerSale": 12,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 6657,
+        "erpName": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 80 มล",
+        "erpBarcode": "8856513009113",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "307997594866",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาฟ้า 280 มล. 6 กป.",
+      "companySku": "IC-002462",
+      "quantityPerSale": 6,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 3125,
+        "erpName": "สามัญ โพลาร์ สเปรย์ กลิ่นยูคาลิปตัส 280 มล",
+        "erpBarcode": "8856513006853",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "307997594867",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาขาว 80 มล. 12 กป.",
+      "companySku": "IC-005557",
+      "quantityPerSale": 12,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 6191,
+        "erpName": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 80 มล",
+        "erpBarcode": "8856513015213",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "307997594868",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แบบยกลัง ฝาฟ้าและ Innocence ฝาขาว (ยกลัง 80 มล. 48 กระป๋อง / 280 มล. 12 กระป๋อง)",
+      "variant": "ฝาขาว 280 มล. 6 กป.",
+      "companySku": "IC-005185",
+      "quantityPerSale": 6,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 5820,
+        "erpName": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 280 มล",
+        "erpBarcode": "8856513012731",
+        "erpUnit": "กระป๋อง",
+        "sellerProductId": "57468770472",
+        "sellerVariationId": "307997594869",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57468770472",
+        "sellerCatalogCapturedAt": "2026-10-08T02:42:32.128Z",
+        "packBasis": "Selected Polar cap formula and per-can volume, with explicit number of identical cans; no free gift or mixed SKU."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S 9x15 ซม.",
+      "companySku": "IC-004133",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 4773,
+        "erpName": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ S 2x4 3 ชิ้น",
+        "erpBarcode": "8857122406331",
+        "erpUnit": "กล่อง",
+        "sellerProductId": "29695968791",
+        "sellerVariationId": "311555660541",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/29695968791",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.192Z",
+        "packBasis": "Selected blue S-series model and outer dimensions; seller exact SKU and manufacturer retail-box specifications. One ERP box per sale, not individual dressing pieces.",
+        "manufacturerSourceUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S 10x20 ซม.",
+      "companySku": "IC-000522",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 1327,
+        "erpName": "สามัญ พลาสเตอร์ผ้าก๊อซ 10X20 CM S 2แผ่น",
+        "erpBarcode": "8857122406263",
+        "erpUnit": "กล่อง",
+        "sellerProductId": "29695968791",
+        "sellerVariationId": "311555660542",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/29695968791",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.192Z",
+        "packBasis": "Selected blue S-series model and outer dimensions; seller exact SKU and manufacturer retail-box specifications. One ERP box per sale, not individual dressing pieces.",
+        "manufacturerSourceUrl": "https://www.bangkokwellbeing.co.th/products-sosplus-ผ้าก๊อสปิดแผลพร้อมใช้-s-series"
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ ลดสิว ผิวหน้า ผิวกาย ลดกลิ่นตัว ขนาด 30g / 80g ของแท้ 100%",
+      "variant": "30 กรัม 1 ก้อน",
+      "companySku": "IC-003560",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 4203,
+        "erpName": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5% 30 กรัม",
+        "erpBarcode": "8856513013608",
+        "erpUnit": "ก้อน",
+        "sellerProductId": "54164731217",
+        "sellerVariationId": "401266133065",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/54164731217",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.193Z",
+        "packBasis": "Selected Myda sulfur 2.5% bar size and explicit bar count; same listing single-bar SKU and StockDay identity establish the base unit."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ ลดสิว ผิวหน้า ผิวกาย ลดกลิ่นตัว ขนาด 30g / 80g ของแท้ 100%",
+      "variant": "80 กรัม 1 ก้อน",
+      "companySku": "IC-003493",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 4139,
+        "erpName": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5 % 80 กรัม",
+        "erpBarcode": "8856513013615",
+        "erpUnit": "ก้อน",
+        "sellerProductId": "54164731217",
+        "sellerVariationId": "401266133066",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/54164731217",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.193Z",
+        "packBasis": "Selected Myda sulfur 2.5% bar size and explicit bar count; same listing single-bar SKU and StockDay identity establish the base unit."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "สบู่ไมด้า Myda Soap Sulfur 2.5% สบู่ซัลเฟอร์ ลดสิว ผิวหน้า ผิวกาย ลดกลิ่นตัว ขนาด 30g / 80g ของแท้ 100%",
+      "variant": "30 กรัม 3 ก้อน",
+      "companySku": "IC-003560",
+      "quantityPerSale": 3,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 4203,
+        "erpName": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5% 30 กรัม",
+        "erpBarcode": "8856513013608",
+        "erpUnit": "ก้อน",
+        "sellerProductId": "54164731217",
+        "sellerVariationId": "302994773912",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/54164731217",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.193Z",
+        "packBasis": "Selected Myda sulfur 2.5% bar size and explicit bar count; same listing single-bar SKU and StockDay identity establish the base unit."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Propoliz โพรโพลิซ เม็ดอม 8 เม็ด Lozenge / Vit C / Extherb / X เลือกรุ่น",
+      "variant": "Extherb 8 เม็ด",
+      "companySku": "IC-004857",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 5493,
+        "erpName": "สามัญ โพรโพลิซ เอ็กเฮิร์บ ชนิดเม็ดอม 8 เม็ด",
+        "erpBarcode": "8856513015152",
+        "erpUnit": "แผง",
+        "sellerProductId": "57666141262",
+        "sellerVariationId": "267997716286",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/57666141262",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.194Z",
+        "packBasis": "Selected Propoliz formula, eight tablets in one evidenced ERP sachet/blister; Extherb and X remain separate from original/Vit C."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แป้งโยคี ในรัศมีวงกลม / โยคี (1997) รวมรุ่นและขนาด เลือกได้",
+      "variant": "รัศมีวงกลม 100 กรัม",
+      "companySku": "IC-005707",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 6341,
+        "erpName": "สามัญ แป้งโยคีในรัสมีวงกลม 100 กรัม",
+        "erpBarcode": "8858672900034",
+        "erpUnit": "ขวด",
+        "sellerProductId": "42584807676",
+        "sellerVariationId": "321553779196",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/42584807676",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.194Z",
+        "packBasis": "Selected Yoki model (circle-logo or 1997) and per-container gram size; exact seller SKU identifies one StockDay base container."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แป้งโยคี ในรัศมีวงกลม / โยคี (1997) รวมรุ่นและขนาด เลือกได้",
+      "variant": "โยคี1997 60 กรัม",
+      "companySku": "630010243",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 221,
+        "erpName": "สามัญ แป้งโยคี 60 กรัม",
+        "erpBarcode": "8851124890600",
+        "erpUnit": "ขวด",
+        "sellerProductId": "42584807676",
+        "sellerVariationId": "302997694110",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/42584807676",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.194Z",
+        "packBasis": "Selected Yoki model (circle-logo or 1997) and per-container gram size; exact seller SKU identifies one StockDay base container."
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แป้งโยคี ในรัศมีวงกลม / โยคี (1997) รวมรุ่นและขนาด เลือกได้",
+      "variant": "โยคี1997 100 กรัม",
+      "companySku": "630010244",
+      "quantityPerSale": 1,
+      "authority": "seller_catalog_and_stockday_verified_exact_identity_20261008",
+      "verifiedOn": "2026-10-08",
+      "evidence": {
+        "masterEvidenceId": "stockday-all-branches-20261008",
+        "masterSourceRow": 222,
+        "erpName": "สามัญ แป้งโยคี 100 กรัม",
+        "erpBarcode": "8851124891003",
+        "erpUnit": "ขวด",
+        "sellerProductId": "42584807676",
+        "sellerVariationId": "302997694111",
+        "sellerProductUrl": "https://seller.shopee.co.th/portal/product/42584807676",
+        "sellerCatalogCapturedAt": "2026-10-08T02:43:26.194Z",
+        "packBasis": "Selected Yoki model (circle-logo or 1997) and per-container gram size; exact seller SKU identifies one StockDay base container."
+      }
     }
   ],
   "unitEquivalences": [
@@ -5167,6 +5621,16 @@
       "verifiedOn": "2026-10-07",
       "syncAt": "2026-10-07T01:21:09.675000Z",
       "scope": "ERP SKU identity, barcode and base unit only; no master prices or stock balances"
+    },
+    {
+      "id": "stockday-all-branches-20261008",
+      "filename": "StockDay-all-branches-20261008.xlsx",
+      "sha256": "d521dd9ca6748acdeb66a1f8d350d66e077f61b3da23b4c941c9fd16e8125853",
+      "sheet": "ทุกสาขา",
+      "syncAt": "2026-10-08T01:21:03.150000Z",
+      "verifiedOn": "2026-10-08",
+      "sourceUrl": "https://sc-stockday-ordering.onrender.com/#/branch-stock",
+      "scope": "Exact ERP identities and base units only; no stock or master prices used for historical sales."
     }
   ]
 }

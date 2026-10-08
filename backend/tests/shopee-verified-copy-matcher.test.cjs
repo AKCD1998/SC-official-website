@@ -173,5 +173,95 @@ test('real sanitized/enriched copy flow reuses renamed mappings and preserves sa
 test('the cache digest accounts for the matcher version and durable mapping evidence', () => {
   expect(getVerifiedCopyMatcherDigest()).toMatch(/^[a-f0-9]{64}$/u);
   expect(getShopeeProductCatalogDigest()).toMatch(/^[a-f0-9]{64}$/u);
-  expect(VERIFIED_COPY_MATCH_VERSION).toBe('verified-structural-copy-2026-10-07-v2');
+  expect(VERIFIED_COPY_MATCH_VERSION).toBe('verified-structural-copy-2026-10-08-v3');
+});
+
+const additionalPackCases = [
+  ['Polar Spray blue 280 ml', '24 cans', 'IC-002462', 24],
+  ['Polar Spray white 80 ml', '3 cans', 'IC-005557', 3],
+  ['Polar Spray Innocence 280 ml', '6 cans', 'IC-005185', 6],
+  ['Polar Spray blue 80 ml', '48 cans', 'IC-006023', 48],
+  ['Myda Soap Sulfur 2.5% 30 g', '5 bars', 'IC-003560', 5],
+  ['Myda Soap Sulfur 2.5% 80 g', '2 bars', 'IC-003493', 2],
+  ['Yoki powder 1997 100 g', '2 bottles', '630010244', 2],
+  ['Yoki powder 1997 60 g', '3 bottles', '630010243', 3],
+  ['Yoki powder circle 100 g', '2 bottles', 'IC-005707', 2],
+  ['Yoki powder circle 60 g', '3 cans', 'IC-000818', 3],
+  ['Propoliz เม็ดอม Extherb 8 เม็ด', '2 แผง', 'IC-004857', 2],
+  ['Propoliz Extherb Lozenge 8 tablets', '2 blisters', 'IC-004857', 2],
+  ['Propoliz เม็ดอม เอ็กซ์เฮิร์บ 8 เม็ด', '2 แผง', 'IC-004857', 2],
+  ['Propoliz เม็ดอม Extherb 8 เม็ด', '1 กล่อง 15 แผง', 'IC-004857', 15],
+  ['SOS Plus S Series dressing', 'S 9×15 cm 1 box 3 pieces', 'IC-004133', 1],
+  ['SOS Plus S Series dressing', 'S 10x20 cm 1 box 2 pieces', 'IC-000522', 1],
+];
+test.each(additionalPackCases)('verified base identity scales %s / %s to %s x %s', (name, variant, sku, factor) => {
+  expect(resolveCopyProduct(shop, item(name, variant))).toMatchObject({ sku, factor,
+    matchingProvenance: { method: 'verified_structural_attributes' } });
+});
+const additionalPackHolds = [
+  ['Polar Spray blue 280 ml', '24 bottles'],
+  ['Polar Spray blue 280 ml', 'white 24 cans'],
+  ['Polar Spray blue 280 ml', '80 ml 24 cans'],
+  ['Polar Spray blue 280 ml', '1 box'],
+  ['Polar Spray blue 280 ml', '0 cans'],
+  ['Polar Spray blue 280 ml', '1001 cans'],
+  ['Polar Spray blue 280 ml', '2 cans 3 cans'],
+  ['Polar Spray blue 280 ml', '2 cans แถม white 80 ml 1 can'],
+  ['Polar Spray new formula 280 ml', '2 cans'],
+  ['Myda Soap Sulfur 5% 30 g', '3 bars'],
+  ['Myda Soap Sulfur 2.5% 30 g', '80 g 3 bars'],
+  ['Myda Soap Sulfur 2.5% 30 g', '3 boxes'],
+  ['Myda Soap Sulfur 2.5% 30 g', ''],
+  ['AnotherBrand Soap Sulfur 2.5% 30 g', '3 bars'],
+  ['Yoki powder 100 g', '2 bottles'],
+  ['Yoki powder 1997 100 g', 'circle 2 bottles'],
+  ['Yoki powder 1997 100 g', '60 g 2 bottles'],
+  ['Yoki powder 1997 100 g', '2 boxes'],
+  ['Propoliz เม็ดอม Extherb 8 เม็ด', '1 ซอง'],
+  ['Propoliz เม็ดอม Extherb 8 เม็ด', 'X 1 แผง'],
+  ['Propoliz เม็ดอม Extherb 8 เม็ด', '1 กล่อง 16 แผง'],
+  ['Propoliz เม็ดอม Extherb 10 เม็ด', '1 แผง'],
+  ['SOS Plus S Series dressing', 'S 9x15 cm 1 box 4 pieces'],
+  ['SOS Plus T Series dressing', 'S 9x15 cm 1 box 3 pieces'],
+];
+test.each(additionalPackHolds)('new pack parser retains review for %s / %s', (name, variant) => {
+  const result = resolveCopyProduct(shop, item(name, variant));
+  expect(result.sku).toBeUndefined();
+  expect(result.reason).toBeTruthy();
+});
+test('a known multi-option frame cannot infer a missing pack or formula from a different option', () => {
+  const frame = sku => rules.rules.find(r => r.authority.endsWith('_20261008') && r.companySku === sku).productName;
+  expect(resolveCopyProduct(shop, item(frame('IC-002462'), 'ฝาฟ้า 280 มล.')).reason).toBeTruthy();
+  expect(resolveCopyProduct(shop, item(frame('IC-003560'), '30 กรัม')).reason).toBeTruthy();
+  expect(resolveCopyProduct(shop, item(frame('630010244'), '100 กรัม')).reason).toBeTruthy();
+  expect(resolveCopyProduct(shop, item(frame('IC-004857'), '8 เม็ด')).reason).toBeTruthy();
+});
+test('the five repaired options preserve source money and expand only verified base-unit quantities', () => {
+  const date = '2027-01-03'; const filters = { shopCode: shop, startDate: date, endDate: date };
+  const cases = [
+    ['IC-002462', 'ฝาฟ้า 280 มล. 12 กป.', 1, 2950, 12],
+    ['IC-004133', 'S 9x15 ซม.', 1, 75, 1],
+    ['IC-004857', 'Extherb 8 เม็ด', 1, 33, 1],
+    ['IC-003560', '30 กรัม 3 ก้อน', 2, 96, 6],
+    ['630010244', 'โยคี1997 100 กรัม', 2, 25, 2],
+  ];
+  const orders = cases.map(([sku, variant, quantity, unitPrice], index) => {
+    const anchor = rules.rules.find(r => r.authority.endsWith('_20261008') && r.companySku === sku && r.variant === variant);
+    expect(anchor).toBeDefined();
+    return { shopCode: shop, orderNumber: `SYNTHETIC-PACK-${index}`, paidAt: `${date}T03:00:00Z`,
+      observedAt: `${date}T04:00:00Z`, sourceFilename: 'synthetic.xlsx', sourceSha256: 'a'.repeat(64), sourceRows: [2],
+      items: enrichShopeeOrderItems(shop, [sanitizeShopeeOrderItem({ name: anchor.productName, variant, quantity, unitPrice })]),
+      itemSubtotal: quantity * unitPrice, shopeeProductDiscount: 0, sellerVoucher: 0 };
+  });
+  const before = JSON.stringify(orders);
+  const confirmed = { ...filters, status: 'source_backed', salesTotal: 3300, orderCount: 5,
+    shops: [{ shopCode: shop, sources: [{ sourceSha256: 'b'.repeat(64) }] }] };
+  const plan = buildAdaSmartCopyPlan(orders, confirmed, filters);
+  expect(plan).toMatchObject({ status: 'ready', totalCents: 330000, totalQuantity: 22, orderCount: 5 });
+  for (const [sku, , quantity, price, baseQuantity] of cases) {
+    const rows = plan.rows.filter(row => row.sku === sku);
+    expect(rows.reduce((sum, row) => sum + row.quantity, 0)).toBe(baseQuantity);
+    expect(rows.reduce((sum, row) => sum + row.amountCents, 0)).toBe(quantity * price * 100);
+  }
+  expect(JSON.stringify(orders)).toBe(before);
 });
