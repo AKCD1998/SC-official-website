@@ -15,6 +15,7 @@ const {
   summarizeShopeeProductMatches,
 } = require("../services/shopeeProductMatcher");
 const { getTables } = require("../tables");
+const { liveOrderRelation } = require('../services/shopeeOrderObservationService');
 const { resolveSalesOrders } = require("../services/shopeeSalesAccounting");
 const {
   ALL_FINANCIAL_VISIBILITY,
@@ -196,6 +197,8 @@ function mapOrder(row) {
   const storedItemSubtotal = toNumber(row.item_subtotal);
   return {
     currentStatus: row.current_status,
+    ...(row.live_status ? { liveStatus: row.live_status } : {}),
+    ...(row.official_payment ? { officialPaymentProof: row.official_payment } : {}),
     deliveryMethod: row.delivery_method || "",
     eventCount: Number(row.event_count || 0),
     firstEventAt: toIso(row.first_event_at),
@@ -484,7 +487,7 @@ async function listOrders({
           o.*,
           (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
             WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
-        FROM ${tables.shopeeOrders} o
+        FROM ${liveOrderRelation(tables)} o
         ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
       `,
       params,
@@ -510,14 +513,14 @@ async function listOrders({
       ? `
         WITH total AS (
           SELECT COUNT(*) AS total_count
-          FROM ${tables.shopeeOrders} o
+          FROM ${liveOrderRelation(tables)} o
           ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
         ), page_rows AS (
           SELECT
             o.*,
             (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
               WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
-          FROM ${tables.shopeeOrders} o
+          FROM ${liveOrderRelation(tables)} o
           ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
           ORDER BY ${orderBy}
           LIMIT $${limitParameter}
@@ -532,7 +535,7 @@ async function listOrders({
           o.*,
           (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
             WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
-        FROM ${tables.shopeeOrders} o
+        FROM ${liveOrderRelation(tables)} o
         ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
         ORDER BY ${orderBy}
         LIMIT $${limitParameter}
@@ -680,7 +683,7 @@ async function getOrderTimeline(shopCodeValue, orderNumber) {
           o.*,
           (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
             WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
-        FROM ${tables.shopeeOrders} o
+        FROM ${liveOrderRelation(tables)} o
         WHERE o.shop_code = $1 AND o.order_number = $2
       `,
       [shopCode, orderNumber],

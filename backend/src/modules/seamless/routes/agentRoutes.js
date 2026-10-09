@@ -11,6 +11,7 @@ const { internalApiAuth } = require("../middleware/internalApiAuth");
 const { shopeeSalesIngestAuth } = require("../middleware/shopeeSalesIngestAuth");
 const { ingestSalesSource } = require("../controllers/shopeeSalesIngestController");
 const { recordDocumentObservation } = require("../services/shopeeDocumentObservationService");
+const { recordOrderObservations } = require("../services/shopeeOrderObservationService");
 const {
   MAX_PROVENANCE_JSON_BYTES,
   MAX_SOURCE_BYTES,
@@ -47,6 +48,11 @@ router.post(
     res.set("Cache-Control", "no-store").json(result);
   }),
 );
+router.post('/shopee/order-observations', shopeeSalesIngestAuth,
+  express.json({ limit: '256kb', strict: true }),
+  asyncHandler(async (req, res) => {
+    res.set('Cache-Control', 'no-store').json(await recordOrderObservations({ body: req.body }));
+  }));
 router.use(internalApiAuth);
 router.get("/print-queue", asyncHandler(getPrintQueue));
 router.post("/print-jobs", asyncHandler(createPrintJob));

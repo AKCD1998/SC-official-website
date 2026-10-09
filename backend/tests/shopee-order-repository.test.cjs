@@ -451,7 +451,7 @@ test("global search filters the entire shop scope before numbered pagination", a
   expect(result.orders).toHaveLength(1);
   expect(result.orders[0].items[0].productMatch.companySku).toBe("IC-001849");
   const [sql, params] = pool.query.mock.calls[0];
-  expect(sql).not.toContain("LIMIT");
+  expect(sql).not.toMatch(/LIMIT\s+\$\d+/u);
   expect(sql).not.toContain("OFFSET");
   expect(params).toEqual([["sc-drug-store", "dr-morepen"]]);
 });

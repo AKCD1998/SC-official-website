@@ -109,7 +109,7 @@ function encodeCursor(order, shopScope = order.shopCode) {
 
 function parseStatus(value) {
   if (value === undefined || value === "") return null;
-  if (!TIMELINE_EVENT_TYPES.has(value)) {
+  if (!TIMELINE_EVENT_TYPES.has(value) && !['seller_center','official_report'].includes(value)) {
     throw badRequest(`Invalid status filter. Expected one of: ${[...TIMELINE_EVENT_TYPES].join(", ")}`);
   }
   return value;
