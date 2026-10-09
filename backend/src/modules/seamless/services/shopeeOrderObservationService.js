@@ -74,19 +74,32 @@ async function recordOrderObservations({ body, dbPool = pool, now = new Date() }
       return { status: 'already_recorded', batchId: batch.batchId, count: batch.orders.length };
     }
     await client.query(`INSERT INTO ${tables.shopeeOrderObservationBatches} (batch_id,shop_code,observed_at,payload_sha256,coverage) VALUES ($1,$2,$3,$4,$5::jsonb)`, [batch.batchId,batch.shopCode,batch.observedAt,hash,JSON.stringify(batch.coverage)]);
+    // Read and write the bounded batch in bulk. Sequential per-order queries can
+    // exceed the agent's HTTP timeout when the database is in another region.
+    const currentRows = await client.query(`SELECT order_number,internal_order_id,snapshot FROM ${tables.shopeeLiveOrders} WHERE shop_code=$1 AND order_number=ANY($2::text[])`, [batch.shopCode,batch.orders.map(order => order.orderNumber)]);
+    const currentByNumber = new Map(currentRows.rows.map(row => [row.order_number,row]));
+    const records = [];
+    const events = [];
     for (const order of batch.orders) {
-      const current = await client.query(`SELECT internal_order_id,snapshot FROM ${tables.shopeeLiveOrders} WHERE shop_code=$1 AND order_number=$2`, [batch.shopCode,order.orderNumber]);
-      if (current.rows[0]?.internal_order_id && order.internalOrderId && current.rows[0].internal_order_id !== order.internalOrderId) throw conflict('Order identity changed within this shop.');
-      const snapshot = mergeSnapshot(current.rows[0]?.snapshot, order, batch.observedAt);
+      const current = currentByNumber.get(order.orderNumber);
+      if (current?.internal_order_id && order.internalOrderId && current.internal_order_id !== order.internalOrderId) throw conflict('Order identity changed within this shop.');
+      const snapshot = mergeSnapshot(current?.snapshot, order, batch.observedAt);
       const changed = Object.entries(order.axes).some(([axis, proof]) =>
-        ['value','evidence','page'].some(key => current.rows[0]?.snapshot?.[axis]?.[key] !== proof[key]));
+        ['value','evidence','page'].some(key => current?.snapshot?.[axis]?.[key] !== proof[key]));
+      records.push({ order_number:order.orderNumber,internal_order_id:order.internalOrderId,snapshot });
+      if (changed) events.push({ order_number:order.orderNumber,observation:order });
+    }
+    if (records.length) {
       await client.query(`INSERT INTO ${tables.shopeeLiveOrders} (shop_code,order_number,internal_order_id,snapshot,first_observed_at,last_observed_at)
-        VALUES ($1,$2,$3,$4::jsonb,$5,$5) ON CONFLICT (shop_code,order_number) DO UPDATE SET snapshot=EXCLUDED.snapshot,
+        SELECT $1,order_number,internal_order_id,snapshot,$2::timestamptz,$2::timestamptz
+        FROM jsonb_to_recordset($3::jsonb) AS incoming(order_number text,internal_order_id text,snapshot jsonb)
+        ON CONFLICT (shop_code,order_number) DO UPDATE SET snapshot=EXCLUDED.snapshot,
         internal_order_id=COALESCE(EXCLUDED.internal_order_id,${tables.shopeeLiveOrders}.internal_order_id),
         first_observed_at=LEAST(${tables.shopeeLiveOrders}.first_observed_at,EXCLUDED.first_observed_at),
-        last_observed_at=GREATEST(${tables.shopeeLiveOrders}.last_observed_at,EXCLUDED.last_observed_at)`, [batch.shopCode,order.orderNumber,order.internalOrderId,JSON.stringify(snapshot),batch.observedAt]);
-      if (changed) await client.query(`INSERT INTO ${tables.shopeeOrderObservationEvents} (batch_id,shop_code,order_number,observation) VALUES ($1,$2,$3,$4::jsonb)`, [batch.batchId,batch.shopCode,order.orderNumber,JSON.stringify(order)]);
+        last_observed_at=GREATEST(${tables.shopeeLiveOrders}.last_observed_at,EXCLUDED.last_observed_at)`, [batch.shopCode,batch.observedAt,JSON.stringify(records)]);
     }
+    if (events.length) await client.query(`INSERT INTO ${tables.shopeeOrderObservationEvents} (batch_id,shop_code,order_number,observation)
+      SELECT $1::uuid,$2,order_number,observation FROM jsonb_to_recordset($3::jsonb) AS incoming(order_number text,observation jsonb)`, [batch.batchId,batch.shopCode,JSON.stringify(events)]);
     await client.query('COMMIT');
     return { status: 'recorded', batchId: batch.batchId, count: batch.orders.length };
   } catch (error) { await client.query('ROLLBACK'); throw error; }
