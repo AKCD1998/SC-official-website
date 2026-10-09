@@ -15,4 +15,6 @@ The backend also accepted only XLSX for Orders. It now accepts native ZIP only f
 
 Regression tests cover native multipart import/replay, missing or inconsistent parts, mismatched periods, unsafe paths, duplicate/split orders, bad financial cells, wrong hashes, and nested archive expansion limits. The raw production workbooks and customer/order evidence are retained privately, outside this repository.
 
+The complete archive exposed one additional mapping omission: the selected Swisse variant changed from `ฟอเต้ สีเทา` to `ไบโอติน สีเทา`. The native workbook's selected-variation SKU explicitly identifies `IC-005481`, the existing verified 60-tablet jar (barcode `9311770608275`). An exact alias now reuses that verified identity and one-jar sale factor. Its evidence records the original member hash and physical row; unrelated variants and unverified pack changes remain blocked. The item's original THB 395 value is retained.
+
 Deployment and post-import financial/copy verification are recorded in the private incident ledger. Rollback restores the previous application commit; newly imported source evidence is append-only and must not be deleted as a code rollback.
