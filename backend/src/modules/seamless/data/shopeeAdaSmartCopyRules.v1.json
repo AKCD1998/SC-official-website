@@ -5554,6 +5554,30 @@
         "sellerCatalogCapturedAt": "2026-10-08T02:43:26.194Z",
         "packBasis": "Selected Yoki model (circle-logo or 1997) and per-container gram size; exact seller SKU identifies one StockDay base container."
       }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Swisse สวิสเซ ผลิตภัณฑ์เสริมอาหาร Vitamin C 1000 mg / Biotin Forte / Sunneday / Multivitamin เลือกสูตร",
+      "variant": "ไบโอติน สีเทา",
+      "companySku": "IC-005481",
+      "quantityPerSale": 1,
+      "authority": "native_orders_seller_sku_verified_variant_20261009",
+      "verifiedOn": "2026-10-09",
+      "evidence": {
+        "masterEvidenceId": "stockday-004-20260928",
+        "masterSourceRow": 6117,
+        "erpName": "สามัญ สวิสเซ ไบโอติน ฟอร์เต้ และ วิตามินซี+ซิงค์ 60 เม็ด",
+        "erpBarcode": "9311770608275",
+        "erpUnit": "กระปุก",
+        "packBasis": "Native Shopee Orders selected variation seller SKU IC-005481, one original sale unit; same verified StockDay jar of 60 tablets",
+        "listingUrl": "https://seller.shopee.co.th/portal/product/44967278960",
+        "productId": "44967278960",
+        "sourceOriginalFilename": "Order.all.20260908_20261008_part_1_of_2.xlsx",
+        "sourceSha256": "4aad02622c5f9859a1c7a2583e3706eac9e562757fe87e17436f4794bfca005d",
+        "sourceRow": 5665,
+        "sellerSku": "IC-005481",
+        "previousVerifiedVariant": "ฟอเต้ สีเทา"
+      }
     }
   ],
   "unitEquivalences": [

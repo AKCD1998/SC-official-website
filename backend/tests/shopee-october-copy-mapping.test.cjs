@@ -5,6 +5,25 @@ const { bundleAllocation } = require('../src/modules/seamless/services/shopeeCop
 const shop = 'sc-drug-store';
 const input = (name, variant) => ({ name, variant, quantity: 1, unitPrice: 495, productMatch: { status: 'unmapped' } });
 
+test('native seller-SKU evidence permits the renamed Swisse Biotin variant without changing price or pack', () => {
+  const rule = rules.rules.find(r => r.variant === 'ไบโอติน สีเทา');
+  expect(rule.evidence).toMatchObject({ sellerSku: 'IC-005481', erpBarcode: '9311770608275',
+    previousVerifiedVariant: 'ฟอเต้ สีเทา' });
+  expect(resolveCopyProduct(shop, input(rule.productName, rule.variant)))
+    .toMatchObject({ sku: 'IC-005481', factor: 1, unit: 'กระปุก' });
+  expect(resolveCopyProduct(shop, input(rule.productName, 'ไบโอติน สีเทา 2 กระปุก')).reason).toBeTruthy();
+  const date = '2026-10-08', filters = { shopCode: shop, startDate: date, endDate: date };
+  const order = { shopCode: shop, orderNumber: 'SYNTHETICBIOTIN', paidAt: `${date}T03:00:00Z`,
+    orderedAt: `${date}T01:00:00Z`, items: [{ ...input(rule.productName, rule.variant), unitPrice: 395 }],
+    itemSubtotal: 395, sellerVoucher: 0, shopeeProductDiscount: 0, sourceRows: [2],
+    sourceFilename: 'synthetic.xlsx', sourceSha256: 'b'.repeat(64), observedAt: '2026-10-09T02:00:00Z' };
+  const confirmed = { ...filters, status: 'source_backed', salesTotal: 395, orderCount: 1,
+    shops: [{ shopCode: shop, sources: [{ sourceSha256: 'c'.repeat(64) }] }] };
+  const plan = buildAdaSmartCopyPlan([order], confirmed, filters);
+  expect(plan.status).toBe('ready');
+  expect(plan.columns).toEqual({ sku: 'IC-005481', quantity: '1', unitPrice: '395.00' });
+});
+
 test('owner-confirmed Klean crate uses 24 base bottles and retains both conflicting barcode observations', () => {
   const rule = rules.rules.find(r => r.variant === '500 มล. ยกลัง แหลม');
   expect(resolveCopyProduct(shop, input(rule.productName, rule.variant))).toMatchObject({sku:'IC-004060',factor:24,unit:'ขวด'});
