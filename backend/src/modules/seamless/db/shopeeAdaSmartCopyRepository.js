@@ -68,7 +68,14 @@ async function getOrdersForCopyCohort({ shopCode, startDate, endDate }) {
         f.items, f.source_rows, f.source_sha256, s.source_filename, s.observed_at
       FROM ${tables.shopeeSalesOrderFacts} f
       JOIN ${tables.shopeeSalesSources} s USING (shop_code, source_sha256)
-      WHERE f.shop_code = $1 AND f.order_number IN (SELECT order_number FROM candidates)
+      -- Copy history is used only by resolveCopySellerVoucher, whose entry
+      -- gate is a cancelled latest snapshot with seller voucher zero. Keep
+      -- EVERY historical snapshot for those orders, including earlier paid
+      -- ones; other candidates never consult history. Avoid serializing the
+      -- same product arrays across all rolling exports for a month-long copy.
+      WHERE f.shop_code = $1 AND f.order_number IN (
+        SELECT order_number FROM candidates WHERE excluded AND seller_voucher = 0
+      )
     )
     SELECT COALESCE((SELECT jsonb_agg(to_jsonb(candidates) ORDER BY paid_at, order_number)
       FROM candidates), '[]'::jsonb) AS orders,
