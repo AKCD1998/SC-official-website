@@ -1,5 +1,6 @@
 const crypto = require('node:crypto');
 const path = require('node:path');
+const { unzipSync } = require('fflate');
 const { moneyCents } = require('./shopeeSalesAccounting');
 const { requireShopeeShopCode } = require('./shopeeShops');
 const { sanitizeShopeeOrderItem } = require('../shopeeOrderValidation');
@@ -81,7 +82,7 @@ function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, ob
   // those before they can silently alter snapshot precedence.
   parseBangkokDate(observedAt.slice(0, 19).replace('T', ' '));
   const filename = path.basename(sourceFilename);
-  const period = /^Order\.all\.(\d{4})(\d{2})(\d{2})_(\d{4})(\d{2})(\d{2})(?:\(\d+\)| \(\d+\))?\.xlsx$/iu.exec(filename);
+  const period = /^Order\.all\.(\d{4})(\d{2})(\d{2})_(\d{4})(\d{2})(\d{2})(?:_part_\d+_of_\d+|\(\d+\)| \(\d+\))?\.(?:xlsx|zip)$/iu.exec(filename);
   if (!period) throw new Error('Expected an original Order.all.YYYYMMDD_YYYYMMDD.xlsx filename.');
   const startDate = `${period[1]}-${period[2]}-${period[3]}`;
   const endDate = `${period[4]}-${period[5]}-${period[6]}`;
@@ -165,6 +166,9 @@ async function readSalesSourceBuffer(buffer, {
   if (!Buffer.isBuffer(buffer) || !buffer.length) throw new Error('Original orders workbook buffer is required.');
   const computedSha256 = crypto.createHash('sha256').update(buffer).digest('hex');
   if (sourceSha256 && sourceSha256 !== computedSha256) throw new Error('Source SHA-256 does not match workbook bytes.');
+  if (path.extname(sourceFilename).toLowerCase() === '.zip') {
+    return readOrdersArchive(buffer, { shopCode, observedAt, sourceFilename, sourceSha256: computedSha256 });
+  }
   const ExcelJS = require('exceljs');
   const workbook = new ExcelJS.Workbook();
   await workbook.xlsx.load(buffer);
@@ -180,6 +184,70 @@ async function readSalesSourceBuffer(buffer, {
     sourceFilename,
     sourceSha256: computedSha256,
   });
+}
+
+async function readOrdersArchive(buffer, options) {
+  const archivePeriod = /^Order\.all\.(\d{8})_(\d{8})(?: ?\(\d+\))?\.zip$/iu.exec(options.sourceFilename);
+  if (!archivePeriod) throw new Error('Expected an original Order.all archive filename.');
+  let count = 0;
+  let expandedBytes = 0;
+  const entries = unzipSync(new Uint8Array(buffer), { filter(file) {
+    count += 1;
+    expandedBytes += file.originalSize;
+    if (count > 20 || file.name.length > 255 || /[\\/]/u.test(file.name)
+      || file.originalSize < 1 || file.originalSize > 20 * 1024 * 1024
+      || expandedBytes > 80 * 1024 * 1024) {
+      throw new Error('Unsafe or oversized Orders ZIP entry.');
+    }
+    return true;
+  } });
+  const names = Object.keys(entries);
+  if (!count || names.length !== count
+    || new Set(names.map((name) => name.toLowerCase())).size !== count) {
+    throw new Error('Orders ZIP is empty or contains duplicate members.');
+  }
+  const parts = names.map((name) => {
+    const match = /^Order\.all\.(\d{8})_(\d{8})_part_(\d+)_of_(\d+)\.xlsx$/iu.exec(name);
+    if (!match || match[1] !== archivePeriod[1] || match[2] !== archivePeriod[2]) {
+      throw new Error('Orders ZIP member filename/period does not match the native archive.');
+    }
+    return { name, part: Number(match[3]), totalParts: Number(match[4]) };
+  }).sort((a, b) => a.part - b.part);
+  if (parts.some((part, index) => part.part !== index + 1 || part.totalParts !== count)) {
+    throw new Error('Orders ZIP part sequence is incomplete or inconsistent.');
+  }
+  const memberSources = [];
+  const archiveMembers = [];
+  const orderNumbers = new Set();
+  for (const part of parts) {
+    const bytes = Buffer.from(entries[part.name]);
+    // Bound the second ZIP layer before ExcelJS decompresses any workbook XML.
+    let workbookEntryCount = 0;
+    let workbookExpandedBytes = 0;
+    const workbookNames = new Set();
+    unzipSync(new Uint8Array(bytes), { filter(file) {
+      workbookEntryCount += 1;
+      workbookExpandedBytes += file.originalSize;
+      if (workbookEntryCount > 1000 || workbookExpandedBytes > 80 * 1024 * 1024
+        || workbookNames.has(file.name)) throw new Error('Orders ZIP workbook exceeds supported structure limits.');
+      workbookNames.add(file.name);
+      return false;
+    } });
+    if (!workbookNames.has('[Content_Types].xml') || !workbookNames.has('xl/workbook.xml')) {
+      throw new Error('Orders ZIP member is not an XLSX workbook.');
+    }
+    const source = await readSalesSourceBuffer(bytes, { ...options, sourceFilename: part.name, sourceSha256: null });
+    for (const fact of source.facts) {
+      if (orderNumbers.has(fact.orderNumber)) throw new Error('Orders ZIP has duplicate or split orders across members.');
+      orderNumbers.add(fact.orderNumber);
+    }
+    memberSources.push(source);
+    archiveMembers.push({ originalFilename: part.name, sha256: source.sourceSha256,
+      bytes: bytes.length, part: part.part, totalParts: part.totalParts, orderCount: source.facts.length });
+  }
+  return { ...memberSources[0], ...options,
+    observedAt: memberSources[0].observedAt,
+    facts: memberSources.flatMap((source) => source.facts), memberSources, archiveMembers };
 }
 
 async function readSalesSource(filePath, { shopCode, observedAt }) {
