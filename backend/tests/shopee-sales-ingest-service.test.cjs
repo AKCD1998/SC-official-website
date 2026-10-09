@@ -368,6 +368,53 @@ test("same job ID with different immutable metadata rolls back with HTTP 409", a
   expect(mockQueries.at(-1).sql).toBe("ROLLBACK");
 });
 
+test("native Orders ZIP imports all members atomically with original workbook lineage and replay identity", async () => {
+  const input = await source();
+  const secondBook = new ExcelJS.Workbook();
+  await secondBook.xlsx.load(input.file.buffer);
+  secondBook.getWorksheet('orders').getCell('A2').value = 'TESTORDER002';
+  const secondBytes = Buffer.from(await secondBook.xlsx.writeBuffer());
+  const firstName = 'Order.all.20260908_20260908_part_1_of_2.xlsx';
+  const secondName = 'Order.all.20260908_20260908_part_2_of_2.xlsx';
+  const buffer = Buffer.from(zipSync({ [firstName]: input.file.buffer, [secondName]: secondBytes }));
+  const originalFilename = 'Order.all.20260908_20260908.zip';
+  const sha256 = crypto.createHash('sha256').update(buffer).digest('hex');
+  const upload = {
+    body: { ...input.body, originalFilename, sha256 },
+    file: { buffer, size: buffer.length, originalname: originalFilename, mimetype: 'application/zip' },
+  };
+  const imported = await ingestShopeeSalesSource(upload);
+  expect(imported).toMatchObject({ status: 'imported', sha256, sourceFilename: originalFilename, sourceRowCount: 2 });
+  expect(imported.archiveMembers.map((member) => member.originalFilename)).toEqual([firstName, secondName]);
+  const sourceInserts = mockQueries.filter(({ sql }) => /INSERT INTO .*shopee_sales_sources/iu.test(sql));
+  expect(sourceInserts).toHaveLength(2);
+  expect(sourceInserts.map(({ params }) => params[2])).toEqual([firstName, secondName]);
+  const facts = mockQueries.filter(({ sql }) => /INSERT INTO .*shopee_sales_order_facts/iu.test(sql))
+    .flatMap(({ params }) => JSON.parse(params[0]));
+  expect(facts.map((fact) => fact.source_rows)).toEqual([[2], [2]]);
+  expect(facts.map((fact) => fact.item_subtotal)).toEqual([90, 90]);
+  expect(mockQueries.filter(({ sql }) => sql === 'BEGIN')).toHaveLength(1);
+  expect(mockQueries.at(-1).sql).toBe('COMMIT');
+  mockQueries.length = 0;
+  const replay = await ingestShopeeSalesSource(upload);
+  expect(replay.status).toBe('unchanged');
+  expect(replay.archiveMembers).toEqual(imported.archiveMembers);
+  expect(mockQueries.some(({ sql }) => /INSERT|UPDATE/iu.test(sql))).toBe(false);
+});
+
+test("native Orders ZIP rejects missing members before opening an import transaction", async () => {
+  const input = await source();
+  const buffer = Buffer.from(zipSync({ 'Order.all.20260908_20260908_part_1_of_2.xlsx': input.file.buffer }));
+  const originalFilename = 'Order.all.20260908_20260908.zip';
+  await expect(ingestShopeeSalesSource({
+    body: { ...input.body, originalFilename, sha256: crypto.createHash('sha256').update(buffer).digest('hex') },
+    file: { buffer, size: buffer.length, originalname: originalFilename, mimetype: 'application/zip' },
+  })).rejects.toMatchObject({ statusCode: 422, code: 'SHOPEE_SOURCE_REJECTED' });
+  expect(mockClient.query).not.toHaveBeenCalled();
+  expect(() => parseManifest({ ...input.body, reportType: 'business-insights', originalFilename }))
+    .toThrow(/plain .xlsx/);
+});
+
 test("confirmed Business Insights import returns complete coverage and shares the audit transaction", async () => {
   const imported = await ingestShopeeSalesSource(await confirmedSource());
   expect(imported).toMatchObject({ status: "imported", reportType: "business-insights",

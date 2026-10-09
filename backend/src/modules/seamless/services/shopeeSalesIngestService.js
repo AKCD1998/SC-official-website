@@ -233,7 +233,9 @@ function parseManifest(body) {
   }
   const requiredExtension = reportType === "financial-statement"
     ? ".pdf"
-    : ["return-refund-cancel", "etax-receipt-invoice"].includes(reportType) ? ".zip" : ".xlsx";
+    : ["return-refund-cancel", "etax-receipt-invoice"].includes(reportType)
+      || (reportType === "orders" && path.extname(originalFilename || "").toLowerCase() === ".zip")
+      ? ".zip" : ".xlsx";
   if (!assembled && (path.basename(originalFilename) !== originalFilename || /[\\/]/u.test(originalFilename)
     || path.extname(originalFilename).toLowerCase() !== requiredExtension)) {
     throw badRequest(`originalFilename must be a plain ${requiredExtension} filename for ${reportType}.`);
@@ -293,6 +295,7 @@ function validateUpload(file, manifest) {
   const acceptedMimes = manifest.reportType === "financial-statement"
     ? PDF_MIME_TYPES
     : ["return-refund-cancel", "etax-receipt-invoice"].includes(manifest.reportType)
+      || (manifest.reportType === "orders" && path.extname(manifest.sourceFilename || manifest.originalFilename || "").toLowerCase() === ".zip")
       ? ZIP_MIME_TYPES : XLSX_MIME_TYPES;
   if (!acceptedMimes.has(mime)) throw badRequest("Shopee source MIME type is not accepted for this report.");
   const expectedFilename = manifest.sourceFilename || manifest.originalFilename;
@@ -422,12 +425,12 @@ async function ingestShopeeSalesSource({ body, file }) {
     const importer = manifest.reportType === "business-insights"
       ? importConfirmedSalesSources
       : manifest.reportType === "orders" ? importSalesSources : importOfficialDocumentSources;
-    const imported = await importer([source], {
+    const imported = await importer(source.memberSources || [source], {
       client,
       actor: `shopee-agent:${manifest.jobId}`,
       manageTransaction: false,
     });
-    const status = imported.imported === 1 ? "imported" : "unchanged";
+    const status = imported.imported > 0 ? "imported" : "unchanged";
     const audit = await insertIngestJob(client, {
       ...manifest,
       status,
@@ -436,6 +439,7 @@ async function ingestShopeeSalesSource({ body, file }) {
       reconciliationStatus,
       coverage,
       assembledProvenance: manifest.assembledProvenance,
+      archiveMembers: source.archiveMembers,
     });
     await client.query("COMMIT");
     return audit;
