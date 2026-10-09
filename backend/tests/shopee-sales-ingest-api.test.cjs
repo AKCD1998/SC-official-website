@@ -3,6 +3,10 @@ const request = require("supertest");
 
 const mockIngestShopeeSalesSource = jest.fn();
 const mockRecordDocumentObservation = jest.fn();
+const mockRecordOrderObservations = jest.fn();
+jest.mock('../src/modules/seamless/services/shopeeOrderObservationService', () => ({
+  recordOrderObservations: (...args) => mockRecordOrderObservations(...args),
+}));
 jest.mock("../db", () => ({}));
 jest.mock("../src/modules/seamless/services/shopeeDocumentObservationService", () => ({
   recordDocumentObservation: (...args) => mockRecordDocumentObservation(...args),
@@ -52,6 +56,17 @@ beforeEach(() => {
   process.env.SHOPEE_SALES_INGEST_TOKEN = "dedicated-ingest-test-token";
   mockIngestShopeeSalesSource.mockReset();
   mockRecordDocumentObservation.mockReset();
+  mockRecordOrderObservations.mockReset();
+});
+test('live order status endpoint uses dedicated auth and exact acknowledgment', async () => {
+  const path = '/api/agent/shopee/order-observations';
+  expect((await request(app()).post(path).send({})).status).toBe(401);
+  mockRecordOrderObservations.mockResolvedValue({ status: 'recorded', batchId: 'safe-batch', count: 1 });
+  const body = { batchId: 'safe-batch', orders: [] };
+  const response = await request(app()).post(path).set('Authorization','Bearer dedicated-ingest-test-token').send(body);
+  expect(response.status).toBe(200);
+  expect(response.headers['cache-control']).toBe('no-store');
+  expect(mockRecordOrderObservations).toHaveBeenCalledWith({ body });
 });
 
 test("metadata observations require the dedicated bearer and accept JSON without a file", async () => {
