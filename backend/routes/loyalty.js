@@ -2,6 +2,7 @@ const express = require("express");
 const pool    = require("../db");
 const { createId, generateMemberCode, hashOpaqueToken, normalizePhone, parseBearerToken } = require("../lib/sccrm");
 const { buildSourceEventKey } = require("../lib/sccrmCrm");
+const { getActivePromotions, quotePoints, receiptEligibleAmount } = require('../lib/sccrmPromotions');
 
 const router = express.Router();
 
@@ -112,15 +113,6 @@ async function getMemberProfile(memberId, capabilities, db = pool) {
         ${memberPointsSql(capabilities)} AS current_points
         FROM users u JOIN member_profiles m ON m.user_id = u.id
         WHERE u.id = $1::uuid`, [memberId], db);
-}
-
-// Business rule: 1 point per 25 THB of eligible spend (drug lines are excluded
-// client-side before totalAmount is sent). Must match BahtPerPoint in the POS
-// App.config. Refund reversals scale automatically from the stored award.
-const BAHT_PER_POINT = 25;
-
-function computeAwardedPoints(totalAmount) {
-    return Math.max(0, Math.floor(Number(totalAmount) / BAHT_PER_POINT));
 }
 
 function normalizeDocRef(value) {
@@ -562,7 +554,7 @@ async function mirrorPosSaleClaim(client, payload) {
     return saleEventId;
 }
 
-async function mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId) {
+async function mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId, promotions) {
     if (!saleEventId || !ledgerEntryId || !Number.isFinite(Number(awardedPoints)) || Number(awardedPoints) <= 0)
         return null;
 
@@ -579,8 +571,8 @@ async function mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledg
         `INSERT INTO crm_loyalty_awards
               (id, sale_event_id, customer_account_id, points_awarded, promotion_snapshot, ledger_entry_id, created_at)
          VALUES
-              ($1, $2, $3, $4, '[]'::jsonb, $5, NOW())`,
-        [awardId, saleEventId, memberId, Number(awardedPoints), ledgerEntryId],
+              ($1, $2, $3, $4, $6::jsonb, $5, NOW())`,
+        [awardId, saleEventId, memberId, Number(awardedPoints), ledgerEntryId, JSON.stringify(promotions || [])],
     );
     return awardId;
 }
@@ -811,8 +803,8 @@ router.put("/:id", requireMemberAccess, async (req, res) => {
 
 router.post("/claims", requireStaff, async (req, res) => {
     try {
-          const receiptNo = String(req.body?.receiptNo || "").trim();
-          const branchCode = String(req.body?.branchCode || "").trim();
+          const receiptNo = normalizeDocRef(req.body?.receiptNo);
+          const branchCode = normalizeDocRef(req.body?.branchCode);
           const memberId = String(req.body?.memberId || "").trim();
           const cashierStaffCode = String(req.body?.cashierStaffCode || "").trim() || null;
           const soldAt = req.body?.soldAt || null;
@@ -826,11 +818,18 @@ router.post("/claims", requireStaff, async (req, res) => {
           if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ message: "Receipt items are required." });
           if (!Number.isFinite(totalAmount) || totalAmount < 0) return res.status(400).json({ message: "totalAmount must be a non-negative number." });
 
-      const awardedPoints = computeAwardedPoints(totalAmount);
+      const eligible = receiptEligibleAmount(items);
+      if (Math.abs(eligible - totalAmount) > 0.011) return res.status(400).json({ message: 'totalAmount must equal eligible receipt lines.' });
+      if (req.staffDevice.branch_code && normalizeDocRef(req.staffDevice.branch_code) !== normalizeDocRef(branchCode)) return res.status(403).json({ message: 'Receipt branch does not match staff device.' });
           const client = await pool.connect();
 
       try {
               await client.query("BEGIN");
+              // Serialize awards for this member, including concurrent devices.
+              await client.query('SELECT user_id FROM member_profiles WHERE user_id=$1::uuid FOR UPDATE', [memberId]);
+              const promotions = await getActivePromotions(client, branchCode);
+              const quote = quotePoints(eligible, promotions);
+              const awardedPoints = quote.awardedPoints;
 
             // Duplicate receipt check
             const dup = await client.query(
@@ -863,10 +862,10 @@ router.post("/claims", requireStaff, async (req, res) => {
               await client.query(
                         `INSERT INTO loyalty_claims
                                   (id, receipt_no, branch_code, cashier_staff_code, sold_at,
-                                             total_amount, preview_points, awarded_points, user_id)
-                                                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                                             total_amount, preview_points, awarded_points, user_id, promotion_snapshot, promotion_revision)
+                                                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11)`,
                         [claimId, receiptNo, branchCode, cashierStaffCode, soldAt,
-                                   Number(totalAmount), previewPoints, awardedPoints, memberId],
+                                   Number(totalAmount), previewPoints, awardedPoints, memberId, JSON.stringify(quote.appliedPromotions), quote.revision],
                       );
 
             // Insert line items
@@ -909,7 +908,7 @@ router.post("/claims", requireStaff, async (req, res) => {
                         claimId,
                         items,
             });
-            await mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId);
+            await mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId, quote.appliedPromotions);
 
             await client.query("COMMIT");
 
@@ -924,6 +923,8 @@ router.post("/claims", requireStaff, async (req, res) => {
                       },
                       awardedPoints,
                       newPointsBalance: newBalance,
+                      promotionRevision: quote.revision,
+                      appliedPromotions: quote.appliedPromotions,
             });
       } catch (error) {
               await client.query("ROLLBACK");
@@ -932,7 +933,8 @@ router.post("/claims", requireStaff, async (req, res) => {
               client.release();
       }
     } catch (error) {
-          return res.status(500).json({ error: error.message || "Failed to create loyalty claim." });
+          const status = error.status || (error.code === '23505' ? 409 : 500);
+          return res.status(status).json({ error: status === 409 ? 'Receipt already claimed.' : error.message || "Failed to create loyalty claim." });
     }
 });
 

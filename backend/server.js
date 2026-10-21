@@ -45,6 +45,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 // Public QR form: scoped JSON limit, same-origin submissions and proxy handling.
 app.use("/join", createPublicMemberRegistration({ pool: require("./db") }));
+app.use('/sccrm/promotions', require('./routes/promotionPortal'));
 const clientBuildPath = process.env.CLIENT_BUILD_DIR
   ? path.resolve(process.env.CLIENT_BUILD_DIR)
   : path.join(__dirname, "..", "frontend-react", "dist");
