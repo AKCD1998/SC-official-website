@@ -42,6 +42,7 @@ function quotePoints(totalAmount, promotions) {
   let points = basePoints;
   const appliedPromotions = [];
   for (const raw of promotions) {
+    if (amount === 0) break;
     const p = { ...raw, ...validatePromotion(raw) };
     if (amount < Number(p.condition_json.minimum_spend || 0)) continue;
     const before = points;

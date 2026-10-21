@@ -1,5 +1,13 @@
 # Public member-registration integration notes
 
+Purchase-history verification: see `backend/docs/purchase-history.md`. The legacy
+claim amount means eligible spend, not a paid total. Older records cannot establish
+an original header total or item order; the API labels the available fallback.
+Synthetic WinForms/API/PostgreSQL checks do not establish positive startup or
+receipt-watcher behavior on a physical approved company POS. Keep that acceptance
+limit explicit. Points resets are a future separate request and must preserve
+member-linked receipt history; no reset is authorized or performed here.
+
 The public `/join` feature uses the existing identity, member-profile and consent
 schema defined by `backend/migrations/202610200001_crm_counter_bootstrap.sql`.
 It does not apply migrations or infer additions from frontend fields.

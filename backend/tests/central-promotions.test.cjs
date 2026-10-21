@@ -17,6 +17,7 @@ test('bonus rules have a common minimum spend and deterministic stacking',()=>{
  expect(quotePoints(249,rules).awardedPoints).toBe(9);
  expect(quotePoints(250,rules).awardedPoints).toBe(25);
  expect(quotePoints(0,[promotion({type:'fixed_bonus',value:5,condition_json:{minimum_spend:1}})]).awardedPoints).toBe(0);
+ expect(quotePoints(0,[promotion({type:'fixed_bonus',value:5})])).toMatchObject({awardedPoints:0,appliedPromotions:[]});
 });
 test('revision changes when business rules change without changing any app version',()=>{
  expect(quotePoints(250,[promotion()]).revision).not.toBe(quotePoints(250,[promotion({value:3})]).revision);
