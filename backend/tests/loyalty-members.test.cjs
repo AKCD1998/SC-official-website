@@ -6,6 +6,8 @@ let mockNextId = 1;
 
 function resetState() {
   mockNextId = 1;
+  state.pointsAvailable = true;
+  state.pharmacyAvailable = true;
   state.members = [
     {
       id: "11111111-1111-1111-1111-111111111111",
@@ -103,6 +105,10 @@ function currentTimestamp() {
 
 async function mockQuery(sql, params = []) {
   const text = String(sql).replace(/\s+/g, " ").trim();
+
+  if (text.includes("to_regclass('public.point_ledger')")) {
+    return { rows: [{ points_available: state.pointsAvailable, pharmacy_available: state.pharmacyAvailable }], rowCount: 1 };
+  }
 
   if (text === "BEGIN" || text === "COMMIT" || text === "ROLLBACK") {
     return { rows: [], rowCount: 0 };
@@ -229,7 +235,7 @@ async function mockQuery(sql, params = []) {
             tier: found.tier,
             is_active: found.is_active,
             member_code: found.member_code,
-            current_points: found.current_points,
+            current_points: text.includes("0::bigint AS current_points") ? 0 : found.current_points,
           }]
         : [],
       rowCount: found ? 1 : 0,
@@ -301,6 +307,37 @@ afterAll(() => {
 });
 
 describe("loyalty member demographics", () => {
+  test("staff sessions can read and edit profiles, while invalid sessions cannot fall back to a POS key", async () => {
+    const app = createApp();
+    const id = "11111111-1111-1111-1111-111111111111";
+    expect((await request(app).get(`/api/members/${id}`).set("Authorization", "Bearer test-staff-token")).status).toBe(200);
+    expect((await request(app).put(`/api/members/${id}`).set("Authorization", "Bearer test-staff-token").send({ remark: "staff profile edit" })).status).toBe(200);
+    const denied = await request(app).put(`/api/members/${id}`).set("Authorization", "Bearer invalid-token").set("x-pos-api-key", "pos-key").send({ name: "Must not save" });
+    expect(denied.status).toBe(401);
+    expect(state.members[0].full_name).toBe("Alice Pharmacist");
+  });
+  test("basic profile reads do not require unprovisioned points or pharmacy tables", async () => {
+    state.pointsAvailable = false;
+    state.pharmacyAvailable = false;
+    const response = await request(createApp())
+      .get("/api/members/11111111-1111-1111-1111-111111111111")
+      .set("x-pos-api-key", "pos-key");
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(expect.objectContaining({
+      displayName: "Alice Pharmacist", pointsAvailable: false,
+      pharmacyMedRecordAvailable: false, currentPoints: 0, pharmacy_med_record: null,
+    }));
+  });
+
+  test("rejects unsupported medical writes before updating basic fields", async () => {
+    state.pharmacyAvailable = false;
+    const response = await request(createApp())
+      .put("/api/members/11111111-1111-1111-1111-111111111111")
+      .set("x-pos-api-key", "pos-key")
+      .send({ name: "Must not save", pharmacy_med_record: { weightKg: 50 } });
+    expect(response.status).toBe(503);
+    expect(state.members[0].full_name).toBe("Alice Pharmacist");
+  });
   test("GET /api/members/:id returns stored sex, dob, and remark", async () => {
     const response = await request(createApp())
       .get("/api/members/11111111-1111-1111-1111-111111111111")

@@ -53,11 +53,65 @@ function requirePosApiKey(req, res, next) {
   return next();
 }
 
+// POS staff already authenticate with the shared staff-device session for
+// member creation/search. Use that same revocation-checked session for profiles.
+// Existing branch integrations may continue to use their configured POS key.
+function requireMemberAccess(req, res, next) {
+    if (req.headers.authorization) return requireStaff(req, res, next);
+    return requirePosApiKey(req, res, next);
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-async function queryOne(sql, params) {
-    const { rows } = await pool.query(sql, params);
+async function queryOne(sql, params, db = pool) {
+    const { rows } = await db.query(sql, params);
     return rows[0] || null;
+}
+
+async function memberStorageCapabilities() {
+    const row = await queryOne(`SELECT
+        to_regclass('public.point_ledger') IS NOT NULL AS points_available,
+        to_regclass('public.member_pharmacy_med_records') IS NOT NULL AS pharmacy_available`);
+    return {
+        pointsAvailable: Boolean(row?.points_available),
+        pharmacyMedRecordAvailable: Boolean(row?.pharmacy_available),
+    };
+}
+
+function memberPointsSql(capabilities) {
+    return capabilities.pointsAvailable
+        ? "COALESCE((SELECT SUM(pl.amount) FROM point_ledger pl WHERE pl.user_id = u.id::uuid), 0)"
+        : "0::bigint";
+}
+
+function normalizeMemberPhone(value) {
+    const phone = normalizePhone(value);
+    if (/^\+66\d{9}$/.test(phone)) return `0${phone.slice(3)}`;
+    if (/^66\d{9}$/.test(phone)) return `0${phone.slice(2)}`;
+    return phone;
+}
+
+function requireAvailablePharmacyStorage(capabilities, input) {
+    if (!capabilities.pharmacyMedRecordAvailable && input != null) {
+        const error = new Error("Pharmacy records are not available. Save basic member details without pharmacy_med_record.");
+        error.status = 503;
+        throw error;
+    }
+}
+
+function memberFailureStatus(error) {
+    if (error.status) return error.status;
+    if (error.code === "23505") return 409;
+    return /pharmacy_med_record/.test(error.message || "") ? 400 : 500;
+}
+
+async function getMemberProfile(memberId, capabilities, db = pool) {
+    return queryOne(`SELECT u.id, u.full_name, u.phone_number AS phone,
+        u.email, u.sex, u.dob::text AS dob, u.remark, u.created_at,
+        m.member_code, m.tier, m.is_active, m.updated_at,
+        ${memberPointsSql(capabilities)} AS current_points
+        FROM users u JOIN member_profiles m ON m.user_id = u.id
+        WHERE u.id = $1::uuid`, [memberId], db);
 }
 
 // Business rule: 1 point per 25 THB of eligible spend (drug lines are excluded
@@ -299,7 +353,7 @@ function mapPharmacyMedRecordRow(row) {
     };
 }
 
-async function getPharmacyMedRecord(memberId) {
+async function getPharmacyMedRecord(memberId, db = pool) {
     return queryOne(
         `SELECT member_id,
                 pid_document_type,
@@ -331,7 +385,7 @@ async function getPharmacyMedRecord(memberId) {
                 updated_at
            FROM member_pharmacy_med_records
           WHERE member_id = $1`,
-        [String(memberId)],
+        [String(memberId)], db,
     );
 }
 
@@ -531,7 +585,7 @@ async function mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledg
     return awardId;
 }
 
-function buildMemberResponse(row, pharmacyMedRecordRow) {
+function buildMemberResponse(row, pharmacyMedRecordRow, capabilities = {}) {
     return {
         id: row.id,
         name: row.full_name || "",
@@ -548,6 +602,7 @@ function buildMemberResponse(row, pharmacyMedRecordRow) {
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         pharmacy_med_record: mapPharmacyMedRecordRow(pharmacyMedRecordRow),
+        ...capabilities,
     };
 }
 
@@ -557,92 +612,48 @@ function buildMemberResponse(row, pharmacyMedRecordRow) {
 
 router.get("/search", requireStaff, async (req, res) => {
     try {
-          const q = String(req.query.q || "").trim();
-          if (!q) return res.json([]);
-
-      const pattern = `%${q.toLowerCase()}%`;
-
-      const { rows } = await pool.query(
-              `SELECT u.id,
-                            u.phone_number AS phone,
-                                          u.full_name,
-                                                        u.email,
-                                                                      m.member_code,
-                                                                                    m.tier,
-                                                                                                  COALESCE((
-                                                                                                                  SELECT SUM(pl.amount)
-                                                                                                                                  FROM point_ledger pl
-                                                                                                                                                  WHERE pl.user_id = u.id::uuid
-                                                                                                                                                                ), 0) AS current_points
-                                                                                                                                                                       FROM users u
-                                                                                                                                                                              JOIN member_profiles m ON m.user_id = u.id AND m.is_active = TRUE
-                                                                                                                                                                                     WHERE LOWER(COALESCE(u.phone_number, '')) LIKE $1
-                                                                                                                                                                                               OR LOWER(COALESCE(u.full_name, '')) LIKE $1
-                                                                                                                                                                                                         OR LOWER(COALESCE(u.email, '')) LIKE $1
-                                                                                                                                                                                                                   OR LOWER(COALESCE(m.member_code, '')) LIKE $1
-                                                                                                                                                                                                                          ORDER BY
-                                                                                                                                                                                                                                   CASE
-                                                                                                                                                                                                                                              WHEN LOWER(COALESCE(u.phone_number, '')) = $2 THEN 0
-                                                                                                                                                                                                                                                         WHEN LOWER(COALESCE(m.member_code, '')) = $2 THEN 1
-                                                                                                                                                                                                                                                                    WHEN LOWER(COALESCE(u.phone_number, '')) LIKE $3 THEN 2
-                                                                                                                                                                                                                                                                               ELSE 3
-                                                                                                                                                                                                                                                                                        END,
-                                                                                                                                                                                                                                                                                                 u.full_name ASC
-                                                                                                                                                                                                                                                                                                        LIMIT 20`,
-              [pattern, q.toLowerCase(), `${q.toLowerCase()}%`],
-            );
-
-      return res.json(rows.map((r) => ({
-              id: r.id,
-              displayName: r.full_name || "",
-              phone: r.phone || null,
-              email: r.email || null,
-              memberCode: r.member_code || null,
-              currentPoints: Number(r.current_points || 0),
-      })));
+        const raw = String(req.query.q || "").trim();
+        if (!raw) return res.json([]);
+        const q = /^[+\d\s().-]+$/.test(raw) ? normalizeMemberPhone(raw) : raw;
+        const capabilities = await memberStorageCapabilities();
+        const { rows } = await pool.query(`SELECT u.id, u.phone_number AS phone,
+            u.full_name, u.email, m.member_code, m.tier,
+            ${memberPointsSql(capabilities)} AS current_points
+            FROM users u JOIN member_profiles m ON m.user_id = u.id AND m.is_active = TRUE
+            WHERE LOWER(COALESCE(u.phone_number, '')) LIKE $1
+               OR LOWER(COALESCE(u.full_name, '')) LIKE $1
+               OR LOWER(COALESCE(u.email, '')) LIKE $1
+               OR LOWER(COALESCE(m.member_code, '')) LIKE $1
+            ORDER BY CASE
+                WHEN LOWER(COALESCE(u.phone_number, '')) = $2 THEN 0
+                WHEN LOWER(COALESCE(m.member_code, '')) = $2 THEN 1
+                WHEN LOWER(COALESCE(u.phone_number, '')) LIKE $3 THEN 2
+                ELSE 3 END, u.full_name ASC
+            LIMIT 20`, [`%${q.toLowerCase()}%`, q.toLowerCase(), `${q.toLowerCase()}%`]);
+        return res.json(rows.map(row => ({
+            id: row.id, displayName: row.full_name || "", phone: row.phone || null,
+            email: row.email || null, memberCode: row.member_code || null,
+            currentPoints: Number(row.current_points || 0), ...capabilities,
+        })));
     } catch (error) {
-          return res.status(500).json({ error: error.message || "Member search failed." });
+        return res.status(500).json({ error: error.message || "Member search failed." });
     }
 });
 
 // ── GET /api/members/:id ──────────────────────────────────────────────────────
 // WinForms POS fetches a single member by UUID.
-// Auth: x-pos-api-key header (POS_API_KEY / BRANCH_STOCK_SYNC_TOKEN env var).
+// Auth: existing staff-device session, or the legacy x-pos-api-key header.
 
-router.get("/:id", requirePosApiKey, async (req, res) => {
+router.get("/:id", requireMemberAccess, async (req, res) => {
     try {
-          const memberId = req.params.id;
-
-      const row = await queryOne(
-              `SELECT u.id,
-                            u.full_name,
-                                          u.phone_number AS phone,
-                                                        u.email,
-                                                                      u.sex,
-                                                                                    u.dob::text AS dob,
-                                                                                                  u.remark,
-                                                                                                                u.created_at,
-                                                                                                                              m.member_code,
-                                                                                                                                            m.tier,
-                                                                                                                                                          m.is_active,
-                                                                                                                                                                        m.updated_at,
-                                                                                                                                            COALESCE((
-                                                                                                                                                            SELECT SUM(pl.amount)
-                                                                                                                                                                            FROM point_ledger pl
-                                                                                                                                                                                            WHERE pl.user_id = u.id::uuid
-                                                                                                                                                                                                          ), 0) AS current_points
-                                                                                                                                                                                                                 FROM users u
-                                                                                                                                                                                                                        JOIN member_profiles m ON m.user_id = u.id
-                                                                                                                                                                                                                               WHERE u.id = $1::uuid`,
-              [memberId],
-            );
-
-      if (!row) return res.status(404).json({ error: "Member not found." });
-
-      const pharmacyMedRecordRow = await getPharmacyMedRecord(memberId);
-      return res.json(buildMemberResponse(row, pharmacyMedRecordRow));
+        const capabilities = await memberStorageCapabilities();
+        const row = await getMemberProfile(req.params.id, capabilities);
+        if (!row) return res.status(404).json({ error: "Member not found." });
+        const medical = capabilities.pharmacyMedRecordAvailable
+            ? await getPharmacyMedRecord(req.params.id) : null;
+        return res.json(buildMemberResponse(row, medical, capabilities));
     } catch (error) {
-          return res.status(500).json({ error: error.message || "Failed to fetch member." });
+        return res.status(500).json({ error: error.message || "Failed to fetch member." });
     }
 });
 
@@ -743,97 +754,54 @@ router.get("/:id/purchase-history", requirePosApiKey, async (req, res) => {
 
 // ── PUT /api/members/:id ──────────────────────────────────────────────────────
 // WinForms POS updates member profile fields (name, phone, email, sex, dob, remark).
-// Auth: x-pos-api-key header (POS_API_KEY / BRANCH_STOCK_SYNC_TOKEN env var).
-// Only fields present in the body are updated (COALESCE pattern).
+// Auth: existing staff-device session, or the legacy x-pos-api-key header.
+// Only fields present in the body are updated.
 
-router.put("/:id", requirePosApiKey, async (req, res) => {
+router.put("/:id", requireMemberAccess, async (req, res) => {
     try {
-          const memberId = req.params.id;
-          const pharmacyMedRecord = normalizePharmacyMedRecord(req.body.pharmacy_med_record);
+        const memberId = req.params.id;
+        const body = req.body || {};
+        const capabilities = await memberStorageCapabilities();
+        requireAvailablePharmacyStorage(capabilities, body.pharmacy_med_record);
+        const medical = normalizePharmacyMedRecord(body.pharmacy_med_record);
+        const existing = await queryOne(
+            `SELECT u.id FROM users u JOIN member_profiles m ON m.user_id = u.id WHERE u.id = $1::uuid`, [memberId]);
+        if (!existing) return res.status(404).json({ error: "Member not found." });
 
-      // Check member exists
-      const existing = await queryOne(
-              `SELECT u.id FROM users u JOIN member_profiles m ON m.user_id = u.id WHERE u.id = $1::uuid`,
-              [memberId],
-            );
-          if (!existing) return res.status(404).json({ error: "Member not found." });
-
-      const name = req.body.name !== undefined ? String(req.body.name || "").trim() || null : undefined;
-          const phone = req.body.phone !== undefined ? String(req.body.phone || "").trim() || null : undefined;
-          const email = req.body.email !== undefined ? String(req.body.email || "").trim().toLowerCase() || null : undefined;
-          const sex = req.body.sex !== undefined ? normalizeMemberSex(req.body.sex) : undefined;
-          const dob = req.body.dob !== undefined ? normalizeMemberDob(req.body.dob) : undefined;
-          const remark = req.body.remark !== undefined ? String(req.body.remark || "").trim() || null : undefined;
-
-      // Build dynamic SET clause — only update provided fields
-      const setClauses = [];
-          const params = [];
-          let idx = 1;
-
-      if (name !== undefined)  { setClauses.push(`full_name = $${idx++}`);     params.push(name); }
-          if (phone !== undefined) { setClauses.push(`phone_number = $${idx++}`);  params.push(phone); }
-          if (email !== undefined) { setClauses.push(`email = $${idx++}`);         params.push(email); }
-          if (sex !== undefined) { setClauses.push(`sex = $${idx++}`);             params.push(sex); }
-          if (dob !== undefined) { setClauses.push(`dob = $${idx++}`);             params.push(dob); }
-          if (remark !== undefined) { setClauses.push(`remark = $${idx++}`);       params.push(remark); }
-
-      if (setClauses.length > 0) {
-              params.push(memberId);
-      }
-
-      const client = await pool.connect();
-      try {
-              await client.query("BEGIN");
-
-              if (setClauses.length > 0) {
-                        await client.query(
-                                    `UPDATE users SET ${setClauses.join(", ")} WHERE id = $${idx}::uuid`,
-                                    params,
-                                  );
-              }
-
-              await upsertPharmacyMedRecord(client, memberId, pharmacyMedRecord);
-              await client.query("COMMIT");
-      } catch (error) {
-              await client.query("ROLLBACK");
-              throw error;
-      } finally {
-              client.release();
-      }
-
-      // Fetch and return the updated record
-      const row = await queryOne(
-              `SELECT u.id,
-                            u.full_name,
-                                          u.phone_number AS phone,
-                                                        u.email,
-                                                                      u.sex,
-                                                                                    u.dob::text AS dob,
-                                                                                                  u.remark,
-                                                                                                                u.created_at,
-                                                                                                                              m.member_code,
-                                                                                                                                            m.tier,
-                                                                                                                                                          m.is_active,
-                                                                                                                                                                        m.updated_at,
-                                                                                                                                            COALESCE((
-                                                                                                                                                            SELECT SUM(pl.amount)
-                                                                                                                                                                            FROM point_ledger pl
-                                                                                                                                                                                            WHERE pl.user_id = u.id::uuid
-                                                                                                                                                                                                          ), 0) AS current_points
-                                                                                                                                                                                                                 FROM users u
-                                                                                                                                                                                                                        JOIN member_profiles m ON m.user_id = u.id
-                                                                                                                                                                                                                               WHERE u.id = $1::uuid`,
-              [memberId],
-            );
-
-      const pharmacyMedRecordRow = await getPharmacyMedRecord(memberId);
-      return res.json({
-              ok: true,
-              ...buildMemberResponse(row, pharmacyMedRecordRow),
-      });
+        const values = {
+            full_name: body.name !== undefined ? String(body.name || "").trim() : undefined,
+            phone_number: body.phone !== undefined ? normalizeMemberPhone(body.phone) : undefined,
+            email: body.email !== undefined ? String(body.email || "").trim().toLowerCase() || null : undefined,
+            sex: body.sex !== undefined ? normalizeMemberSex(body.sex) : undefined,
+            dob: body.dob !== undefined ? normalizeMemberDob(body.dob) : undefined,
+            remark: body.remark !== undefined ? String(body.remark || "").trim() || null : undefined,
+        };
+        if (values.full_name === "" || values.phone_number === "") {
+            return res.status(400).json({ error: "name and phone must not be empty." });
+        }
+        const entries = Object.entries(values).filter(([, value]) => value !== undefined);
+        const params = entries.map(([, value]) => value);
+        const client = await pool.connect();
+        let row, medicalRow;
+        try {
+            await client.query("BEGIN");
+            if (entries.length) {
+                await client.query(`UPDATE users SET ${entries.map(([key], i) => `${key} = $${i + 1}`).join(", ")}
+                    WHERE id = $${params.length + 1}::uuid`, [...params, memberId]);
+                await client.query("UPDATE member_profiles SET updated_at = NOW() WHERE user_id = $1", [memberId]);
+            }
+            if (capabilities.pharmacyMedRecordAvailable) await upsertPharmacyMedRecord(client, memberId, medical);
+            row = await getMemberProfile(memberId, capabilities, client);
+            medicalRow = capabilities.pharmacyMedRecordAvailable ? await getPharmacyMedRecord(memberId, client) : null;
+            await client.query("COMMIT");
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally { client.release(); }
+        return res.json({ ok: true, ...buildMemberResponse(row, medicalRow, capabilities) });
     } catch (error) {
-          const status = /pharmacy_med_record/.test(error.message || "") ? 400 : 500;
-          return res.status(status).json({ error: error.message || "Failed to update member." });
+        const message = error.code === "23505" ? "Phone or email already registered." : error.message || "Failed to update member.";
+        return res.status(memberFailureStatus(error)).json({ error: message });
     }
 });
 
@@ -975,11 +943,13 @@ router.post("/claims", requireStaff, async (req, res) => {
 router.post("/", requireStaff, async (req, res) => {
   try {
     const fullName   = String(req.body?.fullName ?? req.body?.name ?? "").trim();
-    const phone      = normalizePhone(req.body?.phone || "");
+    const phone      = normalizeMemberPhone(req.body?.phone || "");
     const email      = String(req.body?.email     || "").trim() || null;
     const sex        = normalizeMemberSex(req.body?.sex);
     const dob        = normalizeMemberDob(req.body?.dob);
     const remark     = String(req.body?.remark || "").trim() || null;
+    const capabilities = await memberStorageCapabilities();
+    requireAvailablePharmacyStorage(capabilities, req.body?.pharmacy_med_record);
     const pharmacyMedRecord = normalizePharmacyMedRecord(req.body?.pharmacy_med_record);
 
     if (!fullName) return res.status(400).json({ message: "fullName is required." });
@@ -1002,11 +972,11 @@ router.post("/", requireStaff, async (req, res) => {
       const memberCode = generateMemberCode(userId);
       await client.query(
         `INSERT INTO member_profiles (id, user_id, member_code, tier, is_active, created_at, updated_at)
-         VALUES ($1, $2, $3, 'general', TRUE, NOW(), NOW())`,
+         VALUES ($1, $2, $3, 'bronze', TRUE, NOW(), NOW())`,
         [createId(), userId, memberCode],
       );
 
-      await upsertPharmacyMedRecord(client, userId, pharmacyMedRecord);
+      if (capabilities.pharmacyMedRecordAvailable) await upsertPharmacyMedRecord(client, userId, pharmacyMedRecord);
 
       await client.query("COMMIT");
 
@@ -1022,7 +992,8 @@ router.post("/", requireStaff, async (req, res) => {
         remark,
         memberCode,
         currentPoints: 0,
-        pharmacy_med_record: pharmacyMedRecord === undefined ? null : pharmacyMedRecord,
+        pharmacy_med_record: capabilities.pharmacyMedRecordAvailable && pharmacyMedRecord !== undefined ? pharmacyMedRecord : null,
+        ...capabilities,
       });
     } catch (error) {
       await client.query("ROLLBACK");
@@ -1031,8 +1002,8 @@ router.post("/", requireStaff, async (req, res) => {
       client.release();
     }
   } catch (error) {
-    const status = /pharmacy_med_record/.test(error.message || "") ? 400 : 500;
-    return res.status(status).json({ error: error.message || "Failed to create member." });
+    const message = error.code === "23505" ? "Phone or email already registered." : error.message || "Failed to create member.";
+    return res.status(memberFailureStatus(error)).json({ error: message });
   }
 });
 
