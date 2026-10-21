@@ -255,10 +255,10 @@ describe("SCCRM routes", () => {
 
     expect(response.status).toBe(201);
     expect(response.body.ok).toBe(true);
-    expect(response.body.pointsAwarded).toBe(25);
+    expect(response.body.pointsAwarded).toBe(10);
     expect(state.transactions).toHaveLength(1);
     expect(state.pointLedger).toHaveLength(1);
-    expect(response.body.balance).toBe(25);
+    expect(response.body.balance).toBe(10);
   });
 
   test("POST /import/pos skips duplicate refs and counts unmatched customers", async () => {

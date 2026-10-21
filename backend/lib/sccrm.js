@@ -93,7 +93,7 @@ function emailOtpExpiryDate() {
 function calculateBasePoints(totalAmount) {
   const numeric = Number(totalAmount);
   if (!Number.isFinite(numeric) || numeric < 0) return 0;
-  return Math.floor(numeric / 10);
+  return Math.floor(Math.round(numeric * 100) / 2500);
 }
 
 function applyPromotionRule(basePoints, promotion, totalAmount) {
@@ -116,11 +116,7 @@ function applyPromotionRule(basePoints, promotion, totalAmount) {
 }
 
 function resolvePointsWithPromotions(totalAmount, promotions) {
-  let points = calculateBasePoints(totalAmount);
-  for (const promotion of promotions) {
-    points = applyPromotionRule(points, promotion, totalAmount);
-  }
-  return points;
+  return require('./sccrmPromotions').quotePoints(totalAmount, promotions).awardedPoints;
 }
 
 function calculateTier(lifetimePoints) {

@@ -200,19 +200,8 @@ async function recalculateTier(userId) {
 
 // ─── Promotion helpers ────────────────────────────────────────────────────────
 
-async function getActivePromotions() {
-  const result = await pool.query(
-    `SELECT id, name, type, value, condition_json, starts_at, ends_at
-     FROM   promotions
-     WHERE  is_active = TRUE
-       AND  (starts_at IS NULL OR starts_at <= NOW())
-       AND  (ends_at   IS NULL OR ends_at   >= NOW())
-     ORDER  BY starts_at ASC NULLS FIRST, created_at ASC`
-  );
-  return result.rows.map((row) => ({
-    ...row,
-    condition_json: readJsonCondition(row.condition_json),
-  }));
+async function getActivePromotions(branchCode = '') {
+  return require('../lib/sccrmPromotions').getActivePromotions(pool, branchCode);
 }
 
 // ─── Identity helpers ─────────────────────────────────────────────────────────
@@ -1176,7 +1165,7 @@ router.post("/points/earn", requireStaff, async (req, res) => {
       }
     }
 
-    const promotions    = await getActivePromotions();
+    const promotions    = await getActivePromotions(req.staffDevice.branch_code);
     const points        = resolvePointsWithPromotions(amountThb, promotions);
     const transactionId = createId();
 
@@ -1339,7 +1328,7 @@ router.post("/claims/confirm", requireCustomer, async (req, res) => {
       const claimTokenId = claim.claim_token_id;
       const saleEventId = claim.sale_event_id;
       const saleAmount = Number(claim.paid_total || 0);
-      const promotions = await getActivePromotions();
+      const promotions = await getActivePromotions(claim.sale_branch_code || claim.branch_code);
       const points = resolvePointsWithPromotions(saleAmount, promotions);
       const ledgerId = createId();
       const awardId = createId();
@@ -1636,41 +1625,7 @@ router.post("/branches", requireStaff, async (req, res) => {
 
 // ─── Routes: promotions ───────────────────────────────────────────────────────
 
-router.get("/promotions/active", async (_req, res) => {
-  try {
-    return res.json({ ok: true, promotions: await getActivePromotions() });
-  } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to load promotions.");
-  }
-});
-
-router.post("/promotions", requireStaff, async (req, res) => {
-  try {
-    const name          = String(req.body?.name  || "").trim();
-    const type          = String(req.body?.type  || "").trim();
-    const value         = Number(req.body?.value);
-    const conditionJson = readJsonCondition(req.body?.condition_json);
-    if (!name || !type || !Number.isFinite(value)) {
-      return jsonError(res, 400, "name, type, and numeric value are required.");
-    }
-    const id = createId();
-    await pool.query(
-      `INSERT INTO promotions
-         (id, name, type, value, condition_json, starts_at, ends_at, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
-      [
-        id, name, type, value,
-        JSON.stringify(conditionJson),
-        req.body?.starts_at || null,
-        req.body?.ends_at   || null,
-        req.body?.is_active === undefined ? true : !!req.body.is_active,
-      ]
-    );
-    return res.status(201).json({ ok: true, promotionId: id });
-  } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to create promotion.");
-  }
-});
+router.use(require('./centralPromotions'));
 
 // ─── Routes: POS import ───────────────────────────────────────────────────────
 
@@ -1700,7 +1655,7 @@ router.post("/import/pos", requireStaff, upload.single("file"), async (req, res)
         ? await queryOne(`SELECT id FROM users WHERE phone_number = $1`, [normalized.phone])
         : null;
 
-      const promotions   = user ? await getActivePromotions() : [];
+      const promotions   = user ? await getActivePromotions(req.staffDevice.branch_code) : [];
       const points       = user ? resolvePointsWithPromotions(normalized.total_amount, promotions) : 0;
       const transactionId = createId();
 
