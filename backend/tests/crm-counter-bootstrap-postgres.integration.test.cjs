@@ -69,6 +69,15 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     app.use(express.json());
     app.use("/api/sccrm", require("../routes/sccrm"));
     app.use("/api/crm", require("../routes/crmMembers"));
+    app.use("/api/members", require("../routes/loyalty"));
+    app.use("/join", require("../routes/publicMemberRegistration").createPublicMemberRegistration({ pool: mockPool, maxRequests: 1000 }));
+  });
+
+  const priorPosKey = process.env.POS_API_KEY;
+  beforeAll(() => { process.env.POS_API_KEY = "synthetic-pos-fixture-key"; });
+  afterAll(() => {
+    if (priorPosKey === undefined) delete process.env.POS_API_KEY;
+    else process.env.POS_API_KEY = priorPosKey;
   });
 
   afterAll(async () => {
@@ -162,5 +171,63 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
       WHERE n.nspname='public' AND c.relname=ANY($1::text[]) AND c.relrowsecurity`,
     [["users", "branches", "staff_devices", "member_profiles", "crm_member_consents", "crm_member_health_records", "crm_counter_schema_migrations"]]);
     expect(security.rows[0].count).toBe(7);
+  });
+
+  test("POS creates, searches and edits the same QR identity without loyalty or medical tables", async () => {
+    const key = "synthetic-pos-fixture-key";
+    const authorization = `Bearer ${staffToken}`;
+    const qrPhone = "0990000011";
+    const qr = await request(app).post("/join/submit").send({
+      firstName: "QR", lastName: "Shared Identity", phone: qrPhone, consent: true,
+    });
+    expect(qr.status).toBe(200);
+    const search = await request(app).get("/api/members/search").query({ q: "+66 99 000 0011" }).set("Authorization", authorization);
+    expect(search.status).toBe(200);
+    expect(search.body).toHaveLength(1);
+    const qrMember = search.body[0];
+    expect(qrMember).toEqual(expect.objectContaining({
+      displayName: "QR Shared Identity", phone: qrPhone,
+      pointsAvailable: false, pharmacyMedRecordAvailable: false, currentPoints: 0,
+    }));
+    await request(app).get(`/api/members/${qrMember.id}`).expect(401);
+    const detail = await request(app).get(`/api/members/${qrMember.id}`).set("Authorization", authorization);
+    expect(detail.status).toBe(200);
+    expect(detail.body.memberCode).toBe(qrMember.memberCode);
+    expect(detail.body.pharmacy_med_record).toBeNull();
+
+    const update = await request(app).put(`/api/members/${qrMember.id}`).set("Authorization", authorization).send({
+      name: "QR Updated by POS", phone: qrPhone, email: "shared-qr@example.invalid", sex: "female", dob: "1990-01-01", remark: "POS edit",
+    });
+    expect(update.status).toBe(200);
+    expect(update.body).toEqual(expect.objectContaining({ id: qrMember.id, memberCode: qrMember.memberCode, displayName: "QR Updated by POS", remark: "POS edit" }));
+    const consent = await mockClient.query(`SELECT u.is_verified, c.pdpa_general, c.pdpa_health, c.consent_version
+      FROM users u JOIN crm_member_consents c ON c.user_id=u.id WHERE u.id=$1`, [qrMember.id]);
+    expect(consent.rows).toEqual([{ is_verified: false, pdpa_general: true, pdpa_health: false, consent_version: "qr-v1.0" }]);
+
+    const create = await request(app).post("/api/members").set("Authorization", authorization).send({
+      name: "POS Created Identity", phone: "+66 99 000 0012", email: "pos-new@example.invalid", sex: "male", dob: "1988-09-15",
+    });
+    expect(create.status).toBe(201);
+    expect(create.body.phone).toBe("0990000012");
+    expect(create.body.pointsAvailable).toBe(false);
+    const posId = create.body.id;
+    const tier = await mockClient.query("SELECT tier FROM member_profiles WHERE user_id=$1", [posId]);
+    expect(tier.rows[0].tier).toBe("bronze");
+    const duplicate = await request(app).post("/api/members").set("Authorization", authorization).send({ name: "Must not replace", phone: qrPhone });
+    expect(duplicate.status).toBe(409);
+    const duplicateEdit = await request(app).put(`/api/members/${posId}`).set("x-pos-api-key", key).send({ name: "Must roll back", phone: qrPhone });
+    expect(duplicateEdit.status).toBe(409);
+    const unchanged = await request(app).get(`/api/members/${posId}`).set("x-pos-api-key", key);
+    expect(unchanged.body.displayName).toBe("POS Created Identity");
+    expect(unchanged.body.phone).toBe("0990000012");
+
+    const medical = await request(app).put(`/api/members/${qrMember.id}`).set("x-pos-api-key", key).send({ name: "Must not partially save", pharmacy_med_record: { weightKg: 50 } });
+    expect(medical.status).toBe(503);
+    const after = await request(app).get(`/api/members/${qrMember.id}`).set("x-pos-api-key", key);
+    expect(after.body.displayName).toBe("QR Updated by POS");
+    const movePhone = await request(app).put(`/api/members/${posId}`).set("x-pos-api-key", key).send({ phone: "099-000-0013" });
+    expect(movePhone.status).toBe(200);
+    const found = await request(app).get("/api/members/search").query({ q: create.body.memberCode }).set("Authorization", authorization);
+    expect(found.body[0]).toEqual(expect.objectContaining({ id: posId, phone: "0990000013" }));
   });
 });
