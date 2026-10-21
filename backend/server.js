@@ -11,6 +11,7 @@ const sccrmRoutes = require("./routes/sccrm");
 const sccrmInternalRoutes = require("./routes/sccrmInternal");
 const loyaltyRoutes       = require("./routes/loyalty");
 const crmMembersRoutes    = require("./routes/crmMembers");
+const { createPublicMemberRegistration } = require("./routes/publicMemberRegistration");
 const seamlessProcessingRecordRoutes = require("./routes/seamlessProcessingRecords");
 const seamlessAppRoutes = require("./src/modules/seamless/routes");
 const { r2Configured } = require("./lib/r2Storage");
@@ -42,6 +43,8 @@ console.log("SendGrid configured:", !!process.env.SENDGRID_API_KEY);
 // ==== App ====
 const app = express();
 const port = process.env.PORT || 3000;
+// Public QR form: scoped JSON limit, same-origin submissions and proxy handling.
+app.use("/join", createPublicMemberRegistration({ pool: require("./db") }));
 const clientBuildPath = process.env.CLIENT_BUILD_DIR
   ? path.resolve(process.env.CLIENT_BUILD_DIR)
   : path.join(__dirname, "..", "frontend-react", "dist");
