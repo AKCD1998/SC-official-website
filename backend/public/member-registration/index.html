@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#0B1FB8">
+    <title>สมัครสมาชิก | ศิริชัยเภสัช</title>
+    <link rel="stylesheet" href="/join/assets/style.css">
+    <script src="/join/assets/form.js" defer></script>
+  </head>
+  <body>
+    <!-- local-preview-banner -->
+    <main class="card">
+      <header class="brand"><span class="brand-mark" aria-hidden="true">SC</span><span>ศิริชัยเภสัช<small>SC PHARMACY</small></span></header>
+      <section id="registration">
+        <p class="eyebrow">ยินดีต้อนรับสู่ครอบครัว SC</p>
+        <h1>สมัครสมาชิก</h1>
+        <p class="intro">กรอกข้อมูลของคุณ แล้วแจ้งเบอร์โทรกับพนักงาน<br>เพื่อใช้บริการสมาชิกที่ร้าน</p>
+        <form id="member-form" method="post" action="/join/submit">
+          <div class="name-fields">
+            <div class="field"><label for="firstName">ชื่อ <span aria-hidden="true">*</span></label><input id="firstName" name="firstName" autocomplete="given-name" maxlength="100" required placeholder="ชื่อจริง"></div>
+            <div class="field"><label for="lastName">นามสกุล <span aria-hidden="true">*</span></label><input id="lastName" name="lastName" autocomplete="family-name" maxlength="100" required placeholder="นามสกุล"></div>
+          </div>
+          <div class="field"><label for="phone">เบอร์โทรศัพท์ <span aria-hidden="true">*</span></label><input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="40" required placeholder="เช่น 081 234 5678" aria-describedby="phone-help"><p class="hint" id="phone-help">ใช้เบอร์นี้แจ้งกับพนักงานเมื่อมาใช้บริการ</p></div>
+          <div class="consent-panel">
+            <label class="consent" for="consent"><input id="consent" name="consent" type="checkbox" required><span>ยินยอมให้ร้านศิริชัยเภสัชเก็บชื่อ นามสกุล และเบอร์โทร เพื่อบันทึกและติดต่อเกี่ยวกับการเป็นสมาชิก</span></label>
+            <p class="hint consent-detail">หากต้องการสอบถาม แก้ไข หรือลบข้อมูล กรุณาติดต่อพนักงานที่ร้าน</p>
+          </div>
+          <p id="error" class="error" role="alert" hidden></p>
+          <button type="submit" id="submit">ยืนยันสมัครสมาชิก <span aria-hidden="true">→</span></button>
+          <p class="footnote">หากเคยลงทะเบียนด้วยเบอร์นี้แล้ว ระบบจะเก็บข้อมูลเดิมไว้</p>
+        </form>
+        <noscript><p class="error">กรุณาเปิด JavaScript ในเบราว์เซอร์เพื่อส่งแบบฟอร์ม หรือให้พนักงานช่วยลงทะเบียน</p></noscript>
+      </section>
+      <section id="success" class="success" role="status" tabindex="-1" hidden>
+        <span class="success-mark" aria-hidden="true">✓</span>
+        <p class="eyebrow">ขอบคุณที่ให้เราดูแล</p>
+        <h1>รับข้อมูลเรียบร้อยแล้ว</h1>
+        <p>แจ้งเบอร์โทรที่ลงทะเบียนกับพนักงาน<br>เพื่อใช้บริการสมาชิกได้เลย</p>
+        <p class="hint">หากเคยสมัครด้วยเบอร์นี้แล้ว ข้อมูลเดิมจะถูกเก็บไว้</p>
+      </section>
+      <footer>ศิริชัยเภสัช · ใส่ใจคุณและครอบครัว</footer>
+    </main>
+  </body>
+</html>
