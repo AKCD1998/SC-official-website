@@ -3,6 +3,7 @@ const pool    = require("../db");
 const { createId, generateMemberCode, hashOpaqueToken, normalizePhone, parseBearerToken } = require("../lib/sccrm");
 const { buildSourceEventKey } = require("../lib/sccrmCrm");
 const { getActivePromotions, quotePoints, receiptEligibleAmount } = require('../lib/sccrmPromotions');
+const {buildReceiptSnapshot,parseHistoryCursor,makeHistoryCursor,mapPurchase}=require('../lib/purchaseHistory');
 
 const router = express.Router();
 
@@ -490,6 +491,8 @@ async function mirrorPosSaleClaim(client, payload) {
         [sourceEventKey],
     );
     const saleEventId = existingSaleResult.rows[0]?.id || createId();
+    const snapshot = payload.receiptSnapshot;
+    const receiptTotal = snapshot.totalAmount;
 
     await client.query(
         `INSERT INTO crm_pos_sale_events
@@ -497,11 +500,12 @@ async function mirrorPosSaleClaim(client, payload) {
                gross_total, net_total, paid_total, ada_customer_code, claim_status,
                source_system, source_event_key, source_synced_at, tender_rows, raw_payload, created_at, updated_at)
          VALUES
-              ($1, $2, NULL, $3, '1', $4, $5,
+              ($1, $2, $11, $3, '1', $4, $5,
                $6, $7, $8, NULL, 'claimed',
                'SCCRMonPOS', $9, NOW(), '[]'::jsonb, $10::jsonb, NOW(), NOW())
          ON CONFLICT (source_event_key) DO UPDATE SET
                branch_code = EXCLUDED.branch_code,
+               pos_code = EXCLUDED.pos_code,
                doc_no = EXCLUDED.doc_no,
                sale_at = EXCLUDED.sale_at,
                cashier_code = EXCLUDED.cashier_code,
@@ -517,28 +521,31 @@ async function mirrorPosSaleClaim(client, payload) {
             branchCode,
             receiptNo,
             payload.soldAt || new Date().toISOString(),
-            payload.cashierStaffCode,
-            Number(payload.totalAmount || 0),
-            Number(payload.totalAmount || 0),
-            Number(payload.totalAmount || 0),
+            snapshot.receiptCashierCode || payload.cashierStaffCode,
+            receiptTotal + (snapshot.receiptDiscount || 0),
+            receiptTotal,
+            receiptTotal,
             sourceEventKey,
             JSON.stringify({
                 mirrored_from: "loyalty_claims",
                 loyalty_claim_id: payload.claimId,
                 preview_points: payload.previewPoints,
+                eligible_amount: payload.totalAmount,
+                receipt_snapshot: snapshot,
             }),
+            snapshot.posCode,
         ],
     );
 
     await client.query(`DELETE FROM crm_pos_sale_line_events WHERE sale_event_id = $1`, [saleEventId]);
-    for (let index = 0; index < payload.items.length; index += 1) {
-        const item = payload.items[index];
+    for (let index = 0; index < snapshot.items.length; index += 1) {
+        const item = snapshot.items[index];
         // eslint-disable-next-line no-await-in-loop
         await client.query(
             `INSERT INTO crm_pos_sale_line_events
                   (id, sale_event_id, line_no, product_code, barcode, qty, unit_code, unit_name, net_amount, discount_amount, lot_no, expiry_date, raw_payload, created_at)
              VALUES
-                  ($1, $2, $3, $4, NULL, $5, NULL, NULL, $6, 0, NULL, NULL, $7::jsonb, NOW())`,
+                  ($1, $2, $3, $4, $8, $5, NULL, NULL, $6, $9, NULL, NULL, $7::jsonb, NOW())`,
             [
                 createId(),
                 saleEventId,
@@ -547,6 +554,8 @@ async function mirrorPosSaleClaim(client, payload) {
                 Number(item.qty || 0),
                 Number(item.lineTotal || 0),
                 JSON.stringify(item),
+                item.barcode,
+                item.lineDiscount || 0,
             ],
         );
     }
@@ -651,13 +660,14 @@ router.get("/:id", requireMemberAccess, async (req, res) => {
 
 // ── GET /api/members/:id/purchase-history ─────────────────────────────────────
 // WinForms POS fetches a member's claimed-purchase history with returns.
-// Auth: x-pos-api-key header (POS_API_KEY / BRANCH_STOCK_SYNC_TOKEN env var).
+// Auth: revocable staff-device session, or the existing legacy POS key.
 // NOTE: only bills the cashier linked to this member (via a loyalty claim) appear —
 // AdaPos sales carry no member, so unclaimed purchases cannot be attributed here.
-router.get("/:id/purchase-history", requirePosApiKey, async (req, res) => {
+router.get("/:id/purchase-history", requireMemberAccess, async (req, res) => {
     try {
           const memberId = req.params.id;
           const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 100, 1), 500);
+          const cursor=parseHistoryCursor(req.query.cursor);
 
       // Member must exist
       const member = await queryOne(
@@ -667,16 +677,21 @@ router.get("/:id/purchase-history", requirePosApiKey, async (req, res) => {
           if (!member) return res.status(404).json({ error: "Member not found." });
 
       const claimsResult = await pool.query(
-              `SELECT id, receipt_no, branch_code, sold_at, total_amount, awarded_points, created_at
+              `SELECT id, receipt_no, branch_code, sold_at, total_amount, awarded_points, created_at,
+                      cashier_staff_code,receipt_total_amount,receipt_snapshot,
+                      COALESCE(sold_at,created_at)::text AS sort_sold_at,created_at::text AS sort_created_at
                  FROM loyalty_claims
                 WHERE user_id = $1
-                ORDER BY COALESCE(sold_at, created_at) DESC, created_at DESC
+                ${cursor?'AND (COALESCE(sold_at,created_at),created_at,id)<($3::timestamptz,$4::timestamptz,$5::text)':''}
+                ORDER BY COALESCE(sold_at, created_at) DESC, created_at DESC,id DESC
                 LIMIT $2`,
-              [memberId, limit],
+              [memberId, limit+1,...(cursor?[cursor.soldAt,cursor.createdAt,cursor.id]:[])],
             );
-          const claims = claimsResult.rows;
+          const hasMore=claimsResult.rows.length>limit;
+          const claims = claimsResult.rows.slice(0,limit);
+          const nextCursor=hasMore?makeHistoryCursor(claims[claims.length-1]):null;
           if (claims.length === 0) {
-              return res.json({ ok: true, memberId, purchases: [] });
+              return res.json({ ok: true, memberId, purchases: [],hasMore:false,nextCursor:null });
           }
 
       // Line items for all claims in one query.
@@ -726,21 +741,12 @@ router.get("/:id/purchase-history", requirePosApiKey, async (req, res) => {
 
       const purchases = claims.map((c) => {
               const key = normalizeDocRef(c.branch_code) + "|" + normalizeDocRef(c.receipt_no);
-              return {
-                        claimId: c.id,
-                        receiptNo: c.receipt_no,
-                        branchCode: c.branch_code,
-                        soldAt: c.sold_at,
-                        totalAmount: Number(c.total_amount || 0),
-                        awardedPoints: Number(c.awarded_points || 0),
-                        items: itemsByClaim.get(c.id) || [],
-                        returns: returnsByKey.get(key) || [],
-              };
+              return mapPurchase(c,itemsByClaim.get(c.id)||[],returnsByKey.get(key)||[]);
           });
 
-      return res.json({ ok: true, memberId, purchases });
+      return res.json({ ok: true, memberId, purchases,hasMore,nextCursor });
     } catch (error) {
-          return res.status(500).json({ error: error.message || "Failed to fetch purchase history." });
+          return res.status(error.status || 500).json({ error: error.message || "Failed to fetch purchase history." });
     }
 });
 
@@ -819,6 +825,7 @@ router.post("/claims", requireStaff, async (req, res) => {
           if (!Number.isFinite(totalAmount) || totalAmount < 0) return res.status(400).json({ message: "totalAmount must be a non-negative number." });
 
       const eligible = receiptEligibleAmount(items);
+      const snapshot=buildReceiptSnapshot(req.body,items);
       if (Math.abs(eligible - totalAmount) > 0.011) return res.status(400).json({ message: 'totalAmount must equal eligible receipt lines.' });
       if (req.staffDevice.branch_code && normalizeDocRef(req.staffDevice.branch_code) !== normalizeDocRef(branchCode)) return res.status(403).json({ message: 'Receipt branch does not match staff device.' });
           const client = await pool.connect();
@@ -862,10 +869,10 @@ router.post("/claims", requireStaff, async (req, res) => {
               await client.query(
                         `INSERT INTO loyalty_claims
                                   (id, receipt_no, branch_code, cashier_staff_code, sold_at,
-                                             total_amount, preview_points, awarded_points, user_id, promotion_snapshot, promotion_revision)
-                                                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11)`,
+                                             total_amount, preview_points, awarded_points, user_id, promotion_snapshot, promotion_revision,receipt_total_amount,receipt_snapshot)
+                                                      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11,$12,$13::jsonb)`,
                         [claimId, receiptNo, branchCode, cashierStaffCode, soldAt,
-                                   Number(totalAmount), previewPoints, awardedPoints, memberId, JSON.stringify(quote.appliedPromotions), quote.revision],
+                                   Number(totalAmount), previewPoints, awardedPoints, memberId, JSON.stringify(quote.appliedPromotions), quote.revision,snapshot.totalAmount,JSON.stringify(snapshot)],
                       );
 
             // Insert line items
@@ -904,6 +911,7 @@ router.post("/claims", requireStaff, async (req, res) => {
                         soldAt,
                         cashierStaffCode,
                         totalAmount,
+                        receiptSnapshot:snapshot,
                         previewPoints,
                         claimId,
                         items,

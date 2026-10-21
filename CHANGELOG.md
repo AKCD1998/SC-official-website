@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-21 — Member purchase history
+
+- Allow existing staff sessions to read member history; retain legacy POS keys
+  and fail closed on invalid/revoked bearer sessions.
+- Preserve original receipt totals, discounts, ordered items and POS metadata
+  independently of eligible spend and points. Store confirmed zero-point bills.
+- Add keyset history pagination, additive RLS-preserving provisioning and real
+  PostgreSQL/WinForms integration checks with removable synthetic fixtures.
+
 ## 2026-10-21 — Customer QR registration
 
 - Add `/join`, a mobile form for customers to submit first name, surname and

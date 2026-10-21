@@ -236,6 +236,11 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect(dry.status).toBe('dry-run-rolled-back');
     expect((await mockClient.query("SELECT to_regclass('public.promotions') IS NULL AS absent")).rows[0].absent).toBe(true);
     await provisionCentralPromotions(await mockPool.connect(),{apply:true});
+    const {provisionPurchaseHistory}=require('../scripts/provision-purchase-history.cjs');
+    expect((await provisionPurchaseHistory(await mockPool.connect())).status).toBe('dry-run-rolled-back');
+    expect((await mockClient.query("SELECT count(*)::int AS n FROM information_schema.columns WHERE table_schema='public' AND table_name='loyalty_claims' AND column_name='receipt_snapshot'")).rows[0].n).toBe(0);
+    await provisionPurchaseHistory(await mockPool.connect(),{apply:true});
+    expect((await provisionPurchaseHistory(await mockPool.connect(),{apply:true})).alreadyApplied).toBe(true);
     expect((await provisionCentralPromotions(await mockPool.connect(),{apply:true})).alreadyApplied).toBe(true);
     const promoId='22222222-2222-4222-8222-222222222222';
     await mockClient.query(`INSERT INTO promotions(id,name,type,value,condition_json) VALUES($1,'Scoped double points','multiplier',2,'{"branch_codes":["TEST_PROMO"]}')`,[promoId]);
@@ -257,5 +262,52 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect(snapshots.rows.filter(r=>r.awarded_points===20)).toHaveLength(2);
     expect(snapshots.rows.filter(r=>r.awarded_points===20).every(r=>r.promotion_snapshot[0].value===2)).toBe(true);
     expect((await mockClient.query('SELECT count(*)::int AS n FROM crm_loyalty_awards')).rows[0].n).toBe(3);
+  });
+
+  test('persists original POS totals and every ordered line, including zero-point bills, independently of points and member versions', async () => {
+    const auth='Bearer '+staffToken;
+    const items=[{seq:3,productCode:'VIT',productName:'วิตามิน fixture',barcode:'SYNTHETIC-BC',qty:2,unitPrice:130,lineTotal:250,lineDiscount:10,promotionCode:'PROMO_FIXTURE'},
+      {seq:5,productCode:'DRUG',productName:'เภสัช fixture',qty:1,unitPrice:100,lineTotal:100}];
+    const claim={receiptNo:'HISTORY-MIXED',branchCode:'TEST_HISTORY',memberId,totalAmount:250,receiptTotalAmount:340,receiptDiscount:10,posCode:'POS-TEST',receiptCashierCode:'CASH-TEST',soldAt:'2026-10-21T08:01:02+07:00',items};
+    expect((await request(app).post('/api/loyalty/claims').set('Authorization',auth).send(claim)).status).toBe(201);
+    const drug={...claim,receiptNo:'HISTORY-ZERO',totalAmount:0,receiptTotalAmount:100,receiptDiscount:0,items:[items[1]]};
+    const zero=await request(app).post('/api/loyalty/claims').set('Authorization',auth).send(drug);
+    expect(zero.status).toBe(201);expect(zero.body.awardedPoints).toBe(0);
+    expect((await request(app).post('/api/loyalty/claims').set('Authorization',auth).send(claim)).status).toBe(409);
+    let history=await request(app).get(`/api/members/${memberId}/purchase-history`).set('Authorization',auth);
+    expect(history.status).toBe(200);
+    const mixed=history.body.purchases.find(p=>p.receiptNo===claim.receiptNo);
+    expect(mixed).toMatchObject({totalAmount:340,eligibleAmount:250,totalAmountSource:'pos_header',receiptDiscount:10,posCode:'POS-TEST',receiptCashierCode:'CASH-TEST'});
+    expect(mixed.items).toMatchObject(items);
+    expect(history.body.purchases.find(p=>p.receiptNo===drug.receiptNo)).toMatchObject({totalAmount:100,eligibleAmount:0,awardedPoints:0,items:[{productCode:'DRUG'}]});
+    const mirrored=await mockClient.query("SELECT paid_total,pos_code,cashier_code FROM crm_pos_sale_events WHERE branch_code='TEST_HISTORY' AND doc_no='HISTORY-MIXED'");
+    expect(Number(mirrored.rows[0].paid_total)).toBe(340);expect(mirrored.rows[0].pos_code).toBe('POS-TEST');expect(mirrored.rows[0].cashier_code).toBe('CASH-TEST');
+    // A points-only reset must not remove any purchase history.
+    const save=await mockPool.connect();await save.query('BEGIN');
+    await save.query('DELETE FROM point_ledger WHERE user_id=$1',[memberId]);
+    history=await request(app).get(`/api/members/${memberId}/purchase-history`).set('Authorization',auth);
+    expect(history.body.purchases.find(p=>p.receiptNo===claim.receiptNo)).toEqual(mixed);
+    await save.query('ROLLBACK');
+    const other=await request(app).post('/api/crm/members').set('Authorization',auth).send({...member,name:'Other history fixture',phone:'0990000020',email:'other-history@example.invalid'});
+    expect(other.status).toBe(201);
+    const otherId=other.body.data.id;
+    expect((await request(app).post('/api/loyalty/claims').set('Authorization',auth).send({...claim,branchCode:'TEST_OTHER',memberId:otherId})).status).toBe(201);
+    const otherHistory=await request(app).get(`/api/members/${otherId}/purchase-history`).set('Authorization',auth);
+    expect(otherHistory.body.purchases).toHaveLength(1);expect(otherHistory.body.purchases[0].branchCode).toBe('TEST_OTHER');
+    expect(history.body.purchases.every(p=>p.branchCode!=='TEST_OTHER')).toBe(true);
+  });
+
+  test('keyset pagination reaches every bill beyond 100 without duplicates at tied timestamps and never crosses members', async () => {
+    await mockClient.query(`INSERT INTO loyalty_claims(id,receipt_no,branch_code,sold_at,total_amount,awarded_points,user_id,created_at)
+      SELECT 'PAGE-'||lpad(i::text,4,'0'),'PAGE-'||i,'TEST_PAGE','2027-01-01 00:00:00.123456+00',0,0,$1,'2027-01-01 00:00:00.654321+00' FROM generate_series(1,105) AS i`,[memberId]);
+    const seen=[],auth='Bearer '+staffToken;let cursor;
+    do {
+      const response=await request(app).get(`/api/members/${memberId}/purchase-history`).query({limit:17,...(cursor?{cursor}:{})}).set('Authorization',auth);
+      expect(response.status).toBe(200);expect(response.body.purchases.length).toBeLessThanOrEqual(17);
+      seen.push(...response.body.purchases.map(p=>p.claimId));cursor=response.body.nextCursor;
+      if(response.body.hasMore)expect(cursor).toBeTruthy();
+    }while(cursor);
+    const stored=await mockClient.query('SELECT id FROM loyalty_claims WHERE user_id=$1',[memberId]);
+    expect(new Set(seen).size).toBe(seen.length);expect(new Set(seen)).toEqual(new Set(stored.rows.map(r=>r.id)));
   });
 });

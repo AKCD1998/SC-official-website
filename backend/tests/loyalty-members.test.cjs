@@ -247,7 +247,7 @@ async function mockQuery(sql, params = []) {
     return { rows: found ? [found] : [], rowCount: found ? 1 : 0 };
   }
 
-  if (text.startsWith("SELECT id, receipt_no, branch_code, sold_at, total_amount, awarded_points, created_at FROM loyalty_claims WHERE user_id =")) {
+  if (text.startsWith("SELECT id, receipt_no, branch_code, sold_at, total_amount, awarded_points, created_at,") && text.includes("FROM loyalty_claims WHERE user_id =")) {
     const rows = (state.claims || []).filter((c) => c.user_id === params[0]);
     return { rows, rowCount: rows.length };
   }
@@ -307,6 +307,15 @@ afterAll(() => {
 });
 
 describe("loyalty member demographics", () => {
+  test("history accepts revocable staff sessions and rejects invalid bearer tokens even with a valid legacy key", async () => {
+    const route = '/api/members/11111111-1111-1111-1111-111111111111/purchase-history';
+    expect((await request(createApp()).get(route).set('Authorization','Bearer test-staff-token')).status).toBe(200);
+    expect((await request(createApp()).get(route)).status).toBe(401);
+    expect((await request(createApp()).get(route).set('Authorization','Bearer invalid-token').set('x-pos-api-key','pos-key')).status).toBe(401);
+    expect((await request(createApp()).get(route).query({cursor:'invalid'}).set('Authorization','Bearer test-staff-token')).status).toBe(400);
+    state.staffDevices[0].revoked_at = new Date().toISOString();
+    expect((await request(createApp()).get(route).set('Authorization','Bearer test-staff-token')).status).toBe(401);
+  });
   test("staff sessions can read and edit profiles, while invalid sessions cannot fall back to a POS key", async () => {
     const app = createApp();
     const id = "11111111-1111-1111-1111-111111111111";
