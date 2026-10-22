@@ -169,8 +169,33 @@ test('aggregate reporting never includes order identities, product codes or quan
   expect(summary).not.toContain('remainingReservedQuantity'); expect(summary).not.toContain('orderedQuantity');
 });
 test('even complete fixture coverage cannot activate stock', () => {
-  const r = project({ coverage: { emailComplete: true, lifecycleComplete: true, posLinksComplete: true } });
+  const r = project({ coverage: { emailComplete: true, lifecycleComplete: true, posLinksComplete: true, stockCutoverVerified: true } });
   expect(summarizeStockShadow(r)).toMatchObject({ status: 'PASS', eligibleForLiveStock: false });
+});
+
+const unpostedPolicy = { mode: 'not-recorded-in-pos', proof: 'owner-confirmed-current-workflow' };
+test.each(['order_shipped', 'order_delivered', 'order_completed'])('%s keeps unposted demand once under the explicit owner workflow', type => {
+  const r = project({ events: [event('order_confirmed'), event(type, 15, proof)], posPostingPolicy: unpostedPolicy });
+  expect(position(r)).toMatchObject({ state: 'shipped_unposted', lines: [{ remainingReservedQuantity: 0,
+    unpostedShippedQuantity: 2, unrepresentedDemandQuantity: 2 }] });
+  expect(summarizeStockShadow(r)).toMatchObject({ shippedUnpostedOrders: 1, eligibleForLiveStock: false,
+    coverage: { stockCutoverVerified: false } });
+});
+test('an unverified workflow declaration cannot excuse missing POS evidence', () => {
+  const r = project({ events: [event('order_confirmed'), event('order_shipped', 15, proof)],
+    posPostingPolicy: { mode: 'not-recorded-in-pos' } });
+  expect(position(r).reasonCodes).toContain('dispatched_pos_issue_link_missing');
+});
+test('subsequent POS posting requires reconciliation of the formerly unposted workflow', () => {
+  const r = project({ posPostingPolicy: unpostedPolicy, posEffects: [issue()], stockBasis: [basis] });
+  expect(position(r).reasonCodes).toContain('pos_posting_policy_contradicted');
+});
+test('verified links later retire shipped demand without subtracting it twice', () => {
+  const r = project({ events: [event('order_confirmed'), event('order_shipped', 15, proof)],
+    posEffects: [issue(1), issue(1)], stockBasis: [basis] });
+  expect(position(r)).toMatchObject({ state: 'review_required', lines: [{ issuedInBasis: 1,
+    remainingReservedQuantity: 0, unpostedShippedQuantity: 1, unrepresentedDemandQuantity: 1 }] });
+  expect(r.duplicateEffects).toBe(1);
 });
 test('private input rejection and CLI usage cannot echo input or error details', async () => {
   const lines = []; const output = s => lines.push(s);

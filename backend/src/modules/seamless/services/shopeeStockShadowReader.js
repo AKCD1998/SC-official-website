@@ -4,7 +4,7 @@ const { projectShopeeStockShadow, summarizeStockShadow } = require('./shopeeStoc
 // Current order items have no per-event historical version: this is a current snapshot audit,
 // not an as-of reconstruction. Reject historical cutoffs rather than back-date present items.
 async function readShopeeStockShadow({ pool, schema, posCatalog, from, now = () => new Date(),
-  limit = 10000, project = projectShopeeStockShadow } = {}) {
+  limit = 10000, project = projectShopeeStockShadow, posPostingPolicy } = {}) {
   if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(schema || '') || !/^\d{4}-\d{2}-\d{2}$/.test(from || '')
     || !Number.isInteger(limit) || limit < 1 || limit > 20000) {
     throw Object.assign(new Error('SHADOW_READER_SCOPE_INVALID'), { code: 'SHADOW_READER_SCOPE_INVALID' });
@@ -32,12 +32,12 @@ async function readShopeeStockShadow({ pool, schema, posCatalog, from, now = () 
       AND occurred_at <= $3::timestamptz ORDER BY occurred_at LIMIT 100001`, ['sc-drug-store', identities, asOf]);
     if (events.rows.length > 100000) throw Object.assign(new Error('SHADOW_EVENT_LIMIT'), { code: 'SHADOW_EVENT_LIMIT' });
     stage = 'project';
-    const result = project({ asOf, posCatalog,
+    const result = project({ asOf, posCatalog, posPostingPolicy,
       orders: orders.rows.map(o => ({ shopCode: 'sc-drug-store', branchCode: '004', orderKey: o.order_number, items: o.items })),
       events: events.rows.map(e => ({ shopCode: 'sc-drug-store', branchCode: '004', orderKey: e.order_number,
         eventKey: e.canonical_message_key, type: e.event_type, occurredAt: new Date(e.occurred_at).toISOString() })),
       // Email ingestion alone proves neither complete dispatch history nor inclusion in POS stock.
-      coverage: { emailComplete: false, lifecycleComplete: false, posLinksComplete: false } });
+      coverage: { emailComplete: false, lifecycleComplete: false, posLinksComplete: false, stockCutoverVerified: false } });
     return { ...summarizeStockShadow(result), evidenceBasis: 'current-email-order-snapshot',
       sellerCentreOnlyAndReportOnlyOrdersIncluded: false,
       posIssueLinksInferredFromDryRunJobs: false, historicalReconstructionSupported: false };

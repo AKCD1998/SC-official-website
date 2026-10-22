@@ -1,8 +1,7 @@
 // Deliberately disconnected from routes, workers, stock writers and schedules.
 // Identifiers and quantities below are private, in-memory reconciliation data.
 const { isDeepStrictEqual } = require('node:util');
-const { resolveStockProductMatch, normalizeStockUnit } = require('./shopeeStockProductMatch');
-const { getValidatedSkuUnit } = require('./shopeeAutomaticQuantityRules');
+const { resolveStockProductMatch, normalizeStockUnit, getStockBaseUnit } = require('./shopeeStockProductMatch');
 
 const SHOP = 'sc-drug-store';
 const BRANCH = '004';
@@ -53,7 +52,7 @@ function resolvePosUnit(index, sku, quantityUnit) {
 }
 
 function mapShopeeStockLines({ items, posCatalog, matchItem = resolveStockProductMatch,
-  validatedUnit = getValidatedSkuUnit } = {}) {
+  validatedUnit = getStockBaseUnit } = {}) {
   const index = posCatalog instanceof Map ? posCatalog : indexPosCatalog(posCatalog || []);
   const reasons = {}; const byStock = new Map(); let mappedItems = 0;
   if (!Array.isArray(items) || !items.length) increment(reasons, 'order_items_missing');
@@ -61,7 +60,7 @@ function mapShopeeStockLines({ items, posCatalog, matchItem = resolveStockProduc
   for (const item of Array.isArray(items) ? items : []) {
     if (!positive(item.quantity)) { increment(reasons, 'sale_quantity_invalid'); continue; }
     // Never trust a productMatch object attached by a caller or an old email import.
-    const match = matchItem(SHOP, item);
+    const match = matchItem(SHOP, item, { posCatalog: index });
     let components;
     if (match.status === 'matched') {
       if (match.quantityRuleStatus === 'requires_validation') {
@@ -75,7 +74,9 @@ function mapShopeeStockLines({ items, posCatalog, matchItem = resolveStockProduc
         quantityUnit: validatedUnit(SHOP, c.companySku)?.quantityUnit }));
     } else {
       const known = new Set(['source_identifier_conflict', 'source_barcode_unverified',
-        'verified_mapping_evidence_conflict', 'verified_base_unit_missing']);
+        'verified_mapping_evidence_conflict', 'verified_base_unit_missing', 'physical_stock_rule_required',
+        'sale_quantity_rule_unverified', 'sale_quantity_evidence_conflict', 'sale_unit_pos_mismatch',
+        'title_pack_requires_evidence']);
       increment(reasons, match.status === 'visibility_only' ? 'visibility_only'
         : known.has(match.reasonCode) ? match.reasonCode : 'product_mapping_unverified');
       continue;
@@ -100,13 +101,17 @@ function mapShopeeStockLines({ items, posCatalog, matchItem = resolveStockProduc
 }
 
 function projectShopeeStockShadow({ orders = [], events = [], posCatalog = [], posEffects = [],
-  stockBasis = [], asOf, coverage = {}, matchItem, validatedUnit } = {}) {
+  stockBasis = [], asOf, coverage = {}, matchItem, validatedUnit, posPostingPolicy } = {}) {
   const cutoff = time(asOf);
   if (!Number.isFinite(cutoff)) fail('SHADOW_AS_OF_REQUIRED');
   if ([orders, events, posCatalog, posEffects, stockBasis].some(a => !Array.isArray(a))
     || orders.length > 20000 || events.length > 100000 || posEffects.length > 100000
     || posCatalog.length > 5000 || stockBasis.length > 20000) fail('SHADOW_INPUT_LIMIT');
   const reasons = {}, groups = new Map(), eventIds = new Map();
+  // An explicit owner statement describes this audit's workflow; it is not an
+  // inferred POS link, a durable setting, or proof of a historical stock cutover.
+  const unpostedWorkflow = posPostingPolicy?.mode === 'not-recorded-in-pos'
+    && posPostingPolicy.proof === 'owner-confirmed-current-workflow';
   let duplicateOrders = 0, duplicateEvents = 0, futureEvents = 0;
   const catalog = indexPosCatalog(posCatalog);
   for (const order of orders) {
@@ -215,25 +220,33 @@ function projectShopeeStockShadow({ orders = [], events = [], posCatalog = [], p
     if (cancellationUnknown) g.blocked.add('cancellation_dispatch_unverified');
     if (refund || returned) g.blocked.add('return_requires_pos_reconciliation');
     const issued = effects.get(k) || new Map();
+    if (unpostedWorkflow && issued.size) g.blocked.add('pos_posting_policy_contradicted');
     if ([...issued.keys()].some(s => !mapping.lines.some(l => l.stockCode === s))) g.blocked.add('pos_issue_product_mismatch');
     const lines = mapping.lines.map(l => {
       const consumed = issued.get(l.stockCode) || 0;
       if (consumed > l.quantity) g.blocked.add('pos_issue_exceeds_order');
       if (cancelled && consumed) g.blocked.add('cancellation_after_pos_issue');
       // A return never subtracts from lifetime issued units or reopens an old reservation.
+      const outstanding = cancelled ? 0 : Math.max(0, l.quantity - consumed);
       return { stockCode: l.stockCode, orderedQuantity: l.quantity, issuedInBasis: consumed,
-        remainingReservedQuantity: cancelled ? 0 : Math.max(0, l.quantity - consumed) };
+        remainingReservedQuantity: dispatched ? 0 : outstanding,
+        unpostedShippedQuantity: dispatched ? outstanding : 0,
+        unrepresentedDemandQuantity: outstanding };
     });
-    if (dispatched && lines.some(l => l.remainingReservedQuantity > 0)) g.blocked.add('dispatched_pos_issue_link_missing');
+    if (dispatched && !unpostedWorkflow && lines.some(l => l.unrepresentedDemandQuantity > 0)) {
+      g.blocked.add('dispatched_pos_issue_link_missing');
+    }
     for (const r of g.blocked) increment(reasons, r);
     positions.push({ orderKey: g.order.orderKey, state: g.blocked.size ? 'review_required'
-      : cancelled ? 'released' : lines.every(l => l.remainingReservedQuantity === 0) ? 'consumed' : 'reserved',
+      : cancelled ? 'released' : lines.every(l => l.unrepresentedDemandQuantity === 0) ? 'consumed'
+        : dispatched ? 'shipped_unposted' : 'reserved',
     mappingStatus: mapping.status, itemCount: mapping.itemCount, mappedItems: mapping.mappedItems,
     lines, reasonCodes: [...g.blocked].sort() });
   }
   return { asOf, positions, reasonCounts: reasons, duplicateOrders, duplicateEvents, duplicateEffects,
-    futureEvents, coverage: { emailComplete: coverage.emailComplete === true,
-      lifecycleComplete: coverage.lifecycleComplete === true, posLinksComplete: coverage.posLinksComplete === true } };
+    futureEvents, posPostingPolicy: unpostedWorkflow ? 'owner-confirmed-not-recorded-in-pos' : 'verified-links-required',
+    coverage: { emailComplete: coverage.emailComplete === true, lifecycleComplete: coverage.lifecycleComplete === true,
+      posLinksComplete: coverage.posLinksComplete === true, stockCutoverVerified: coverage.stockCutoverVerified === true } };
 }
 
 function summarizeStockShadow(result) {
@@ -245,6 +258,7 @@ function summarizeStockShadow(result) {
     ordersEvaluated: p.length, fullyMappedOrders: p.filter(x => x.mappingStatus === 'mapped').length,
     itemLines: p.reduce((n, x) => n + x.itemCount, 0), mappedItemLines: p.reduce((n, x) => n + x.mappedItems, 0),
     reservedOrders: counts('reserved'), releasedOrders: counts('released'), consumedOrders: counts('consumed'),
+    shippedUnpostedOrders: counts('shipped_unposted'), posPostingPolicy: result.posPostingPolicy,
     reviewRequiredOrders: counts('review_required'), duplicateOrdersIgnored: result.duplicateOrders,
     duplicateEventsIgnored: result.duplicateEvents, duplicatePosEffectsIgnored: result.duplicateEffects,
     futureEventsIgnored: result.futureEvents, reasonCounts: { ...result.reasonCounts }, coverage: { ...result.coverage },
