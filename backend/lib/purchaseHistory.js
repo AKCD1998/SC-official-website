@@ -30,6 +30,7 @@ function buildReceiptSnapshot(body, items) {
       seq: Number.isSafeInteger(item.seq) && item.seq > 0 ? item.seq : index + 1,
       productCode: text(item.productCode), productName: text(item.productName),
       barcode: text(item.barcode, 128) || null,
+      unitCode: text(item.unitCode, 50) || null, unitName: text(item.unitName, 100) || null,
       qty: Number(item.qty), unitPrice: Number(item.unitPrice), lineTotal: Number(item.lineTotal),
       lineDiscount: item.lineDiscount == null ? null : amount(item.lineDiscount, 'lineDiscount'),
       promotionCode: text(item.promotionCode) || null,

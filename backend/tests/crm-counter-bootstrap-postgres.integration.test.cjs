@@ -266,7 +266,7 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
 
   test('persists original POS totals and every ordered line, including zero-point bills, independently of points and member versions', async () => {
     const auth='Bearer '+staffToken;
-    const items=[{seq:3,productCode:'VIT',productName:'วิตามิน fixture',barcode:'SYNTHETIC-BC',qty:2,unitPrice:130,lineTotal:250,lineDiscount:10,promotionCode:'PROMO_FIXTURE'},
+    const items=[{seq:3,productCode:'VIT',productName:'วิตามิน fixture',barcode:'SYNTHETIC-BC',unitCode:'BOX',unitName:'กล่อง',qty:2,unitPrice:130,lineTotal:250,lineDiscount:10,promotionCode:'PROMO_FIXTURE'},
       {seq:5,productCode:'DRUG',productName:'เภสัช fixture',qty:1,unitPrice:100,lineTotal:100}];
     const claim={receiptNo:'HISTORY-MIXED',branchCode:'TEST_HISTORY',memberId,totalAmount:250,receiptTotalAmount:340,receiptDiscount:10,posCode:'POS-TEST',receiptCashierCode:'CASH-TEST',soldAt:'2026-10-21T08:01:02+07:00',items};
     expect((await request(app).post('/api/loyalty/claims').set('Authorization',auth).send(claim)).status).toBe(201);
@@ -282,6 +282,8 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect(history.body.purchases.find(p=>p.receiptNo===drug.receiptNo)).toMatchObject({totalAmount:100,eligibleAmount:0,awardedPoints:0,items:[{productCode:'DRUG'}]});
     const mirrored=await mockClient.query("SELECT paid_total,pos_code,cashier_code FROM crm_pos_sale_events WHERE branch_code='TEST_HISTORY' AND doc_no='HISTORY-MIXED'");
     expect(Number(mirrored.rows[0].paid_total)).toBe(340);expect(mirrored.rows[0].pos_code).toBe('POS-TEST');expect(mirrored.rows[0].cashier_code).toBe('CASH-TEST');
+    const units=await mockClient.query("SELECT l.unit_code,l.unit_name FROM crm_pos_sale_line_events l JOIN crm_pos_sale_events s ON s.id=l.sale_event_id WHERE s.branch_code='TEST_HISTORY' AND s.doc_no='HISTORY-MIXED' ORDER BY l.line_no");
+    expect(units.rows).toEqual([{unit_code:'BOX',unit_name:'กล่อง'},{unit_code:null,unit_name:null}]);
     // A points-only reset must not remove any purchase history.
     const save=await mockPool.connect();await save.query('BEGIN');
     await save.query('DELETE FROM point_ledger WHERE user_id=$1',[memberId]);
