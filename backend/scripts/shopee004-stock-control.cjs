@@ -5,7 +5,7 @@
 // in command-line arguments or prints HTTP bodies/errors.
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const COMMANDS = new Set(['status','plan','activate','pause','resume','review']);
+const COMMANDS = new Set(['status','plan','activate','pause','resume','review','review-queue']);
 async function run({ command, inputFile, receiptFile, env = process.env, fetchImpl = fetch }) {
   if (!COMMANDS.has(command)) throw Error('CONTROL_COMMAND_INVALID');
   const user = env.SHOPEE004_ADMIN_USER, password = env.SHOPEE004_ADMIN_PASSWORD;
@@ -17,12 +17,19 @@ async function run({ command, inputFile, receiptFile, env = process.env, fetchIm
     input = JSON.parse(await fs.readFile(inputFile,'utf8'));
   }
   if (['plan','activate','resume','review'].includes(command) && !inputFile) throw Error('PRIVATE_INPUT_REQUIRED');
-  if (command === 'plan' && !receiptFile) throw Error('PRIVATE_PLAN_RECEIPT_REQUIRED');
+  if (['plan','review-queue'].includes(command) && !receiptFile) throw Error('PRIVATE_PLAN_RECEIPT_REQUIRED');
+  if (['plan','review-queue'].includes(command)) {
+    let exists = false;
+    try { await fs.lstat(path.resolve(receiptFile)); exists = true; }
+    catch (error) { if (error.code !== 'ENOENT') throw Error('PRIVATE_RECEIPT_UNAVAILABLE'); }
+    if (exists) throw Error('PRIVATE_RECEIPT_ALREADY_EXISTS');
+  }
+  const readOnly = command === 'status';
   const response = await fetchImpl(`https://sc-official-website.onrender.com/api/app/shopee/stock-commitments/${command}`, {
-    method: command === 'status' ? 'GET' : 'POST', redirect:'error', signal:AbortSignal.timeout(15000),
+    method: readOnly ? 'GET' : 'POST', redirect:'error', signal:AbortSignal.timeout(15000),
     headers:{'Authorization':'Basic '+Buffer.from(user+':'+password).toString('base64'),
       'Content-Type':'application/json','x-shopee-stock-action':'1'},
-    ...(command === 'status' ? {} : {body:JSON.stringify(input)})
+    ...(readOnly ? {} : {body:JSON.stringify(input)})
   });
   const data = await response.json();
   if (!response.ok) throw Error(/^[A-Z0-9_]+$/.test(data?.error?.code || '') ? data.error.code : 'CONTROL_REQUEST_FAILED');
@@ -31,8 +38,12 @@ async function run({ command, inputFile, receiptFile, env = process.env, fetchIm
     await fs.writeFile(path.resolve(receiptFile),JSON.stringify({planId:data.planId,
       openingOrdersVerified:false,olderShippedReconciledInPosBasis:false,emailFeedChecked:false,unpostedPosWorkflow:false},null,2),{flag:'wx',mode:0o600});
   }
+  if (command === 'review-queue') {
+    await fs.writeFile(path.resolve(receiptFile),JSON.stringify({records:data.records,nextCursor:data.nextCursor},null,2),{flag:'wx',mode:0o600});
+    return {pendingReviewCount:data.records.length,hasMore:data.hasMore};
+  }
   return Object.fromEntries(['mode','status','pendingOrders','legacyOrders','reviewOrders','cutoverAt',
-    'activated','alreadyActivated','recorded','duplicate','holdsRetained','availabilityBlocked','existingHoldsRetained']
+    'activated','alreadyActivated','recorded','duplicate','holdsRetained','availabilityBlocked','existingHoldsRetained','sourceLabelReviewOrders']
     .filter(k=>Object.hasOwn(data,k)).map(k=>[k,data[k]]));
 }
 if (require.main === module) {

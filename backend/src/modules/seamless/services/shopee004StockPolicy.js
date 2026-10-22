@@ -42,7 +42,7 @@ function projectPosition({ order, events, reviews, control, previous, now, match
     const known = control.plan.legacyOrders.includes(order.order_number)
       || reviews.some(r => r.kind === 'legacy-in-baseline');
     return { eligibility, state: known ? 'legacy_excluded' : 'review_required',
-      reasons: known ? [] : ['legacy-arrival-needs-opening-review'], snapshot, lines: [] };
+      reasons: known ? [] : ['legacy-arrival-needs-opening-review'], warnings: [], snapshot, lines: [] };
   }
   const catalog = validateCatalog(control.pos_catalog);
   const mapped = mapShopeeStockLines({ items: order.items, posCatalog: catalog, matchItem });
@@ -75,6 +75,7 @@ function projectPosition({ order, events, reviews, control, previous, now, match
   });
   const unique = [...new Set(reasons)].sort();
   return { eligibility, state: unique.length ? 'review_required' : cancelled || lines.every(l => !l.reservedQuantity && !l.shippedUnpostedQuantity)
-    ? 'released' : dispatched ? 'shipped_unposted' : 'reserved', reasons: unique, snapshot, lines };
+    ? 'released' : dispatched ? 'shipped_unposted' : 'reserved', reasons: unique,
+    warnings: mapped.sourceLabelMismatchItems ? ['owner-confirmed-source-label-mismatch'] : [], snapshot, lines };
 }
 module.exports = { validateCatalog, orderSnapshot, projectPosition, fail };

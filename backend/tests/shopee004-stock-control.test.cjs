@@ -20,6 +20,18 @@ test('plan stores approval privately with exclusive-create and leaves it out of 
     const result=await run({command:'plan',inputFile:input,receiptFile:receipt,env,fetchImpl});
     expect(result).not.toHaveProperty('planId');expect(JSON.parse(await fs.readFile(receipt,'utf8'))).toMatchObject({planId:'synthetic-approval',
       openingOrdersVerified:false,olderShippedReconciledInPosBasis:false,emailFeedChecked:false,unpostedPosWorkflow:false});
-    await expect(run({command:'plan',inputFile:input,receiptFile:receipt,env,fetchImpl})).rejects.toMatchObject({code:'EEXIST'});
+    await expect(run({command:'plan',inputFile:input,receiptFile:receipt,env,fetchImpl})).rejects.toThrow('PRIVATE_RECEIPT_ALREADY_EXISTS');
   }finally{await fs.unlink(input);await fs.unlink(receipt).catch(()=>{});await fs.rmdir(dir);}
+});
+test('review queue goes only to a new private file; console output has no order or cursor',async()=>{
+  const dir=await fs.mkdtemp(path.join(os.tmpdir(),'stock004-queue-')),receipt=path.join(dir,'queue.json');
+  try {
+    const result=await run({command:'review-queue',receiptFile:receipt,env,fetchImpl:async(url,options)=>{
+      expect(url).not.toContain('?');expect(options.method).toBe('POST');
+      return {ok:true,json:async()=>({records:[{orderNumber:'PRIVATEORDER',reasons:['confirmation-missing']}],hasMore:false,nextCursor:null})};
+    }});
+    expect(result).toEqual({pendingReviewCount:1,hasMore:false});
+    expect(JSON.stringify(result)).not.toContain('PRIVATEORDER');
+    expect(JSON.parse(await fs.readFile(receipt,'utf8')).records).toHaveLength(1);
+  }finally{await fs.unlink(receipt).catch(()=>{});await fs.rmdir(dir);}
 });

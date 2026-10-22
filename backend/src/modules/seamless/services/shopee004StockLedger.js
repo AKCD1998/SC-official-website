@@ -167,16 +167,16 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       // must not turn a second identical retry into an implicit approval.
       const snapshot = position.reasons.includes('order-items-changed-needs-review')
         ? old.rows[0].source_snapshot : position.snapshot;
-      await c.query(`INSERT INTO ${table('positions')}(order_number,eligibility,state,reasons,source_snapshot) VALUES($1,$2,$3,$4,$5)
+      await c.query(`INSERT INTO ${table('positions')}(order_number,eligibility,state,reasons,source_snapshot,warnings) VALUES($1,$2,$3,$4,$5,$6)
         ON CONFLICT(order_number) DO UPDATE SET eligibility=EXCLUDED.eligibility,state=EXCLUDED.state,reasons=EXCLUDED.reasons,
-          source_snapshot=EXCLUDED.source_snapshot,updated_at=now()`,
-        [orderNumber, position.eligibility, position.state, JSON.stringify(position.reasons), JSON.stringify(snapshot)]);
+          source_snapshot=EXCLUDED.source_snapshot,warnings=EXCLUDED.warnings,updated_at=now()`,
+        [orderNumber, position.eligibility, position.state, JSON.stringify(position.reasons), JSON.stringify(snapshot),JSON.stringify(position.warnings)]);
       if (position.state !== 'review_required') {
         await c.query(`DELETE FROM ${table('lines')} WHERE order_number=$1`, [orderNumber]);
         for (const l of position.lines) await c.query(`INSERT INTO ${table('lines')}(order_number,product_code,unit,ordered_quantity,reserved_quantity,shipped_unposted_quantity)
           VALUES($1,$2,$3,$4,$5,$6)`, [orderNumber, l.productCode, l.unit, l.orderedQuantity, l.reservedQuantity, l.shippedUnpostedQuantity]);
       }
-      await audit(c, 'position-projected', { state: position.state, reasons: position.reasons }, null, orderNumber);
+      await audit(c, 'position-projected', { state: position.state, reasons: position.reasons, warnings: position.warnings }, null, orderNumber);
       await c.query(`DELETE FROM ${table('dirty')} WHERE order_number=$1`, [orderNumber]);
       return true;
     });
@@ -189,7 +189,8 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
     return transaction(async c => {
       const ctrl = await c.query(`SELECT mode,cutover_at FROM ${table('control')} WHERE singleton=1`);
       const pending = await c.query(`SELECT count(*)::int AS count FROM ${table('dirty')}`);
-      const review = await c.query(`SELECT count(*)::int AS count FROM ${table('positions')} WHERE state='review_required'`);
+      const review = await c.query(`SELECT count(*) FILTER (WHERE state='review_required')::int AS count,
+        count(*) FILTER (WHERE jsonb_array_length(warnings)>0)::int AS warning_count FROM ${table('positions')}`);
       const stamp = await c.query(`SELECT transaction_timestamp() AS at,COALESCE((SELECT max(revision) FROM ${table('audit')}),0)::text AS revision`);
       const feed = await c.query(`SELECT max(created_at) AS last_ingested_at FROM ${events} WHERE shop_code='sc-drug-store'`);
       const ready = ctrl.rows[0]?.mode === 'live' && !pending.rows[0].count && !review.rows[0].count;
@@ -202,6 +203,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         asOf: stamp.rows[0].at.toISOString(), revision: stamp.rows[0].revision,
         lastEmailIngestedAt: feed.rows[0].last_ingested_at?.toISOString() || null,
         pendingOrders: pending.rows[0].count, reviewOrders: review.rows[0].count,
+        sourceLabelReviewOrders: review.rows[0].warning_count,
         posPostingPolicy: 'not-recorded-in-pos', emailCoverage: 'email-orders-only',
         records: productCodes.map(productCode => {
           const row = byCode.get(productCode);
@@ -211,6 +213,17 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         }) };
     }, true);
   }
-  return { prepare, activate, pause, resume, review, processOne, projection };
+  async function reviewQueue({ limit = 100, cursor = '' } = {}) {
+    requireEnabled();
+    if (!Number.isInteger(limit) || limit < 1 || limit > 100 || (cursor && !ORDER.test(cursor))) fail('REVIEW_PAGE_INVALID');
+    return transaction(async c => {
+      const result = await c.query(`SELECT order_number,eligibility,reasons,warnings FROM ${table('positions')}
+        WHERE state='review_required' AND order_number>$1 ORDER BY order_number LIMIT $2`, [cursor,limit+1]);
+      const page = result.rows.slice(0,limit);
+      return { records: page.map(r => ({ orderNumber:r.order_number,eligibility:r.eligibility,reasons:r.reasons,warnings:r.warnings })),
+        hasMore:result.rows.length>limit,nextCursor:result.rows.length>limit?page.at(-1).order_number:null };
+    },true);
+  }
+  return { prepare, activate, pause, resume, review, reviewQueue, processOne, projection };
 }
 module.exports = { createShopee004StockLedger };

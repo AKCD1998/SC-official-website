@@ -74,6 +74,8 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     await source();await open();await drain();
     await pool.query(`INSERT INTO "${schema}".shopee_order_events(shop_code,order_number,event_type,occurred_at) VALUES('sc-drug-store','OLDORDER1','order_cancelled',now())`);
     await drain();expect(await read()).toMatchObject({reviewOrders:1,records:[{reservedQuantity:2}]});
+    const queue=await ledger.reviewQueue();expect(queue.records).toMatchObject([{orderNumber:'OLDORDER1'}]);
+    expect(queue.records[0]).not.toHaveProperty('items');
     const decision={operationId:randomUUID(),orderNumber:'OLDORDER1',kind:'cancel-before-dispatch',actor,physicalEvidenceVerified:true,notPostedInPos:true};
     await ledger.review(decision);await ledger.review(decision);await drain();
     expect(await read()).toMatchObject({status:'available',records:[{reservedQuantity:0}]});
@@ -161,5 +163,10 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     await pool.query(`DELETE FROM "${schema}".shopee_orders WHERE order_number='OLDORDER1'`);
     await expect(ledger.processOne()).rejects.toMatchObject({code:'QUEUED_ORDER_MISSING'});
     expect(await read()).toMatchObject({status:'review-or-processing-required',pendingOrders:1,records:[{reservedQuantity:2}]});
+  });
+  test('owner-confirmed source-label mismatch remains a visible warning, not a silent clean data qualification',async()=>{
+    ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>({...matchItem(),sourceLabelMismatch:true})});
+    await source();await open();await drain();
+    expect(await read()).toMatchObject({status:'available',sourceLabelReviewOrders:1,records:[{reservedQuantity:2}]});
   });
 });

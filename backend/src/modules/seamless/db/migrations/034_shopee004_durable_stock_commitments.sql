@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS shopee004_stock_positions (
   eligibility text NOT NULL CHECK (eligibility IN ('opening','new','legacy')),
   state text NOT NULL CHECK (state IN ('reserved','shipped_unposted','released','review_required','legacy_excluded')),
   reasons jsonb NOT NULL DEFAULT '[]',
+  warnings jsonb NOT NULL DEFAULT '[]',
   source_snapshot jsonb NOT NULL,
   updated_at timestamptz NOT NULL DEFAULT now()
 );

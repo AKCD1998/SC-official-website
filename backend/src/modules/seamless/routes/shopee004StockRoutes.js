@@ -33,6 +33,7 @@ function createShopee004StockRoutes({ ledger = () => getLedger(), auth = appAuth
     next();
   });
   admin.get('/status', safe(() => ledger().projection([])));
+  admin.post('/review-queue', safe(req => ledger().reviewQueue({ limit: req.body?.limit ?? 100, cursor: req.body?.cursor || '' })));
   admin.post('/plan', safe(req => ledger().prepare({ posCatalog: req.body?.posCatalog,
     openingOrderNumbers: req.body?.openingOrderNumbers, actor: req.appActor })));
   admin.post('/activate', safe(req => ledger().activate({ ...req.body, actor: req.appActor })));

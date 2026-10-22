@@ -38,6 +38,7 @@ Run from `backend` with Node. This is not a Scheduled Task and never requests Gm
 
 ```powershell
 node scripts/shopee004-stock-control.cjs status
+node scripts/shopee004-stock-control.cjs review-queue --receipt <new-private-review-page.json>
 node scripts/shopee004-stock-control.cjs plan --input <private-plan.json> --receipt <new-private-approval.json>
 node scripts/shopee004-stock-control.cjs activate --input <private-activation.json>
 node scripts/shopee004-stock-control.cjs status
@@ -51,6 +52,8 @@ Private plan input: `openingOrderNumbers` (explicit list, including empty only i
 Activation input: private saved `planId`, `openingOrdersVerified=true`, `olderShippedReconciledInPosBasis=true`, `emailFeedChecked=true`, `unpostedPosWorkflow=true`. These are accountable human attestations, not evidence inferred by software. Do not assert them merely to bypass a stop.
 
 The saved approval file starts with all four attestations **false**. After reviewing the evidence, use that same file for `activate`; there is no need to copy an identifier through chat. Keep input/approval files in an existing private operator folder (Windows inherits that folder's ACL; Node's Unix file mode is not a Windows ACL guarantee). This tool does not change ACLs.
+
+The bounded review queue writes order references/reasons only to a newly created private file; console output stays aggregate. If another page is needed, provide its saved cursor through `--input` and another new receipt file. Order references are not put in a URL, log or chat. Source-label exceptions approved by the owner remain visible as warning counts in status and the consumer UI; they do not become a claim of clean source labelling or business freshness.
 
 Physical review input: private operation UUID, private order reference, `kind` (`cancel-before-dispatch`, `dispatched`, `returned-sellable`, `legacy-in-baseline`), `physicalEvidenceVerified=true`, `notPostedInPos=true`; returns also need productCode/positive integer quantity lines. Retrying the same reviewed operation is safe; never generate another identifier to bypass a conflict. Resume requires `unpostedPosWorkflow=true` and `openingBasisStillValid=true`; it preserves the existing cutover and all holds.
 
