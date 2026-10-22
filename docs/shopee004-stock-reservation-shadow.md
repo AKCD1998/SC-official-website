@@ -12,6 +12,10 @@ the Gmail importer, or the existing quotation/accounting workflow.
   `shopeeStockQuantityEvidence.js` normalizes physical quantities before comparing
   pack counts. Conflicting evidence stays unresolved; accounting consolidation
   is not a physical stock mapping. Neither module changes the existing matchers.
+- `shopeeStockOwnerReview.v1.json` records four exact physical-package decisions
+  confirmed by the owner. These apply only in this SC004 shadow, not the existing
+  quotation or accounting mapper. Pre-existing catalog aliases may resolve to the
+  same reviewed listing identity; unrelated historical names/variants may not.
 - `shopeeStockReservationShadow.js` projects one reservation per shop/order into
   common POS stock identities, entirely in memory. Its printable summary contains
   operational counts and fixed reason codes, with no order IDs, SKU lists or quantities.
@@ -108,11 +112,31 @@ frame: two retail packs may be one hundred POS pieces, rather than two pieces.
 
 The current summary calculation was checked against current `origin/main` and
 replayed privately for all 212 SC catalog records. There are 78 verified pack
-expansions and 134 multiplier-one paths. Of the 208 records mapped by this shadow,
-193 have the same numeric count and **15 require a different physical base-unit
-count**. Four remain withheld. Numeric agreement alone is not independent unit
+expansions and 134 multiplier-one paths. Of the 212 records mapped by this shadow,
+197 have the same numeric count and **15 require a different physical base-unit
+count**. Numeric agreement alone is not independent unit
 proof. The existing summary route, copy workflow and displayed totals are unchanged
 by this PR; it must not be used as a stock ledger or as proof of POS booking.
+
+## Owner-confirmed physical packages
+
+The owner confirmed these on 22 October. The multiplier is per one Shopee ordered
+unit; internal contents are not multiplied into additional POS stock units.
+
+| Exact listing variant | Actual physical stock unit | POS multiplier |
+| --- | --- | --- |
+| Klean&Kare plastic nasal adaptor, 2 pieces | One retail package containing two adaptors; POS calls the package a piece | 1 |
+| Comfy ginger lozenges, 8Pcs | One box containing eight lozenges | 1 |
+| Durex Kingtex 49 mm, 1 piece | One retail box containing three condoms; POS calls the box a piece | 1 |
+| Strepsils, lemon sugar-free option | Owner confirmed actual shipment is regular honey-lemon, eight tablets per sachet | 1 |
+
+The Strepsils physical SKU now has independent owner confirmation, rather than
+relying on an old financial consolidation. Its source option still incorrectly
+claims sugar-free. That mismatch remains explicit in the review record and in
+aggregate notices whenever that exact identity is observed. It prevents a clean
+readiness PASS; neither the historic email text nor the live Shopee label is
+rewritten here. The live listing label needs a separately authorized correction.
+This review creates no general rule equating every piece with every box.
 
 ## Real read-only audit on 22 October 2026
 
@@ -126,19 +150,15 @@ read only product/unit metadata, not stock quantities; no new access was created
   check to **208 distinct SKUs**. All 208 exist and are active. None of these audited
   SKUs is a shared-stock alias; alias behavior is covered by simulation, not claimed
   as a live Shopee shared-alias test.
-- The initial audit withheld 116 of 212 listing/variation records. After restoring
-  reviewed base-unit/pack contracts and normalizing physical contents, **208 map and
-  four remain withheld**: three ambiguous physical quantities and one financial
-  consolidation with no reviewed physical stock components. This resolves 114 of
-  the original 116 and withholds two previously accepted records after exposing
-  their unresolved physical-unit ambiguity. No new SKU assignment is invented. It is not a certificate
-  that every historical email line has a catalog match.
-- At **18:38 Asia/Bangkok**, the growing current email snapshot audit evaluated
-  **4,310 orders**, with complete mappings for 4,187; **290 require review** including
-  lifecycle limitations. Mapping and lifecycle counts overlap. In addition to the
-  four catalog holds, old email item identities outside the reviewed catalog still
-  need mapping; 113 orders include that reason. No current-email dispatch states
-  were inferred from shipping reminders.
+- All **212 of 212 listing/variation records** now map to supported live POS units,
+  including the four exact owner-confirmed physical packages. No catalog unit hold
+  remains. This does not certify every historical email item identity.
+- At **19:19 Asia/Bangkok**, the growing current email snapshot audit evaluated
+  **6,279 orders**, with complete mappings for 5,934; **625 require review** including
+  lifecycle limitations. Mapping and lifecycle counts overlap. Unreviewed historical
+  identities remain outside this catalog: 329 orders include that reason and 14
+  still include financial-only mappings outside the exact owner confirmation.
+  No current-email dispatch states were inferred from shipping reminders.
 - Existing readonly POS searches over quotations, invoices, sales orders and cashier
   headers found no exact known Shopee order references in the allowed 15 September–
   22 October scope. This is consistent with the owner statement, not proof that
@@ -164,9 +184,9 @@ from these simulations. Windows checkout line endings in an existing unrelated
 workflow assertion were normalized locally to match Linux CI; no workflow change
 is included in this PR.
 
-The repository CI regression profile passed locally: 104 suites / 1,198 tests,
-with 11 database-dependent suites / 31 tests skipped. After the final parser
-guards, the four focused shadow suites passed all 98 cases. An additional local
+The repository CI regression profile passed locally: 105 suites / 1,216 tests,
+with 11 database-dependent suites / 31 tests skipped. After adding exact approved
+catalog-alias handling, the five focused shadow suites passed all 115 cases. An additional local
 full-suite attempt included the separate backend-startup integration suite; its
 36 HTTP cases could not start the migration-dependent server without an isolated
 test database. This is the same suite explicitly excluded by the repository CI
@@ -177,8 +197,9 @@ Before any future live stock integration:
 
 1. Finish and verify email recovery, and reconcile current orders with Seller Centre
    and official report coverage. Ingestion freshness alone is not status completeness.
-2. Resolve the three physical-unit ambiguities and the financial-only listing,
-   then map historical item identities outside the reviewed listing catalog.
+2. Correct the misleading Strepsils source label and map historical item identities
+   outside the reviewed listing catalog, without extending the four owner decisions
+   to unrelated variants or financial-only mappings.
 3. Establish a stock cutover and current unposted shipment coverage. If/when Shopee
    is booked in POS, establish exact order -> POS issue -> selected stock-basis
    links. Account for older orders before seeding an authoritative ledger.

@@ -54,7 +54,7 @@ function resolvePosUnit(index, sku, quantityUnit) {
 function mapShopeeStockLines({ items, posCatalog, matchItem = resolveStockProductMatch,
   validatedUnit = getStockBaseUnit } = {}) {
   const index = posCatalog instanceof Map ? posCatalog : indexPosCatalog(posCatalog || []);
-  const reasons = {}; const byStock = new Map(); let mappedItems = 0;
+  const reasons = {}; const byStock = new Map(); let mappedItems = 0, sourceLabelMismatchItems = 0;
   if (!Array.isArray(items) || !items.length) increment(reasons, 'order_items_missing');
   if (Array.isArray(items) && items.length > 1000) fail('SHADOW_ITEM_LIMIT');
   for (const item of Array.isArray(items) ? items : []) {
@@ -92,10 +92,11 @@ function mapShopeeStockLines({ items, posCatalog, matchItem = resolveStockProduc
       quantity: item.quantity * c.quantityPerSale }));
     if (additions.some(c => !positive(c.quantity))) { increment(reasons, 'quantity_overflow'); continue; }
     for (const c of additions) byStock.set(c.stockCode, checkedSum(byStock.get(c.stockCode) || 0, c.quantity));
+    if (match.sourceLabelMismatch === true) sourceLabelMismatchItems++;
     mappedItems++;
   }
   return { status: Object.keys(reasons).length ? 'blocked' : 'mapped', reasonCounts: reasons,
-    itemCount: Array.isArray(items) ? items.length : 0, mappedItems,
+    itemCount: Array.isArray(items) ? items.length : 0, mappedItems, sourceLabelMismatchItems,
     // These lines never belong in a public JSON/log. Only summarizeStockShadow is printable.
     lines: [...byStock].sort(([a], [b]) => a.localeCompare(b)).map(([stockCode, quantity]) => ({ stockCode, quantity })) };
 }
@@ -241,6 +242,7 @@ function projectShopeeStockShadow({ orders = [], events = [], posCatalog = [], p
       : cancelled ? 'released' : lines.every(l => l.unrepresentedDemandQuantity === 0) ? 'consumed'
         : dispatched ? 'shipped_unposted' : 'reserved',
     mappingStatus: mapping.status, itemCount: mapping.itemCount, mappedItems: mapping.mappedItems,
+    sourceLabelMismatchItems: mapping.sourceLabelMismatchItems,
     lines, reasonCodes: [...g.blocked].sort() });
   }
   return { asOf, positions, reasonCounts: reasons, duplicateOrders, duplicateEvents, duplicateEffects,
@@ -253,10 +255,14 @@ function summarizeStockShadow(result) {
   const p = result.positions;
   const counts = state => p.filter(x => x.state === state).length;
   const allCoverage = Object.values(result.coverage).every(v => v === true);
+  const labelReviewRequired = p.some(x => x.sourceLabelMismatchItems > 0);
   return { schemaVersion: 'shopee004-stock-reservation-shadow-v1', branch: BRANCH, shop: SHOP,
-    mode: 'shadow', asOf: result.asOf, status: allCoverage && !Object.keys(result.reasonCounts).length ? 'PASS' : 'PARTIAL',
+    mode: 'shadow', asOf: result.asOf, status: allCoverage && !Object.keys(result.reasonCounts).length
+      && !labelReviewRequired ? 'PASS' : 'PARTIAL',
     ordersEvaluated: p.length, fullyMappedOrders: p.filter(x => x.mappingStatus === 'mapped').length,
     itemLines: p.reduce((n, x) => n + x.itemCount, 0), mappedItemLines: p.reduce((n, x) => n + x.mappedItems, 0),
+    sourceLabelMismatchOrders: p.filter(x => x.sourceLabelMismatchItems > 0).length,
+    sourceLabelMismatchItemLines: p.reduce((n, x) => n + x.sourceLabelMismatchItems, 0),
     reservedOrders: counts('reserved'), releasedOrders: counts('released'), consumedOrders: counts('consumed'),
     shippedUnpostedOrders: counts('shipped_unposted'), posPostingPolicy: result.posPostingPolicy,
     reviewRequiredOrders: counts('review_required'), duplicateOrdersIgnored: result.duplicateOrders,

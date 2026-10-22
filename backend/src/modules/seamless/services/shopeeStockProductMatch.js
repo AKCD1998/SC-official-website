@@ -1,8 +1,9 @@
-const { matchShopeeProduct } = require('./shopeeProductMatcher');
+const { matchShopeeProduct, normalizeShopeeProductText } = require('./shopeeProductMatcher');
 const { resolveVerifiedCopyMatch, sourceIdentifierConflict } = require('./shopeeVerifiedCopyMatcher');
 const copyRules = require('../data/shopeeAdaSmartCopyRules.v1.json');
 const { resolveCatalogQuantity, buildSingleCatalogUnitAnchors, buildReviewedCatalogUnitFactors } = require('./shopeeStockQuantityEvidence');
 const listingCatalog = require('../data/shopeeProductCatalog.v1.json');
+const ownerReview = require('../data/shopeeStockOwnerReview.v1.json');
 const masters = new Map(copyRules.masters.map(m => [m.companySku, m]));
 const UNITS = new Map([
   ['กล่อง', 'box'], ['bx', 'box'], ['boxes', 'box'], ['pcs', 'piece'], ['pc', 'piece'], ['ซอง', 'sachet'],
@@ -21,11 +22,40 @@ function resolveStockProductMatch(shop, item, {
   match = matchShopeeProduct, copy = resolveVerifiedCopyMatch,
   master = sku => masters.get(sku), identifierConflict = sourceIdentifierConflict,
   rules = copyRules.rules, unitEquivalences = copyRules.unitEquivalences, unitReviews = copyRules.unitReviews,
-  posCatalog,
+  posCatalog, ownerReviews = ownerReview.rules,
 } = {}) {
   const exact = match(shop, item);
   const productIds = [item.productId, item.listingProductId].filter(v => v != null && String(v).trim()).map(String);
   const variationIds = [item.variationId, item.listingVariationId].filter(v => v != null && String(v).trim()).map(String);
+  // Owner-confirmed physical packages are scoped to an exact SC listing variant.
+  // This is separate from the accounting copy rules and never broadens all "pcs".
+  const canonicalIdentity = ['exact_name_variant', 'catalog_identity_alias', 'catalog_name_alias', 'unique_name']
+    .includes(exact.matchSource);
+  const reviewed = shop === 'sc-drug-store' ? ownerReviews.filter(r => r.shopCode === shop
+    && ((normalizeShopeeProductText(r.productName) === normalizeShopeeProductText(item.name)
+      && normalizeShopeeProductText(r.variant) === normalizeShopeeProductText(item.variant))
+      || (canonicalIdentity && exact.listingProductId === r.listingProductId
+        && exact.listingVariationId === r.listingVariationId))) : [];
+  if (reviewed.length > 1) return { status: 'unmapped', reasonCode: 'verified_mapping_evidence_conflict' };
+  if (reviewed.length === 1) {
+    const r = reviewed[0], source = master(r.companySku);
+    if (!source?.unit || normalizeStockUnit(source.unit) !== normalizeStockUnit(r.quantityUnit)
+      || r.authority !== 'owner_confirmed_physical_stock_unit_2026-10-22'
+      || r.stockUnitMeaning !== 'one_whole_retail_package' || r.quantityPerSale !== 1) {
+      return { status: 'unmapped', reasonCode: 'verified_mapping_evidence_conflict' };
+    }
+    if ((productIds.length || variationIds.length) && (!productIds.length || !variationIds.length
+      || productIds.some(v => v !== r.listingProductId) || variationIds.some(v => v !== r.listingVariationId))) {
+      return { status: 'unmapped', reasonCode: 'source_identifier_conflict' };
+    }
+    // No new barcode evidence was supplied by this physical-package review.
+    if (item.barcode || item.sourceBarcode) return { status: 'unmapped', reasonCode: 'source_barcode_unverified' };
+    return { status: 'matched', companySku: r.companySku, quantityPerSale: 1,
+      quantityUnit: source.unit, quantityRuleStatus: 'verified',
+      listingProductId: r.listingProductId, listingVariationId: r.listingVariationId,
+      sourceLabelMismatch: r.sourceLabelMismatch === true,
+      quantityEvidence: 'owner_confirmed_physical_stock_unit', matchSource: 'owner_confirmed_exact_stock_variant' };
+  }
   if ((productIds.length || variationIds.length) && (exact.status !== 'matched' || !productIds.length || !variationIds.length
     || productIds.some(v => v !== exact.listingProductId) || variationIds.some(v => v !== exact.listingVariationId))) {
     return { status: 'unmapped', reasonCode: 'source_identifier_conflict' };

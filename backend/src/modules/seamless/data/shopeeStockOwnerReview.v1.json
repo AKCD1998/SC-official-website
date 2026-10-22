@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-22",
+  "scope": {
+    "shopCode": "sc-drug-store",
+    "branchCode": "004",
+    "mode": "shadow-only"
+  },
+  "rules": [
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Klean&Kare จุกล้างจมูก อุปกรณ์ล้างจมูก Nasal Adaptor มีแบบธรรมดาและแบบนุ่มนุ่ม ใช้งานง่าย เด็กและผู้ใหญ่",
+      "variant": "พลาสติก 2 ชิ้น",
+      "listingProductId": "51866324101",
+      "listingVariationId": "446391655719",
+      "companySku": "630010206",
+      "quantityPerSale": 1,
+      "quantityUnit": "ชิ้น",
+      "authority": "owner_confirmed_physical_stock_unit_2026-10-22",
+      "stockUnitMeaning": "one_whole_retail_package",
+      "contentsPerStockUnit": 2,
+      "contentsUnit": "piece"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Comfy Lozenge เม็ดอมคอมฟีร์ ขิง แก้เมารถ เมาเรือ คลื่นไส้ อาเจียน ท้องอืด ท้องเฟ้อ ไม่ง่วง รสน้ำผึ้งมะนาวมิ้นท์ 8 เม็ด",
+      "variant": "8Pcs",
+      "listingProductId": "46666167210",
+      "listingVariationId": "366376948792",
+      "companySku": "IC-004642",
+      "quantityPerSale": 1,
+      "quantityUnit": "กล่อง",
+      "authority": "owner_confirmed_physical_stock_unit_2026-10-22",
+      "stockUnitMeaning": "one_whole_retail_package",
+      "contentsPerStockUnit": 8,
+      "contentsUnit": "tablet"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Durex Kingtex ถุงยางอนามัย ดูเร็กซ์ คิงเท็ค ขนาด 49 มม. 1 กล่อง บรรจุ 3 ชิ้น",
+      "variant": "1 ชิ้น",
+      "listingProductId": "40133266305",
+      "listingVariationId": "426318672875",
+      "companySku": "IC-000066",
+      "quantityPerSale": 1,
+      "quantityUnit": "ชิ้น",
+      "authority": "owner_confirmed_physical_stock_unit_2026-10-22",
+      "stockUnitMeaning": "one_whole_retail_package",
+      "contentsPerStockUnit": 3,
+      "contentsUnit": "piece"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "1 ซอง Strepsils HHR ยาอมบรรเทาอาการเจ็บคอ 8 เม็ด",
+      "variant": "เลมอน ไม่มีน้ำตาล",
+      "listingProductId": "44483159777",
+      "listingVariationId": "436322123081",
+      "companySku": "630010066",
+      "quantityPerSale": 1,
+      "quantityUnit": "ซอง",
+      "authority": "owner_confirmed_physical_stock_unit_2026-10-22",
+      "stockUnitMeaning": "one_whole_retail_package",
+      "contentsPerStockUnit": 8,
+      "contentsUnit": "tablet",
+      "sourceLabelMismatch": true,
+      "actualPhysicalProductName": "สามัญ ยาอมเสตร็ปซิลน้ำผึ้งมะนาว 8 เม็ด",
+      "labelReviewReason": "source_option_claims_sugar_free_but_owner_confirms_regular_honey_lemon"
+    }
+  ]
+}
