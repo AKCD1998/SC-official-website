@@ -521,4 +521,21 @@ router.post("/crm/pos/claim-token", async (req, res) => {
   }
 });
 
+
+// Read-only directory for the authenticated StockDay server. Never returns medical/profile secrets.
+const { listMembers, historyQuery } = require('../lib/memberDirectory');
+const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
+router.get('/crm/member-directory', requireInternalToken, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { return res.json(await listMembers(req.query)); }
+  catch (error) { return res.status(error.status || 500).json({ error: error.status ? error.message : 'Unable to load members.' }); }
+});
+router.get('/crm/member-directory/:id/purchase-history', requireInternalToken, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try {
+    historyQuery(req.params.id, req.query);
+    return res.json(await getMemberPurchaseHistory(req.params.id, req.query));
+  } catch (error) { return res.status(error.status || 500).json({ error: error.status ? error.message : 'Unable to load purchase history.' }); }
+});
+
 module.exports = router;
