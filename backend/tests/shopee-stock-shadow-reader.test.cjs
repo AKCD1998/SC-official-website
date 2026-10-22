@@ -23,8 +23,27 @@ test('all source queries are bounded, branch/shop scoped and enclosed in a read-
 });
 test('query failures still roll back and release without changing anything', async () => {
   const f = fixture({ failOrders: true });
-  await expect(readShopeeStockShadow(f.options)).rejects.toThrow();
+  await expect(readShopeeStockShadow(f.options)).rejects.toMatchObject({ code: 'SHADOW_READ_FAILED', stage: 'orders', detailsWithheld: true });
   expect(f.queries.at(-1).sql).toBe('ROLLBACK'); expect(f.client.release).toHaveBeenCalledTimes(1);
+});
+test.each([['28P01', 'SHADOW_READ_ACCESS_DENIED'], ['ETIMEDOUT', 'SHADOW_READ_TIMEOUT']])
+  ('connection failures expose only a stable safe code: %s', async (code, expected) => {
+    const pool = { connect: async () => { throw Object.assign(new Error('private connection detail'), { code }); } };
+    try {
+      await readShopeeStockShadow({ ...fixture().options, pool }); throw new Error('expected failure');
+    } catch (error) {
+      expect(error).toMatchObject({ code: expected, stage: 'connect', detailsWithheld: true });
+      expect(error.message).not.toContain('private connection detail');
+    }
+  });
+test('a failed rollback destroys the client instead of returning an open transaction to the pool', async () => {
+  const f = fixture(); const original = f.client.query;
+  f.client.query = jest.fn((sql, ...args) => {
+    if (sql === 'ROLLBACK') throw new Error('private transport detail');
+    return original(sql, ...args);
+  });
+  await expect(readShopeeStockShadow(f.options)).rejects.toMatchObject({ code: 'SHADOW_ROLLBACK_FAILED', stage: 'rollback' });
+  expect(f.client.release).toHaveBeenCalledWith(expect.objectContaining({ code: 'SHADOW_ROLLBACK_FAILED' }));
 });
 test('order truncation is a failure, not a complete audit', async () => {
   const f = fixture({ orders: [{}, {}] });
