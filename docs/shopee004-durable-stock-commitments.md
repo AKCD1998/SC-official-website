@@ -142,4 +142,3 @@ immutable cutover and accepted opening estimate are preserved.
 The exact ALSOFF blue 450-ml single-bottle variant is independent from the
 six-bottle pack. Seller Centre explicitly describes one bottle per selected
 formula; the existing verified POS bottle identity is reused with factor one.
-
