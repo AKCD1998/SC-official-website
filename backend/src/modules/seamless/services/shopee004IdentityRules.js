@@ -62,17 +62,25 @@ function validateIdentityRule(rule, { posCatalog, evidenceRefs } = {}) {
       return ['seller_catalog', 'seller_description', 'owner_unit'].includes(e?.kind)
         && Array.isArray(e.aliases) && e.aliases.some(v => aliasKey(v) === aliasKey(a));
     })) return fail('identity_rule_alias_unverified');
+    if (!evidence.some(e => ['seller_description', 'owner_unit'].includes(e.kind)
+      && componentsEqual(e.components, rule.components) && Array.isArray(e.aliases)
+      && e.aliases.some(v => aliasKey(v) === aliasKey(a)))) return fail('identity_rule_quantity_unverified');
     aliases.add(aliasKey(a));
   }
   for (const c of rule.components) {
     const p = get(posCatalog, c.productCode);
     if (!p || p.active !== true) return fail('pos_product_missing');
     if (!unit(p.smallUnit ?? p.unit) || unit(p.smallUnit ?? p.unit) !== unit(c.unit)) return fail('identity_rule_unit_conflict');
-    if (!text(p.stockCode) || !Number.isFinite(p.stockFactor) || p.stockFactor <= 0
-      || !Number.isFinite(p.smallFactor) || p.smallFactor <= 0) return fail('identity_rule_pos_contract_invalid');
+    if (!text(p.stockCode) || p.stockFactor !== 1 || p.smallFactor !== 1) return fail('identity_rule_pos_contract_invalid');
+    // Match the existing stock reader's supported shared-stock contract. This
+    // registry does not introduce a new conversion model for aliases or packs.
+    if (p.companySku !== p.stockCode && (p.masterStockCode !== p.stockCode || p.masterActive !== true
+      || p.masterStockFactor !== 1 || p.masterSmallFactor !== p.smallFactor)) return fail('shared_stock_conversion_unverified');
     if (!evidence.some(e => e.kind === 'pos_unit' && e.productCode === c.productCode
       && unit(e.unit) === unit(c.unit) && e.stockCode === p.stockCode
-      && e.stockFactor === p.stockFactor && e.smallFactor === p.smallFactor)) return fail('identity_rule_pos_contract_unverified');
+      && e.stockFactor === p.stockFactor && e.smallFactor === p.smallFactor
+      && (p.companySku === p.stockCode || (e.masterStockCode === p.masterStockCode && e.masterActive === true
+        && e.masterStockFactor === p.masterStockFactor && e.masterSmallFactor === p.masterSmallFactor)))) return fail('identity_rule_pos_contract_unverified');
   }
   return { valid: true, reasonCode: null };
 }

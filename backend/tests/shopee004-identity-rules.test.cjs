@@ -13,11 +13,13 @@ function fixture({ bundle = false, shared = false } = {}) {
   const common = { verified: true, observedAt: '2026-10-23T09:00:00Z', shopCode: rule.shopCode,
     branchCode: rule.branchCode, listingId: rule.listingId, variationId: rule.variationId };
   const posCatalog = new Map(components.map(c => [c.productCode, { companySku: c.productCode, active: true,
-    smallUnit: c.unit, stockCode: shared ? 'POS-MASTER' : c.productCode, stockFactor: 1, smallFactor: 1 }]));
+    smallUnit: c.unit, stockCode: shared ? 'POS-MASTER' : c.productCode, stockFactor: 1, smallFactor: 1,
+    ...(shared ? { masterStockCode: 'POS-MASTER', masterActive: true, masterStockFactor: 1, masterSmallFactor: 1 } : {}) }]));
   const evidenceRefs = new Map([['seller:v1', { ...common, kind: 'seller_catalog', catalogVersion: 'catalog-v1',
-    sourceSkus: ['SELLER-A'], aliases: clone(aliases) }], ['unit:v1', { ...common, kind: 'seller_description', components: clone(components) }],
+    sourceSkus: ['SELLER-A'], aliases: clone(aliases) }], ['unit:v1', { ...common, kind: 'seller_description', components: clone(components), aliases: clone(aliases) }],
   ...components.map((c, i) => [`pos:${i ? 'B' : 'A'}`, { ...common, kind: 'pos_unit', productCode: c.productCode,
-    unit: c.unit, stockCode: posCatalog.get(c.productCode).stockCode, stockFactor: 1, smallFactor: 1 }])]);
+    unit: c.unit, stockCode: posCatalog.get(c.productCode).stockCode, stockFactor: 1, smallFactor: 1,
+    ...(shared ? { masterStockCode: 'POS-MASTER', masterActive: true, masterStockFactor: 1, masterSmallFactor: 1 } : {}) }])]);
   const item = { name: aliases[0].productName, variant: aliases[0].variantName,
     listingProductId: rule.listingId, listingVariationId: rule.variationId, sourceSku: 'SELLER-A', quantity: 2 };
   return { rule, posCatalog, evidenceRefs, item };
@@ -54,6 +56,8 @@ test('a changed title or pack remains review until that exact alias has new veri
   f.rule.evidenceRefs.push('seller:v2');
   f.evidenceRefs.set('seller:v2', { ...f.evidenceRefs.get('seller:v1'), catalogVersion: 'catalog-v2',
     aliases: [{ productName: changed.name, variantName: changed.variant }] });
+  expect(resolveIdentityRule({ ...f, item: changed }).reasonCode).toBe('identity_rule_quantity_unverified');
+  f.evidenceRefs.get('unit:v1').aliases.push({ productName: changed.name, variantName: changed.variant });
   expect(resolveIdentityRule({ ...f, item: changed }).status).toBe('matched');
   // This fixture deliberately keeps the reviewed whole-box unit unchanged. The
   // changed label alone never supplies a new factor of twelve.
@@ -83,7 +87,23 @@ test('shared stock keeps the evidenced alias identity; downstream POS conversion
   const f = fixture({ shared: true });
   expect(resolveIdentityRule(f)).toMatchObject({ status: 'matched', companySku: 'POS-A' });
   f.posCatalog.get('POS-A').stockCode = 'WRONG-MASTER';
+  expect(resolveIdentityRule(f).reasonCode).toBe('shared_stock_conversion_unverified');
+});
+
+test.each(['alias-one', 'alias-two', 'alias-three', 'alias-four'])('shared stock %s requires the unchanged supported master contract', alias => {
+  const f = fixture({ shared: true }), p = f.posCatalog.get('POS-A');
+  p.companySku = alias;
+  expect(resolveIdentityRule(f).status).toBe('matched');
+  for (const changed of [{ masterActive: false }, { masterStockCode: 'wrong' }, { masterStockFactor: 2 }, { masterSmallFactor: 2 }]) {
+    expect(resolveIdentityRule({ ...f, posCatalog: new Map([['POS-A', { ...p, ...changed }]]) }).reasonCode).toBe('shared_stock_conversion_unverified');
+  }
+  const proof = f.evidenceRefs.get('pos:A'); proof.masterActive = false;
   expect(resolveIdentityRule(f).reasonCode).toBe('identity_rule_pos_contract_unverified');
+});
+
+test.each([{ stockFactor: 2 }, { smallFactor: 2 }, { stockFactor: 0.5 }, { smallFactor: Infinity }])('unsupported POS conversion cannot be made valid merely by copying it into evidence', changed => {
+  const f = fixture(); Object.assign(f.posCatalog.get('POS-A'), changed); Object.assign(f.evidenceRefs.get('pos:A'), changed);
+  expect(resolveIdentityRule(f).reasonCode).toBe('identity_rule_pos_contract_invalid');
 });
 
 test.each(['missing-map', 'unverified', 'wrong-listing', 'no-unit-proof', 'wrong-factor', 'no-alias-proof'])('evidence guard: %s', condition => {
