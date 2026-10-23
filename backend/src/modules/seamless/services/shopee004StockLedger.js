@@ -1,6 +1,7 @@
 const { isDeepStrictEqual } = require('node:util');
 const { randomUUID } = require('node:crypto');
 const { validateCatalog, orderSnapshot, projectPosition, fail } = require('./shopee004StockPolicy');
+const { buildOpeningBasis } = require('./shopee004OpeningBasis');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER = /^[A-Z0-9]{8,40}$/;
@@ -37,7 +38,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
     await c.query(`INSERT INTO ${table('audit')}(action,outcome,actor,order_number) VALUES($1,$2,$3,$4)`,
       [action, JSON.stringify(outcome), actor, order]);
   }
-  async function prepare({ posCatalog, openingOrderNumbers, actor }) {
+  async function prepare({ posCatalog, openingOrderNumbers, openingBasis, actor }) {
     requireEnabled(); validateCatalog(posCatalog);
     if (!actor) fail('HUMAN_ADMIN_REQUIRED');
     if (!Array.isArray(openingOrderNumbers) || openingOrderNumbers.length > 2000
@@ -58,22 +59,33 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         }
       }
       const plan = { planId: randomUUID(), opening, legacyOrders: rows.filter(o => !opening.some(p => p.orderNumber === o.order_number)).map(o => o.order_number) };
+      const acceptedBasis = buildOpeningBasis({ input: openingBasis, rows, openingOrderNumbers,
+        catalog: validateCatalog(posCatalog), actor, matchItem });
+      if (acceptedBasis) plan.openingBasis = acceptedBasis;
       await c.query(`INSERT INTO ${table('control')}(singleton,mode,plan,pos_catalog,actor) VALUES(1,'planned',$1,$2,$3)
         ON CONFLICT(singleton) DO UPDATE SET plan=EXCLUDED.plan,pos_catalog=EXCLUDED.pos_catalog,actor=EXCLUDED.actor,created_at=now()`,
       [JSON.stringify(plan), JSON.stringify([...validateCatalog(posCatalog).values()]), actor]);
-      await audit(c, 'opening-plan-prepared', { pendingOrders: opening.length, legacyOrders: plan.legacyOrders.length }, actor);
+      await audit(c, 'opening-plan-prepared', { pendingOrders: opening.length, legacyOrders: plan.legacyOrders.length,
+        ...(acceptedBasis ? { openingBasisQuality: acceptedBasis.quality, historicalOrdersCovered: acceptedBasis.coveredOrderCount,
+          excludedPhysicalReviewOrders: acceptedBasis.excludedPhysicalReviewOrders, physicalStockVerified: false } : {}) }, actor);
       return { mode: 'planned', planId: plan.planId, pendingOrders: opening.length, legacyOrders: plan.legacyOrders.length,
-        requiresPhysicalPendingReview: true, historicalShippedReconciliationRequired: true, activated: false };
+        requiresPhysicalPendingReview: !acceptedBasis, historicalShippedReconciliationRequired: !acceptedBasis,
+        ...(acceptedBasis ? { openingBasisQuality: acceptedBasis.quality, ownerEstimateApprovalRequired: true } : {}), activated: false };
     });
   }
-  async function activate({ planId, actor, openingOrdersVerified, olderShippedReconciledInPosBasis, emailFeedChecked, unpostedPosWorkflow }) {
+  async function activate({ planId, actor, openingOrdersVerified, olderShippedReconciledInPosBasis, emailFeedChecked, unpostedPosWorkflow,
+    ownerAcceptedOpeningEstimate = false }) {
     requireEnabled();
-    if (!actor || ![openingOrdersVerified,olderShippedReconciledInPosBasis,emailFeedChecked,unpostedPosWorkflow].every(v => v === true)) fail('OPENING_ATTESTATIONS_REQUIRED');
+    const physicallyVerified = openingOrdersVerified === true && olderShippedReconciledInPosBasis === true;
+    if (!actor || emailFeedChecked !== true || unpostedPosWorkflow !== true
+      || (!physicallyVerified && ownerAcceptedOpeningEstimate !== true)) fail('OPENING_ATTESTATIONS_REQUIRED');
     return transaction(async c => {
       const r = await c.query(`SELECT * FROM ${table('control')} WHERE singleton=1 FOR UPDATE`);
       const control = r.rows[0];
       if (!control) fail('OPENING_PLAN_REQUIRED');
       if (control.plan.planId !== planId) fail('OPENING_PLAN_APPROVAL_MISMATCH');
+      if (control.plan.openingBasis?.quality === 'owner-accepted-estimate'
+        ? ownerAcceptedOpeningEstimate !== true : !physicallyVerified) fail('OPENING_BASIS_APPROVAL_REQUIRED');
       if (control.mode === 'live') return { mode: 'live', cutoverAt: control.cutover_at.toISOString(), alreadyActivated: true };
       if (control.mode !== 'planned') fail('CUTOVER_CANNOT_BE_RESTARTED');
       const rows = await readOrders(c);
@@ -86,7 +98,9 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         WHERE shop_code='sc-drug-store' AND (order_number=ANY($1::text[]) OR ordered_at >= $2)
         ON CONFLICT(order_number) DO UPDATE SET revision=${table('dirty')}.revision+1`,
       [control.plan.opening.map(o => o.orderNumber), stamp.rows[0].cutover_at]);
-      await audit(c, 'activated', { openingOrders: control.plan.opening.length, workflow: 'shopee-not-posted-in-pos' }, actor);
+      await audit(c, 'activated', { openingOrders: control.plan.opening.length, workflow: 'shopee-not-posted-in-pos',
+        ...(control.plan.openingBasis ? { openingBasisQuality: control.plan.openingBasis.quality,
+          physicalStockVerified: false, posStockAdjusted: false } : {}) }, actor);
       return { mode: 'live', cutoverAt: stamp.rows[0].cutover_at.toISOString(), queuedOrders: queued.rowCount, activated: true };
     });
   }
@@ -187,7 +201,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       || productCodes.some(s => typeof s !== 'string' || !s.length || s.length > 100)
       || new Set(productCodes).size !== productCodes.length) fail('PROJECTION_SCOPE_INVALID');
     return transaction(async c => {
-      const ctrl = await c.query(`SELECT mode,cutover_at FROM ${table('control')} WHERE singleton=1`);
+      const ctrl = await c.query(`SELECT mode,cutover_at,plan->'openingBasis' AS opening_basis FROM ${table('control')} WHERE singleton=1`);
       const pending = await c.query(`SELECT count(*)::int AS count FROM ${table('dirty')}`);
       const review = await c.query(`SELECT count(*) FILTER (WHERE state='review_required')::int AS count,
         count(*) FILTER (WHERE jsonb_array_length(warnings)>0)::int AS warning_count FROM ${table('positions')}`);
@@ -198,6 +212,8 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         sum(reserved_quantity)::text AS reserved,sum(shipped_unposted_quantity)::text AS shipped
         FROM ${table('lines')} WHERE product_code=ANY($1::text[]) GROUP BY product_code`, [productCodes]);
       const byCode = new Map(rows.rows.map(r => [r.product_code, r]));
+      const basis = ctrl.rows[0]?.opening_basis;
+      const initial = new Map((basis?.records || []).map(r => [r.productCode, r]));
       return { schemaVersion: 'shopee004-commitments-v1', branchCode: '004', mode: ctrl.rows[0]?.mode || 'unconfigured',
         status: ready ? 'available' : 'review-or-processing-required', cutoverAt: ctrl.rows[0]?.cutover_at?.toISOString() || null,
         asOf: stamp.rows[0].at.toISOString(), revision: stamp.rows[0].revision,
@@ -205,11 +221,16 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         pendingOrders: pending.rows[0].count, reviewOrders: review.rows[0].count,
         sourceLabelReviewOrders: review.rows[0].warning_count,
         posPostingPolicy: 'not-recorded-in-pos', emailCoverage: 'email-orders-only',
+        ...(basis ? { openingBasisQuality: basis.quality, openingBasisAsOf: basis.sourceAsOf,
+          openingBasisHistoricalOrders: basis.coveredOrderCount, openingBasisPhysicalStockVerified: false,
+          openingBasisExcludedReviewOrders: basis.excludedPhysicalReviewOrders } : {}),
         records: productCodes.map(productCode => {
           const row = byCode.get(productCode);
-          const reserved = Number(row?.reserved || 0), shipped = Number(row?.shipped || 0);
-          if (row?.units > 1 || !Number.isSafeInteger(reserved + shipped)) fail('PROJECTION_UNIT_OR_QUANTITY_CONFLICT');
-          return { productCode, unit: row?.unit || null, reservedQuantity: reserved, shippedUnpostedQuantity: shipped };
+          const base = initial.get(productCode);
+          const reserved = Number(row?.reserved || 0), shipped = Number(row?.shipped || 0) + (base?.quantity || 0);
+          if (row?.units > 1 || !Number.isSafeInteger(reserved + shipped)
+            || (row?.unit && base?.unit && row.unit !== base.unit)) fail('PROJECTION_UNIT_OR_QUANTITY_CONFLICT');
+          return { productCode, unit: row?.unit || base?.unit || null, reservedQuantity: reserved, shippedUnpostedQuantity: shipped };
         }) };
     }, true);
   }

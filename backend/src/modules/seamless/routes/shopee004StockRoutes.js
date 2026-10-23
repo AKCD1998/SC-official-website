@@ -35,11 +35,14 @@ function createShopee004StockRoutes({ ledger = () => getLedger(), auth = appAuth
   admin.get('/status', safe(() => ledger().projection([])));
   admin.post('/review-queue', safe(req => ledger().reviewQueue({ limit: req.body?.limit ?? 100, cursor: req.body?.cursor || '' })));
   admin.post('/plan', safe(req => ledger().prepare({ posCatalog: req.body?.posCatalog,
-    openingOrderNumbers: req.body?.openingOrderNumbers, actor: req.appActor })));
+    openingOrderNumbers: req.body?.openingOrderNumbers, openingBasis: req.body?.openingBasis, actor: req.appActor })));
   admin.post('/activate', safe(req => ledger().activate({ ...req.body, actor: req.appActor })));
   admin.post('/pause', safe(req => ledger().pause({ actor: req.appActor })));
   admin.post('/resume', safe(req => ledger().resume({ ...req.body, actor: req.appActor })));
   admin.post('/review', safe(req => ledger().review({ ...req.body, actor: req.appActor })));
   return { internal, admin };
 }
-module.exports = { createShopee004StockRoutes };
+// The reviewed opening references plus bounded POS metadata can exceed Express's
+// default 100 KB. Mount only this exact plan parser before the global parser.
+const stockPlanJsonParser = () => express.json({ limit: '512kb', strict: true });
+module.exports = { createShopee004StockRoutes, stockPlanJsonParser };

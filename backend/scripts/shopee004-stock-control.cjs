@@ -36,7 +36,8 @@ async function run({ command, inputFile, receiptFile, env = process.env, fetchIm
   if (command === 'plan') {
     // Exclusive create prevents a stale approval file being replaced silently.
     await fs.writeFile(path.resolve(receiptFile),JSON.stringify({planId:data.planId,
-      openingOrdersVerified:false,olderShippedReconciledInPosBasis:false,emailFeedChecked:false,unpostedPosWorkflow:false},null,2),{flag:'wx',mode:0o600});
+      openingOrdersVerified:false,olderShippedReconciledInPosBasis:false,emailFeedChecked:false,unpostedPosWorkflow:false,
+      ...(data.openingBasisQuality==='owner-accepted-estimate'?{ownerAcceptedOpeningEstimate:false}:{})},null,2),{flag:'wx',mode:0o600});
   }
   if (command === 'review-queue') {
     await fs.writeFile(path.resolve(receiptFile),JSON.stringify({records:data.records,nextCursor:data.nextCursor},null,2),{flag:'wx',mode:0o600});
