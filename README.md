@@ -1,6 +1,14 @@
 # currentSC-official-website-project
 
 ## Overview
+
+SCCRM POS 1.3.9 uses the additive staff-authenticated
+`GET /api/loyalty/claims/status?branchCode=004&receiptNo=...` endpoint to show
+whether a receipt was already saved and its stored member name/code. It checks
+the existing `loyalty_claims` rows; no schema migration is required. Responses
+are private/no-store and branch-bound staff cannot inspect another branch.
+Existing claim POST routes and the receipt unique constraint remain unchanged.
+
 - Frontend: React (Vite) in `frontend-react/`
 - Backend: Node/Express API in `backend/`
 - Legacy static files are archived in `legacy/` and are no longer served.

@@ -727,6 +727,41 @@ router.put("/:id", requireMemberAccess, async (req, res) => {
     }
 });
 
+// The receipt belongs to its stored member, regardless of the POS selection.
+// Existing clients still submit claims through the unchanged POST below.
+router.get("/claims/status", requireStaff, async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  const branchCode = normalizeDocRef(req.query.branchCode);
+  const receiptNo = normalizeDocRef(req.query.receiptNo);
+  if (typeof req.query.branchCode !== "string" || !/^[A-Z0-9_-]{1,50}$/.test(branchCode) ||
+      typeof req.query.receiptNo !== "string" || !receiptNo || receiptNo.length > 100) {
+    return res.status(400).json({ error: "branchCode and receiptNo are required." });
+  }
+  if (req.staffDevice.branch_code && normalizeDocRef(req.staffDevice.branch_code) !== branchCode) {
+    return res.status(403).json({ error: "Receipt branch does not match staff device." });
+  }
+  try {
+    const { rows } = await pool.query(
+      `SELECT lc.id, lc.created_at, lc.user_id, u.full_name, m.member_code
+       FROM loyalty_claims lc
+       LEFT JOIN users u ON u.id = lc.user_id
+       LEFT JOIN member_profiles m ON m.user_id = lc.user_id
+       WHERE lc.branch_code = $1 AND lc.receipt_no = $2 LIMIT 1`,
+      [branchCode, receiptNo],
+    );
+    const claim = rows[0];
+    return res.json({
+      ok: true, branchCode, receiptNo, claimed: Boolean(claim),
+      ...(claim ? {
+        claimId: claim.id, claimedAt: claim.created_at,
+        member: { id: claim.user_id, displayName: claim.full_name || "", memberCode: claim.member_code || "" },
+      } : {}),
+    });
+  } catch {
+    return res.status(500).json({ error: "Failed to check receipt status." });
+  }
+});
+
 // ── POST /api/loyalty/claims ──────────────────────────────────────────────────
 // Cashier submits a receipt on behalf of a selected member.
 // Awards points and returns updated balance.
