@@ -273,7 +273,7 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     await source();await open();await drain();
     await pool.query(`DELETE FROM "${schema}".shopee_orders WHERE order_number='OLDORDER1'`);
     await expect(ledger.processOne()).rejects.toMatchObject({code:'QUEUED_ORDER_MISSING'});
-    expect(await read()).toMatchObject({status:'review-or-processing-required',pendingOrders:1,records:[{reservedQuantity:2}]});
+    expect(await read()).toMatchObject({status:'partial',unallocatedOrders:1,pendingOrders:1,records:[{availabilityStatus:'review_required',reservedQuantity:2}]});
   });
   test('owner-confirmed source-label mismatch remains a visible warning, not a silent clean data qualification',async()=>{
     ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>({...matchItem(),sourceLabelMismatch:true})});
@@ -345,12 +345,12 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
       records:[{reservedQuantity:2},{reservedQuantity:1}]});
     expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
   });
-  test('scope scan limit fails closed instead of qualifying a truncated queue',async()=>{
+  test('a truncated queue retains temporary quantities rather than falsely qualifying or hiding all products',async()=>{
     await source();await open();await drain();
     await pool.query(`INSERT INTO "${schema}".shopee_orders(shop_code,order_number,current_status,ordered_at,items,last_event_at)
       SELECT 'sc-drug-store','LIMIT'||lpad(n::text,5,'0'),'order_confirmed',now(),
       jsonb_build_array(jsonb_build_object('name','Synthetic','quantity',1)),now() FROM generate_series(1,101) n`);
-    expect(await ledger.projection(['P2'])).toMatchObject({scopeValidated:false,pendingOrders:101,
-      records:[{availabilityStatus:'review_required'}]});
+    expect(await ledger.projection(['P2'])).toMatchObject({scopeValidated:true,pendingOrders:101,scopeScanLimited:true,unallocatedOrders:1,
+      records:[{availabilityStatus:'known-commitments-only'}]});
   });
 });

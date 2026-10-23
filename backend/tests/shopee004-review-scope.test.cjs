@@ -18,8 +18,9 @@ test('unknown order keeps retained identities fenced and counts once across curr
  const r=resolveReviewScope([{items:[{name:'Unknown',quantity:1}],source_snapshot:{items:[{name:'Unknown',quantity:1}]},retained_codes:['P1']}],catalog,{matchItem:unknown,identityMatch:unknown});
  expect(r.complete).toBe(true);expect(r.unallocatedOrders).toBe(1);expect([...r.affected]).toEqual(['P1']);
 });
-test('missing source and truncated queues remain operational failures, never a clean projection',()=>{
- expect(resolveReviewScope([{items:null}],catalog,{matchItem:known}).complete).toBe(false);
+test('missing source is unallocated and retains known holds; a caller cannot exceed the scan limit',()=>{
+ const missing=resolveReviewScope([{items:null,retained_codes:['P1']}],catalog,{matchItem:known});
+ expect(missing.complete).toBe(true);expect(missing.unallocatedOrders).toBe(1);expect([...missing.affected]).toEqual(['P1']);
  expect(resolveReviewScope(Array.from({length:101},()=>({items:[{quantity:1}]})),catalog,{matchItem:known}).complete).toBe(false);
 });
 test('SOS 10x20 cm is one complete POS box of two, not two boxes or another S size',()=>{

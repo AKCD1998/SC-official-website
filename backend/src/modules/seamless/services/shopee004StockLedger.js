@@ -283,18 +283,19 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         FROM ${table('positions')}`);
       const stamp = await c.query(`SELECT transaction_timestamp() AS at,COALESCE((SELECT max(revision) FROM ${table('audit')}),0)::text AS revision`);
       const feed = await c.query(`SELECT max(created_at) AS last_ingested_at FROM ${events} WHERE shop_code='sc-drug-store'`);
-      let affected = new Set(),unallocatedOrders=0; let scopeValidated = ctrl.rows[0]?.mode === 'live';
+      let affected = new Set(),unallocatedOrders=0,scopeScanLimited=false; let scopeValidated = ctrl.rows[0]?.mode === 'live';
       if (scopeValidated && (pending.rows[0].count || review.rows[0].count)) {
         // The same snapshot fences source, retained contracts and quantities.
-        const blocked = await c.query(`SELECT o.items,p.source_snapshot,
+        const blocked = await c.query(`SELECT o.items,p.source_snapshot,count(*) OVER()::int AS scope_order_count,
           ARRAY(SELECT l.product_code FROM ${table('lines')} l WHERE l.order_number=b.order_number) AS retained_codes
           FROM (SELECT order_number FROM ${table('dirty')} UNION
             SELECT order_number FROM ${table('positions')} WHERE state='review_required') b
           LEFT JOIN ${orders} o ON o.order_number=b.order_number AND o.shop_code='sc-drug-store'
           LEFT JOIN ${table('positions')} p ON p.order_number=b.order_number
-          ORDER BY b.order_number LIMIT 101`);
+          ORDER BY b.order_number LIMIT 100`);
         const scope=resolveReviewScope(blocked.rows,validateCatalog(ctrl.rows[0].pos_catalog),{matchItem});
-        scopeValidated=scope.complete;affected=scope.affected;unallocatedOrders=scope.unallocatedOrders;
+        const unscanned=Math.max(0,(blocked.rows[0]?.scope_order_count||0)-blocked.rows.length);
+        scopeValidated=scope.complete;affected=scope.affected;unallocatedOrders=scope.unallocatedOrders+unscanned;scopeScanLimited=unscanned>0;
       }
       const hasBlockedOrders = pending.rows[0].count > 0 || review.rows[0].count > 0;
       const rows = await c.query(`SELECT product_code,min(unit) AS unit,count(DISTINCT unit)::int AS units,
@@ -316,7 +317,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       const ready=scopeValidated&&!hasBlockedOrders&&!pageReviewProducts;
       return { schemaVersion: 'shopee004-commitments-v1', branchCode: '004', mode: ctrl.rows[0]?.mode || 'unconfigured',
         status: ready ? 'available' : scopeValidated ? 'partial' : 'review-or-processing-required',
-        availabilityContract:'per-product-review-v2',scopeValidated,unallocatedOrders,
+        availabilityContract:'per-product-review-v2',scopeValidated,unallocatedOrders,scopeScanLimited,
         pageReviewProducts,
         cutoverAt: ctrl.rows[0]?.cutover_at?.toISOString() || null,
         asOf: stamp.rows[0].at.toISOString(), revision: stamp.rows[0].revision,

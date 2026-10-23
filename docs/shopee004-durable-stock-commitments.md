@@ -140,8 +140,10 @@ other unfenced records become `known-commitments-only`, never `available`.
 Consumers may display their existing known deductions as temporary quantities,
 with a visible incomplete-order banner and explicitly qualified Excel values.
 They must not imply those orders were deducted or release retained holds.
-Missing source data, a queue above 100 orders, or a paused control still fails
-closed for the response. A unit/quantity conflict quarantines only its product
+Missing source data remains unallocated with retained stock codes fenced. The
+bounded 100-order scan counts every unscanned order as unallocated too, never as
+fully qualified or as grounds to hide the whole branch. A paused control or
+database/transport failure still blocks availability. A unit/quantity conflict quarantines only its product
 with null demand instead of inventing zero. No cancellation, return, physical evidence or
 opening-basis approval is inferred from scope qualification. Existing holds,
 immutable cutover and accepted opening estimate are preserved.

@@ -9,10 +9,9 @@ function resolveReviewScope(entries,catalog,{matchItem=resolveStockProductMatch,
  const affected=new Set();let unallocatedOrders=0;
  if(!entries.length||entries.length>100)return {complete:false,affected,unallocatedOrders};
  for(const entry of entries){
-  if(!Array.isArray(entry.items)||!entry.items.length)return {complete:false,affected,unallocatedOrders};
   let unallocated=false;
   for(const items of [entry.items,...(entry.source_snapshot?[entry.source_snapshot.items]:[])]){
-   if(!Array.isArray(items)||!items.length||items.length>1000)return {complete:false,affected,unallocatedOrders};
+   if(!Array.isArray(items)||!items.length||items.length>1000){unallocated=true;continue;}
    for(const item of items){
     if(!item||typeof item!=='object'||Array.isArray(item)){unallocated=true;continue;}
     const mapped=mapShopeeStockLines({items:[item],posCatalog:catalog,matchItem});
