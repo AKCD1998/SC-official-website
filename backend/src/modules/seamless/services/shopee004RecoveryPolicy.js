@@ -23,9 +23,11 @@ function nextRecovery({ error, attemptCount = 0, now = new Date() }) {
     exhausted: failure.retryable && delay === null };
 }
 function classifyReviewReason(reason) {
-  if (/^(PROCESSING_|LEDGER_BUSY)/.test(reason || '')) return 'temporary';
-  if (/unit|quantity|pack|factor/.test(reason || '')) return 'unit';
-  if (/cancel|dispatch|return|legacy|confirmation|time|clock|order-items/.test(reason || '')) return 'lifecycle';
+  if (new Set(['PROCESSING_TIMEOUT','PROCESSING_LOCK_BUSY','PROCESSING_SERVICE_UNAVAILABLE','PROCESSING_PENDING',
+    'LEDGER_BUSY_OR_TIMEOUT','LEDGER_SERVICE_UNAVAILABLE']).has(reason)) return 'temporary';
+  const normalized=String(reason||'').toLowerCase();
+  if (/unit|quantity|pack|factor/.test(normalized)) return 'unit';
+  if (/cancel|dispatch|return|legacy|confirmation|time|clock|order-items/.test(normalized)) return 'lifecycle';
   return 'identity';
 }
 module.exports = { RETRY_DELAYS_MS, classifyRecoveryFailure, nextRecovery, classifyReviewReason };

@@ -21,6 +21,9 @@ test('only bounded transport/database codes retry, with exactly five attempts',(
  }
  expect(classifyRecoveryFailure({code:'08006'})).toMatchObject({retryable:true,reasonCode:'PROCESSING_SERVICE_UNAVAILABLE'});
  expect(classifyRecoveryFailure({message:'timeout'}).retryable).toBe(false);
+ expect(classifyReviewReason('POS_UNIT_CONTRACT_INVALID')).toBe('unit');
+ expect(classifyReviewReason('PROCESSING_REVIEW_REQUIRED')).toBe('identity');
+ expect(classifyReviewReason('PROCESSING_TIMEOUT')).toBe('temporary');
 });
 test('exception read model removes order refs/customer/raw errors and keeps mapping distinct from lifecycle',()=>{
  const row={order_number:'PRIVATEORDER01',exception_id:'e',audit_revision:'4',dirty_revision:'2',recovery_revision:'2',queued_at:new Date(0),
