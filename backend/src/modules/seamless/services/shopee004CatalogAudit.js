@@ -38,7 +38,9 @@ function auditStoreCatalog({ records = [], expectedListings, expectedVariations,
       ...(r.sourceSku ? { sourceSku: r.sourceSku } : {}) }, { posCatalog });
     const components = componentsOf(exact || legacy);
     const metadataMissing = components.some(c => !posCatalog.has(c.productCode));
-    const skuConflict = r.sourceSku && components.length === 1 && r.sourceSku !== components[0].productCode;
+    // A versioned rule may legitimately anchor a seller-owned SKU to a different
+    // POS code. Only an unanchored legacy proposal uses the equality shortcut.
+    const skuConflict = !exact && r.sourceSku && components.length === 1 && r.sourceSku !== components[0].productCode;
     let reasonCode = exact?.reasonCode || null;
     let status = exact && ['matched', 'bundle'].includes(exact.status) ? 'verified' : 'review_required';
     if (!exact) {

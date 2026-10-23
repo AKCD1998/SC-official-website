@@ -61,3 +61,19 @@ test('audit aggregate does not contain product identities, private raw rows or q
   expect(JSON.stringify(v.aggregate)).not.toContain(record.productName);
   expect(v.aggregate).not.toHaveProperty('stock');
 });
+
+test('an independently anchored seller SKU may differ from the POS component code', () => {
+  const f = options([{ ...record, sourceSku: 'SELLER-A' }]);
+  f.posCatalog.get('POS-A').companySku = 'POS-A';
+  const alias = { productName: record.productName, variantName: record.variantName, evidenceRefs: ['seller:1'] };
+  const component = { productCode: 'POS-A', quantityPerSale: 1, unit: 'กล่อง' };
+  const scope = { verified: true, observedAt: f.observedAt, shopCode: 'sc-drug-store', branchCode: '004',
+    listingId: record.listingId, variationId: record.variationId };
+  f.rules = [{ schemaVersion: 'shopee004-identity-rule-v1', shopCode: scope.shopCode, branchCode: scope.branchCode,
+    ruleId: 'one', version: 1, state: 'active', listingId: record.listingId, variationId: record.variationId,
+    sourceSkus: ['SELLER-A'], aliases: [alias], components: [component], evidenceRefs: ['seller:1', 'unit:1', 'pos:1'], createdAt: f.observedAt }];
+  f.evidenceRefs = new Map([['seller:1', { ...scope, kind: 'seller_catalog', catalogVersion: 'v1',
+    sourceSkus: ['SELLER-A'], aliases: [alias] }], ['unit:1', { ...scope, kind: 'seller_description', components: [component], aliases: [alias] }],
+  ['pos:1', { ...scope, kind: 'pos_unit', productCode: 'POS-A', unit: 'กล่อง', stockCode: 'POS-A', stockFactor: 1, smallFactor: 1 }]]);
+  expect(auditStoreCatalog(f).records[0]).toMatchObject({ status: 'verified', reasonCode: null });
+});
