@@ -449,6 +449,10 @@ async function verifyMigrations(env = process.env) {
       "shopee_confirmed_sources",
       "shopee_confirmed_daily_facts",
       "shopee_sales_ingest_jobs",
+      "shopee004_stock_identity_evidence",
+      "shopee004_stock_identity_rule_versions",
+      "shopee004_stock_identity_operations",
+      "shopee004_stock_identity_recovery_jobs",
     ]) {
       // eslint-disable-next-line no-await-in-loop
       const result = await client.query("SELECT to_regclass($1) AS relation", [

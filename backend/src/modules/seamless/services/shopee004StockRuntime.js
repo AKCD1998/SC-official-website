@@ -1,14 +1,21 @@
 const { createShopee004StockLedger } = require('./shopee004StockLedger');
+const {createShopee004IdentityStore}=require('./shopee004IdentityStore');
 const { nextRecovery } = require('./shopee004RecoveryPolicy');
-let ledger;
+let ledger,identityStore;
+function getIdentityStore(){
+  if(!identityStore)identityStore=createShopee004IdentityStore({pool:require('../../../../db'),schema:require('../config').readSchemaName(),ledger:()=>getLedger()});
+  return identityStore;
+}
 function getLedger() {
   if (!ledger) ledger = createShopee004StockLedger({ pool: require('../../../../db'),
-    schema: require('../config').readSchemaName(), enabled: process.env.SHOPEE004_STOCK_LEDGER_ENABLED === 'true' });
+    schema: require('../config').readSchemaName(), enabled: process.env.SHOPEE004_STOCK_LEDGER_ENABLED === 'true',
+    mappingContextProvider:(client,control)=>getIdentityStore().mappingContextProvider(client,control) });
   return ledger;
 }
-function startShopee004StockMaintenance({ processOne = () => getLedger().processOne(), enabled = process.env.SHOPEE004_STOCK_LEDGER_ENABLED === 'true',
+const defaultProcessOne=()=>getLedger().processOne();
+function startShopee004StockMaintenance({ processOne = defaultProcessOne, enabled = process.env.SHOPEE004_STOCK_LEDGER_ENABLED === 'true',
   refreshResolvedMappings = () => getLedger().requeueResolvedMappings(), now = () => performance.now(),
-  drainIdentityRecovery = async () => {},
+  drainIdentityRecovery = processOne===defaultProcessOne?()=>getIdentityStore().drainRecovery():async()=>{},
   mappingRefreshMs = 30000, intervalMs = 2000, maximumPassMs = 1000, maximumOrdersPerPass = 25,
   circuitCooldownMs = 300000, reportFailure = () => console.error('[shopee004-stock] LEDGER_PROCESSING_FAILED') } = {}) {
   if (!enabled) return () => {};
@@ -44,4 +51,4 @@ function startShopee004StockMaintenance({ processOne = () => getLedger().process
   process.once('SIGTERM', stop); process.once('SIGINT', stop);
   return () => { stop(); process.removeListener('SIGTERM', stop); process.removeListener('SIGINT', stop); };
 }
-module.exports = { getLedger, startShopee004StockMaintenance };
+module.exports = { getLedger,getIdentityStore, startShopee004StockMaintenance };
