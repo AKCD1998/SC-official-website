@@ -1,0 +1,1141 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-23",
+  "scope": {
+    "shopCode": "sc-drug-store",
+    "branchCode": "004",
+    "stockOnly": true
+  },
+  "rules": [
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ศิริบัญชา แอลกอฮอล์ 70% ขนาด 180 / 450 มล. แพ็ค 6 ขวด Siribuncha Ethyl Alcohol",
+      "variant": "450มล. 6ขวด",
+      "components": [
+        {
+          "companySku": "IC-000270",
+          "quantityPerSale": 6,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์ศิริบัญชา 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% 450 มล. แพ็ค 6 ขวด สีฟ้า / สีชมพู กลิ่นซากุระ",
+      "variant": "สีฟ้า",
+      "components": [
+        {
+          "companySku": "630010225",
+          "quantityPerSale": 6,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์เสือดาว สีฟ้า 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Mybacin OTC มายบาซิน โอทีซี ยกกล่อง 20 ซอง ซองละ 8 เม็ด เลือกมินต์ เลมอน ส้ม",
+      "variant": "มะนาว 20×8",
+      "components": [
+        {
+          "companySku": "IC-004509",
+          "quantityPerSale": 20,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ มายบาซิน โอทีซี รสมะนาว 8 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T-S 2.2x3.5 ซม.",
+      "components": [
+        {
+          "companySku": "IC-003439",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ พลาสเตอร์ใสกันน้ำ T1 S 2.2X3.5  ซม 10 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Only model/size formatting changed. Exact Seller export SKU, POS model/size and pre-existing SOS copy rule identify the same complete box; preserve existing factor 1."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "UNISON ENEMA ยาสวนทวารยูนีซัน โซเดียมคลอไรด์ 15% ขนาด 10 และ 20 มล. กล่อง 10 ชิ้น",
+      "variant": "ผู้ใหญ่20มล.",
+      "components": [
+        {
+          "companySku": "IC-000166",
+          "quantityPerSale": 10,
+          "quantityUnit": "ชิ้น",
+          "posProductName": "สามัญ ยาสวนทวารยูนิซันผู้ใหญ่ 20 มล."
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller title explicitly states box of 10 enemas; exact adult 20 ml / child 10 ml SKU agrees with POS product, one enema per smallest stock unit, medium factor 10."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Berocca Performance บีรอคคา เพอร์ฟอร์มานซ์ เม็ดฟิล์ม 30 เม็ด ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "จำนวน:",
+      "components": [
+        {
+          "companySku": "IC-005605",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ บีรอคคา เพอร์ฟอร์มานซ์ เม็ดฟิล์ม 30 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Inbox has literal parser residue \"จำนวน:\"; all paired Seller export rows have an empty variant for this exact single-package title, which already has an independently reviewed copy rule."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ เจลล้างมือแอลกอฮอล์ 70% หัวปั๊ม 450 มล. สีฟ้า สีชมพูกลิ่นซากุระ",
+      "variant": "หัวปั้ม ฟ้า 450 มล.",
+      "components": [
+        {
+          "companySku": "IC-006140",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลซอฟฟ์ แฮนด์ ซานิไทซิง เจล ฟ้า 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% สีฟ้า / สีชมพู ขนาด 60 และ 450 มล. แพ็ค 6 ขวด",
+      "variant": "ชมพู ซากุระ 450 มล.",
+      "components": [
+        {
+          "companySku": "IC-003073",
+          "quantityPerSale": 6,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์เสือดาวกลิ่นซากุระ สีชมพู 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "UNISON ENEMA ยาสวนทวารยูนีซัน โซเดียมคลอไรด์ 15% ขนาด 10 และ 20 มล. กล่อง 10 ชิ้น",
+      "variant": "เด็ก10มล.",
+      "components": [
+        {
+          "companySku": "630010102",
+          "quantityPerSale": 10,
+          "quantityUnit": "ชิ้น",
+          "posProductName": "สามัญ ยาสวนทวารยูนิซันเด็ก 10 มล."
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller title explicitly states box of 10 enemas; exact adult 20 ml / child 10 ml SKU agrees with POS product, one enema per smallest stock unit, medium factor 10."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Polar Spray โพลาร์ สเปรย์ปรับอากาศ แพ็คคู่ 280 มล. 2 ขวด แถม 80 มล. เลือกฝาฟ้า / Innocence ฝาขาว",
+      "variant": "ฝาขาว 2 แถม ฝาขาว",
+      "components": [
+        {
+          "companySku": "IC-005185",
+          "quantityPerSale": 2,
+          "quantityUnit": "กระป๋อง",
+          "posProductName": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 280 มล"
+        },
+        {
+          "companySku": "IC-005557",
+          "quantityPerSale": 1,
+          "quantityUnit": "กระป๋อง",
+          "posProductName": "สามัญ โพลาร์ สเปรย์ อินโนเซนส์ กลิ่นยูคาลิปตัสสูตรอ่อนโยน 80 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "The exact white/white option explicitly contains two Innocence 280 ml cans and one Innocence 80 ml gift. Both size/formula SKUs are independently anchored by existing reviewed Polar case rules and POS masters. Gift is a separate component."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Softmed ซอฟท์เมด ผ้าก๊อซแผ่น 8 ชั้น 100 แผ่น ขนาด 2x2 / 3x3 / 3x4 / 4x4 นิ้ว",
+      "variant": "4x4 นิ้ว",
+      "components": [
+        {
+          "companySku": "IC-006119",
+          "quantityPerSale": 1,
+          "quantityUnit": "ห่อ",
+          "posProductName": "สามัญ ซอฟท์เมด ผ้าก๊อซฝ้าย 4x4 นิ้ว 100 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "1 ซอง Strepsils HHR สเตร็ปซิล 6/8 เม็ดตามสูตร เลือกรสได้",
+      "variant": "ส้ม 8 เม็ด",
+      "components": [
+        {
+          "companySku": "630010065",
+          "quantityPerSale": 1,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ยาอมเสตร็ปซิลวิตซี 8 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T-M 4x7 ซม.",
+      "components": [
+        {
+          "companySku": "IC-004095",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น ที ซีรีส์ M 4x7 ซม. 3 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Only model/size formatting changed. Exact Seller export SKU, POS model/size and pre-existing SOS copy rule identify the same complete box; preserve existing factor 1."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Mybacin OTC มายบาซิน โอทีซี ยกกล่อง 20 ซอง ซองละ 8 เม็ด เลือกมินต์ เลมอน ส้ม",
+      "variant": "มินต์ 20×8",
+      "components": [
+        {
+          "companySku": "IC-002092",
+          "quantityPerSale": 20,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ มายบาซิน โอทีซี มินต์ 8 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ เจลล้างมือแอลกอฮอล์ 70% หัวปั๊ม 450 มล. สีฟ้า สีชมพูกลิ่นซากุระ",
+      "variant": "หัวปั้ม ชมพู 450 มล.",
+      "components": [
+        {
+          "companySku": "IC-003182",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลซอฟฟ์ แฮนด์ ซานิไทซิง เจล กลิ่นซากุระ สีชมพู 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S 2×2นิ้ว8x8 ซม.",
+      "components": [
+        {
+          "companySku": "IC-004134",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ S 2x2 4 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Only model/size formatting changed. Exact Seller export SKU, POS model/size and pre-existing SOS copy rule identify the same complete box; preserve existing factor 1."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Softmed ซอฟท์เมด ผ้าก๊อซแผ่น 8 ชั้น 100 แผ่น ขนาด 2x2 / 3x3 / 3x4 / 4x4 นิ้ว",
+      "variant": "3x3 นิ้ว",
+      "components": [
+        {
+          "companySku": "IC-004390",
+          "quantityPerSale": 1,
+          "quantityUnit": "ห่อ",
+          "posProductName": "สามัญ ซอฟท์เมด ผ้าก๊อซฝ้าย 3x3 นิ้ว 100 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "I-HERB OTC ยาน้ำแก้ไอ ตราไอ-เฮิร์บ โอทีซี 60 มล./100 มล.  0% Alcohol",
+      "variant": "100 มล",
+      "components": [
+        {
+          "companySku": "IC-005465",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ ยาน้ำแก้ไอ ไอเฮิร์บ โอทีซี 100 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Softmed ซอฟท์เมด ผ้าก๊อซแผ่น 8 ชั้น 100 แผ่น ขนาด 2x2 / 3x3 / 3x4 / 4x4 นิ้ว",
+      "variant": "2x2 นิ้ว",
+      "components": [
+        {
+          "companySku": "IC-004443",
+          "quantityPerSale": 1,
+          "quantityUnit": "ห่อ",
+          "posProductName": "สามัญ ซอฟท์เมด ผ้าก๊อซฝ้าย 2x2 นิ้ว 100 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% สีฟ้า / สีชมพู ขนาด 60 และ 450 มล. แพ็ค 6 ขวด",
+      "variant": "สีฟ้า 450 มล.",
+      "components": [
+        {
+          "companySku": "630010225",
+          "quantityPerSale": 6,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์เสือดาว สีฟ้า 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Bakamol บาคามอล 500 มก. พาราเซตามอล เม็ดกลมสีเหลือง เลือก 10 แผง / 50 แผง แผงละ 10 เม็ด",
+      "variant": "50 แผง 1 กล่อง",
+      "components": [
+        {
+          "companySku": "IC-002039",
+          "quantityPerSale": 50,
+          "quantityUnit": "แผง",
+          "posProductName": "สามัญ บาคามอล พาราเซตามอล 10 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Vita-C Jelly Strip ไวต้า-ซี เจลลี่ สตริป รสส้ม  1 กล่อง 10 ซอง",
+      "variant": "1 กล่อง 10 ซอง",
+      "components": [
+        {
+          "companySku": "IC-003502",
+          "quantityPerSale": 10,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ไวต้าซี เจลลี่ สตริป ส้ม 15 กรัม"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ศิริบัญชา แอลกอฮอล์ 70% ขนาด 180 / 450 มล. แพ็ค 6 ขวด Siribuncha Ethyl Alcohol",
+      "variant": "180มล. 6ขวด",
+      "components": [
+        {
+          "companySku": "IC-000455",
+          "quantityPerSale": 6,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์ศิริบัญชา 180 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ศิริบัญชา แอลกอฮอล์ 70% ยกลัง 180 มล. 48 ขวด / 450 มล. 24 ขวด Siribuncha",
+      "variant": "450มล.x24ขวด",
+      "components": [
+        {
+          "companySku": "IC-000270",
+          "quantityPerSale": 24,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์ศิริบัญชา 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% สีฟ้า / สีชมพู ขนาด 60 และ 450 มล. แพ็ค 6 ขวด",
+      "variant": "สีฟ้า 60 มล.",
+      "components": [
+        {
+          "companySku": "IC-006155",
+          "quantityPerSale": 6,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์ แอลซอฟฟ์ สีฟ้า 60 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Bakamol บาคามอล 500 มก. พาราเซตามอล เม็ดกลมสีเหลือง เลือก 10 แผง / 50 แผง แผงละ 10 เม็ด",
+      "variant": "10 แผง ไม่มีกล่อง",
+      "components": [
+        {
+          "companySku": "IC-002039",
+          "quantityPerSale": 10,
+          "quantityUnit": "แผง",
+          "posProductName": "สามัญ บาคามอล พาราเซตามอล 10 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "1 ซอง Strepsils HHR  8 เม็ด  ยาอมบรรเทาอาการ",
+      "variant": "เลมอน ไม่มีน้ำตาล",
+      "components": [
+        {
+          "companySku": "630010066",
+          "quantityPerSale": 1,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ยาอมเสตร็ปซิลน้ำผึ้งมะนาว 8 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Owner explicitly confirmed on 2026-10-22 that the old sugar-free label refers to regular honey-lemon 8-tablet sachets. Reuses physical confirmation, not the accounting-only alias.",
+      "sourceLabelMismatch": true
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Berocca IMMU D+ บีรอคคา อิมมู ดี พลัส เม็ดฟู่รสส้ม 15 เม็ด ผลิตภัณฑ์เสริมอาหาร",
+      "variant": "จำนวน:",
+      "components": [
+        {
+          "companySku": "IC-005490",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ บีรอคคา อิมมูดี พลัส รสส้ม 15 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Inbox has literal parser residue \"จำนวน:\"; all paired Seller export rows have an empty variant for this exact single-package title, which already has an independently reviewed copy rule."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Senhami เซนฮามี่ ยาอมสมุนไพร 20 เม็ด",
+      "variant": "จำนวน:",
+      "components": [
+        {
+          "companySku": "IC-005092",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ ยาอมเซนฮามี่ 20 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Inbox has literal parser residue \"จำนวน:\"; all paired Seller export rows have an empty variant for this exact single-package title, which already has an independently reviewed copy rule."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% 450 มล. แพ็ค 6 ขวด สีฟ้า / สีชมพู กลิ่นซากุระ",
+      "variant": "ชมพู ซากุระ",
+      "components": [
+        {
+          "companySku": "IC-003073",
+          "quantityPerSale": 6,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลกอฮอล์เสือดาวกลิ่นซากุระ สีชมพู 450 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export selects the exact formula/volume SKU; explicit 6-bottle pack or 24-bottle case retained. POS smallest unit is one bottle; existing alcohol copy rules independently anchor those units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว 1 กล่อง 50 แผง",
+      "variant": "รสมิ้นต์ 1 กล่อง,1 กล่อง 50 แผง",
+      "components": [
+        {
+          "companySku": "630010148",
+          "quantityPerSale": 50,
+          "quantityUnit": "แผง",
+          "posProductName": "สามัญ แอร์ เอ็กซ์ มินต์ 10 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ONCE Sarcopenia วันซ์ ซาร์โคพีเนีย กลิ่นกาแฟ 400 กรัม 1 กระป๋อง",
+      "variant": "1 กระป๋อง",
+      "components": [
+        {
+          "companySku": "IC-005242",
+          "quantityPerSale": 1,
+          "quantityUnit": "กระป๋อง",
+          "posProductName": "สามัญ วันซ์ ซาร์โคพีเนีย กลิ่นกาแฟ 400 กรัม"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Ensure Gold AdvancePro เอนชัวร์ โกลด์ แอดวานซ์โปร กลิ่นธัญพืช 380 กรัม 1 กระป๋อง",
+      "variant": "จำนวน:",
+      "components": [
+        {
+          "companySku": "IC-000988",
+          "quantityPerSale": 1,
+          "quantityUnit": "กระป๋อง",
+          "posProductName": "สามัญ เอนชัวร์กลิ่นธัญพืช 380 กรัม"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Inbox has literal parser residue \"จำนวน:\"; all paired Seller export rows have an empty variant for this exact single-package title, which already has an independently reviewed copy rule."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว 1 กล่อง 50 แผง",
+      "variant": "รสส้ม 1 กล่อง,1 กล่อง 50 แผง",
+      "components": [
+        {
+          "companySku": "630010147",
+          "quantityPerSale": 50,
+          "quantityUnit": "แผง",
+          "posProductName": "สามัญ แอร์ เอ็กซ์ ส้ม 10 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ สเปรย์แอลกอฮอล์ทำความสะอาดมือ 70% 30 มล. สตรอว์เบอร์รี Food Grade / Clear",
+      "variant": "Clear 30 มล.",
+      "components": [
+        {
+          "companySku": "IC-006147",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลซอฟฟ์ แอลกอฮอล์ แฮนด์ เคลียร์ โซลูชั่น 30 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF Absolute Food Grade แอลซอฟฟ์ แอลกอฮอล์ทำความสะอาดมือ 70% 5 ลิตร / ยกลัง 4 แกลลอน",
+      "variant": "1 แกลลอน",
+      "components": [
+        {
+          "companySku": "IC-005953",
+          "quantityPerSale": 1,
+          "quantityUnit": "แกลลอน",
+          "posProductName": "สามัญ แอลซอฟฟ์ แฮนด์ ซานิไทซิง แอบโซลูท 70% 5 ลิตร"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Durex Play ดูเร็กซ์ เพลย์ เจลหล่อลื่น 50 มล. Classic คลาสสิค และ Saucy Strawberry สตรอว์เบอร์รี",
+      "variant": "สตรอเบอร์รี่ 50 มล.",
+      "components": [
+        {
+          "companySku": "IC-002113",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ เจลหล่อลื่น ดูเร็กซ์ เพลย์ สตรอเบอรี่ 50 มล."
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "UNISON ENEMA ยาสวนทวารยูนีซัน โซเดียมคลอไรด์ 15% ขนาด 10 และ 20 มล. กล่อง 10 ชิ้น",
+      "variant": "ผู้ใหญ่20มล.x10",
+      "components": [
+        {
+          "companySku": "IC-000166",
+          "quantityPerSale": 10,
+          "quantityUnit": "ชิ้น",
+          "posProductName": "สามัญ ยาสวนทวารยูนิซันผู้ใหญ่ 20 มล."
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller title explicitly states box of 10 enemas; exact adult 20 ml / child 10 ml SKU agrees with POS product, one enema per smallest stock unit, medium factor 10."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "I-HERB OTC ยาน้ำแก้ไอ ตราไอ-เฮิร์บ โอทีซี 60 มล./100 มล.  0% Alcohol",
+      "variant": "60 มล",
+      "components": [
+        {
+          "companySku": "IC-004261",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ ยาน้ำแก้ไอ ไอเฮิร์บ โอทีซี 60 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "ALSOFF แอลซอฟฟ์ สเปรย์แอลกอฮอล์ทำความสะอาดมือ 70% 30 มล. สตรอว์เบอร์รี Food Grade / Clear",
+      "variant": "สตรอว์เบอร์รี 30 มล.",
+      "components": [
+        {
+          "companySku": "IC-006148",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ แอลซอฟฟ์ แอลกอฮอล์ แฮนด์ ซานิไทซิง โซลูชั่น กลิ่นสตรอว์เบอร์รี่ 30 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Longmed KLEAN GAUZE คลีนก๊อซ ผ้าก๊อซใยสังเคราะห์ 2x2 3x3 4x4 นิ้ว ยกกล่อง / 10 ห่อ",
+      "variant": "4 นิ้ว",
+      "components": [
+        {
+          "companySku": "IC-001328",
+          "quantityPerSale": 10,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ผ้าก๊อซ 4 นิ้ว ลองเมด 10 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Longmed KLEAN GAUZE คลีนก๊อซ ผ้าก๊อซใยสังเคราะห์ 2x2 3x3 4x4 นิ้ว ยกกล่อง / 10 ห่อ",
+      "variant": "2 นิ้ว",
+      "components": [
+        {
+          "companySku": "630010185",
+          "quantityPerSale": 10,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ผ้าก๊อซ 2 นิ้ว ลองเมด 10 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOFTIP ซอฟท์ติพ สำลีพันก้าน Longmed ยาว 15 ซม. 100 ก้าน ขนาด S / M / L",
+      "variant": "M (100 ก้าน)",
+      "components": [
+        {
+          "companySku": "IC-002489",
+          "quantityPerSale": 1,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ไม้พันสำลีลองเมด ไซส์ M 100 ก้าน"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Longmed KLEAN GAUZE คลีนก๊อซ ผ้าก๊อซใยสังเคราะห์ 2x2 3x3 4x4 นิ้ว ยกกล่อง / 10 ห่อ",
+      "variant": "3 นิ้ว",
+      "components": [
+        {
+          "companySku": "630010183",
+          "quantityPerSale": 10,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ผ้าก๊อซ 3 นิ้ว ลองเมด 10 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "K-Y เควาย เจลหล่อลื่นสูตรน้ำ Jelly 15 และ 50 กรัม รุ่นกล่องน้ำเงิน 42 และ 82 กรัม",
+      "variant": "Jelly 50 กรัม",
+      "components": [
+        {
+          "companySku": "IC-000246",
+          "quantityPerSale": 1,
+          "quantityUnit": "หลอด",
+          "posProductName": "สามัญ เควายเจลภายนอก 50 กรัม"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "GREATER Prometa L34 โพรเมทา ผลิตภัณฑ์เสริมอาหาร 1 กล่อง 7 ซอง ซองละ 1 กรัม",
+      "variant": "1 กล่อง 7 ซอง",
+      "components": [
+        {
+          "companySku": "IC-005512",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ โพรเมทา 1 กรัม 7 ซอง"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร วิตามินน้ำ 120 มล. Omega-3 / Bio C / Jelly Veggies เจลลี่รสองุ่น 10 ซอง",
+      "variant": "มิกซ์เบอร์รี่ สีม่วง",
+      "components": [
+        {
+          "companySku": "IC-005438",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ ดีเดย์ ไบโอ ซี และมัลติวิตามิน พลัส เอลเดอร์เบอร์รี่ รสมิกซ์เบอร์รี่ 120 มล"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOFTIP ซอฟท์ติพ สำลีพันก้าน Longmed ยาว 15 ซม. 100 ก้าน ขนาด S / M / L",
+      "variant": "S (100 ก้าน)",
+      "components": [
+        {
+          "companySku": "630010214",
+          "quantityPerSale": 1,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ไม้พันสำลีลองเมด ไซส์ S 100 ก้าน"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Softmed ซอฟท์เมด ผ้าก๊อซแผ่น 8 ชั้น 100 แผ่น ขนาด 2x2 / 3x3 / 3x4 / 4x4 นิ้ว",
+      "variant": "3x4 นิ้ว",
+      "components": [
+        {
+          "companySku": "IC-006118",
+          "quantityPerSale": 1,
+          "quantityUnit": "ห่อ",
+          "posProductName": "สามัญ ซอฟท์เมด ผ้าก๊อซฝ้าย 3x4 นิ้ว 100 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOFTIP ซอฟท์ติพ สำลีพันก้าน Longmed ยาว 15 ซม. 100 ก้าน ขนาด S / M / L",
+      "variant": "L (100 ก้าน)",
+      "components": [
+        {
+          "companySku": "630010215",
+          "quantityPerSale": 1,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ไม้พันสำลีลองเมด ไซส์ L 100 ก้าน"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "BalanceActiv บาลานซ์แอคทีฟ / Canesbalance คาเนสบาลานซ์ เจลช่องคลอด 5 มล. 7 หลอด/กล่อง",
+      "variant": "คาเนสบาลานซ์",
+      "components": [
+        {
+          "companySku": "IC-002677",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ คาเนสบาลานซ์ 5 มล 7 หลอด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "1 ซอง Strepsils HHR สเตร็ปซิล 6/8 เม็ดตามสูตร เลือกรสได้",
+      "variant": "น้ำผึ้งมะนาว 8 เม็ด",
+      "components": [
+        {
+          "companySku": "630010066",
+          "quantityPerSale": 1,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ยาอมเสตร็ปซิลน้ำผึ้งมะนาว 8 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Longmed KLEAN MASK คลีนมาส์ก หน้ากากอนามัย 3 ชั้น แบบคล้องหู 50 ชิ้น/กล่อง สีขาว เขียว ชมพู",
+      "variant": "ขาว",
+      "components": [
+        {
+          "companySku": "IC-002952",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ หน้ากากอานามัย ลองเมด สี ขาว 50 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Sara ซาร่า พาราเซตามอล 500 มก. เม็ดยาว 1 กล่อง 20 แผง แผงละ 10 เม็ด รวม 200 เม็ด",
+      "variant": "เม็ดยาว 20 แผง",
+      "components": [
+        {
+          "companySku": "630010140",
+          "quantityPerSale": 20,
+          "quantityUnit": "แผง",
+          "posProductName": "สามัญ ซาร่า 500 มก เม็ดยาว 10 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Paracap พาราแคพ พาราเซตามอล 500 มก. เม็ดสีขาว แผงละ 10 เม็ด กล่อง 50 แผง",
+      "variant": "50 แผง 1 กล่อง",
+      "components": [
+        {
+          "companySku": "630010160",
+          "quantityPerSale": 50,
+          "quantityUnit": "แผง",
+          "posProductName": "สามัญ พาราแคพ 500 มก 10 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Vita-C ไวต้า-ซี Multi-Fruit กัมมี่สีเหลือง / กัมมี่พลัสสีชมพู / ชิววี่ กลิ่นผลไม้รวม 6 / 12 ซอง",
+      "variant": "ชมพู 12 ซอง",
+      "components": [
+        {
+          "companySku": "IC-001510",
+          "quantityPerSale": 12,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่พลัส ชมพู 20 กรัม"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Durex ดูเร็กซ์ ถุงยางอนามัย 3 ชิ้น/กล่อง",
+      "variant": "โพรเทคท์ 1 กล่อง",
+      "components": [
+        {
+          "companySku": "IC-002111",
+          "quantityPerSale": 1,
+          "quantityUnit": "ชิ้น",
+          "posProductName": "สามัญ ถุงยางดูเร็กซ์ โพรเทคท์ 52.5มม.3 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T 3x3 นิ้ว 12x12 ซม.",
+      "components": [
+        {
+          "companySku": "IC-001204",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 12x12 CM 2 แผ่น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Only model/size formatting changed. Exact Seller export SKU, POS model/size and pre-existing SOS copy rule identify the same complete box; preserve existing factor 1."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S-M 4x7 ซม.",
+      "components": [
+        {
+          "companySku": "IC-004135",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ เอส โอ เอส พลัส รุ่น เอส ซีรีส์ M 4x7 ซม. 5 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Only model/size formatting changed. Exact Seller export SKU, POS model/size and pre-existing SOS copy rule identify the same complete box; preserve existing factor 1."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "T 2x4 นิ้ว 9x15 ซม.",
+      "components": [
+        {
+          "companySku": "IC-001203",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ 2x4 นิ้ว 9x15 ซม 2 แผ่น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Only model/size formatting changed. Exact Seller export SKU, POS model/size and pre-existing SOS copy rule identify the same complete box; preserve existing factor 1."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Mybacin Throat Mint มายบาซิน โธร์ท มิ้นต์ ยาอม รสมิ้นต์ 1 ซอง 10 เม็ด",
+      "variant": "ซอง โธร์ท มิ้นต์",
+      "components": [
+        {
+          "companySku": "630010043",
+          "quantityPerSale": 1,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ยาอมมายบาซิน มินท์ 10 กรัม"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "BalanceActiv บาลานซ์แอคทีฟ / Canesbalance คาเนสบาลานซ์ เจลช่องคลอด 5 มล. 7 หลอด/กล่อง",
+      "variant": "บาลานซ์แอคทีฟ",
+      "components": [
+        {
+          "companySku": "IC-003816",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ บาลานซ์แอคทีฟ 5 มล 7 ชิ้น"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export exact variant SKU identifies this named size/formula. POS master confirms the whole retail package and its smallest stock unit; package contents are not additional stock units."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Mybacin OTC มายบาซิน โอทีซี ยกกล่อง 20 ซอง ซองละ 8 เม็ด เลือกมินต์ เลมอน ส้ม",
+      "variant": "ส้ม 20×8",
+      "components": [
+        {
+          "companySku": "IC-004646",
+          "quantityPerSale": 20,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ มายบาซิน โอทีซี ส้ม 8 เม็ด"
+        }
+      ],
+      "authority": "seller_export_pos_metadata_review_2026-10-23",
+      "evidence": "Seller export SKU and selected blister/sachet count agree with POS product and smallest unit. Contents per blister/sachet are not multiplied a second time."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Klean&Kare Normal Kare น้ำเกลือคลีนแอนด์แคร์ ฝาแหลม 500 มล. / 1000 มล. (แบบยกลัง)",
+      "variant": "1000 มล. ยกลัง แหลม",
+      "components": [
+        {
+          "companySku": "IC-004063",
+          "quantityPerSale": 12,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ น้ำเกลือคลีนแอนด์แคร์ซาไลน์ ฝาจุก 1000 มล"
+        }
+      ],
+      "authority": "seller_description_pos_metadata_review_2026-10-23",
+      "evidence": "Seller Centre description explicitly states 1,000 ml case = 12 bottles (500 ml case = 24). Owner supplied this same description on 2026-10-23; directly rechecked in Seller Centre. Exact source SKU and live POS bottle unit agree.",
+      "evidenceUrl": "https://seller.shopee.co.th/portal/product/46968082376"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Royal-D รอแยล-ดี เครื่องดื่มชนิดผง สูตรเกลือแร่ / สูตรวิตามินบีและซี แบบกล่อง เลือกสูตร",
+      "variant": "สตรอเบอร์รี",
+      "components": [
+        {
+          "companySku": "IC-002865",
+          "quantityPerSale": 10,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ เกลือแร่ รอแยล ดี กลิ่นสตรอเบอร์รี่ 25 กรัม"
+        }
+      ],
+      "authority": "seller_description_pos_metadata_review_2026-10-23",
+      "evidence": "Current exact Seller Centre listing description states 10 sachets of 25 g per box. The strawberry option SKU is IC-002865; live POS identifies strawberry 25 g, smallest unit one sachet and outer factor 10. The other three reviewed flavours in this listing already use 10 sachets.",
+      "evidenceUrl": "https://seller.shopee.co.th/portal/product/58167710434"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Sinocare Safe AQ Smart เครื่องตรวจน้ำตาลในเลือด ชุดเครื่องพร้อมแผ่นตรวจและเข็ม / เครื่อง / แผ่นตรวจ 50 ชิ้น",
+      "variant": "เครื่องอย่างเดียว",
+      "components": [
+        {
+          "companySku": "IC-006010",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ เครื่องวัดน้ำตาลเซฟเอคิว สมาทร์ 1 เครื่อง+แผ่นตรวจ 10 ชิ้น"
+        }
+      ],
+      "authority": "seller_description_pos_metadata_review_2026-10-23",
+      "evidence": "Exact Seller Centre option เครื่องอย่างเดียว is one standard retail kit, without EXTRA test strips/lancets. Its option SKU is IC-006010. Live POS counts the complete standard box, whose name includes 10 test strips. Count the whole box once; do not create an additional 10-strip component.",
+      "evidenceUrl": "https://seller.shopee.co.th/portal/product/40735044760"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Vita-C ไวต้า-ซี วิตามินซี กัมมี่ / กัมมี่พลัส / ชิววี่ รสผลไม้รวม แบบยกกล่อง",
+      "variant": "ชิววี่ ขาว",
+      "components": [
+        {
+          "companySku": "IC-002786",
+          "quantityPerSale": 20,
+          "quantityUnit": "ซอง",
+          "posProductName": "สามัญ ไวต้าซี ชิววี่ มัลติฟรุต 17.5 กรัม"
+        }
+      ],
+      "authority": "seller_description_pos_metadata_review_2026-10-23",
+      "evidence": "Directly inspected the current Seller Centre white Chewy package image on 2026-10-23: 20 sachets, and the printed box states 1x20x17.5g. Seller export variant SKU IC-002786 and live POS identify the white Chewy 17.5 g sachet; POS outer factor is independently 20.",
+      "evidenceUrl": "https://seller.shopee.co.th/portal/product/56562041161"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variant": "PU 12x12 ซม.",
+      "components": [
+        {
+          "companySku": "IC-004368",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ เอสโอเอส พลัส แผ่นฟิล์มใสกันน้ำ รุ่นพียู ซีรีส์ 3x3 นิ้ว 4 ชิ้น"
+        }
+      ],
+      "authority": "seller_description_pos_metadata_review_2026-10-23",
+      "evidence": "Historical Seller export gives exact SKU IC-004368 for the PU film box. Current Seller Centre option is corrected to T-PU3x3นิ้ว7.5x7.5ซม; live POS identifies PU 3x3 inch, 4 sheets per whole box, smallest unit box. Map one complete box, not four sheets. Keep a label-mismatch warning because the historical option and current description still say 12x12 cm.",
+      "evidenceUrl": "https://seller.shopee.co.th/portal/product/50268515652",
+      "sourceLabelMismatch": true
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Sinocare Safe AQ max III เครื่องตรวจน้ำตาลในเลือด ชุดเครื่อง+แผ่น50+เข็ม100 / เครื่อง / แผ่นตรวจ 50 ชิ้น",
+      "variant": "เครื่องแผ่น50เข็ม100",
+      "components": [
+        {
+          "companySku": "IC-006009",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ เครื่องตรวจน้ำตาล รุ่นเซฟเอคิว แม็ก3 1 เครื่อง+แผ่นตรวจ 10 ชิ้น"
+        },
+        {
+          "companySku": "IC-004131",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ แผ่นทดสอบระดับน้ำตาลในเลือด ซิโนแคร์ รุ่น เซฟ เอคิว แม็ก 3 50 ชิ้น"
+        },
+        {
+          "companySku": "IC-001230",
+          "quantityPerSale": 2,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ ซิโนแคร์ ซอฟทวิสเข็ม 50 ชิ้น"
+        }
+      ],
+      "authority": "owner_confirmed_additional_consumables_2026-10-23",
+      "evidence": "Owner explicitly confirmed the standard max III box plus an ADDITIONAL box of 50 test strips. Standard POS kit already includes 10 strips and remains one whole box; separate 50-strip box is one, and 100 extra lancets are two independently verified POS boxes of 50. Total physical strips are 60; no subtraction/conversion of kit contents.",
+      "evidenceUrl": "https://seller.shopee.co.th/portal/product/54219025174"
+    }
+  ]
+}

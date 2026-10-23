@@ -4,6 +4,7 @@ const copyRules = require('../data/shopeeAdaSmartCopyRules.v1.json');
 const { resolveCatalogQuantity, buildSingleCatalogUnitAnchors, buildReviewedCatalogUnitFactors } = require('./shopeeStockQuantityEvidence');
 const listingCatalog = require('../data/shopeeProductCatalog.v1.json');
 const ownerReview = require('../data/shopeeStockOwnerReview.v1.json');
+const { resolveReviewedStockVariant, getReviewedStockBaseUnit } = require('./shopeeStockReviewedVariants');
 const masters = new Map(copyRules.masters.map(m => [m.companySku, m]));
 const UNITS = new Map([
   ['กล่อง', 'box'], ['bx', 'box'], ['boxes', 'box'], ['pcs', 'piece'], ['pc', 'piece'], ['ซอง', 'sachet'],
@@ -25,6 +26,8 @@ function resolveStockProductMatch(shop, item, {
   posCatalog, ownerReviews = ownerReview.rules,
 } = {}) {
   const exact = match(shop, item);
+  const reviewedVariant = resolveReviewedStockVariant(shop, item, { master, normalizeUnit: normalizeStockUnit });
+  if (reviewedVariant) return reviewedVariant;
   const productIds = [item.productId, item.listingProductId].filter(v => v != null && String(v).trim()).map(String);
   const variationIds = [item.variationId, item.listingVariationId].filter(v => v != null && String(v).trim()).map(String);
   // Owner-confirmed physical packages are scoped to an exact SC listing variant.
@@ -148,5 +151,8 @@ function resolveStockProductMatch(shop, item, {
     matchSource: 'existing_verified_copy_and_pos_unit_audit' };
 }
 
-function getStockBaseUnit(_shop, sku) { const m = masters.get(sku); return m?.unit ? { quantityUnit: m.unit } : null; }
+function getStockBaseUnit(shop, sku) {
+  const m = masters.get(sku);
+  return m?.unit ? { quantityUnit: m.unit } : getReviewedStockBaseUnit(shop, sku);
+}
 module.exports = { resolveStockProductMatch, normalizeStockUnit, getStockBaseUnit };
