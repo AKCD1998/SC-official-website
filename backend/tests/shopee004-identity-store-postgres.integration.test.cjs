@@ -83,7 +83,7 @@ run('identity administration uses the existing ledger in isolated PostgreSQL onl
  });
  test('background serialization conflicts keep bounded transient retry semantics without retrying a human approval',async()=>{
   await importProofs();let once=true;
-  const busyPool={connect:async()=>{const c=await pool.connect();return {query:async(sql,...args)=>{if(once&&String(sql).includes('FOR UPDATE SKIP LOCKED')){once=false;throw Object.assign(Error('synthetic serialization conflict'),{code:'40001'});}return c.query(sql,...args);},release:(...args)=>c.release(...args)};}};
+  const busyPool={connect:async()=>{const c=await pool.connect();return {query:async(sql,...args)=>{if(once&&String(sql?.text||sql).includes('FOR UPDATE SKIP LOCKED')){once=false;throw Object.assign(Error('synthetic serialization conflict'),{code:'40001'});}return c.query(sql,...args);},release:(...args)=>c.release(...args)};}};
   const busyStore=createShopee004IdentityStore({pool:busyPool,schema,ledger:()=>ledger});let failure;
   try{await busyStore.drainRecovery();}catch(e){failure=e;}
   expect(failure).toMatchObject({code:'40001'});const {nextRecovery}=require('../src/modules/seamless/services/shopee004RecoveryPolicy');

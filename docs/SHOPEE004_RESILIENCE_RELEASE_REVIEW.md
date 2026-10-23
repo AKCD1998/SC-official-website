@@ -46,6 +46,14 @@ An amended rule does not silently change the product, unit or quantity of an
 existing nonzero hold. Such cases remain fenced for separate reconciliation.
 Likewise a lifecycle decision does not waive a changed held unit contract.
 
+Stock database acquisition is bounded at three seconds with at most four pending
+connects per pool. Query response waiting is bounded separately at ten seconds;
+the helper destroys a connection whose outcome is uncertain. A lost COMMIT reply
+is not treated as a failed/no-write transaction. Human mutations retain their
+operation ID for an explicit same-request outcome check; they are never retried
+automatically. These limits apply to the Shopee ledger database only, not POS
+Hourly collection or the existing Full Sync/Delta readers.
+
 ## Catalog audit and prepared metadata
 
 Seller Centre read-only inspection covered 358 listings / 652 variations and
@@ -61,8 +69,12 @@ explicit SKU conflicts. Descriptions alone are not promoted to approved unit
 facts. The private candidate is not committed or automatically imported by this
 PR. No Seller Centre listing is edited.
 
+Catalog drift detection consumes newly verified catalog/POS evidence imports.
+This release does not add a continuously authenticated Seller Centre scraper or
+claim that a 23 October snapshot detects later shop edits without another import.
+
 The preparation replayed the candidate matcher against an actual, read-only
-201-position snapshot: no missing source, state differences or quantity
+209-position snapshot: no missing source, state differences or quantity
 differences. This was in-memory candidate replay, not a deployed-candidate HTTP
 test or a guarantee about the next natural order.
 
@@ -84,7 +96,8 @@ test or a guarantee about the next natural order.
    Enable only the new admin flags after the receiving routes and auth/CSRF tests
    pass. Never grant the READ token write authority.
 5. Separately approve importing the reviewed metadata candidate through the human
-   source-admin endpoints. Import evidence in bounded batches (maximum 200), then
+   source-admin endpoints. Import evidence in bounded batches (maximum 200 facts
+   and 480 KB serialized per request; the exact path has a 512 KB parser), then
    apply individual catalog approvals with a stable operation journal and current
    expected catalog/rule versions. The 299 unresolved variations stay unapproved.
    Do not bundle mapping approval with cancellation, dispatch or return evidence.

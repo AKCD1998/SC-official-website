@@ -74,4 +74,6 @@ function createShopee004StockRoutes({ ledger = () => getLedger(), auth = appAuth
 // The reviewed opening references plus bounded POS metadata can exceed Express's
 // default 100 KB. Mount only this exact plan parser before the global parser.
 const stockPlanJsonParser = () => express.json({ limit: '512kb', strict: true });
-module.exports = { createShopee004StockRoutes, stockPlanJsonParser };
+// Keep metadata parsing on this exact human-admin path, away from CRM/webhooks.
+const stockEvidenceJsonParser = () => express.json({ limit: '512kb', strict: true });
+module.exports = { createShopee004StockRoutes, stockPlanJsonParser, stockEvidenceJsonParser };

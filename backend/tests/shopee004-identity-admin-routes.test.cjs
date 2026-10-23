@@ -1,8 +1,8 @@
 const express=require('express'),request=require('supertest');
-const {createShopee004StockRoutes}=require('../src/modules/seamless/routes/shopee004StockRoutes');
+const {createShopee004StockRoutes,stockEvidenceJsonParser}=require('../src/modules/seamless/routes/shopee004StockRoutes');
 const read='synthetic-read-token-12345678901234567890',write='synthetic-write-token-1234567890123456789';
 function fixture({enabled=true,role='admin',writeCredential=write}={}){
- const calls=[],app=express();app.use(express.json());
+ const calls=[],app=express();app.use('/human/identity-evidence',stockEvidenceJsonParser());app.use(express.json());
  const store={exceptions:async body=>{calls.push(['exceptions',body]);return {records:[]};},approveMapping:async body=>{calls.push(['mapping',body]);return {recorded:true};},revoke:async body=>{calls.push(['revoke',body]);return {recorded:true};},importEvidence:async body=>{calls.push(['proof',body]);return {recorded:true};},approveCatalogMapping:async body=>{calls.push(['catalog',body]);return {recorded:true};}};
  const routes=createShopee004StockRoutes({ledger:()=>({projection:async()=>({status:'available'}),reconciliation:async()=>({openingBoundaryPreserved:true})}),identityStore:()=>store,
   readToken:()=>read,reviewToken:()=>writeCredential,exceptionAdminEnabled:()=>enabled,
@@ -29,4 +29,9 @@ test('human proof imports require existing app admin/action protection and overw
 test('proactive catalog binding is a separate human action and contains no lifecycle operation',async()=>{
  const f=fixture();expect((await request(f.app).post('/human/identity-catalog-mapping').set('x-shopee-stock-action','1').send({actor:'forged',listingId:'synthetic-listing'})).status).toBe(200);
  expect(f.calls[0][0]).toBe('catalog');expect(f.calls[0][1].actor).toBe('synthetic-human');expect(f.calls[0][1].kind).toBeUndefined();
+});
+test('bounded evidence batches do not expand unrelated payload limits',async()=>{
+ const f=fixture(),body={facts:Array.from({length:150},()=>({syntheticMetadata:'x'.repeat(1000)}))};
+ expect((await request(f.app).post('/human/identity-evidence').set('x-shopee-stock-action','1').send(body)).status).toBe(200);expect(f.calls).toHaveLength(1);
+ expect((await request(f.app).post('/human/identity-catalog-mapping').set('x-shopee-stock-action','1').send(body)).status).toBe(413);expect(f.calls).toHaveLength(1);
 });

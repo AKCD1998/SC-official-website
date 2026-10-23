@@ -9,6 +9,7 @@ const {buildCatalogIdentityApproval}=require('./shopee004CatalogApproval');
 const {itemMatchesIdentity}=require('./shopee004ExceptionReadModel');
 const {createLegacyEvidenceGuard}=require('./shopee004LegacyEvidenceGuard');
 const {classifyRecoveryFailure}=require('./shopee004RecoveryPolicy');
+const {acquireBoundedStockClient}=require('./shopee004BoundedDatabase');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const aliasKey=x=>JSON.stringify([normalizeIdentityText(x.productName??x.name),normalizeIdentityText(x.variantName??x.variant)]);
 const identity=x=>JSON.stringify([x.listingId,x.variationId]);
@@ -18,9 +19,9 @@ function createShopee004IdentityStore({pool,schema,ledger,now=()=>new Date()}){
  if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(schema))fail('IDENTITY_SCHEMA_INVALID');
  const table=name=>`"${schema}".shopee004_stock_identity_${name}`;
  async function transaction(fn,readOnly=false,background=false){
-  const c=await pool.connect();let broken=false;
+  const c=await acquireBoundedStockClient(pool);let broken=false;
   try{await c.query(readOnly?'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY':'BEGIN ISOLATION LEVEL SERIALIZABLE');await c.query("SET LOCAL statement_timeout='8s'");await c.query("SET LOCAL lock_timeout='3s'");const result=await fn(c);await c.query('COMMIT');return result;}
-  catch(e){try{await c.query('ROLLBACK');}catch{broken=true;}if(background&&classifyRecoveryFailure(e).retryable)throw Object.assign(Error('IDENTITY_RECOVERY_UNAVAILABLE'),{code:e.code});if(e?.statusCode===409)throw e;if(['40001','40P01','55P03','23505'].includes(e?.code))fail('IDENTITY_REVISION_CONFLICT');fail('IDENTITY_OPERATION_FAILED');}
+  catch(e){if(!c.broken)try{await c.query('ROLLBACK');}catch{broken=true;}if(c.outcomeUnknown)throw Object.assign(Error('LEDGER_QUERY_OUTCOME_UNKNOWN'),{code:'LEDGER_QUERY_OUTCOME_UNKNOWN',statusCode:503,outcomeUnknown:true});if(background&&classifyRecoveryFailure(e).retryable)throw Object.assign(Error('IDENTITY_RECOVERY_UNAVAILABLE'),{code:e.code});if(e?.statusCode===409)throw e;if(['40001','40P01','55P03','23505'].includes(e?.code))fail('IDENTITY_REVISION_CONFLICT');fail('IDENTITY_OPERATION_FAILED');}
   finally{c.release(broken?new Error('TRANSACTION_NOT_CLOSED'):undefined);}
  }
  async function snapshot(c,control){
