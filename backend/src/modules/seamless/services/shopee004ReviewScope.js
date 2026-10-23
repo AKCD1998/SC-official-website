@@ -20,9 +20,14 @@ function resolveReviewScope(entries,catalog,{matchItem=resolveStockProductMatch,
     if(stockMatch.status==='matched'&&catalog.has(stockMatch.companySku)){
      affected.add(catalog.get(stockMatch.companySku).stockCode);continue;
     }
+    if(stockMatch.status==='bundle'&&stockMatch.quantityRuleStatus==='verified'
+      &&Array.isArray(stockMatch.components)&&stockMatch.components.length
+      &&stockMatch.components.every(component=>catalog.has(component.companySku))){
+     for(const component of stockMatch.components)affected.add(catalog.get(component.companySku).stockCode);continue;
+    }
     // Only an exact catalog identity with no contradictory caller identifiers
     // can fence a missing-unit review. Fuzzy names are never stock authority.
-    const supplied=['productId','listingProductId','variationId','listingVariationId','barcode','sourceBarcode','variantSku','sourceSku']
+    const supplied=['listingId','productId','listingProductId','variationId','listingVariationId','barcode','sourceBarcode','variantSku','sourceSku']
       .some(k=>item?.[k]!=null&&String(item[k]).trim());
     const conflicting=['source_identifier_conflict','source_barcode_unverified','verified_mapping_evidence_conflict'].includes(stockMatch.reasonCode);
     const identity=supplied||conflicting?null:identityMatch('sc-drug-store',item);

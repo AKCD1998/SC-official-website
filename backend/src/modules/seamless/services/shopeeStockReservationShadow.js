@@ -52,7 +52,7 @@ function resolvePosUnit(index, sku, quantityUnit) {
 }
 
 function mapShopeeStockLines({ items, posCatalog, matchItem = resolveStockProductMatch,
-  validatedUnit = getStockBaseUnit } = {}) {
+  validatedUnit = (shop,code) => matchItem.baseUnit?.(shop,code) || getStockBaseUnit(shop,code) } = {}) {
   const index = posCatalog instanceof Map ? posCatalog : indexPosCatalog(posCatalog || []);
   const reasons = {}; const byStock = new Map(); let mappedItems = 0, sourceLabelMismatchItems = 0;
   if (!Array.isArray(items) || !items.length) increment(reasons, 'order_items_missing');

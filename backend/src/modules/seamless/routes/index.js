@@ -18,6 +18,7 @@ const { errorHandler } = require("../middleware/errorHandler");
 const router = express.Router();
 const stock004Routes = require('./shopee004StockRoutes').createShopee004StockRoutes();
 router.use('/internal/shopee004-stock', stock004Routes.internal);
+router.use('/internal/shopee004-stock-admin',stock004Routes.privileged);
 router.use('/app/shopee/stock-commitments', stock004Routes.admin);
 
 router.use("/agent", agentRoutes);
