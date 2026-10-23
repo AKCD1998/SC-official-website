@@ -345,6 +345,32 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
       records:[{reservedQuantity:2},{reservedQuantity:1}]});
     expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
   });
+  test('cancel-first post-cutover mail is new but unapproved; the former unheld misclassification can heal safely',async()=>{
+    await source();await open();await drain();await source('NEWCANCEL1',{old:false});
+    await pool.query(`DELETE FROM "${schema}".shopee_order_events WHERE order_number='NEWCANCEL1'`);
+    await pool.query(`UPDATE "${schema}".shopee_orders SET current_status='order_cancelled' WHERE order_number='NEWCANCEL1'`);
+    await pool.query(`INSERT INTO "${schema}".shopee_order_events(shop_code,order_number,event_type,occurred_at) VALUES('sc-drug-store','NEWCANCEL1','order_cancelled',now())`);await drain();
+    let p=(await pool.query(`SELECT * FROM ${t('positions')} WHERE order_number='NEWCANCEL1'`)).rows[0];
+    expect(p).toMatchObject({eligibility:'new',state:'review_required',reasons:['cancel-dispatch-unverified','confirmation-missing']});
+    await pool.query(`UPDATE ${t('positions')} SET eligibility='legacy',reasons='["legacy-arrival-needs-opening-review"]' WHERE order_number='NEWCANCEL1'`);
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(1);await drain();
+    p=(await pool.query(`SELECT * FROM ${t('positions')} WHERE order_number='NEWCANCEL1'`)).rows[0];expect(p.eligibility).toBe('new');expect(p.state).toBe('review_required');
+    expect((await pool.query(`SELECT count(*)::int n FROM ${t('reviews')}`)).rows[0].n).toBe(0);
+    await ledger.review({operationId:randomUUID(),orderNumber:'NEWCANCEL1',kind:'cancel-before-dispatch',actor,physicalEvidenceVerified:true,notPostedInPos:true});await drain();
+    expect(await read()).toMatchObject({status:'available',reviewOrders:0,records:[{reservedQuantity:2}]});
+  });
+  test('a source date correction cannot become new demand on a second retry, and any prior line blocks reclassification',async()=>{
+    await source();await open();await drain();await source('LATEOLD01');await drain();
+    await pool.query(`UPDATE "${schema}".shopee_orders SET ordered_at=now() WHERE order_number='LATEOLD01'`);await drain();
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);await drain();
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
+    await source('NEWCANCEL1',{old:false});await drain();
+    await pool.query(`UPDATE ${t('positions')} SET eligibility='legacy',state='review_required',reasons='["legacy-arrival-needs-opening-review"]' WHERE order_number='NEWCANCEL1'`);
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
+    await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='NEWCANCEL1'`);await drain();
+    expect((await pool.query(`SELECT eligibility FROM ${t('positions')} WHERE order_number='NEWCANCEL1'`)).rows[0].eligibility).toBe('legacy');
+    expect((await read()).records[0].reservedQuantity).toBe(4);
+  });
   test('a truncated queue retains temporary quantities rather than falsely qualifying or hiding all products',async()=>{
     await source();await open();await drain();
     await pool.query(`INSERT INTO "${schema}".shopee_orders(shop_code,order_number,current_status,ordered_at,items,last_event_at)

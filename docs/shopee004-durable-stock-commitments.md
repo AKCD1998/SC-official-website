@@ -158,3 +158,12 @@ human-admin action `extend-pos-catalog` appends up to 50 validated unit contract
 and rejects every change to an existing contract. It preserves cutover, opening
 plan and quantities. The existing throttled worker also rechecks an exact
 `pos_product_missing` review after an append, with no lifecycle approvals.
+
+Cancel-first mail with a post-cutover source creation date is a new order that
+still needs confirmation/dispatch review, not an opening-era order. The worker
+may correct the former legacy-only misclassification only when its original
+source date was already post-cutover, is unchanged, the order is not in the
+fixed legacy plan and it has no prior stock lines. Correcting a historical date
+cannot turn it into new demand, including on repeated retries. Cancellation
+without a confirmation email can clear only through the existing verified
+before-dispatch review; the correction itself never releases stock.

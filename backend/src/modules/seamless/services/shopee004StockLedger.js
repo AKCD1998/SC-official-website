@@ -1,6 +1,6 @@
 const { isDeepStrictEqual } = require('node:util');
 const { randomUUID } = require('node:crypto');
-const { validateCatalog, orderSnapshot, projectPosition, fail } = require('./shopee004StockPolicy');
+const { validateCatalog, orderSnapshot, projectPosition, canCorrectPostCutoverReview, fail } = require('./shopee004StockPolicy');
 const { buildOpeningBasis } = require('./shopee004OpeningBasis');
 const { resolveReviewScope } = require('./shopee004ReviewScope');
 
@@ -39,6 +39,12 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
   async function audit(c, action, outcome, actor = null, order = null) {
     await c.query(`INSERT INTO ${table('audit')}(action,outcome,actor,order_number) VALUES($1,$2,$3,$4)`,
       [action, JSON.stringify(outcome), actor, order]);
+  }
+  async function guardedPrevious(c,previous){
+    if(previous?.eligibility!=='legacy'||previous.state!=='review_required'
+      ||!isDeepStrictEqual(previous.reasons,['legacy-arrival-needs-opening-review']))return previous;
+    const lines=await c.query(`SELECT EXISTS(SELECT 1 FROM ${table('lines')} WHERE order_number=$1) AS present`,[previous.order_number]);
+    return {...previous,noStockLines:lines.rows[0].present===false};
   }
   async function prepare({ posCatalog, openingOrderNumbers, openingBasis, actor }) {
     requireEnabled(); validateCatalog(posCatalog);
@@ -172,7 +178,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       const stamp = await c.query('SELECT clock_timestamp() AS at');
       const candidate = projectPosition({ order: exists.rows[0], events: history.rows,
         reviews: [...decisions.rows, { kind, quantities, recorded_at: stamp.rows[0].at }], control: control.rows[0],
-        previous: previous.rows[0], now: stamp.rows[0].at, matchItem });
+        previous: await guardedPrevious(c,previous.rows[0]), now: stamp.rows[0].at, matchItem });
       if (candidate.state === 'review_required') fail('REVIEW_WOULD_LEAVE_UNVERIFIED_POSITION');
       await c.query(`INSERT INTO ${table('reviews')}(operation_id,order_number,kind,quantities,actor) VALUES($1,$2,$3,$4,$5)`,
         [operationId, orderNumber, kind, JSON.stringify(quantities), actor]);
@@ -196,7 +202,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       const old = await c.query(`SELECT * FROM ${table('positions')} WHERE order_number=$1`, [orderNumber]);
       const stamp = await c.query('SELECT clock_timestamp() AS at');
       const position = projectPosition({ order: source.rows[0], events: history.rows, reviews: decisions.rows,
-        control, previous: old.rows[0], now: stamp.rows[0].at, matchItem });
+        control, previous: await guardedPrevious(c,old.rows[0]), now: stamp.rows[0].at, matchItem });
       // Retain the original item contract on a conflicting edit. Reprocessing
       // must not turn a second identical retry into an implicit approval.
       const snapshot = position.reasons.includes('order-items-changed-needs-review')
@@ -244,17 +250,21 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
   async function requeueResolvedMappings() {
     requireEnabled();
     const result = await transaction(async c => {
-      const control = (await c.query(`SELECT mode,pos_catalog FROM ${table('control')} WHERE singleton=1 FOR SHARE`)).rows[0];
+      const control = (await c.query(`SELECT mode,pos_catalog,cutover_at,plan FROM ${table('control')} WHERE singleton=1 FOR SHARE`)).rows[0];
       if (!['live','paused'].includes(control?.mode)) return { queuedOrders: 0,nextCursor:'' };
-      const candidates = await c.query(`SELECT p.order_number,o.items FROM ${table('positions')} p JOIN ${orders} o
+      const candidates = await c.query(`SELECT p.order_number,p.eligibility,p.state,p.reasons,p.source_snapshot,o.items,o.ordered_at FROM ${table('positions')} p JOIN ${orders} o
         ON o.order_number=p.order_number AND o.shop_code='sc-drug-store'
-        WHERE p.state='review_required' AND p.reasons IN ('["product_mapping_unverified"]'::jsonb,'["pos_product_missing"]'::jsonb)
-          AND p.order_number>$1 ORDER BY p.order_number LIMIT 50`, [mappingReviewCursor]);
+        WHERE p.state='review_required' AND (p.reasons IN ('["product_mapping_unverified"]'::jsonb,'["pos_product_missing"]'::jsonb)
+          OR (p.eligibility='legacy' AND p.reasons='["legacy-arrival-needs-opening-review"]'::jsonb AND o.ordered_at >= $2
+            AND NOT EXISTS(SELECT 1 FROM ${table('lines')} l WHERE l.order_number=p.order_number)))
+          AND p.order_number>$1 ORDER BY p.order_number LIMIT 50`, [mappingReviewCursor,control.cutover_at]);
       const nextCursor=candidates.rows.length===50 ? candidates.rows.at(-1).order_number : '';
       if (!candidates.rows.length) return { queuedOrders: 0,nextCursor };
       const { mapShopeeStockLines } = require('./shopeeStockReservationShadow');
       const catalog = validateCatalog(control.pos_catalog);
-      const resolved = candidates.rows.filter(o => mapShopeeStockLines({ items:o.items,posCatalog:catalog,matchItem }).status === 'mapped')
+      const resolved = candidates.rows.filter(o => (o.reasons[0]!=='legacy-arrival-needs-opening-review'
+          ||canCorrectPostCutoverReview({order:o,previous:{...o,noStockLines:true},control}))
+          &&mapShopeeStockLines({ items:o.items,posCatalog:catalog,matchItem }).status === 'mapped')
         .map(o => o.order_number);
       if (!resolved.length) return { queuedOrders: 0,nextCursor };
       // A reviewed stock-mapping upgrade can re-evaluate a former mapping hold.
