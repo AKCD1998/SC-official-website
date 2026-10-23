@@ -507,4 +507,19 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
       VALUES($1,'[]','[]')`,[randomUUID()]);
     expect(await read()).toMatchObject({status:'available',recovery:{pendingRuleJobs:1},records:[{availabilityStatus:'available',reservedQuantity:2}]});
   });
+  test('multi-item exception and atomic approval context identify the actual failed item in the scoped mapper snapshot',async()=>{
+    await source();await open();await drain();await source('MULTIITEM1',{old:false});
+    await pool.query(`UPDATE "${schema}".shopee_orders SET items=$1 WHERE order_number='MULTIITEM1'`,[JSON.stringify([
+      {name:'Synthetic valid first',variant:'box',quantity:1},{name:'Synthetic blocked second',variant:'new pack',quantity:2},
+      {name:'Synthetic blocked second',variant:'new pack',quantity:1}])]);
+    const scoped=createShopee004StockLedger({pool,schema,enabled:true,mappingContextProvider:async()=>
+      (_shop,item)=>item.name==='Synthetic blocked second'?{status:'unmapped'}:matchItem()});
+    await drain(scoped);const page=await scoped.exceptions();expect(page.records).toHaveLength(1);
+    expect(page.records[0]).toMatchObject({productName:'Synthetic blocked second',variantName:'new pack',
+      canApproveMapping:true,itemContext:'current-issue',itemIssueConfirmed:true,unresolvedItemCount:1});
+    expect(JSON.stringify(page)).not.toContain('MULTIITEM1');
+    const context=await scoped.exceptionContext({exceptionId:page.records[0].exceptionId,expectedRevision:page.records[0].revision});
+    expect(context.record.productName).toBe('Synthetic blocked second');
+    expect(context.items).toHaveLength(3);expect((await read()).cutoverAt).toBe((await scoped.projection(['P1'])).cutoverAt);
+  });
 });

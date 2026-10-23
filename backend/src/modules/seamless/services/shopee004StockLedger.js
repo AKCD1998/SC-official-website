@@ -3,17 +3,12 @@ const { randomUUID } = require('node:crypto');
 const { validateCatalog, orderSnapshot, projectPosition, canCorrectPostCutoverReview, fail } = require('./shopee004StockPolicy');
 const { buildOpeningBasis } = require('./shopee004OpeningBasis');
 const { resolveReviewScope } = require('./shopee004ReviewScope');
-const { nextRecovery, classifyRecoveryFailure, classifyReviewReason } = require('./shopee004RecoveryPolicy');
-const { publicException, exceptionRevision, ruleAffectsOrder } = require('./shopee004ExceptionReadModel');
+const { nextRecovery, classifyRecoveryFailure, classifyReviewReason, MAPPING_REASONS } = require('./shopee004RecoveryPolicy');
+const { publicException, selectExceptionItem, exceptionRevision, ruleAffectsOrder } = require('./shopee004ExceptionReadModel');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER = /^[A-Z0-9]{8,40}$/;
 const KINDS = new Set(['cancel-before-dispatch','dispatched','returned-sellable','legacy-in-baseline']);
-const MAPPING_REASONS = ['product_mapping_unverified','pos_product_missing','verified_mapping_evidence_conflict',
-  'physical_stock_rule_required','verified_base_unit_missing','sale_unit_pos_mismatch','sale_quantity_rule_unverified',
-  'sale_quantity_evidence_conflict','sale_unit_evidence_missing','title_pack_requires_evidence','pos_unit_label_missing',
-  'pos_base_unit_factor_unverified','pos_stock_factor_unverified','shared_stock_conversion_unverified',
-  'source_identifier_conflict','source_barcode_unverified','identity_rule_revoked','identity_rule_source_drift','identity_rule_unit_conflict'];
 function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, mappingContextProvider }) {
   let mappingReviewCursor = '';
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(schema)) fail('LEDGER_SCHEMA_INVALID');
@@ -439,7 +434,10 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
     return transaction(async c=>{
       const rows=await readExceptionRows(c,{limit:limit+1,cursor});
       const at=(await c.query('SELECT transaction_timestamp() AS at')).rows[0].at;
-      const records=rows.slice(0,limit).map(publicException);
+      const control=(await c.query(`SELECT mode,pos_catalog,cutover_at,plan FROM ${table('control')} WHERE singleton=1`)).rows[0];
+      const catalog=control?validateCatalog(control.pos_catalog):new Map();
+      const matchItem=control?await scopedMatcher(c,control):undefined;
+      const records=rows.slice(0,limit).map(row=>publicException(row,{selection:selectExceptionItem(row,catalog,{matchItem})}));
       return {schemaVersion:'shopee004-exceptions-v1',branchCode:'004',asOf:at.toISOString(),status:'available',records,
         pagination:{hasMore:rows.length>limit,nextCursor:rows.length>limit?records.at(-1).exceptionId:null}};
     },true);
@@ -455,8 +453,9 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
       if(!row)fail('EXCEPTION_NOT_FOUND');
       if(exceptionRevision(row)!==expectedRevision)fail('EXCEPTION_REVISION_CONFLICT');
       const control=(await c.query(`SELECT mode,cutover_at,pos_catalog,plan FROM ${table('control')} WHERE singleton=1 ${client?'FOR SHARE':''}`)).rows[0];
+      const catalog=control?validateCatalog(control.pos_catalog):new Map(),matchItem=control?await scopedMatcher(c,control):undefined;
       return {orderNumber:row.order_number,items:row.items,originalItems:row.source_snapshot?.items||[],
-        retainedProductCodes:row.retained_codes,record:publicException(row),control};
+        retainedProductCodes:row.retained_codes,record:publicException(row,{selection:selectExceptionItem(row,catalog,{matchItem})}),control};
     };
     return client?read(client):transaction(read,true);
   }

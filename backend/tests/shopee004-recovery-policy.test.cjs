@@ -30,7 +30,8 @@ test('exception read model removes order refs/customer/raw errors and keeps mapp
   reasons:['cancel-dispatch-unverified','sale_unit_pos_mismatch'],items:[{name:'Synthetic pack',variant:'2 boxes',unit:'box',customer:'private'}],
   source_snapshot:{orderNumber:'PRIVATEORDER01'},retained_codes:['P1'],recovery_state:'blocked',attempt_count:5,
   retry_after:new Date(0),first_failed_at:new Date(0),last_failed_at:new Date(1),rawError:'private raw'};
- const result=publicException(row);
+ const result=publicException(row,{selection:{item:row.items[0],source:'current-issue',issueConfirmed:true,mappingApplicable:true,
+  reasonCodes:['sale_unit_pos_mismatch'],unresolvedItemCount:1}});
  expect(result).toMatchObject({revision:'4:2:1970-01-01T00:00:00.000Z',issueClass:'unit',canApproveMapping:true,requiresLifecycleReview:true,
   recovery:{state:'blocked',nextRetryAt:null}});
  expect(JSON.stringify(result)).not.toMatch(/PRIVATEORDER|private raw|customer/);
