@@ -302,11 +302,48 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     expect(await ledger.projection(['P1','P2','P3'])).toMatchObject({status:'partial',pageReviewProducts:2,
       records:[{availabilityStatus:'review_required',reservedQuantity:2},{availabilityStatus:'review_required'},{availabilityStatus:'available'}]});
   });
-  test('unknown current identity cannot use its old mapped lines to qualify unrelated products',async()=>{
+  test('unknown current identity preserves old holds and explicitly qualifies only known commitments elsewhere',async()=>{
     await source();await open();await drain();
     ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:(_shop,item)=>item.name==='Unknown'?{status:'unmapped'}:matchItem()});
     await pool.query(`UPDATE "${schema}".shopee_orders SET items=$1 WHERE order_number='OLDORDER1'`,[JSON.stringify([{name:'Unknown',quantity:1}])]);
-    expect(await ledger.projection(['P1','P2'])).toMatchObject({status:'review-or-processing-required',scopeValidated:false,pageReviewProducts:2});
+    expect(await ledger.projection(['P1','P2'])).toMatchObject({status:'partial',scopeValidated:true,unallocatedOrders:1,pageReviewProducts:1,
+      records:[{availabilityStatus:'review_required',reservedQuantity:2},{availabilityStatus:'known-commitments-only'}]});
+  });
+  test('fully unknown new order remains queued for review without hiding every other product or releasing any hold',async()=>{
+    await source();await open();await drain();
+    ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:(_shop,item)=>item.name==='Unknown'?{status:'unmapped'}:matchItem()});
+    await source('NEWORDER1',{old:false});await pool.query(`UPDATE "${schema}".shopee_orders SET items=$1 WHERE order_number='NEWORDER1'`,[JSON.stringify([{name:'Unknown',quantity:1}])]);await drain();
+    expect(await ledger.projection(['P1','P2'])).toMatchObject({status:'partial',unallocatedOrders:1,reviewOrders:1,pageReviewProducts:0,
+      records:[{availabilityStatus:'known-commitments-only',reservedQuantity:2},{availabilityStatus:'known-commitments-only',reservedQuantity:0}]});
+    expect((await pool.query(`SELECT count(*)::int n FROM ${t('reviews')}`)).rows[0].n).toBe(0);
+  });
+  test('POS metadata extension is append-only, idempotent and preserves cutover/opening/holds',async()=>{
+    await source();await open();await drain();const before=(await pool.query(`SELECT * FROM ${t('control')}`)).rows[0];
+    const p2={...catalog[0],companySku:'P2',stockCode:'P2'};
+    await expect(ledger.extendPosCatalog({posCatalog:[p2]})).rejects.toMatchObject({code:'HUMAN_ADMIN_REQUIRED'});
+    expect(await ledger.extendPosCatalog({posCatalog:[p2],actor})).toMatchObject({addedProducts:1,originalCutoverPreserved:true,stockWrites:false});
+    expect(await ledger.extendPosCatalog({posCatalog:[p2],actor})).toMatchObject({addedProducts:0});
+    await expect(ledger.extendPosCatalog({posCatalog:[{...catalog[0],smallUnit:'ขวด'}],actor})).rejects.toMatchObject({code:'EXISTING_POS_CONTRACT_CHANGED'});
+    const after=(await pool.query(`SELECT * FROM ${t('control')}`)).rows[0];
+    expect(after.cutover_at).toEqual(before.cutover_at);expect(after.plan).toEqual(before.plan);expect(after.pos_catalog[0]).toEqual(before.pos_catalog[0]);
+    expect((await read()).records[0].reservedQuantity).toBe(2);
+  });
+  test('conflicting units quarantine only that product without replacing its demand with zero',async()=>{
+    await source();await open();await drain();await source('NEWORDER1',{old:false});await drain();
+    await pool.query(`UPDATE ${t('lines')} SET unit='ขวด' WHERE order_number='NEWORDER1'`);
+    expect(await ledger.projection(['P1','P2'])).toMatchObject({status:'partial',pageReviewProducts:1,
+      records:[{availabilityStatus:'review_required',reservedQuantity:null,shippedUnpostedQuantity:null},{availabilityStatus:'available'}]});
+  });
+  test('a missing POS contract heals through the existing worker after verified append, never by replaying the opening',async()=>{
+    await source();await open();await drain();const before=await read();
+    ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:(_shop,item)=>({...matchItem(),companySku:item.name==='Other'?'P2':'P1'})});
+    await source('NEWORDER1',{old:false});await pool.query(`UPDATE "${schema}".shopee_orders SET items=$1 WHERE order_number='NEWORDER1'`,[JSON.stringify([{name:'Other',quantity:1}])]);await drain();
+    expect((await read()).unallocatedOrders).toBe(1);
+    await ledger.extendPosCatalog({posCatalog:[{...catalog[0],companySku:'P2',stockCode:'P2'}],actor});
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(1);await drain();
+    const r=await ledger.projection(['P1','P2']);expect(r).toMatchObject({cutoverAt:before.cutoverAt,reviewOrders:0,unallocatedOrders:0,
+      records:[{reservedQuantity:2},{reservedQuantity:1}]});
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
   });
   test('scope scan limit fails closed instead of qualifying a truncated queue',async()=>{
     await source();await open();await drain();

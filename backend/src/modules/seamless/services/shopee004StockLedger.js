@@ -2,6 +2,7 @@ const { isDeepStrictEqual } = require('node:util');
 const { randomUUID } = require('node:crypto');
 const { validateCatalog, orderSnapshot, projectPosition, fail } = require('./shopee004StockPolicy');
 const { buildOpeningBasis } = require('./shopee004OpeningBasis');
+const { resolveReviewScope } = require('./shopee004ReviewScope');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER = /^[A-Z0-9]{8,40}$/;
@@ -112,6 +113,24 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       if (!r.rows.length) fail('ACTIVE_CUTOVER_REQUIRED');
       await audit(c, 'paused', { holdsRetained: true, availabilityBlocked: true }, actor);
       return { mode: 'paused', holdsRetained: true, availabilityBlocked: true };
+    });
+  }
+  async function extendPosCatalog({posCatalog,actor}){
+    requireEnabled();if(!actor)fail('HUMAN_ADMIN_REQUIRED');
+    if(!Array.isArray(posCatalog)||!posCatalog.length||posCatalog.length>50)fail('CATALOG_EXTENSION_SCOPE_INVALID');
+    const additions=validateCatalog(posCatalog);
+    return transaction(async c=>{
+      const control=(await c.query(`SELECT mode,cutover_at,pos_catalog FROM ${table('control')} WHERE singleton=1 FOR UPDATE`)).rows[0];
+      if(!['live','paused'].includes(control?.mode))fail('ACTIVE_CUTOVER_REQUIRED');
+      const current=validateCatalog(control.pos_catalog);let added=0;
+      for(const [code,entry] of additions){
+        if(current.has(code)){if(!isDeepStrictEqual(current.get(code),entry))fail('EXISTING_POS_CONTRACT_CHANGED');}
+        else{current.set(code,entry);added++;}
+      }
+      validateCatalog([...current.values()]);
+      if(added){await c.query(`UPDATE ${table('control')} SET pos_catalog=$1 WHERE singleton=1`,[JSON.stringify([...current.values()])]);
+        await audit(c,'verified-pos-contracts-extended',{addedProducts:added,originalCutoverPreserved:true,existingContractsUnchanged:true},actor);}
+      return {addedProducts:added,originalCutoverPreserved:true,existingContractsUnchanged:true,stockWrites:false};
     });
   }
   async function resume({ actor, unpostedPosWorkflow, openingBasisStillValid }) {
@@ -229,7 +248,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       if (!['live','paused'].includes(control?.mode)) return { queuedOrders: 0,nextCursor:'' };
       const candidates = await c.query(`SELECT p.order_number,o.items FROM ${table('positions')} p JOIN ${orders} o
         ON o.order_number=p.order_number AND o.shop_code='sc-drug-store'
-        WHERE p.state='review_required' AND p.reasons='["product_mapping_unverified"]'::jsonb
+        WHERE p.state='review_required' AND p.reasons IN ('["product_mapping_unverified"]'::jsonb,'["pos_product_missing"]'::jsonb)
           AND p.order_number>$1 ORDER BY p.order_number LIMIT 50`, [mappingReviewCursor]);
       const nextCursor=candidates.rows.length===50 ? candidates.rows.at(-1).order_number : '';
       if (!candidates.rows.length) return { queuedOrders: 0,nextCursor };
@@ -264,10 +283,9 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         FROM ${table('positions')}`);
       const stamp = await c.query(`SELECT transaction_timestamp() AS at,COALESCE((SELECT max(revision) FROM ${table('audit')}),0)::text AS revision`);
       const feed = await c.query(`SELECT max(created_at) AS last_ingested_at FROM ${events} WHERE shop_code='sc-drug-store'`);
-      const affected = new Set(); let scopeValidated = ctrl.rows[0]?.mode === 'live';
+      let affected = new Set(),unallocatedOrders=0; let scopeValidated = ctrl.rows[0]?.mode === 'live';
       if (scopeValidated && (pending.rows[0].count || review.rows[0].count)) {
-        // The same repeatable-read snapshot fences queue, source, retained
-        // positions and quantities. Unknown identities still block globally.
+        // The same snapshot fences source, retained contracts and quantities.
         const blocked = await c.query(`SELECT o.items,p.source_snapshot,
           ARRAY(SELECT l.product_code FROM ${table('lines')} l WHERE l.order_number=b.order_number) AS retained_codes
           FROM (SELECT order_number FROM ${table('dirty')} UNION
@@ -275,31 +293,31 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
           LEFT JOIN ${orders} o ON o.order_number=b.order_number AND o.shop_code='sc-drug-store'
           LEFT JOIN ${table('positions')} p ON p.order_number=b.order_number
           ORDER BY b.order_number LIMIT 101`);
-        scopeValidated = blocked.rows.length > 0 && blocked.rows.length <= 100;
-        const catalog = validateCatalog(ctrl.rows[0].pos_catalog);
-        const { mapShopeeStockLines } = require('./shopeeStockReservationShadow');
-        for (const entry of blocked.rows) {
-          for (const items of [entry.items, ...(entry.source_snapshot ? [entry.source_snapshot.items] : [])]) {
-            const mapped = mapShopeeStockLines({ items, posCatalog:catalog, matchItem });
-            if (mapped.status !== 'mapped' || !mapped.lines.length) { scopeValidated = false; break; }
-            for (const line of mapped.lines) affected.add(line.stockCode);
-          }
-          for (const code of entry.retained_codes || []) affected.add(code);
-          if (!scopeValidated) break;
-        }
+        const scope=resolveReviewScope(blocked.rows,validateCatalog(ctrl.rows[0].pos_catalog),{matchItem});
+        scopeValidated=scope.complete;affected=scope.affected;unallocatedOrders=scope.unallocatedOrders;
       }
       const hasBlockedOrders = pending.rows[0].count > 0 || review.rows[0].count > 0;
-      const ready = scopeValidated && !hasBlockedOrders;
       const rows = await c.query(`SELECT product_code,min(unit) AS unit,count(DISTINCT unit)::int AS units,
         sum(reserved_quantity)::text AS reserved,sum(shipped_unposted_quantity)::text AS shipped
         FROM ${table('lines')} WHERE product_code=ANY($1::text[]) GROUP BY product_code`, [productCodes]);
       const byCode = new Map(rows.rows.map(r => [r.product_code, r]));
       const basis = ctrl.rows[0]?.opening_basis;
       const initial = new Map((basis?.records || []).map(r => [r.productCode, r]));
+      const records=productCodes.map(productCode=>{
+        const row=byCode.get(productCode),base=initial.get(productCode);
+        const reserved=Number(row?.reserved||0),shipped=Number(row?.shipped||0)+(base?.quantity||0);
+        const invalid=row?.units>1||!Number.isSafeInteger(reserved)||reserved<0||!Number.isSafeInteger(shipped)||shipped<0
+          ||!Number.isSafeInteger(reserved+shipped)||(row?.unit&&base?.unit&&row.unit!==base.unit);
+        return {productCode,availabilityStatus:!scopeValidated||affected.has(productCode)||invalid?'review_required'
+          :unallocatedOrders?'known-commitments-only':'available',unit:invalid?null:row?.unit||base?.unit||null,
+          reservedQuantity:invalid?null:reserved,shippedUnpostedQuantity:invalid?null:shipped};
+      });
+      const pageReviewProducts=records.filter(r=>r.availabilityStatus==='review_required').length;
+      const ready=scopeValidated&&!hasBlockedOrders&&!pageReviewProducts;
       return { schemaVersion: 'shopee004-commitments-v1', branchCode: '004', mode: ctrl.rows[0]?.mode || 'unconfigured',
         status: ready ? 'available' : scopeValidated ? 'partial' : 'review-or-processing-required',
-        availabilityContract:'per-product-review-v1',scopeValidated,
-        pageReviewProducts: scopeValidated ? productCodes.filter(code => affected.has(code)).length : productCodes.length,
+        availabilityContract:'per-product-review-v2',scopeValidated,unallocatedOrders,
+        pageReviewProducts,
         cutoverAt: ctrl.rows[0]?.cutover_at?.toISOString() || null,
         asOf: stamp.rows[0].at.toISOString(), revision: stamp.rows[0].revision,
         lastEmailIngestedAt: feed.rows[0].last_ingested_at?.toISOString() || null,
@@ -310,15 +328,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         ...(basis ? { openingBasisQuality: basis.quality, openingBasisAsOf: basis.sourceAsOf,
           openingBasisHistoricalOrders: basis.coveredOrderCount, openingBasisPhysicalStockVerified: false,
           openingBasisExcludedReviewOrders: basis.excludedPhysicalReviewOrders } : {}),
-        records: productCodes.map(productCode => {
-          const row = byCode.get(productCode);
-          const base = initial.get(productCode);
-          const reserved = Number(row?.reserved || 0), shipped = Number(row?.shipped || 0) + (base?.quantity || 0);
-          if (row?.units > 1 || !Number.isSafeInteger(reserved + shipped)
-            || (row?.unit && base?.unit && row.unit !== base.unit)) fail('PROJECTION_UNIT_OR_QUANTITY_CONFLICT');
-          return { productCode, availabilityStatus:scopeValidated && !affected.has(productCode) ? 'available' : 'review_required',
-            unit: row?.unit || base?.unit || null, reservedQuantity: reserved, shippedUnpostedQuantity: shipped };
-        }) };
+        records };
     }, true);
   }
   async function reviewQueue({ limit = 100, cursor = '' } = {}) {
@@ -332,6 +342,6 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         hasMore:result.rows.length>limit,nextCursor:result.rows.length>limit?page.at(-1).order_number:null };
     },true);
   }
-  return { prepare, activate, pause, resume, review, reviewQueue, reconcileAcceptedLegacy, requeueResolvedMappings, processOne, projection };
+  return { prepare, activate, pause, resume, extendPosCatalog, review, reviewQueue, reconcileAcceptedLegacy, requeueResolvedMappings, processOne, projection };
 }
 module.exports = { createShopee004StockLedger };

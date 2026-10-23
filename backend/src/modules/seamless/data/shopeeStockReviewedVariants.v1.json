@@ -1185,6 +1185,23 @@
       "authority": "exact_live_single_bottle_listing_review_2026-10-23",
       "evidence": "Seller Centre description explicitly states one 450-ml bottle in the selected formula, not a four-bottle bundle. Blue variant uses the existing verified 450-ml blue POS bottle identity and unit. Pack-of-six and case rules remain separate.",
       "evidenceUrl": "https://seller.shopee.co.th/portal/product/54768798544"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S 2x6นิ้ว10x20ซม.",
+      "components": [
+        {
+          "companySku": "IC-000522",
+          "quantityPerSale": 1,
+          "quantityUnit": "กล่อง",
+          "posProductName": "สามัญ พลาสเตอร์ผ้าก๊อซ 10X20 CM S 2แผ่น"
+        }
+      ],
+      "authority": "exact_sos_listing_and_live_pos_metadata_2026-10-23",
+      "evidence": "Seller Centre lists S 2x6 inch, full dressing size 10x20 cm, two dressings in one box. Fresh readonly SERVER004 POS metadata and the existing company catalog identify the exact S 10x20 cm box of two as one active stock unit. Deduct one complete box per selected sale, not two boxes or two loose units.",
+      "evidenceUrl": "https://seller.shopee.co.th/portal/product/29695968791"
     }
   ]
 }
