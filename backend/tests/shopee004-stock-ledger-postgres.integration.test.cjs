@@ -87,7 +87,7 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
   });
   test('late historical orders are not new deductions; explicit baseline review resolves uncertainty', async () => {
     await source(); await open(); await drain(); await source('LATEOLD01'); await drain();
-    expect(await read()).toMatchObject({ status: 'review-or-processing-required', reviewOrders: 1, records: [{ reservedQuantity: 2 }] });
+    expect(await read()).toMatchObject({ status: 'partial', reviewOrders: 1, records: [{ reservedQuantity: 2, availabilityStatus:'review_required' }] });
     await ledger.review({ operationId: randomUUID(),orderNumber:'LATEOLD01',kind:'legacy-in-baseline',actor,physicalEvidenceVerified:true,notPostedInPos:true });
     await drain(); expect((await read()).status).toBe('available');
   });
@@ -157,7 +157,7 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
     await pool.query(`UPDATE ${t('positions')} SET reasons='["product_mapping_unverified","order-items-changed-needs-review"]' WHERE order_number='OLDORDER1'`);
     expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
-    expect((await read()).records).toEqual(before.records);
+    expect((await read()).records).toEqual(before.records.map(r=>({...r,availabilityStatus:'review_required'})));
   });
   test('mapping recovery cursor does not starve later resolved items behind 50 unresolved orders',async()=>{
     await source();await open();await drain();
@@ -279,5 +279,41 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>({...matchItem(),sourceLabelMismatch:true})});
     await source();await open();await drain();
     expect(await read()).toMatchObject({status:'available',sourceLabelReviewOrders:1,records:[{reservedQuantity:2}]});
+  });
+  test('known cancellation and pending work qualify only unaffected products; pause still blocks all',async()=>{
+    await source();await open();await drain();
+    await pool.query(`INSERT INTO "${schema}".shopee_order_events(shop_code,order_number,event_type,occurred_at) VALUES('sc-drug-store','OLDORDER1','order_cancelled',now())`);
+    let r=await ledger.projection(['P1','P2']);
+    expect(r).toMatchObject({status:'partial',scopeValidated:true,pendingOrders:1,pageReviewProducts:1,
+      records:[{productCode:'P1',availabilityStatus:'review_required'},{productCode:'P2',availabilityStatus:'available'}]});
+    await drain();r=await ledger.projection(['P1','P2']);
+    expect(r).toMatchObject({status:'partial',reviewOrders:1,pendingOrders:0,pageReviewProducts:1});
+    expect((await ledger.projection([])).status).toBe('partial');
+    await ledger.pause({actor});
+    expect(await ledger.projection(['P1','P2'])).toMatchObject({scopeValidated:false,pageReviewProducts:2,
+      records:[{availabilityStatus:'review_required'},{availabilityStatus:'review_required'}]});
+  });
+  test('changed items fence current identities and retained original identities',async()=>{
+    const two=[...catalog,{...catalog[0],companySku:'P2',stockCode:'P2'}];
+    ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:(_shop,item)=>({status:'matched',companySku:item.name==='Other'?'P2':'P1',quantityUnit:'sachet'})});
+    await source();const p=await ledger.prepare({posCatalog:two,openingOrderNumbers:['OLDORDER1'],actor});
+    await ledger.activate({planId:p.planId,actor,openingOrdersVerified:true,olderShippedReconciledInPosBasis:true,emailFeedChecked:true,unpostedPosWorkflow:true});await drain();
+    await pool.query(`UPDATE "${schema}".shopee_orders SET items=$1 WHERE order_number='OLDORDER1'`,[JSON.stringify([{name:'Other',quantity:1}])]);await drain();
+    expect(await ledger.projection(['P1','P2','P3'])).toMatchObject({status:'partial',pageReviewProducts:2,
+      records:[{availabilityStatus:'review_required',reservedQuantity:2},{availabilityStatus:'review_required'},{availabilityStatus:'available'}]});
+  });
+  test('unknown current identity cannot use its old mapped lines to qualify unrelated products',async()=>{
+    await source();await open();await drain();
+    ledger=createShopee004StockLedger({pool,schema,enabled:true,matchItem:(_shop,item)=>item.name==='Unknown'?{status:'unmapped'}:matchItem()});
+    await pool.query(`UPDATE "${schema}".shopee_orders SET items=$1 WHERE order_number='OLDORDER1'`,[JSON.stringify([{name:'Unknown',quantity:1}])]);
+    expect(await ledger.projection(['P1','P2'])).toMatchObject({status:'review-or-processing-required',scopeValidated:false,pageReviewProducts:2});
+  });
+  test('scope scan limit fails closed instead of qualifying a truncated queue',async()=>{
+    await source();await open();await drain();
+    await pool.query(`INSERT INTO "${schema}".shopee_orders(shop_code,order_number,current_status,ordered_at,items,last_event_at)
+      SELECT 'sc-drug-store','LIMIT'||lpad(n::text,5,'0'),'order_confirmed',now(),
+      jsonb_build_array(jsonb_build_object('name','Synthetic','quantity',1)),now() FROM generate_series(1,101) n`);
+    expect(await ledger.projection(['P2'])).toMatchObject({scopeValidated:false,pendingOrders:101,
+      records:[{availabilityStatus:'review_required'}]});
   });
 });
