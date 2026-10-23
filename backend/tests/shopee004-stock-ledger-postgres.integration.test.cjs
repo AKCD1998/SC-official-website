@@ -91,6 +91,56 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     await ledger.review({ operationId: randomUUID(),orderNumber:'LATEOLD01',kind:'legacy-in-baseline',actor,physicalEvidenceVerified:true,notPostedInPos:true });
     await drain(); expect((await read()).status).toBe('available');
   });
+  async function acceptedOpening() {
+    await source('OLDORDER1');await source('SHIPPED01',{quantity:3});
+    const openingBasis={quality:'owner-accepted-estimate',ownerAccepted:true,olderShippedNotPostedInPos:true,
+      periodStart:'1999-01-01T00:00:00Z',sourceAsOf:'2001-01-01T00:00:00Z',excludedPhysicalReviewOrders:47,
+      coveredOrderNumbers:['SHIPPED01'],records:[{productCode:'P1',unit:'ซอง',quantity:3}]};
+    const p=await ledger.prepare({posCatalog:catalog,openingOrderNumbers:['OLDORDER1'],openingBasis,actor});
+    await ledger.activate({planId:p.planId,actor,emailFeedChecked:true,unpostedPosWorkflow:true,ownerAcceptedOpeningEstimate:true});
+    await drain();return p;
+  }
+  test('late old mail under an accepted estimate is visibly excluded without debiting or claiming POS reconciliation',async()=>{
+    await acceptedOpening();const before=await read();
+    await source('LATEOLD01');await drain();
+    const after=await read();expect(after).toMatchObject({status:'available',reviewOrders:0,acceptedOpeningLateLegacyOrders:1,
+      sourceLabelReviewOrders:0,openingBasisPhysicalStockVerified:false,cutoverAt:before.cutoverAt,
+      records:[{reservedQuantity:2,shippedUnpostedQuantity:3}]});
+    const p=(await pool.query(`SELECT state,warnings FROM ${t('positions')} WHERE order_number='LATEOLD01'`)).rows[0];
+    expect(p).toEqual({state:'legacy_excluded',warnings:['late-legacy-excluded-under-owner-accepted-estimate']});
+    await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='LATEOLD01'`);await drain();
+    expect((await read()).records).toEqual(after.records);
+  });
+  test('bounded accepted-legacy recovery reprocesses the old review without moving cutover or changing quantities',async()=>{
+    await acceptedOpening();const before=await read();await source('LATEOLD01');await drain();
+    await pool.query(`UPDATE ${t('positions')} SET state='review_required',reasons='["legacy-arrival-needs-opening-review"]',warnings='[]' WHERE order_number='LATEOLD01'`);
+    await expect(ledger.reconcileAcceptedLegacy({actor})).rejects.toMatchObject({code:'OWNER_ESTIMATE_APPROVAL_REQUIRED'});
+    const input={actor,ownerAcceptedOpeningEstimate:true};
+    expect(await ledger.reconcileAcceptedLegacy(input)).toMatchObject({queuedOrders:1,originalCutoverPreserved:true,physicalStockVerified:false,posStockAdjusted:false});
+    expect((await ledger.reconcileAcceptedLegacy(input)).queuedOrders).toBe(0);
+    await drain();expect(await read()).toMatchObject({status:'available',cutoverAt:before.cutoverAt,records:before.records});
+    expect((await ledger.reconcileAcceptedLegacy(input)).queuedOrders).toBe(0);
+  });
+  test('estimated legacy recovery cannot waive a physical opening, a current hold or another review reason',async()=>{
+    await source();await open();await drain();
+    await expect(ledger.reconcileAcceptedLegacy({actor,ownerAcceptedOpeningEstimate:true})).rejects.toMatchObject({code:'ACCEPTED_ESTIMATE_CUTOVER_REQUIRED'});
+  });
+  test('estimate exclusion cannot drop a backdated new hold, an unknown date or a changed-date legacy review',async()=>{
+    await acceptedOpening();await source('NEWAFTER1',{old:false});await drain();
+    await pool.query(`UPDATE "${schema}".shopee_orders SET ordered_at='2000-01-01' WHERE order_number='NEWAFTER1'`);await drain();
+    await source('NODATE001');await pool.query(`UPDATE "${schema}".shopee_orders SET ordered_at=NULL WHERE order_number='NODATE001'`);await drain();
+    await source('LATEOLD01');await drain();
+    await pool.query(`UPDATE "${schema}".shopee_orders SET ordered_at=now() WHERE order_number='LATEOLD01'`);await drain();
+    expect((await ledger.reconcileAcceptedLegacy({actor,ownerAcceptedOpeningEstimate:true})).queuedOrders).toBe(0);
+    expect(await read()).toMatchObject({reviewOrders:3,records:[{reservedQuantity:4,shippedUnpostedQuantity:3}]});
+  });
+  test('accepted legacy recovery never requeues a legacy position with an outstanding held line',async()=>{
+    await acceptedOpening();await source('LATEOLD01');await drain();
+    await pool.query(`UPDATE ${t('positions')} SET state='review_required',reasons='["legacy-arrival-needs-opening-review"]' WHERE order_number='LATEOLD01'`);
+    await pool.query(`INSERT INTO ${t('lines')}(order_number,product_code,unit,ordered_quantity,reserved_quantity,shipped_unposted_quantity) VALUES('LATEOLD01','P1','ซอง',1,1,0)`);
+    expect((await ledger.reconcileAcceptedLegacy({actor,ownerAcceptedOpeningEstimate:true})).queuedOrders).toBe(0);
+    expect((await read()).reviewOrders).toBe(1);
+  });
   test('new post-cutover orders reserve once, other shops are not queued', async () => {
     await source(); await open(); await drain(); await source('NEWORDER1',{old:false}); await source('OTHERSHOP',{old:false,shop:'dr-morepen'});
     await drain(); expect((await read()).records[0].reservedQuantity).toBe(4);
