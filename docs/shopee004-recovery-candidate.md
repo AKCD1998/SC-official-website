@@ -18,6 +18,13 @@ reservation ledger, POS writer, scheduled task, opening plan or cutover.
   existing worker then uses a per-process circuit: five bounded attempts,
   followed by a five-minute cooldown. Restarting the whole process resets this
   outer circuit, but does not reset any committed per-order attempt state.
+- Pool acquisition is bounded to three seconds and four still-unsettled
+  acquisitions per existing pool. A client arriving after timeout is released
+  before any SQL. Query calls carry node-postgres's ten-second read timeout.
+  Read timeout/connection loss destroys that client; rollback is not awaited
+  on a broken connection. This does not prove that an in-flight COMMIT failed:
+  privileged writes return an unknown outcome, retain their operation ID and
+  require status/idempotency reconciliation rather than blind POST retry.
 - One pass handles at most 25 orders and checks an elapsed one-second budget
   before starting another. An already-running query can still consume its
   existing ten-second statement limit. There is one mapping refresh and one

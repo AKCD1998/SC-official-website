@@ -3,6 +3,7 @@ const { mapShopeeStockLines } = require('./shopeeStockReservationShadow');
 const clean = (value, maximum = 500) => typeof value === 'string'
   ? value.replace(/[\u0000-\u001f\u007f]/g, '').slice(0, maximum) : '';
 const iso = value => value ? new Date(value).toISOString() : null;
+const identityText=value=>typeof value==='string'?value.normalize('NFKC').trim().replace(/\s+/gu,' ').toLowerCase():'';
 function exceptionRevision(row) {
   return `${row.audit_revision || '0'}:${row.dirty_revision || '0'}:${iso(row.queued_at) || ''}`;
 }
@@ -65,8 +66,8 @@ function itemMatchesIdentity(item, identity) {
     || item.listingVariationId && item.variationId && String(item.listingVariationId) !== String(item.variationId);
   if (conflicting) return false;
   if (listing || variation) return listing === identity.listingId && variation === identity.variationId;
-  return (identity.aliases || []).some(alias => (item.name || item.productName || '') === alias.productName
-    && (item.variant || item.variantName || '') === alias.variantName);
+  return (identity.aliases || []).some(alias => identityText(item.name || item.productName) === identityText(alias.productName)
+    && identityText(item.variant || item.variantName) === identityText(alias.variantName));
 }
 function ruleAffectsOrder(row, { identities = [], productCodes = [] }) {
   if ((row.retained_codes || []).some(code => productCodes.includes(code))) return true;

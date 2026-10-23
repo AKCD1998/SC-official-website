@@ -5,6 +5,7 @@ const { buildOpeningBasis } = require('./shopee004OpeningBasis');
 const { resolveReviewScope } = require('./shopee004ReviewScope');
 const { nextRecovery, classifyRecoveryFailure, classifyReviewReason, MAPPING_REASONS } = require('./shopee004RecoveryPolicy');
 const { publicException, selectExceptionItem, exceptionRevision, ruleAffectsOrder } = require('./shopee004ExceptionReadModel');
+const { acquireBoundedStockClient } = require('./shopee004BoundedDatabase');
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER = /^[A-Z0-9]{8,40}$/;
@@ -17,14 +18,16 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
   const scopedMatcher = async (c, control) => mappingContextProvider ? await mappingContextProvider(c, control) : matchItem;
   function requireEnabled() { if (!enabled) fail('SHOPEE004_LEDGER_DISABLED'); }
   async function transaction(fn, readonly = false) {
-    const c = await pool.connect(); let broken;
+    const c = await acquireBoundedStockClient(pool); let broken;
     try {
       await c.query(readonly ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN');
       await c.query("SET LOCAL statement_timeout='10s'");
       await c.query("SET LOCAL lock_timeout='5s'");
       const result = await fn(c); await c.query('COMMIT'); return result;
     } catch (error) {
-      try { await c.query('ROLLBACK'); } catch { broken = true; }
+      if(!c.broken)try { await c.query('ROLLBACK'); } catch { broken = true; }
+      if(c.outcomeUnknown)throw Object.assign(new Error('LEDGER_QUERY_OUTCOME_UNKNOWN'),{
+        code:'LEDGER_QUERY_OUTCOME_UNKNOWN',statusCode:503,detailsWithheld:true,outcomeUnknown:true});
       // Never forward PG details (which can contain order numbers or parameters).
       if (error?.statusCode === 409) throw error;
       const failure = classifyRecoveryFailure(error);

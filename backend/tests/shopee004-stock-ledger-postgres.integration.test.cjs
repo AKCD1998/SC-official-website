@@ -388,6 +388,7 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     const faultPool={connect:async()=>{
       const c=await pool.connect();
       return {release:error=>c.release(error),query:async(text,values)=>{
+        if(text&&typeof text==='object'){values=text.values;text=text.text;}
         if(typeof text==='string'&&text.startsWith(`SELECT * FROM "${schema}".shopee_orders WHERE`)
           &&values?.[0]===target){
           if(beforeFailure)await beforeFailure();

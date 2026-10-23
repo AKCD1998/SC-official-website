@@ -42,6 +42,7 @@ test('changed identity targets current, original and retained products with exac
  const scope={identities:[{listingId:'listing-1',variationId:'variant-1',aliases:[{productName:'Exact old name',variantName:'2 boxes'}]}],productCodes:['P1']};
  expect(ruleAffectsOrder({items:[{productId:'listing-1',variationId:'variant-1'}]},scope)).toBe(true);
  expect(ruleAffectsOrder({items:[{productId:'other'}],source_snapshot:{items:[{name:'Exact old name',variant:'2 boxes'}]}},scope)).toBe(true);
+ expect(ruleAffectsOrder({items:[{name:'  EXACT   OLD NAME ',variant:'２ BOXES'}]},scope)).toBe(true);
  expect(ruleAffectsOrder({items:[],retained_codes:['P1']},scope)).toBe(true);
  expect(ruleAffectsOrder({items:[{name:'Exact old names',variant:'2 boxes'}]},scope)).toBe(false);
  expect(ruleAffectsOrder({items:[{name:'Exact old name',variant:'2 boxes',productId:'other'}]},scope)).toBe(false);
