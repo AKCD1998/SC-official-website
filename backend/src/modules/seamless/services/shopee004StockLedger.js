@@ -7,6 +7,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ORDER = /^[A-Z0-9]{8,40}$/;
 const KINDS = new Set(['cancel-before-dispatch','dispatched','returned-sellable','legacy-in-baseline']);
 function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }) {
+  let mappingReviewCursor = '';
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(schema)) fail('LEDGER_SCHEMA_INVALID');
   const table = name => `"${schema}".shopee004_stock_${name}`;
   const orders = `"${schema}".shopee_orders`, events = `"${schema}".shopee_order_events`;
@@ -221,6 +222,34 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         physicalStockVerified: false, posStockAdjusted: false };
     });
   }
+  async function requeueResolvedMappings() {
+    requireEnabled();
+    const result = await transaction(async c => {
+      const control = (await c.query(`SELECT mode,pos_catalog FROM ${table('control')} WHERE singleton=1 FOR SHARE`)).rows[0];
+      if (!['live','paused'].includes(control?.mode)) return { queuedOrders: 0,nextCursor:'' };
+      const candidates = await c.query(`SELECT p.order_number,o.items FROM ${table('positions')} p JOIN ${orders} o
+        ON o.order_number=p.order_number AND o.shop_code='sc-drug-store'
+        WHERE p.state='review_required' AND p.reasons='["product_mapping_unverified"]'::jsonb
+          AND p.order_number>$1 ORDER BY p.order_number LIMIT 50`, [mappingReviewCursor]);
+      const nextCursor=candidates.rows.length===50 ? candidates.rows.at(-1).order_number : '';
+      if (!candidates.rows.length) return { queuedOrders: 0,nextCursor };
+      const { mapShopeeStockLines } = require('./shopeeStockReservationShadow');
+      const catalog = validateCatalog(control.pos_catalog);
+      const resolved = candidates.rows.filter(o => mapShopeeStockLines({ items:o.items,posCatalog:catalog,matchItem }).status === 'mapped')
+        .map(o => o.order_number);
+      if (!resolved.length) return { queuedOrders: 0,nextCursor };
+      // A reviewed stock-mapping upgrade can re-evaluate a former mapping hold.
+      // It adds no cancellation/return decision and normal projection rechecks
+      // the current source, lifecycle and retained item contract before writing.
+      const queued = await c.query(`INSERT INTO ${table('dirty')}(order_number)
+        SELECT unnest($1::text[]) ON CONFLICT(order_number) DO NOTHING`, [resolved]);
+      if (queued.rowCount) await audit(c, 'verified-stock-mapping-requeued', { queuedOrders:queued.rowCount,
+        lifecycleApprovalsAdded:false,originalCutoverPreserved:true }, 'system-stock-mapping');
+      return { queuedOrders: queued.rowCount,nextCursor };
+    });
+    mappingReviewCursor=result.nextCursor;
+    return {queuedOrders:result.queuedOrders};
+  }
   async function projection(productCodes) {
     requireEnabled();
     if (!Array.isArray(productCodes) || productCodes.length > 10000
@@ -274,6 +303,6 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         hasMore:result.rows.length>limit,nextCursor:result.rows.length>limit?page.at(-1).order_number:null };
     },true);
   }
-  return { prepare, activate, pause, resume, review, reviewQueue, reconcileAcceptedLegacy, processOne, projection };
+  return { prepare, activate, pause, resume, review, reviewQueue, reconcileAcceptedLegacy, requeueResolvedMappings, processOne, projection };
 }
 module.exports = { createShopee004StockLedger };

@@ -145,6 +145,33 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     await source(); await open(); await drain(); await source('NEWORDER1',{old:false}); await source('OTHERSHOP',{old:false,shop:'dr-morepen'});
     await drain(); expect((await read()).records[0].reservedQuantity).toBe(4);
   });
+  test('a reviewed mapping upgrade heals only fully mapped holds without moving cutover or approving cancellation',async()=>{
+    await source();await open();await drain();const before=await read();
+    await pool.query(`UPDATE ${t('positions')} SET state='review_required',reasons='["product_mapping_unverified"]' WHERE order_number='OLDORDER1'`);
+    const unverified=createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>({status:'unmapped'})});
+    expect((await unverified.requeueResolvedMappings()).queuedOrders).toBe(0);
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(1);
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
+    await drain();expect(await read()).toMatchObject({status:'available',cutoverAt:before.cutoverAt,records:before.records});
+    await pool.query(`UPDATE ${t('positions')} SET state='review_required',reasons='["cancel-dispatch-unverified"]' WHERE order_number='OLDORDER1'`);
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
+    await pool.query(`UPDATE ${t('positions')} SET reasons='["product_mapping_unverified","order-items-changed-needs-review"]' WHERE order_number='OLDORDER1'`);
+    expect((await ledger.requeueResolvedMappings()).queuedOrders).toBe(0);
+    expect((await read()).records).toEqual(before.records);
+  });
+  test('mapping recovery cursor does not starve later resolved items behind 50 unresolved orders',async()=>{
+    await source();await open();await drain();
+    await pool.query(`INSERT INTO "${schema}".shopee_orders(shop_code,order_number,current_status,ordered_at,items,last_event_at)
+      SELECT 'sc-drug-store','BATCH'||lpad(n::text,5,'0'),'order_confirmed',now(),
+      jsonb_build_array(jsonb_build_object('name',CASE WHEN n=51 THEN 'ResolvedLater' ELSE 'StillUnmapped' END,'quantity',1)),now()
+      FROM generate_series(1,51) n`);
+    await pool.query(`INSERT INTO "${schema}".shopee_order_events(shop_code,order_number,event_type,occurred_at)
+      SELECT shop_code,order_number,'order_confirmed',ordered_at FROM "${schema}".shopee_orders WHERE order_number LIKE 'BATCH%'`);
+    await drain(createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>({status:'unmapped'})}));
+    const upgraded=createShopee004StockLedger({pool,schema,enabled:true,matchItem:(_shop,item)=>item.name==='ResolvedLater'?matchItem():({status:'unmapped'})});
+    expect(await upgraded.requeueResolvedMappings()).toEqual({queuedOrders:0});
+    expect(await upgraded.requeueResolvedMappings()).toEqual({queuedOrders:1});
+  });
   test('changed opening plan, stale approval and missing attestations cannot activate', async () => {
     await source(); const p=await ledger.prepare({posCatalog:catalog,openingOrderNumbers:['OLDORDER1'],actor});
     await expect(ledger.activate({actor})).rejects.toMatchObject({code:'OPENING_ATTESTATIONS_REQUIRED'});

@@ -1136,6 +1136,38 @@
       "authority": "owner_confirmed_additional_consumables_2026-10-23",
       "evidence": "Owner explicitly confirmed the standard max III box plus an ADDITIONAL box of 50 test strips. Standard POS kit already includes 10 strips and remains one whole box; separate 50-strip box is one, and 100 extra lancets are two independently verified POS boxes of 50. Total physical strips are 60; no subtraction/conversion of kit contents.",
       "evidenceUrl": "https://seller.shopee.co.th/portal/product/54219025174"
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Blendera-MF เบลนเดอร่า เอ็มเอฟ 2.5 กก. อาหารทางการแพทย์ 1 ถุง",
+      "variant": "4ถุง (1ลัง)",
+      "components": [
+        {
+          "companySku": "IC-000804",
+          "quantityPerSale": 4,
+          "quantityUnit": "ถุง",
+          "posProductName": "สามัญ เบลนเดอร่า เอ็มเอฟ 2.5 กก"
+        }
+      ],
+      "authority": "exact_live_listing_and_pos_metadata_review_2026-10-23",
+      "evidence": "Exact 2.5-kg product and explicit variant 4 bags (one case). Existing ERP master and fresh readonly POS metadata identify one active 2.5-kg bag as the smallest stock unit. Subtract four bags, not four kilograms or four cases."
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "branchCode": "004",
+      "productName": "Durex Play ดูเร็กซ์ เพลย์ เจลหล่อลื่น 50 มล. Classic คลาสสิค และ Saucy Strawberry สตรอว์เบอร์รี",
+      "variant": "คลาสสิค 50 มล.",
+      "components": [
+        {
+          "companySku": "IC-002112",
+          "quantityPerSale": 1,
+          "quantityUnit": "ขวด",
+          "posProductName": "สามัญ เจลหล่อลื่น ดูเร็กซ์ เพลย์ คลาสสิค 50 มล"
+        }
+      ],
+      "authority": "exact_live_listing_and_pos_metadata_review_2026-10-23",
+      "evidence": "Exact Classic 50-ml variant of the combined Durex Play listing. The existing Classic 50-ml catalog identity and fresh readonly POS metadata agree on one bottle. The separately reviewed Strawberry variant is unchanged."
     }
   ]
 }

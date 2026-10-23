@@ -6,13 +6,19 @@ function getLedger() {
   return ledger;
 }
 function startShopee004StockMaintenance({ processOne = () => getLedger().processOne(), enabled = process.env.SHOPEE004_STOCK_LEDGER_ENABLED === 'true',
-  intervalMs = 2000, reportFailure = () => console.error('[shopee004-stock] LEDGER_PROCESSING_FAILED') } = {}) {
+  refreshResolvedMappings = () => getLedger().requeueResolvedMappings(), now = () => performance.now(),
+  mappingRefreshMs = 30000, intervalMs = 2000, reportFailure = () => console.error('[shopee004-stock] LEDGER_PROCESSING_FAILED') } = {}) {
   if (!enabled) return () => {};
-  let running = false, stopped = false;
+  let running = false, stopped = false, lastMappingRefresh = -Infinity;
   async function tick() {
     if (running || stopped) return;
     running = true;
-    try { for (let i = 0; i < 50 && !stopped; i++) if (!await processOne()) break; }
+    try {
+      for (let i = 0; i < 50 && !stopped; i++) if (!await processOne()) break;
+      if (!stopped && now() - lastMappingRefresh >= mappingRefreshMs) {
+        lastMappingRefresh = now(); await refreshResolvedMappings();
+      }
+    }
     catch { reportFailure(); }
     finally { running = false; }
   }
