@@ -195,6 +195,32 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       return true;
     });
   }
+  async function reconcileAcceptedLegacy({ actor, ownerAcceptedOpeningEstimate }) {
+    requireEnabled();
+    if (!actor || ownerAcceptedOpeningEstimate !== true) fail('OWNER_ESTIMATE_APPROVAL_REQUIRED');
+    return transaction(async c => {
+      const control = (await c.query(`SELECT * FROM ${table('control')} WHERE singleton=1 FOR SHARE`)).rows[0];
+      if (!['live','paused'].includes(control?.mode)
+        || control.plan.openingBasis?.quality !== 'owner-accepted-estimate') fail('ACCEPTED_ESTIMATE_CUTOVER_REQUIRED');
+      // Requeue only old, unheld positions blocked by the former opening rule.
+      // Never approve cancellations, returns, changed items, new orders or
+      // missing dates; ordinary projection still validates each source row.
+      const queued = await c.query(`INSERT INTO ${table('dirty')}(order_number)
+        SELECT p.order_number FROM ${table('positions')} p JOIN ${orders} o
+          ON o.order_number=p.order_number AND o.shop_code='sc-drug-store'
+        WHERE p.eligibility='legacy' AND p.state='review_required'
+          AND p.reasons='["legacy-arrival-needs-opening-review"]'::jsonb
+          AND o.ordered_at < $1
+          AND NOT EXISTS (SELECT 1 FROM ${table('lines')} l WHERE l.order_number=p.order_number
+            AND (l.reserved_quantity<>0 OR l.shipped_unposted_quantity<>0))
+        ORDER BY p.order_number LIMIT 500
+        ON CONFLICT(order_number) DO NOTHING`, [control.cutover_at]);
+      await audit(c, 'accepted-estimate-legacy-requeued', { queuedOrders: queued.rowCount,
+        originalCutoverPreserved: true, physicalStockVerified: false, posStockAdjusted: false }, actor);
+      return { queuedOrders: queued.rowCount, originalCutoverPreserved: true,
+        physicalStockVerified: false, posStockAdjusted: false };
+    });
+  }
   async function projection(productCodes) {
     requireEnabled();
     if (!Array.isArray(productCodes) || productCodes.length > 10000
@@ -204,7 +230,9 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       const ctrl = await c.query(`SELECT mode,cutover_at,plan->'openingBasis' AS opening_basis FROM ${table('control')} WHERE singleton=1`);
       const pending = await c.query(`SELECT count(*)::int AS count FROM ${table('dirty')}`);
       const review = await c.query(`SELECT count(*) FILTER (WHERE state='review_required')::int AS count,
-        count(*) FILTER (WHERE jsonb_array_length(warnings)>0)::int AS warning_count FROM ${table('positions')}`);
+        count(*) FILTER (WHERE warnings ? 'owner-confirmed-source-label-mismatch')::int AS warning_count,
+        count(*) FILTER (WHERE warnings ? 'late-legacy-excluded-under-owner-accepted-estimate')::int AS estimate_excluded_count
+        FROM ${table('positions')}`);
       const stamp = await c.query(`SELECT transaction_timestamp() AS at,COALESCE((SELECT max(revision) FROM ${table('audit')}),0)::text AS revision`);
       const feed = await c.query(`SELECT max(created_at) AS last_ingested_at FROM ${events} WHERE shop_code='sc-drug-store'`);
       const ready = ctrl.rows[0]?.mode === 'live' && !pending.rows[0].count && !review.rows[0].count;
@@ -220,6 +248,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         lastEmailIngestedAt: feed.rows[0].last_ingested_at?.toISOString() || null,
         pendingOrders: pending.rows[0].count, reviewOrders: review.rows[0].count,
         sourceLabelReviewOrders: review.rows[0].warning_count,
+        acceptedOpeningLateLegacyOrders: review.rows[0].estimate_excluded_count,
         posPostingPolicy: 'not-recorded-in-pos', emailCoverage: 'email-orders-only',
         ...(basis ? { openingBasisQuality: basis.quality, openingBasisAsOf: basis.sourceAsOf,
           openingBasisHistoricalOrders: basis.coveredOrderCount, openingBasisPhysicalStockVerified: false,
@@ -245,6 +274,6 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         hasMore:result.rows.length>limit,nextCursor:result.rows.length>limit?page.at(-1).order_number:null };
     },true);
   }
-  return { prepare, activate, pause, resume, review, reviewQueue, processOne, projection };
+  return { prepare, activate, pause, resume, review, reviewQueue, reconcileAcceptedLegacy, processOne, projection };
 }
 module.exports = { createShopee004StockLedger };

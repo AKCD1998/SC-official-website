@@ -41,8 +41,14 @@ function projectPosition({ order, events, reviews, control, previous, now, match
     // surfaced for review instead of silently assuming it was counted in POS.
     const known = control.plan.legacyOrders.includes(order.order_number)
       || reviews.some(r => r.kind === 'legacy-in-baseline');
-    return { eligibility, state: known ? 'legacy_excluded' : 'review_required',
-      reasons: known ? [] : ['legacy-arrival-needs-opening-review'], warnings: [], snapshot, lines: [] };
+    // An accepted estimate is an explicit fixed opening boundary, not an
+    // assertion that every older order was physically counted or posted in POS.
+    // Late old mail stays outside that boundary without adding another debit.
+    const acceptedExclusion = !known && Number.isFinite(created) && created < cutover
+      && control.plan.openingBasis?.quality === 'owner-accepted-estimate';
+    return { eligibility, state: known || acceptedExclusion ? 'legacy_excluded' : 'review_required',
+      reasons: known || acceptedExclusion ? [] : ['legacy-arrival-needs-opening-review'],
+      warnings: acceptedExclusion ? ['late-legacy-excluded-under-owner-accepted-estimate'] : [], snapshot, lines: [] };
   }
   const catalog = validateCatalog(control.pos_catalog);
   const mapped = mapShopeeStockLines({ items: order.items, posCatalog: catalog, matchItem });

@@ -102,3 +102,20 @@ Email latency and missing/non-email orders remain visible limitations. Ledger sn
 ## Existing reservation designs
 
 The two old local `071` stock-request candidates concern donor-capacity allocation and have conflicting TTL/lifecycle models. Neither is reused, renumbered or merged. Shopee orders are external confirmed demand and can oversell; they are not internal stock-request holds. This SC ledger is the sole authority for Shopee commitments, and PaaS only reads it. A future canonical stock-request design must consume this encumbrance rather than create a second Shopee reservation or reapply deductions through Full Sync/Delta.
+
+### Late historical emails with an accepted estimate
+
+For an explicitly owner-accepted estimated opening, an order arriving later with a
+creation time before the immutable cutover is excluded from additional deductions
+and retains the warning `late-legacy-excluded-under-owner-accepted-estimate`.
+This is not evidence of a physical count or a POS adjustment. Its aggregate count
+is exposed separately from source-label mapping warnings. Unknown dates and
+previously admitted new orders remain subject to review.
+
+The human-admin `POST /api/app/shopee/stock-commitments/reconcile-accepted-legacy`
+action, with `ownerAcceptedOpeningEstimate: true`, can requeue up to 500 existing
+legacy-only opening reviews after upgrading the rule. It cannot requeue an order
+with held quantities, another review reason, a missing date or an order created
+on or after cutover. It preserves the opening offset and cutover and records no
+claim that stock was physically verified or posted in POS. Ordinary physically
+verified opening plans continue to require explicit review of late old arrivals.
