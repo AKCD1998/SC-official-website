@@ -81,3 +81,48 @@ test('an unrelated item or an already blocked legacy match is left unchanged', (
   expect(guard('sc-drug-store', f.item, blocked)).toBe(blocked);
   expect(guard('other-shop', f.item, f.legacy)).toBe(f.legacy);
 });
+
+test.each([{ active: false }, { smallFactor: 2 }])('derived observation-only POS evidence still fences legacy fallback: %j', changed => {
+  const f = fixture();
+  f.evidenceRefs.set('old-pos', { ...f.scope, kind: 'pos_unit', productCode: 'POS-A', stockCode: 'POS-A',
+    unit: 'กล่อง', stockFactor: 1, smallFactor: 1, active: true, verified: false, invalidReasonCode: 'POS_METADATA_CHANGED' });
+  f.evidenceRefs.set('new-pos', { ...f.scope, kind: 'pos_unit', productCode: 'POS-A', stockCode: 'POS-A', unit: 'กล่อง',
+    stockFactor: 1, smallFactor: 1, active: true, observedAt: '2026-10-23T10:01:00Z', verified: false,
+    invalidReasonCode: 'POS_METADATA_OBSERVATION_ONLY', ...changed });
+  expect(f.run().status).toBe('unmapped');
+});
+
+test('same-time derived catalog conflicts cannot disappear because both proofs are unverified', () => {
+  const f = fixture();
+  Object.assign(f.evidenceRefs.get('catalog'), { verified: false, invalidReasonCode: 'CATALOG_EVIDENCE_CONFLICT' });
+  f.evidenceRefs.set('catalog-contradiction', { ...f.evidenceRefs.get('catalog'), sourceSkus: ['WRONG'] });
+  f.evidenceRefs.set('unit', f.proof);
+  expect(f.run().status).toBe('unmapped');
+});
+
+test('same-time derived unit conflicts retain their product fence without granting either unit authority', () => {
+  const f = fixture();
+  f.evidenceRefs.set('unit-old', { ...f.proof, verified: false, invalidReasonCode: 'UNIT_EVIDENCE_CONFLICT' });
+  f.evidenceRefs.set('unit-new', { ...f.proof, verified: false, invalidReasonCode: 'UNIT_EVIDENCE_CONFLICT',
+    components: [{ productCode: 'POS-A', quantityPerSale: 2, unit: 'กล่อง' }] });
+  expect(f.run().status).toBe('unmapped');
+});
+
+test('an invalidated compatible unit observation cannot clear an independently unexplained Seller SKU conflict', () => {
+  const f = fixture(); f.evidenceRefs.get('catalog').sourceSkus = ['SELLER-ALIAS'];
+  f.evidenceRefs.set('unit', { ...f.proof, verified: false, invalidReasonCode: 'UNIT_SEMANTICS_CHANGED' });
+  expect(f.run().status).toBe('unmapped');
+});
+
+test('pack-semantic drift needs a new verified unit attestation, while an identical later refresh stays harmless', () => {
+  const f = fixture(), original = f.evidenceRefs.get('catalog');
+  Object.assign(original, { packText: 'old pack', verified: false, invalidReasonCode: 'CATALOG_SEMANTICS_CHANGED' });
+  const changed = { ...original, packText: 'new pack', verified: true, catalogVersion: 'v2', observedAt: '2026-10-23T10:01:00Z' };
+  delete changed.invalidReasonCode;
+  f.evidenceRefs.set('catalog-new', changed); f.evidenceRefs.set('unit-old', f.proof);
+  expect(f.run().status).toBe('unmapped');
+  f.evidenceRefs.set('unit-new', { ...f.proof, observedAt: '2026-10-23T10:02:00Z' });
+  expect(f.run()).toBe(f.legacy);
+  f.evidenceRefs.set('catalog-refresh', { ...changed, catalogVersion: 'v3', observedAt: '2026-10-23T10:03:00Z' });
+  expect(f.run()).toBe(f.legacy);
+});

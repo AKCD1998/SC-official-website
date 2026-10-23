@@ -6,7 +6,14 @@ const id = v => typeof v === 'string' && /^[A-Za-z0-9_-]{1,100}$/u.test(v);
 const sku = v => typeof v === 'string' && /^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/u.test(v);
 const ref = v => typeof v === 'string' && /^[A-Za-z0-9:_-]{1,160}$/u.test(v);
 const conflict = () => ({ status: 'unmapped', reasonCode: 'verified_mapping_evidence_conflict' });
-const trusted = f => f && typeof f === 'object' && !Array.isArray(f) && f.verified === true
+// These markers are added by the server's trusted snapshot derivation after an
+// originally verified observation conflicts with another observation. They may
+// fence a legacy fallback, but must never approve a unit or clear an exception.
+const SEMANTIC_FENCES = new Set(['CATALOG_SEMANTICS_CHANGED', 'CATALOG_EVIDENCE_CONFLICT',
+  'UNIT_SEMANTICS_CHANGED', 'UNIT_EVIDENCE_CONFLICT', 'POS_METADATA_CHANGED', 'POS_METADATA_CONFLICT',
+  'POS_METADATA_OBSERVATION_ONLY']);
+const trusted = f => f && typeof f === 'object' && !Array.isArray(f)
+  && (f.verified === true || (f.verified === false && SEMANTIC_FENCES.has(f.invalidReasonCode)))
   && f.shopCode === 'sc-drug-store' && f.branchCode === '004' && id(f.listingId) && id(f.variationId)
   && typeof f.observedAt === 'string' && Number.isFinite(Date.parse(f.observedAt));
 const quantityFact = f => ['seller_description', 'owner_unit'].includes(f.kind)
@@ -19,6 +26,8 @@ const latest = rows => {
   const stamp = Math.max(...rows.map(f => Date.parse(f.observedAt)));
   return rows.filter(f => Date.parse(f.observedAt) === stamp);
 };
+const catalogMeaning = f => JSON.stringify({ sourceSkus: [...new Set(f.sourceSkus)].sort(),
+  aliases: [...new Set(f.aliases.map(aliasKey))].sort(), packText: norm(f.packText) });
 function idsOf(item) {
   const listing = [item?.listingId, item?.listingProductId, item?.productId].filter(x => x != null && String(x).trim()).map(String);
   const variant = [item?.variationId, item?.listingVariationId].filter(x => x != null && String(x).trim()).map(String);
@@ -52,7 +61,7 @@ function canonical(components, pos) {
   }
   return JSON.stringify([...totals].sort(([a], [b]) => a.localeCompare(b)));
 }
-const posShape = p => JSON.stringify([p.stockCode, unit(p.unit ?? p.smallUnit), p.stockFactor, p.smallFactor,
+const posShape = p => JSON.stringify([p.stockCode, unit(p.unit ?? p.smallUnit), p.active !== false, p.stockFactor, p.smallFactor,
   ...(p.productCode !== p.stockCode && p.companySku !== p.stockCode
     ? [p.masterStockCode, p.masterActive, p.masterStockFactor, p.masterSmallFactor] : [])]);
 
@@ -84,8 +93,7 @@ function createLegacyEvidenceGuard({ evidenceRefs, posCatalog } = {}) {
     if (!anchored.size) return legacyMatch;
     const current = [...anchored].flatMap(k => latest(catalogFacts.filter(f => key(f) === k)));
     if (anchored.size > 1) return conflict();
-    const payloads = current.map(f => JSON.stringify({ sourceSkus: [...new Set(f.sourceSkus)].sort(),
-      aliases: [...new Set(f.aliases.map(aliasKey))].sort() }));
+    const payloads = current.map(catalogMeaning);
     if (new Set(payloads).size > 1) return conflict();
     const quantity = latest(facts.filter(f => quantityFact(f) && anchored.has(key(f))
       && Array.isArray(f.components) && f.components.length && f.components.every(componentValid)
@@ -93,7 +101,19 @@ function createLegacyEvidenceGuard({ evidenceRefs, posCatalog } = {}) {
     // An independently reviewed quantity disagreement is a semantic conflict,
     // even if an old title-only rule could still produce a convenient number.
     if (quantity.some(f => canonical(f.components, pos) !== baseline)) return conflict();
-    const independentlyCompatible = quantity.some(f => canonical(f.components, pos) === baseline);
+    const independentlyCompatible = quantity.some(f => f.verified === true && canonical(f.components, pos) === baseline);
+    // If catalog meaning actually changed, an older unit attestation cannot
+    // silently certify the new pack. An identical later export is harmless:
+    // compare against the start of this semantic revision, not its refresh time.
+    const history = catalogFacts.filter(f => anchored.has(key(f))), currentMeaning = payloads[0];
+    const different = history.filter(f => catalogMeaning(f) !== currentMeaning);
+    if (different.length) {
+      const changedAfter = Math.max(...different.map(f => Date.parse(f.observedAt)));
+      const semanticStart = Math.min(...history.filter(f => catalogMeaning(f) === currentMeaning
+        && Date.parse(f.observedAt) > changedAfter).map(f => Date.parse(f.observedAt)));
+      if (!quantity.some(f => f.verified === true && canonical(f.components, pos) === baseline
+        && Date.parse(f.observedAt) >= semanticStart)) return conflict();
+    }
     const skuConflict = components.length === 1 && current.some(f => f.sourceSkus.length
       && f.sourceSkus.some(s => s !== components[0].productCode));
     if (skuConflict && !independentlyCompatible) return conflict();
