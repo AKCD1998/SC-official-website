@@ -51,6 +51,40 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     await drain(createShopee004StockLedger({ pool,schema,enabled:true,matchItem }));
     expect((await read()).records[0].reservedQuantity).toBe(2);
   });
+  test('owner-accepted historical basis is applied once with pending/new orders, without POS-reconciled attestation', async () => {
+    await source('OLDORDER1');await source('SHIPPED01',{quantity:3});
+    const openingBasis={quality:'owner-accepted-estimate',ownerAccepted:true,olderShippedNotPostedInPos:true,
+      periodStart:'1999-01-01T00:00:00Z',sourceAsOf:'2001-01-01T00:00:00Z',excludedPhysicalReviewOrders:47,
+      coveredOrderNumbers:['SHIPPED01'],records:[{productCode:'P1',unit:'ซอง',quantity:3}]};
+    const plan=await ledger.prepare({posCatalog:catalog,openingOrderNumbers:['OLDORDER1'],openingBasis,actor});
+    expect(plan).toMatchObject({openingBasisQuality:'owner-accepted-estimate',ownerEstimateApprovalRequired:true});
+    const approval={planId:plan.planId,actor,emailFeedChecked:true,unpostedPosWorkflow:true,ownerAcceptedOpeningEstimate:true};
+    await expect(ledger.activate({...approval,ownerAcceptedOpeningEstimate:false,openingOrdersVerified:true,olderShippedReconciledInPosBasis:true}))
+      .rejects.toMatchObject({code:'OPENING_BASIS_APPROVAL_REQUIRED'});
+    await ledger.activate(approval);await drain();
+    expect(await read()).toMatchObject({status:'available',openingBasisQuality:'owner-accepted-estimate',openingBasisPhysicalStockVerified:false,
+      openingBasisHistoricalOrders:1,records:[{reservedQuantity:2,shippedUnpostedQuantity:3}]});
+    await ledger.activate(approval);
+    await pool.query(`INSERT INTO "${schema}".shopee_order_events(shop_code,order_number,event_type,occurred_at) VALUES('sc-drug-store','SHIPPED01','order_confirmed','2000-01-01')`);
+    await drain(createShopee004StockLedger({pool,schema,enabled:true,matchItem}));
+    expect((await read()).records[0]).toMatchObject({reservedQuantity:2,shippedUnpostedQuantity:3});
+    await source('NEWAFTER1',{old:false});await drain();
+    expect((await read()).records[0]).toMatchObject({reservedQuantity:4,shippedUnpostedQuantity:3});
+    await ledger.pause({actor});expect(await read()).toMatchObject({mode:'paused',records:[{reservedQuantity:4,shippedUnpostedQuantity:3}]});
+  });
+  test('owner estimate approval cannot waive the ordinary physical-opening contract',async()=>{
+    await source();const plan=await ledger.prepare({posCatalog:catalog,openingOrderNumbers:['OLDORDER1'],actor});
+    await expect(ledger.activate({planId:plan.planId,actor,emailFeedChecked:true,unpostedPosWorkflow:true,ownerAcceptedOpeningEstimate:true}))
+      .rejects.toMatchObject({code:'OPENING_BASIS_APPROVAL_REQUIRED'});
+  });
+  test('wrong accepted historical quantities leave no opening control row',async()=>{
+    await source('SHIPPED01',{quantity:3});
+    const openingBasis={quality:'owner-accepted-estimate',ownerAccepted:true,olderShippedNotPostedInPos:true,
+      periodStart:'1999-01-01T00:00:00Z',sourceAsOf:'2001-01-01T00:00:00Z',excludedPhysicalReviewOrders:0,
+      coveredOrderNumbers:['SHIPPED01'],records:[{productCode:'P1',unit:'ซอง',quantity:4}]};
+    await expect(ledger.prepare({posCatalog:catalog,openingOrderNumbers:[],openingBasis,actor})).rejects.toMatchObject({code:'OPENING_ESTIMATE_TOTALS_DIFFER'});
+    expect((await pool.query(`SELECT count(*)::int AS n FROM ${t('control')}`)).rows[0].n).toBe(0);
+  });
   test('late historical orders are not new deductions; explicit baseline review resolves uncertainty', async () => {
     await source(); await open(); await drain(); await source('LATEOLD01'); await drain();
     expect(await read()).toMatchObject({ status: 'review-or-processing-required', reviewOrders: 1, records: [{ reservedQuantity: 2 }] });

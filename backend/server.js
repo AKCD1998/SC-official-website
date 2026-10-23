@@ -82,6 +82,7 @@ app.use('/api/scglamliff', scGlamLiffRoutes);
 // verify hook captures the raw request body for every route so the seamless module's LINE
 // webhook can HMAC-verify x-line-signature — express.json() otherwise only exposes the
 // already-parsed object, and the raw bytes can't be reconstructed identically afterwards.
+app.use('/api/app/shopee/stock-commitments/plan', require('./src/modules/seamless/routes/shopee004StockRoutes').stockPlanJsonParser());
 app.use(express.json({
   verify(req, res, buf) {
     req.rawBody = buf;

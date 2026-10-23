@@ -22,6 +22,38 @@ The table trigger takes a shared control lock while the activation takes an excl
 
 ## Reviewable release sequence
 
+### Owner-accepted estimated opening (23 October 2026)
+
+When the owner explicitly accepts a reviewed opening workbook as approximate,
+`plan` can additionally receive `openingBasis`. This is a distinct audited mode;
+it does **not** assert a physical count or that old shipments were posted in POS.
+The original physically verified opening path keeps its original attestations.
+
+The estimate includes a timezone-qualified source cutoff and period start,
+the explicit historical shipped order references, positive per-POS-unit totals,
+and the number of physical-review exceptions the owner accepted as excluded.
+The server maps the referenced inbox items again and requires the totals and
+units to match. The historical set must be disjoint from opening pending orders
+and within the stated source window (September is not silently reintroduced).
+Only aggregate totals, provenance, acceptance identity/time and exception counts
+are stored as the opening offset. No migration or POS/sync write is needed.
+
+Activation of this mode requires `ownerAcceptedOpeningEstimate=true` separately
+from `emailFeedChecked` and `unpostedPosWorkflow`. Do not set
+`openingOrdersVerified` or `olderShippedReconciledInPosBasis` to true merely to
+activate an estimate. An ordinary plan cannot use the estimate flag to waive
+its physical evidence requirement. The saved cutover and accepted basis remain
+immutable; duplicate activation, late old emails and worker restarts do not add
+the offset again. New reservations are added independently after cutover.
+
+The projection includes the accepted historical quantity in shipped-but-unposted
+demand and reports `openingBasisQuality=owner-accepted-estimate`, source time,
+covered historical order count and `openingBasisPhysicalStockVerified=false`.
+This is a fixed accepted opening adjustment, not an automatic historical replay.
+Historical refunds do not automatically reduce that adjustment. When a physical
+stocktake/POS adjustment incorporates these goods, pause and reconcile the basis
+before resuming, so the same old shipments are not deducted twice.
+
 **Do not merge/deploy/activate as part of this preparation task.** SC's Render service auto-deploys `main` on commit, and startup applies Seamless migrations. Before a later authorized merge, fetch/recheck the migration ceiling, inspect the SC ledger read-only, and review the exact pending files. This PR adds only `034_shopee004_durable_stock_commitments.sql`; it creates new ledger tables, two scoped email-source triggers, and one scoped index. It seeds no control row and re-runs safely. No PaaS migration is required.
 
 Later authorized order: SC producer code/schema (flag OFF), PaaS consumer code (flag OFF), StockDay UI, dedicated projection credential on the two backends, producer flag ON, private opening plan/review/activation, drain/check queue, then PaaS availability flag ON. Never reuse Sync, Delta, browser or generic internal credentials for the bridge. No secret belongs in a VITE variable or client bundle.
