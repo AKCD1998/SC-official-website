@@ -119,3 +119,12 @@ with held quantities, another review reason, a missing date or an order created
 on or after cutover. It preserves the opening offset and cutover and records no
 claim that stock was physically verified or posted in POS. Ordinary physically
 verified opening plans continue to require explicit review of late old arrivals.
+
+### Reviewed stock-mapping upgrades
+
+The existing maintenance worker checks at most 50 mapping-only review positions
+once per 30 seconds. It requeues a position only when all current items pass the
+reviewed stock/unit mapper. Normal projection then checks lifecycle and retained
+item changes again. This adds no cancellation, dispatch, return or physical-count
+approval, and does not move cutover or rebuild the opening basis. Unresolved or
+mixed review reasons stay blocked. The worker does nothing while its feature is OFF.
