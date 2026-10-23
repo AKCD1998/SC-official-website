@@ -64,7 +64,11 @@ objects from an HTTP request. Every referenced fact must have the exact shop,
 branch, listing, variation and an observation time. The rule needs independent
 seller catalog identity, exact quantity/component evidence, and a POS unit fact
 for every component. Each alias also needs exact quantity evidence. Adding a new
-pack name to a catalog does not reuse an old factor by itself.
+pack name to a catalog does not reuse an old factor by itself. An existing
+approved rule is recorded truthfully as `reviewed_stock_rule`, with mandatory
+`reviewedRuleVersion`, `reviewedRuleReference`, `reviewAuthority` and
+`auditReference`; it must not be relabelled as a freshly verified Seller Centre
+description. A raw description alone has no approved quantity contract.
 
 Both supported POS factors must equal one. Shared-stock aliases require the same
 active master and factor checks already used by the stock reader. The module
@@ -90,7 +94,7 @@ automatically. Conflicting duplicate listing/variation observations are fenced.
 
 ## Verification and release boundary
 
-The 45 focused tests use synthetic identities and metadata. They cover stable-ID
+The 47 focused tests use synthetic identities and metadata. They cover stable-ID
 conflicts, exact old/new aliases, pack drift, bundles, all four shared-alias cases,
 unsupported conversion factors, evidence forgery, immutable snapshots,
 revocation, optimistic conflicts and proactive audit coverage. They do not prove

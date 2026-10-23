@@ -92,13 +92,32 @@ test('shared stock keeps the evidenced alias identity; downstream POS conversion
 
 test.each(['alias-one', 'alias-two', 'alias-three', 'alias-four'])('shared stock %s requires the unchanged supported master contract', alias => {
   const f = fixture({ shared: true }), p = f.posCatalog.get('POS-A');
-  p.companySku = alias;
+  p.companySku = alias; f.posCatalog = new Map([[alias, p]]);
+  f.rule.components[0].productCode = alias;
+  f.evidenceRefs.get('unit:v1').components[0].productCode = alias;
+  f.evidenceRefs.get('pos:A').productCode = alias;
   expect(resolveIdentityRule(f).status).toBe('matched');
   for (const changed of [{ masterActive: false }, { masterStockCode: 'wrong' }, { masterStockFactor: 2 }, { masterSmallFactor: 2 }]) {
-    expect(resolveIdentityRule({ ...f, posCatalog: new Map([['POS-A', { ...p, ...changed }]]) }).reasonCode).toBe('shared_stock_conversion_unverified');
+    expect(resolveIdentityRule({ ...f, posCatalog: new Map([[alias, { ...p, ...changed }]]) }).reasonCode).toBe('shared_stock_conversion_unverified');
   }
   const proof = f.evidenceRefs.get('pos:A'); proof.masterActive = false;
   expect(resolveIdentityRule(f).reasonCode).toBe('identity_rule_pos_contract_unverified');
+});
+
+test('POS catalog key must identify the same product as its independently read metadata', () => {
+  const f = fixture(); f.posCatalog.get('POS-A').companySku = 'WRONG';
+  expect(resolveIdentityRule(f).reasonCode).toBe('identity_rule_pos_contract_invalid');
+});
+
+test('existing reviewed quantity evidence retains its truthful version, authority and audit references', () => {
+  const f = fixture(), proof = f.evidenceRefs.get('unit:v1');
+  Object.assign(proof, { kind: 'reviewed_stock_rule', reviewedRuleVersion: 'stock-reviewed-v1',
+    reviewedRuleReference: 'reviewed:exact-rule-1', auditReference: 'audit:store-20261023', reviewAuthority: 'owner_confirmed_physical_unit' });
+  expect(resolveIdentityRule(f).status).toBe('matched');
+  for (const missing of ['reviewedRuleVersion', 'reviewedRuleReference', 'auditReference', 'reviewAuthority']) {
+    const copy = new Map(f.evidenceRefs); copy.set('unit:v1', { ...proof, [missing]: null });
+    expect(resolveIdentityRule({ ...f, evidenceRefs: copy }).reasonCode).toBe('identity_rule_quantity_unverified');
+  }
 });
 
 test.each([{ stockFactor: 2 }, { smallFactor: 2 }, { stockFactor: 0.5 }, { smallFactor: Infinity }])('unsupported POS conversion cannot be made valid merely by copying it into evidence', changed => {

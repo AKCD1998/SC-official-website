@@ -18,6 +18,9 @@ const exactId = value => typeof value === 'string' && /^[A-Za-z0-9_-]{1,100}$/u.
 const refId = value => typeof value === 'string' && /^[A-Za-z0-9:_-]{1,160}$/u.test(value);
 const get = (map, key) => map instanceof Map ? map.get(key) : undefined;
 const date = value => typeof value === 'string' && Number.isFinite(Date.parse(value));
+const quantityEvidence = e => ['seller_description', 'owner_unit'].includes(e.kind)
+  || (e.kind === 'reviewed_stock_rule' && refId(e.reviewedRuleVersion) && refId(e.reviewedRuleReference)
+    && refId(e.auditReference) && refId(e.reviewAuthority));
 const componentsEqual = (a, b) => Array.isArray(a) && Array.isArray(b) && a.length === b.length
   && a.every(c => b.some(d => c.productCode === d.productCode && c.quantityPerSale === d.quantityPerSale && unit(c.unit) === unit(d.unit)));
 const componentValid = c => plain(c) && exactId(c.productCode) && Number.isSafeInteger(c.quantityPerSale)
@@ -50,7 +53,7 @@ function validateIdentityRule(rule, { posCatalog, evidenceRefs } = {}) {
   if (!evidence) return fail('identity_rule_evidence_missing');
   if (!evidence.some(e => e.kind === 'seller_catalog' && text(e.catalogVersion)
     && rule.sourceSkus.every(s => Array.isArray(e.sourceSkus) && e.sourceSkus.includes(s)))) return fail('identity_rule_identity_unverified');
-  if (!evidence.some(e => ['seller_description', 'owner_unit'].includes(e.kind)
+  if (!evidence.some(e => quantityEvidence(e)
     && componentsEqual(e.components, rule.components))) return fail('identity_rule_quantity_unverified');
   const aliases = new Set();
   for (const a of rule.aliases) {
@@ -59,10 +62,10 @@ function validateIdentityRule(rule, { posCatalog, evidenceRefs } = {}) {
       || aliases.has(aliasKey(a))) return fail('identity_rule_alias_invalid');
     if (!a.evidenceRefs.some(ref => {
       const e = get(evidenceRefs, ref);
-      return ['seller_catalog', 'seller_description', 'owner_unit'].includes(e?.kind)
+      return (e?.kind === 'seller_catalog' || quantityEvidence(e || {}))
         && Array.isArray(e.aliases) && e.aliases.some(v => aliasKey(v) === aliasKey(a));
     })) return fail('identity_rule_alias_unverified');
-    if (!evidence.some(e => ['seller_description', 'owner_unit'].includes(e.kind)
+    if (!evidence.some(e => quantityEvidence(e)
       && componentsEqual(e.components, rule.components) && Array.isArray(e.aliases)
       && e.aliases.some(v => aliasKey(v) === aliasKey(a)))) return fail('identity_rule_quantity_unverified');
     aliases.add(aliasKey(a));
@@ -70,6 +73,7 @@ function validateIdentityRule(rule, { posCatalog, evidenceRefs } = {}) {
   for (const c of rule.components) {
     const p = get(posCatalog, c.productCode);
     if (!p || p.active !== true) return fail('pos_product_missing');
+    if (p.companySku !== c.productCode) return fail('identity_rule_pos_contract_invalid');
     if (!unit(p.smallUnit ?? p.unit) || unit(p.smallUnit ?? p.unit) !== unit(c.unit)) return fail('identity_rule_unit_conflict');
     if (!text(p.stockCode) || p.stockFactor !== 1 || p.smallFactor !== 1) return fail('identity_rule_pos_contract_invalid');
     // Match the existing stock reader's supported shared-stock contract. This
