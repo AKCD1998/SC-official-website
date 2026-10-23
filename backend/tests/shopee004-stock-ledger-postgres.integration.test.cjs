@@ -483,4 +483,28 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='SHAREDT01'`);await drain(shared);
     expect((await read()).records[0].reservedQuantity).toBe(4);
   });
+  test('a pending rule scan fences known products before any order is queued, then clears after completion',async()=>{
+    await source();await open();await drain();const before=await read(),operation=randomUUID();
+    await pool.query(`INSERT INTO "${schema}".shopee004_stock_identity_recovery_jobs(operation_id,identities,product_codes)
+      VALUES($1,'[]','["P1"]')`,[operation]);
+    expect(await read()).toMatchObject({status:'partial',pendingOrders:0,reviewOrders:0,pageReviewProducts:1,
+      recovery:{pendingRuleJobs:1},cutoverAt:before.cutoverAt,
+      records:[{availabilityStatus:'review_required',reservedQuantity:null,shippedUnpostedQuantity:null,unit:null}]});
+    expect(await ledger.projection(['P2'])).toMatchObject({status:'available',pageReviewProducts:0,
+      records:[{availabilityStatus:'available',reservedQuantity:0}]});
+    await pool.query(`UPDATE "${schema}".shopee004_stock_identity_recovery_jobs SET completed=true WHERE operation_id=$1`,[operation]);
+    expect(await read()).toMatchObject({status:'available',recovery:{pendingRuleJobs:0},cutoverAt:before.cutoverAt,records:before.records});
+  });
+  test('pending rule scans include a shared alias canonical master, while an empty metadata scope does not hide unrelated products',async()=>{
+    await source();await open();await drain();
+    const alias={...catalog[0],companySku:'ALIAS1',masterStockCode:'P1',masterActive:true,masterStockFactor:1,masterSmallFactor:1};
+    await ledger.extendPosCatalog({posCatalog:[...catalog,alias],actor});
+    await pool.query(`INSERT INTO "${schema}".shopee004_stock_identity_recovery_jobs(operation_id,identities,product_codes)
+      VALUES($1,'[]','["ALIAS1"]')`,[randomUUID()]);
+    expect(await read()).toMatchObject({status:'partial',records:[{availabilityStatus:'review_required',reservedQuantity:null}]});
+    await pool.query(`UPDATE "${schema}".shopee004_stock_identity_recovery_jobs SET completed=true`);
+    await pool.query(`INSERT INTO "${schema}".shopee004_stock_identity_recovery_jobs(operation_id,identities,product_codes)
+      VALUES($1,'[]','[]')`,[randomUUID()]);
+    expect(await read()).toMatchObject({status:'available',recovery:{pendingRuleJobs:1},records:[{availabilityStatus:'available',reservedQuantity:2}]});
+  });
 });

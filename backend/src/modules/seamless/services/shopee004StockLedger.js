@@ -324,6 +324,8 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
     return transaction(async c => {
       const ctrl = await c.query(`SELECT mode,cutover_at,pos_catalog,plan->'openingBasis' AS opening_basis FROM ${table('control')} WHERE singleton=1`);
       const matchItem = ctrl.rows[0] ? await scopedMatcher(c,ctrl.rows[0]) : undefined;
+      const ruleJobs = (await c.query(`SELECT count(*)::int AS count
+        FROM "${schema}".shopee004_stock_identity_recovery_jobs WHERE NOT completed`)).rows[0].count;
       const pending = await c.query(`SELECT count(*)::int AS count,
         count(*) FILTER(WHERE recovery_revision IS DISTINCT FROM revision OR recovery_state='ready')::int AS ready,
         count(*) FILTER(WHERE recovery_revision=revision AND recovery_state='retry_wait')::int AS retrying,
@@ -350,6 +352,22 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
         const unscanned=Math.max(0,(blocked.rows[0]?.scope_order_count||0)-blocked.rows.length);
         scopeValidated=scope.complete;affected=scope.affected;unallocatedOrders=scope.unallocatedOrders+unscanned;scopeScanLimited=unscanned>0;
       }
+      // An approved/revoked rule or changed catalog is visible before its
+      // bounded recovery cursor reaches every order. Fence those known product
+      // identities in this same snapshot, including aliases' canonical masters.
+      // Do not invent dirty-order counts from metadata-job counts.
+      const ruleAffected=new Set();
+      if(scopeValidated&&ruleJobs){
+        const catalog=validateCatalog(ctrl.rows[0].pos_catalog),requested=new Set(productCodes);
+        const relevant=[...new Set([...productCodes,...[...catalog.values()]
+          .filter(p=>requested.has(p.stockCode)).map(p=>p.companySku)])];
+        const codes=await c.query(`SELECT DISTINCT code.value AS product_code
+          FROM "${schema}".shopee004_stock_identity_recovery_jobs j
+          CROSS JOIN LATERAL jsonb_array_elements_text(j.product_codes) code(value)
+          WHERE NOT j.completed AND code.value=ANY($1::text[])`,[relevant]);
+        for(const row of codes.rows){const code=catalog.get(row.product_code)?.stockCode||row.product_code;
+          if(requested.has(code)){affected.add(code);ruleAffected.add(code);}}
+      }
       const hasBlockedOrders = pending.rows[0].count > 0 || review.rows[0].count > 0;
       const rows = await c.query(`SELECT product_code,min(unit) AS unit,count(DISTINCT unit)::int AS units,
         sum(reserved_quantity)::text AS reserved,sum(shipped_unposted_quantity)::text AS shipped
@@ -360,7 +378,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
       const records=productCodes.map(productCode=>{
         const row=byCode.get(productCode),base=initial.get(productCode);
         const reserved=Number(row?.reserved||0),shipped=Number(row?.shipped||0)+(base?.quantity||0);
-        const invalid=row?.units>1||!Number.isSafeInteger(reserved)||reserved<0||!Number.isSafeInteger(shipped)||shipped<0
+        const invalid=ruleAffected.has(productCode)||row?.units>1||!Number.isSafeInteger(reserved)||reserved<0||!Number.isSafeInteger(shipped)||shipped<0
           ||!Number.isSafeInteger(reserved+shipped)||(row?.unit&&base?.unit&&row.unit!==base.unit);
         return {productCode,availabilityStatus:!scopeValidated||affected.has(productCode)||invalid?'review_required'
           :unallocatedOrders?'known-commitments-only':'available',unit:invalid?null:row?.unit||base?.unit||null,
@@ -377,7 +395,8 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
         lastEmailIngestedAt: feed.rows[0].last_ingested_at?.toISOString() || null,
         pendingOrders: pending.rows[0].count, reviewOrders: review.rows[0].count,
         recovery: { readyOrders:pending.rows[0].ready,retryingOrders:pending.rows[0].retrying,
-          blockedOrders:pending.rows[0].blocked,nextRetryAt:pending.rows[0].next_retry_at?.toISOString() || null },
+          blockedOrders:pending.rows[0].blocked,pendingRuleJobs:ruleJobs,
+          nextRetryAt:pending.rows[0].next_retry_at?.toISOString() || null },
         sourceLabelReviewOrders: review.rows[0].warning_count,
         acceptedOpeningLateLegacyOrders: review.rows[0].estimate_excluded_count,
         posPostingPolicy: 'not-recorded-in-pos', emailCoverage: 'email-orders-only',
