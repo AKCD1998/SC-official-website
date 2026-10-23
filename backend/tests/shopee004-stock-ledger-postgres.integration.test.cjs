@@ -234,7 +234,13 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
       await expect(activation).rejects.toMatchObject({code:'OPENING_PLAN_CHANGED'});
     }finally{c.release();}
     await open();
-    await Promise.all(Array.from({length:5},()=>drain()));
+    const concurrent=await Promise.allSettled(Array.from({length:5},()=>drain()));
+    // Acquisition now deliberately admits four pending clients. Settle every
+    // admitted worker before teardown, then retry the rejected read-only queue
+    // acquisition; no worker or SQL operation is abandoned by Promise.all.
+    expect(concurrent.filter(result=>result.status==='fulfilled')).toHaveLength(4);
+    expect(concurrent.filter(result=>result.status==='rejected').map(result=>result.reason.code)).toEqual(['LEDGER_CONNECTION_QUEUE_FULL']);
+    await drain();
     expect((await read()).records[0].reservedQuantity).toBe(2);
   });
   test('an event arriving while a worker holds the dirty row remains queued after acknowledgement',async()=>{
@@ -246,7 +252,8 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     const workerPool={connect:async()=>{
       const c=await pool.connect();return {release:(...args)=>c.release(...args),query:async(sql,args)=>{
         const result=await c.query(sql,args);
-        if(!intercepted&&sql.includes(`"${schema}".shopee_orders`)&&sql.startsWith('SELECT *')){
+        const text=typeof sql==='string'?sql:sql.text;
+        if(!intercepted&&text.includes(`"${schema}".shopee_orders`)&&text.startsWith('SELECT *')){
           intercepted=true;markRead();await gate;
         }return result;
       }};
