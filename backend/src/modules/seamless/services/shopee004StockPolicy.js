@@ -1,5 +1,6 @@
 const { isDeepStrictEqual } = require('node:util');
 const { mapShopeeStockLines } = require('./shopeeStockReservationShadow');
+const { normalizeStockUnit } = require('./shopeeStockProductMatch');
 
 const fail = code => { throw Object.assign(new Error(code), { code, statusCode: 409 }); };
 const iso = value => value ? new Date(value).toISOString() : null;
@@ -8,14 +9,23 @@ function validateCatalog(catalog) {
   if (catalog.some(p => !p || typeof p !== 'object' || Array.isArray(p))) fail('POS_UNIT_CONTRACT_INVALID');
   const index = new Map(catalog.map(p => [p.companySku, { companySku: p.companySku, stockCode: p.stockCode,
     active: p.active, stockFactor: p.stockFactor, smallFactor: p.smallFactor, smallUnit: p.smallUnit,
+    ...(p.companySku!==p.stockCode?{masterStockCode:p.masterStockCode,masterActive:p.masterActive,
+      masterStockFactor:p.masterStockFactor,masterSmallFactor:p.masterSmallFactor}:{}),
     // Pack-content cross-checks need the independently observed POS master name.
     // Keep this bounded metadata; discard every unrelated input property.
     productName: typeof p.productName === 'string' ? p.productName : '' }]));
   if (index.size !== catalog.length) fail('POS_UNIT_CONTRACT_INVALID');
   for (const p of catalog) {
-    if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.test(p.companySku || '') || p.active !== true || p.companySku !== p.stockCode || p.stockFactor !== 1
+    if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.test(p.companySku || '')
+      ||!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,99}$/.test(p.stockCode||'') || p.active !== true || p.stockFactor !== 1
       || p.smallFactor !== 1 || typeof p.smallUnit !== 'string' || !p.smallUnit.trim() || p.smallUnit.length > 80
       || (p.productName != null && (typeof p.productName !== 'string' || p.productName.length > 500))) fail('POS_UNIT_CONTRACT_INVALID');
+    if(p.companySku!==p.stockCode){
+      const master=index.get(p.stockCode);
+      if(p.masterStockCode!==p.stockCode||p.masterActive!==true||p.masterStockFactor!==1||p.masterSmallFactor!==1
+        ||!master||master.companySku!==master.stockCode||master.active!==true||master.stockFactor!==1||master.smallFactor!==1
+        ||normalizeStockUnit(p.smallUnit)!==normalizeStockUnit(master.smallUnit))fail('POS_UNIT_CONTRACT_INVALID');
+    }
   }
   return index;
 }
@@ -89,6 +99,15 @@ function projectPosition({ order, events, reviews, control, previous, now, match
     return { productCode: l.stockCode, unit: catalog.get(l.stockCode).smallUnit, orderedQuantity: l.quantity,
       reservedQuantity: dispatched ? 0 : outstanding, shippedUnpostedQuantity: dispatched ? outstanding : 0 };
   });
+  // Approving a mapping is not approval to rewrite an existing held unit or
+  // multiplier. Keep the old hold fenced until an explicit reconciliation can
+  // account for the difference; lifecycle evidence alone cannot waive it.
+  const held = previous?.retainedLines || [];
+  if (held.some(l=>Number(l.reserved_quantity)+Number(l.shipped_unposted_quantity)>0)
+    && mapped.status === 'mapped' && (held.length !== lines.length || held.some(old => {
+    const current = lines.find(l => l.productCode === old.product_code);
+    return !current || current.unit !== old.unit || current.orderedQuantity !== Number(old.ordered_quantity);
+  }))) reasons.push('mapping-held-contract-changed-needs-review');
   const unique = [...new Set(reasons)].sort();
   return { eligibility, state: unique.length ? 'review_required' : cancelled || lines.every(l => !l.reservedQuantity && !l.shippedUnpostedQuantity)
     ? 'released' : dispatched ? 'shipped_unposted' : 'reserved', reasons: unique,

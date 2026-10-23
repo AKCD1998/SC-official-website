@@ -18,6 +18,21 @@ test('unknown order keeps retained identities fenced and counts once across curr
  const r=resolveReviewScope([{items:[{name:'Unknown',quantity:1}],source_snapshot:{items:[{name:'Unknown',quantity:1}]},retained_codes:['P1']}],catalog,{matchItem:unknown,identityMatch:unknown});
  expect(r.complete).toBe(true);expect(r.unallocatedOrders).toBe(1);expect([...r.affected]).toEqual(['P1']);
 });
+test('a verified bundle identity fences every component when its quantity still needs review',()=>{
+ const matchItem=()=>({status:'bundle',quantityRuleStatus:'verified',components:[
+  {companySku:'P1',quantityPerSale:0},{companySku:'P2',quantityPerSale:1}]});
+ const scope=resolveReviewScope([{items:[{name:'Synthetic bundle',quantity:1}],retained_codes:['P1']}],catalog,{matchItem});
+ expect(scope.complete).toBe(true);expect(scope.unallocatedOrders).toBe(0);expect([...scope.affected].sort()).toEqual(['P1','P2']);
+});
+test('a server-verified registry bundle supplies unit metadata while POS guards remain mandatory',()=>{
+ const matchItem=()=>({status:'bundle',quantityRuleStatus:'verified',components:[
+  {companySku:'P1',quantityPerSale:2},{companySku:'P2',quantityPerSale:1}]});
+ matchItem.baseUnit=(_shop,code)=>catalog.has(code)?{quantityUnit:'กล่อง'}:null;
+ expect(mapShopeeStockLines({items:[{quantity:3}],posCatalog:catalog,matchItem})).toMatchObject({status:'mapped',
+  lines:[{stockCode:'P1',quantity:6},{stockCode:'P2',quantity:3}]});
+ const conflicting=new Map(catalog);conflicting.set('P2',{...catalog.get('P2'),smallUnit:'ขวด'});
+ expect(mapShopeeStockLines({items:[{quantity:3}],posCatalog:conflicting,matchItem})).toMatchObject({status:'blocked',reasonCounts:{sale_unit_pos_mismatch:1}});
+});
 test('missing source is unallocated and retains known holds; a caller cannot exceed the scan limit',()=>{
  const missing=resolveReviewScope([{items:null,retained_codes:['P1']}],catalog,{matchItem:known});
  expect(missing.complete).toBe(true);expect(missing.unallocatedOrders).toBe(1);expect([...missing.affected]).toEqual(['P1']);

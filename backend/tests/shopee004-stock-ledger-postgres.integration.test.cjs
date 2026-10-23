@@ -22,6 +22,9 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
         CREATE TABLE shopee_order_events(id bigserial PRIMARY KEY,shop_code text,order_number text,event_type text,occurred_at timestamptz,created_at timestamptz DEFAULT now());`);
       const sql = fs.readFileSync(path.join(__dirname,'../src/modules/seamless/db/migrations/034_shopee004_durable_stock_commitments.sql'),'utf8');
       await c.query(sql); await c.query(sql); // Direct rerun, not merely ledger skip.
+      const recoverySql=fs.readFileSync(process.env.SHOPEE004_RECOVERY_SCHEMA_FIXTURE
+        ||path.join(__dirname,'../src/modules/seamless/db/migrations/035_shopee004_stock_recovery_identity.sql'),'utf8');
+      await c.query(recoverySql);await c.query(recoverySql);
     } finally { c.release(); }
     ledger = createShopee004StockLedger({ pool, schema, enabled: true, matchItem });
   });
@@ -215,8 +218,10 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
   test('failed projection transaction retains dirty work and no partial position, then retry recovers', async () => {
     await source();await open();
     const broken=createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>{throw new Error('private injected details');}});
-    await expect(broken.processOne()).rejects.toMatchObject({code:'LEDGER_OPERATION_FAILED'});
-    expect((await read()).pendingOrders).toBe(1);await drain();expect((await read()).status).toBe('available');
+    expect(await broken.processOne()).toBe(true);expect(await broken.processOne()).toBe(false);
+    expect((await read()).pendingOrders).toBe(1);
+    await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='OLDORDER1'`);
+    await drain();expect((await read()).status).toBe('available');
   });
   test('activation fence queues in-flight source change and SKIP LOCKED workers never lose work',async()=>{
     await source(); const plan=await ledger.prepare({posCatalog:catalog,openingOrderNumbers:['OLDORDER1'],actor});
@@ -272,7 +277,7 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
   test('deleted source evidence cannot silently advertise a fully qualified quantity or clear old holds',async()=>{
     await source();await open();await drain();
     await pool.query(`DELETE FROM "${schema}".shopee_orders WHERE order_number='OLDORDER1'`);
-    await expect(ledger.processOne()).rejects.toMatchObject({code:'QUEUED_ORDER_MISSING'});
+    expect(await ledger.processOne()).toBe(true);expect(await ledger.processOne()).toBe(false);
     expect(await read()).toMatchObject({status:'partial',unallocatedOrders:1,pendingOrders:1,records:[{availabilityStatus:'review_required',reservedQuantity:2}]});
   });
   test('owner-confirmed source-label mismatch remains a visible warning, not a silent clean data qualification',async()=>{
@@ -378,5 +383,104 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
       jsonb_build_array(jsonb_build_object('name','Synthetic','quantity',1)),now() FROM generate_series(1,101) n`);
     expect(await ledger.projection(['P2'])).toMatchObject({scopeValidated:true,pendingOrders:101,scopeScanLimited:true,unallocatedOrders:1,
       records:[{availabilityStatus:'known-commitments-only'}]});
+  });
+  function faultLedger({code='57014',target='OLDORDER1',beforeFailure,realTimeout=false}={}) {
+    const faultPool={connect:async()=>{
+      const c=await pool.connect();
+      return {release:error=>c.release(error),query:async(text,values)=>{
+        if(typeof text==='string'&&text.startsWith(`SELECT * FROM "${schema}".shopee_orders WHERE`)
+          &&values?.[0]===target){
+          if(beforeFailure)await beforeFailure();
+          if(realTimeout){await c.query("SET LOCAL statement_timeout='5ms'");return c.query('SELECT pg_sleep(0.05)');}
+          throw Object.assign(new Error('Synthetic provider exception must stay private'),{code});
+        }
+        return c.query(text,values);
+      }};
+    }};
+    return createShopee004StockLedger({pool:faultPool,schema,enabled:true,matchItem});
+  }
+  test('a poison order is isolated; five durable transient attempts survive restart and do not starve other orders',async()=>{
+    await source();await open();await source('SECOND002',{old:false});
+    for(let i=1;i<=5;i++){
+      await pool.query(`UPDATE ${t('dirty')} SET retry_after=now()-interval '1 second' WHERE order_number='OLDORDER1'`);
+      expect(await faultLedger().processOne()).toBe(true);
+      const dirty=(await pool.query(`SELECT attempt_count,recovery_state,last_error_code FROM ${t('dirty')} WHERE order_number='OLDORDER1'`)).rows[0];
+      expect(dirty).toEqual({attempt_count:i,recovery_state:i===5?'blocked':'retry_wait',last_error_code:'PROCESSING_TIMEOUT'});
+      if(i===1){expect(await faultLedger().processOne()).toBe(true);expect(await faultLedger().processOne()).toBe(false);}
+    }
+    expect(await faultLedger().processOne()).toBe(false);
+    expect(await read()).toMatchObject({pendingOrders:1,recovery:{readyOrders:0,retryingOrders:0,blockedOrders:1},
+      records:[{reservedQuantity:2,availabilityStatus:'review_required'}]});
+    // A real source revision, rather than a retry loop, wakes the old work.
+    await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='OLDORDER1'`);
+    await drain();expect(await read()).toMatchObject({pendingOrders:0,records:[{reservedQuantity:4,availabilityStatus:'available'}]});
+  });
+  test('a real PostgreSQL statement timeout rolls back one order and preserves held quantities',async()=>{
+    await source();await open();await drain();const before=await read();
+    await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='OLDORDER1'`);
+    expect(await faultLedger({realTimeout:true}).processOne()).toBe(true);
+    expect(await read()).toMatchObject({cutoverAt:before.cutoverAt,pendingOrders:1,recovery:{retryingOrders:1},
+      records:[{reservedQuantity:2,availabilityStatus:'review_required'}]});
+    expect((await pool.query(`SELECT count(*)::int n FROM ${t('lines')}`)).rows[0].n).toBe(1);
+    await pool.query(`UPDATE ${t('dirty')} SET retry_after=now()-interval '1 second'`);await drain();
+    expect((await read()).records).toEqual(before.records);
+  });
+  test('a source revision committed during failure wakes once without losing the event or double reserving',async()=>{
+    await source();await open();await drain();const before=await read();
+    await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='OLDORDER1'`);
+    let selected,release;const selectedPromise=new Promise(resolve=>selected=resolve),resume=new Promise(resolve=>release=resolve);
+    const processing=faultLedger({beforeFailure:async()=>{selected();await resume;}}).processOne();
+    await selectedPromise;
+    const ingestion=pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='OLDORDER1'`);
+    release();await processing;await ingestion;await drain(createShopee004StockLedger({pool,schema,enabled:true,matchItem}));
+    expect(await read()).toMatchObject({pendingOrders:0,cutoverAt:before.cutoverAt,records:before.records});
+  });
+  test('missing source is a durable semantic exception; read models expose only admin-scoped metadata',async()=>{
+    await source();await open();await drain();await pool.query(`DELETE FROM "${schema}".shopee_orders WHERE order_number='OLDORDER1'`);
+    expect(await ledger.processOne()).toBe(true);expect(await ledger.processOne()).toBe(false);
+    const page=await ledger.exceptions();expect(page.records).toHaveLength(1);
+    expect(page.records[0]).toMatchObject({reasonCode:'QUEUED_ORDER_MISSING',issueClass:'identity',canApproveMapping:false,
+      recovery:{state:'blocked',attempts:1,nextRetryAt:null}});
+    expect(JSON.stringify(page)).not.toContain('OLDORDER1');
+    expect(page.records[0].exceptionId).toMatch(/^[0-9a-f-]{36}$/);
+    const context=await ledger.exceptionContext({exceptionId:page.records[0].exceptionId,expectedRevision:page.records[0].revision});
+    expect(context.orderNumber).toBe('OLDORDER1');
+    await expect(ledger.exceptionContext({exceptionId:page.records[0].exceptionId,expectedRevision:'stale'}))
+      .rejects.toMatchObject({code:'EXCEPTION_REVISION_CONFLICT'});
+    expect(await ledger.reconciliation()).toMatchObject({openingBoundaryPreserved:true,reservedOrders:1,physicalStockVerified:false,automaticRebaseline:false,posWrites:false});
+  });
+  test('registry snapshot repair requeues semantic unit conflicts and leaves lifecycle evidence unapproved',async()=>{
+    await source();await open();await drain();let valid=false;
+    const changing=createShopee004StockLedger({pool,schema,enabled:true,mappingContextProvider:async()=>valid?matchItem:
+      ()=>({status:'unmapped',reasonCode:'sale_unit_pos_mismatch'})});
+    await source('NEWUNIT01',{old:false});await drain(changing);
+    await pool.query(`INSERT INTO "${schema}".shopee_order_events(shop_code,order_number,event_type,occurred_at)
+      VALUES('sc-drug-store','NEWUNIT01','order_cancelled',now())`);await drain(changing);
+    valid=true;expect(await changing.requeueResolvedMappings()).toEqual({queuedOrders:1});await drain(changing);
+    expect(await changing.requeueResolvedMappings()).toEqual({queuedOrders:0});
+    const review=(await changing.exceptions()).records[0];
+    expect(review).toMatchObject({reasonCode:'cancel-dispatch-unverified',requiresLifecycleReview:true,canApproveMapping:false});
+    expect((await pool.query(`SELECT count(*)::int n FROM ${t('reviews')}`)).rows[0].n).toBe(0);
+  });
+  test('a mapping version cannot silently change an existing held multiplier or be approved by cancellation evidence',async()=>{
+    await source();await open();await drain();const before=await read();
+    const upgraded=createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>({status:'matched',companySku:'P1',quantityUnit:'sachet',
+      quantityRuleStatus:'verified',quantityPerSale:2})});
+    expect(await upgraded.requeueRuleAffected({productCodes:['P1']})).toMatchObject({queuedOrders:1});await drain(upgraded);
+    expect(await read()).toMatchObject({cutoverAt:before.cutoverAt,records:[{reservedQuantity:2,availabilityStatus:'review_required'}]});
+    expect((await upgraded.exceptions()).records[0].reasonCodes).toContain('mapping-held-contract-changed-needs-review');
+    await expect(upgraded.review({operationId:randomUUID(),orderNumber:'OLDORDER1',kind:'cancel-before-dispatch',actor,
+      physicalEvidenceVerified:true,notPostedInPos:true})).rejects.toMatchObject({code:'REVIEW_WOULD_LEAVE_UNVERIFIED_POSITION'});
+    expect((await pool.query(`SELECT count(*)::int n FROM ${t('reviews')}`)).rows[0].n).toBe(0);
+  });
+  test('a verified shared alias reserves its canonical master once without modifying the opening',async()=>{
+    await source();await open();await drain();const before=await read();
+    const alias={...catalog[0],companySku:'ALIAS1',masterStockCode:'P1',masterActive:true,masterStockFactor:1,masterSmallFactor:1};
+    expect(await ledger.extendPosCatalog({posCatalog:[...catalog,alias],actor})).toMatchObject({addedProducts:1,originalCutoverPreserved:true});
+    await source('SHAREDT01',{old:false});
+    const shared=createShopee004StockLedger({pool,schema,enabled:true,matchItem:()=>({status:'matched',companySku:'ALIAS1',quantityUnit:'ซอง'})});
+    await drain(shared);expect(await read()).toMatchObject({cutoverAt:before.cutoverAt,pendingOrders:0,records:[{reservedQuantity:4,unit:'ซอง'}]});
+    await pool.query(`UPDATE "${schema}".shopee_orders SET last_event_at=now() WHERE order_number='SHAREDT01'`);await drain(shared);
+    expect((await read()).records[0].reservedQuantity).toBe(4);
   });
 });
