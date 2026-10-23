@@ -29,6 +29,23 @@ Lecithin options. The remaining conflict concerns two different POS records for
 an eight-piece I-Herb product. They require an explicit evidenced choice; this
 candidate does not change a live Seller listing or silently overwrite a mapping.
 
+A private, unapplied bootstrap proposal binds 353 of the already reviewed,
+non-conflicting variations to their current stable listing/variation identities.
+Each candidate passes the new rule validator and the old stock-line validator
+against the freshly read POS metadata. Provenance is retained as an existing
+reviewed stock rule rather than relabelled as new description evidence. The
+proposal also includes 39 historical exact aliases from the old catalog when
+the stable identity and reviewed components/quantities still agree. Two other
+historical aliases were left out because that equality was not proven.
+All 353 candidates can append without an active identity or alias conflict.
+These checks did not activate any candidate or modify an old reservation.
+
+The remaining 299 variations comprise 296 without a reviewed quantity mapping
+and the three explicit Seller SKU conflicts. Their descriptions, exact POS
+candidates and unresolved evidence are prepared for review. Similarity does not
+approve any of them. A raw description being present does not mean its sale-unit
+meaning has been verified.
+
 The full source workbook, descriptions, POS metadata and proposed matches remain
 in private local audit inputs. They are not committed here. Only aggregate facts
 are included in this document. No production mapping approval was made during
