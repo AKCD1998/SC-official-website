@@ -5,7 +5,7 @@ const { validateCatalog } = require('../src/modules/seamless/services/shopee004S
 function fixture(source = 'admin_basic', role = 'admin') {
   const ledger = { projection: jest.fn(async () => ({status:'available'})), prepare: jest.fn(async () => ({activated:false})),
     activate: jest.fn(async input => ({actor:input.actor})), pause: jest.fn(), review: jest.fn(),
-    reconcileAcceptedLegacy: jest.fn(async input => ({actor:input.actor})) };
+    reconcileAcceptedLegacy: jest.fn(async input => ({actor:input.actor})),extendPosCatalog:jest.fn(async input=>({actor:input.actor})) };
   const routers=createShopee004StockRoutes({ledger:()=>ledger,auth:(req,res,next)=>{
     req.appAuthSource=source;req.appRole=role;req.appActor='synthetic-admin';next();},readToken:()=> 'x'.repeat(40),allowedOrigins:()=>['https://trusted.invalid']});
   const app=express();app.use(express.json());app.use('/admin',routers.admin);app.use('/internal',routers.internal);
@@ -46,6 +46,14 @@ test('upstream and database failures never return raw details or private paramet
   const {app,ledger}=fixture();ledger.projection.mockRejectedValue(Object.assign(new Error('secret synthetic value'),{code:'42P01',details:'private'}));
   const r=await request(app).get('/admin/status');expect(r.status).toBe(503);
   expect(JSON.stringify(r.body)).not.toMatch(/secret|private|42P01/);expect(r.body.error.detailsWithheld).toBe(true);
+});
+test('POS contract extension requires existing human admin and action protection',async()=>{
+ const {app,ledger}=fixture();const payload={posCatalog:[{companySku:'P1'}],actor:'forged'};
+ expect((await request(app).post('/admin/extend-pos-catalog').send(payload)).status).toBe(403);
+ expect((await request(app).post('/admin/extend-pos-catalog').set('x-shopee-stock-action','1').send(payload)).status).toBe(200);
+ expect(ledger.extendPosCatalog).toHaveBeenCalledWith({posCatalog:payload.posCatalog,actor:'synthetic-admin'});
+ const restricted=fixture('internal_token');expect((await request(restricted.app).post('/admin/extend-pos-catalog').set('x-shopee-stock-action','1').send(payload)).status).toBe(403);
+ expect(restricted.ledger.extendPosCatalog).not.toHaveBeenCalled();
 });
 test('disabled maintenance never schedules or reads; unit contract strips unrelated fields',()=>{
   const processOne=jest.fn();const stop=startShopee004StockMaintenance({enabled:false,processOne});stop();expect(processOne).not.toHaveBeenCalled();

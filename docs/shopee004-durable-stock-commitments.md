@@ -128,17 +128,42 @@ reviewed stock/unit mapper. Normal projection then checks lifecycle and retained
 item changes again. This adds no cancellation, dispatch, return or physical-count
 approval, and does not move cutover or rebuild the opening basis. Unresolved or
 mixed review reasons stay blocked. The worker does nothing while its feature is OFF.
-# Per-product review qualification (23 October 2026)
+### Per-product review qualification (23 October 2026)
 
-The internal projection declares `availabilityContract: per-product-review-v1`.
+The internal projection declares `availabilityContract: per-product-review-v2`.
 A single repeatable-read snapshot maps every queued/reviewed order's current
 items, retained original items and held stock codes. Fully verified scope marks
 only those products `review_required`; other requested products remain available.
-Unknown/missing identities, a queue above 100 orders, or a paused control fail
-closed for the whole response. No cancellation, return, physical evidence or
+Exact catalog identity can fence a product even while its quantity/unit is
+unverified. An order with no verified identity is counted in `unallocatedOrders`;
+other unfenced records become `known-commitments-only`, never `available`.
+Consumers may display their existing known deductions as temporary quantities,
+with a visible incomplete-order banner and explicitly qualified Excel values.
+They must not imply those orders were deducted or release retained holds.
+Missing source data remains unallocated with retained stock codes fenced. The
+bounded 100-order scan counts every unscanned order as unallocated too, never as
+fully qualified or as grounds to hide the whole branch. A paused control or
+database/transport failure still blocks availability. A unit/quantity conflict quarantines only its product
+with null demand instead of inventing zero. No cancellation, return, physical evidence or
 opening-basis approval is inferred from scope qualification. Existing holds,
 immutable cutover and accepted opening estimate are preserved.
 
 The exact ALSOFF blue 450-ml single-bottle variant is independent from the
 six-bottle pack. Seller Centre explicitly describes one bottle per selected
 formula; the existing verified POS bottle identity is reused with factor one.
+
+The SOS S 2x6-inch / 10x20-cm variant is one POS box containing two dressings,
+verified against Seller Centre and fresh read-only SERVER004 metadata. The
+human-admin action `extend-pos-catalog` appends up to 50 validated unit contracts
+and rejects every change to an existing contract. It preserves cutover, opening
+plan and quantities. The existing throttled worker also rechecks an exact
+`pos_product_missing` review after an append, with no lifecycle approvals.
+
+Cancel-first mail with a post-cutover source creation date is a new order that
+still needs confirmation/dispatch review, not an opening-era order. The worker
+may correct the former legacy-only misclassification only when its original
+source date was already post-cutover, is unchanged, the order is not in the
+fixed legacy plan and it has no prior stock lines. Correcting a historical date
+cannot turn it into new demand, including on repeated retries. Cancellation
+without a confirmation email can clear only through the existing verified
+before-dispatch review; the correction itself never releases stock.

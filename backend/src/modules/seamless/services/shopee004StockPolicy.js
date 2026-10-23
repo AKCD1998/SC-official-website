@@ -23,6 +23,13 @@ function orderSnapshot(order) {
   return { items: order.items, orderedAt: iso(order.ordered_at), status: order.current_status,
     lastEventAt: iso(order.last_event_at) };
 }
+function canCorrectPostCutoverReview({order,previous,control}){
+  const created=+new Date(order.ordered_at||NaN),cutover=+new Date(control.cutover_at);
+  return previous?.eligibility==='legacy'&&previous.state==='review_required'&&previous.noStockLines===true
+    &&isDeepStrictEqual(previous.reasons,['legacy-arrival-needs-opening-review'])
+    &&Number.isFinite(created)&&created>=cutover&&previous.source_snapshot?.orderedAt===iso(order.ordered_at)
+    &&!(control.plan.legacyOrders||[]).includes(order.order_number);
+}
 function projectPosition({ order, events, reviews, control, previous, now, matchItem }) {
   const snapshot = orderSnapshot(order);
   const opening = control.plan.opening.some(o => o.orderNumber === order.order_number);
@@ -30,11 +37,11 @@ function projectPosition({ order, events, reviews, control, previous, now, match
   const earliest = confirmed.length ? Math.min(...confirmed.map(e => +new Date(e.occurred_at))) : NaN;
   const created = +new Date(order.ordered_at || NaN);
   const cutover = +new Date(control.cutover_at);
-  const fresh = Number.isFinite(created) && created >= cutover && earliest >= cutover;
+  const createdAfterCutover=Number.isFinite(created)&&created>=cutover;
   // Source timestamp corrections cannot turn an excluded historical order into
   // a new deduction, or silently release a previously admitted commitment.
-  const eligibility = opening ? 'opening' : previous?.eligibility
-    || (control.plan.legacyOrders.includes(order.order_number) ? 'legacy' : fresh ? 'new' : 'legacy');
+  const eligibility = opening ? 'opening' : canCorrectPostCutoverReview({order,previous,control})?'new':previous?.eligibility
+    || (control.plan.legacyOrders.includes(order.order_number) ? 'legacy' : createdAfterCutover ? 'new' : 'legacy');
   const reasons = [];
   if (eligibility === 'legacy') {
     // A late old email never becomes a new deduction. Unknown opening demand is
@@ -48,13 +55,16 @@ function projectPosition({ order, events, reviews, control, previous, now, match
       && control.plan.openingBasis?.quality === 'owner-accepted-estimate';
     return { eligibility, state: known || acceptedExclusion ? 'legacy_excluded' : 'review_required',
       reasons: known || acceptedExclusion ? [] : ['legacy-arrival-needs-opening-review'],
-      warnings: acceptedExclusion ? ['late-legacy-excluded-under-owner-accepted-estimate'] : [], snapshot, lines: [] };
+      warnings: acceptedExclusion ? ['late-legacy-excluded-under-owner-accepted-estimate'] : [],
+      snapshot:previous?.eligibility==='legacy'&&previous.state==='review_required'
+        &&isDeepStrictEqual(previous.reasons,['legacy-arrival-needs-opening-review'])
+        &&previous.source_snapshot.orderedAt!==snapshot.orderedAt?previous.source_snapshot:snapshot,lines: [] };
   }
   const catalog = validateCatalog(control.pos_catalog);
   const mapped = mapShopeeStockLines({ items: order.items, posCatalog: catalog, matchItem });
-  if (eligibility === 'new' && !fresh) reasons.push('source-order-time-changed-needs-review');
+  if (eligibility === 'new' && (!createdAfterCutover||(confirmed.length&&earliest<cutover))) reasons.push('source-order-time-changed-needs-review');
   reasons.push(...Object.keys(mapped.reasonCounts));
-  if (!confirmed.length) reasons.push('confirmation-missing');
+  if (!confirmed.length&&!reviews.some(r=>r.kind==='cancel-before-dispatch')) reasons.push('confirmation-missing');
   if (!Number.isFinite(created)) reasons.push('source-order-time-missing');
   if (events.some(e => +new Date(e.occurred_at) > +now)) reasons.push('source-clock-or-future-event');
   if (previous && !isDeepStrictEqual(previous.source_snapshot.items, snapshot.items)) reasons.push('order-items-changed-needs-review');
@@ -84,4 +94,4 @@ function projectPosition({ order, events, reviews, control, previous, now, match
     ? 'released' : dispatched ? 'shipped_unposted' : 'reserved', reasons: unique,
     warnings: mapped.sourceLabelMismatchItems ? ['owner-confirmed-source-label-mismatch'] : [], snapshot, lines };
 }
-module.exports = { validateCatalog, orderSnapshot, projectPosition, fail };
+module.exports = { validateCatalog, orderSnapshot, projectPosition, canCorrectPostCutoverReview, fail };

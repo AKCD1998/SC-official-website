@@ -40,6 +40,7 @@ function createShopee004StockRoutes({ ledger = () => getLedger(), auth = appAuth
   admin.post('/reconcile-accepted-legacy', safe(req => ledger().reconcileAcceptedLegacy({
     ownerAcceptedOpeningEstimate: req.body?.ownerAcceptedOpeningEstimate, actor: req.appActor })));
   admin.post('/pause', safe(req => ledger().pause({ actor: req.appActor })));
+  admin.post('/extend-pos-catalog',safe(req=>ledger().extendPosCatalog({posCatalog:req.body?.posCatalog,actor:req.appActor})));
   admin.post('/resume', safe(req => ledger().resume({ ...req.body, actor: req.appActor })));
   admin.post('/review', safe(req => ledger().review({ ...req.body, actor: req.appActor })));
   return { internal, admin };
