@@ -86,7 +86,14 @@ function createLegacyEvidenceGuard({ evidenceRefs, posCatalog } = {}) {
         && Number.isFinite(f.stockFactor) && Number.isFinite(f.smallFactor)));
       if (observed.some(f => posShape(f) !== posShape(p))) return conflict();
     }
-    const source = idsOf(item), alias = aliasKey(item), byAlias = catalogFacts.filter(f => f.aliases.some(a => aliasKey(a) === alias));
+    const source = idsOf(item), alias = aliasKey(item);
+    // A current catalog may contain only the renamed title. An independently
+    // evidenced historical exact alias can still identify that stable pair;
+    // raw descriptions and similarity suggestions cannot create this anchor.
+    const evidencedAliasScopes = new Set(facts.filter(f => quantityFact(f) && Array.isArray(f.components)
+      && f.components.length && f.components.every(componentValid) && Array.isArray(f.aliases)
+      && f.aliases.some(a => aliasKey(a) === alias)).map(key));
+    const byAlias = catalogFacts.filter(f => f.aliases.some(a => aliasKey(a) === alias) || evidencedAliasScopes.has(key(f)));
     const byId = source.complete ? catalogFacts.filter(f => f.listingId === source.listing[0] && f.variationId === source.variant[0]) : [];
     if ((source.listing.length || source.variant.length) && (!source.complete || !byId.length) && byAlias.length) return conflict();
     const anchored = new Set((source.complete ? byId : byAlias).map(key));

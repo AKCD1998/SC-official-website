@@ -126,3 +126,18 @@ test('pack-semantic drift needs a new verified unit attestation, while an identi
   f.evidenceRefs.set('catalog-refresh', { ...changed, catalogVersion: 'v3', observedAt: '2026-10-23T10:03:00Z' });
   expect(f.run()).toBe(f.legacy);
 });
+
+test('an independently evidenced old title still fences a conflicting unit after the catalog title is renamed', () => {
+  const f = fixture(); f.evidenceRefs.get('catalog').aliases = [{ productName: 'New catalog title', variantName: f.item.variant }];
+  f.proof.components[0].quantityPerSale = 2; f.evidenceRefs.set('old-title-proof', f.proof);
+  expect(f.run().status).toBe('unmapped');
+  f.proof.components[0].quantityPerSale = 1;
+  expect(f.run()).toBe(f.legacy);
+});
+
+test('a raw old-title description without independent quantity proof does not anchor a renamed listing', () => {
+  const f = fixture(); f.evidenceRefs.get('catalog').aliases = [{ productName: 'Unrelated current title', variantName: 'different' }];
+  f.evidenceRefs.get('catalog').sourceSkus = ['WRONG'];
+  f.evidenceRefs.set('description', { ...f.scope, kind: 'seller_description', aliases: [f.alias], text: 'Only unparsed text' });
+  expect(f.run()).toBe(f.legacy);
+});
