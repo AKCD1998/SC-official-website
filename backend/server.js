@@ -203,6 +203,7 @@ startServerAfterMigrations({
   runMigrations: runSeamlessMigrations,
 }).then(() => {
   require("./src/modules/seamless/services/accountingPrintMaintenance").startAccountingPrintMaintenance();
+  require("./src/modules/seamless/services/shopee004StockRuntime").startShopee004StockMaintenance();
 }).catch((error) => {
   console.error("Server startup failed before listening:", error.message);
   process.exitCode = 1;
