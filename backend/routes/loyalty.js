@@ -733,7 +733,7 @@ router.get("/claims/status", requireStaff, async (req, res) => {
   res.set("Cache-Control", "private, no-store");
   const branchCode = normalizeDocRef(req.query.branchCode);
   const receiptNo = normalizeDocRef(req.query.receiptNo);
-  if (typeof req.query.branchCode !== "string" || !/^\d{3}$/.test(branchCode) ||
+  if (typeof req.query.branchCode !== "string" || !/^[A-Z0-9_-]{1,50}$/.test(branchCode) ||
       typeof req.query.receiptNo !== "string" || !receiptNo || receiptNo.length > 100) {
     return res.status(400).json({ error: "branchCode and receiptNo are required." });
   }

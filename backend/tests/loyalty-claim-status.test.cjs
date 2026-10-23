@@ -44,7 +44,7 @@ test('refuses another branch before looking up member information', async() => {
   expect(pool.query.mock.calls.some(([sql])=>sql.includes('SELECT lc.id'))).toBe(false);
 });
 test('validates missing, repeated and oversized receipt arguments', async() => {
-  for(const query of [{},{branchCode:'004'},{branchCode:'4',receiptNo:'S-FIXTURE'},{branchCode:['004','001'],receiptNo:'S-FIXTURE'},{branchCode:'004',receiptNo:'S'.repeat(101)}])expect((await lookup(query)).status).toBe(400);
+  for(const query of [{},{branchCode:'004'},{branchCode:'../004',receiptNo:'S-FIXTURE'},{branchCode:['004','001'],receiptNo:'S-FIXTURE'},{branchCode:'004',receiptNo:'S'.repeat(101)}])expect((await lookup(query)).status).toBe(400);
 });
 test('a database failure is an error, never an unclaimed receipt', async() => {
   unavailable=true;const response=await lookup();
@@ -53,6 +53,7 @@ test('a database failure is an error, never an unclaimed receipt', async() => {
 });
 test('each request sees fresh ownership and supports centrally authorized staff without a branch binding', async() => {
   staffBranch=null;claim=null;expect((await lookup()).body.claimed).toBe(false);
+  expect((await lookup({branchCode:'TEST_FIXTURE',receiptNo:'HISTORYTEST-FIXTURE'})).body.claimed).toBe(false);
   claim={id:'new-claim',user_id:'member-b',full_name:'สมาชิกใหม่',member_code:'SCM-B'};
   const response=await lookup();expect(response.body.claimed).toBe(true);expect(response.body.member.id).toBe('member-b');
 });
