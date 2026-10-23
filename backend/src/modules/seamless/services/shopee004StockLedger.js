@@ -256,7 +256,7 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       || productCodes.some(s => typeof s !== 'string' || !s.length || s.length > 100)
       || new Set(productCodes).size !== productCodes.length) fail('PROJECTION_SCOPE_INVALID');
     return transaction(async c => {
-      const ctrl = await c.query(`SELECT mode,cutover_at,plan->'openingBasis' AS opening_basis FROM ${table('control')} WHERE singleton=1`);
+      const ctrl = await c.query(`SELECT mode,cutover_at,pos_catalog,plan->'openingBasis' AS opening_basis FROM ${table('control')} WHERE singleton=1`);
       const pending = await c.query(`SELECT count(*)::int AS count FROM ${table('dirty')}`);
       const review = await c.query(`SELECT count(*) FILTER (WHERE state='review_required')::int AS count,
         count(*) FILTER (WHERE warnings ? 'owner-confirmed-source-label-mismatch')::int AS warning_count,
@@ -264,7 +264,32 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
         FROM ${table('positions')}`);
       const stamp = await c.query(`SELECT transaction_timestamp() AS at,COALESCE((SELECT max(revision) FROM ${table('audit')}),0)::text AS revision`);
       const feed = await c.query(`SELECT max(created_at) AS last_ingested_at FROM ${events} WHERE shop_code='sc-drug-store'`);
-      const ready = ctrl.rows[0]?.mode === 'live' && !pending.rows[0].count && !review.rows[0].count;
+      const affected = new Set(); let scopeValidated = ctrl.rows[0]?.mode === 'live';
+      if (scopeValidated && (pending.rows[0].count || review.rows[0].count)) {
+        // The same repeatable-read snapshot fences queue, source, retained
+        // positions and quantities. Unknown identities still block globally.
+        const blocked = await c.query(`SELECT o.items,p.source_snapshot,
+          ARRAY(SELECT l.product_code FROM ${table('lines')} l WHERE l.order_number=b.order_number) AS retained_codes
+          FROM (SELECT order_number FROM ${table('dirty')} UNION
+            SELECT order_number FROM ${table('positions')} WHERE state='review_required') b
+          LEFT JOIN ${orders} o ON o.order_number=b.order_number AND o.shop_code='sc-drug-store'
+          LEFT JOIN ${table('positions')} p ON p.order_number=b.order_number
+          ORDER BY b.order_number LIMIT 101`);
+        scopeValidated = blocked.rows.length > 0 && blocked.rows.length <= 100;
+        const catalog = validateCatalog(ctrl.rows[0].pos_catalog);
+        const { mapShopeeStockLines } = require('./shopeeStockReservationShadow');
+        for (const entry of blocked.rows) {
+          for (const items of [entry.items, ...(entry.source_snapshot ? [entry.source_snapshot.items] : [])]) {
+            const mapped = mapShopeeStockLines({ items, posCatalog:catalog, matchItem });
+            if (mapped.status !== 'mapped' || !mapped.lines.length) { scopeValidated = false; break; }
+            for (const line of mapped.lines) affected.add(line.stockCode);
+          }
+          for (const code of entry.retained_codes || []) affected.add(code);
+          if (!scopeValidated) break;
+        }
+      }
+      const hasBlockedOrders = pending.rows[0].count > 0 || review.rows[0].count > 0;
+      const ready = scopeValidated && !hasBlockedOrders;
       const rows = await c.query(`SELECT product_code,min(unit) AS unit,count(DISTINCT unit)::int AS units,
         sum(reserved_quantity)::text AS reserved,sum(shipped_unposted_quantity)::text AS shipped
         FROM ${table('lines')} WHERE product_code=ANY($1::text[]) GROUP BY product_code`, [productCodes]);
@@ -272,7 +297,10 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
       const basis = ctrl.rows[0]?.opening_basis;
       const initial = new Map((basis?.records || []).map(r => [r.productCode, r]));
       return { schemaVersion: 'shopee004-commitments-v1', branchCode: '004', mode: ctrl.rows[0]?.mode || 'unconfigured',
-        status: ready ? 'available' : 'review-or-processing-required', cutoverAt: ctrl.rows[0]?.cutover_at?.toISOString() || null,
+        status: ready ? 'available' : scopeValidated ? 'partial' : 'review-or-processing-required',
+        availabilityContract:'per-product-review-v1',scopeValidated,
+        pageReviewProducts: scopeValidated ? productCodes.filter(code => affected.has(code)).length : productCodes.length,
+        cutoverAt: ctrl.rows[0]?.cutover_at?.toISOString() || null,
         asOf: stamp.rows[0].at.toISOString(), revision: stamp.rows[0].revision,
         lastEmailIngestedAt: feed.rows[0].last_ingested_at?.toISOString() || null,
         pendingOrders: pending.rows[0].count, reviewOrders: review.rows[0].count,
@@ -288,7 +316,8 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem }
           const reserved = Number(row?.reserved || 0), shipped = Number(row?.shipped || 0) + (base?.quantity || 0);
           if (row?.units > 1 || !Number.isSafeInteger(reserved + shipped)
             || (row?.unit && base?.unit && row.unit !== base.unit)) fail('PROJECTION_UNIT_OR_QUANTITY_CONFLICT');
-          return { productCode, unit: row?.unit || base?.unit || null, reservedQuantity: reserved, shippedUnpostedQuantity: shipped };
+          return { productCode, availabilityStatus:scopeValidated && !affected.has(productCode) ? 'available' : 'review_required',
+            unit: row?.unit || base?.unit || null, reservedQuantity: reserved, shippedUnpostedQuantity: shipped };
         }) };
     }, true);
   }

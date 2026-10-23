@@ -128,3 +128,17 @@ reviewed stock/unit mapper. Normal projection then checks lifecycle and retained
 item changes again. This adds no cancellation, dispatch, return or physical-count
 approval, and does not move cutover or rebuild the opening basis. Unresolved or
 mixed review reasons stay blocked. The worker does nothing while its feature is OFF.
+# Per-product review qualification (23 October 2026)
+
+The internal projection declares `availabilityContract: per-product-review-v1`.
+A single repeatable-read snapshot maps every queued/reviewed order's current
+items, retained original items and held stock codes. Fully verified scope marks
+only those products `review_required`; other requested products remain available.
+Unknown/missing identities, a queue above 100 orders, or a paused control fail
+closed for the whole response. No cancellation, return, physical evidence or
+opening-basis approval is inferred from scope qualification. Existing holds,
+immutable cutover and accepted opening estimate are preserved.
+
+The exact ALSOFF blue 450-ml single-bottle variant is independent from the
+six-bottle pack. Seller Centre explicitly describes one bottle per selected
+formula; the existing verified POS bottle identity is reused with factor one.
