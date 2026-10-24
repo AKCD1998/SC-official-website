@@ -530,4 +530,26 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
     expect(context.record.productName).toBe('Synthetic blocked second');
     expect(context.items).toHaveLength(3);expect((await read()).cutoverAt).toBe((await scoped.projection(['P1'])).cutoverAt);
   });
+  test('batched scope and held lines share the identity matcher snapshot despite a later source commit',async()=>{
+    await source();await open();await drain();
+    await ledger.extendPosCatalog({posCatalog:[{...catalog[0],companySku:'P2',stockCode:'P2'}],actor});
+    await pool.query(`UPDATE ${t('positions')} SET state='review_required' WHERE order_number='OLDORDER1'`);
+    let selected,resume;const selectedPromise=new Promise(resolve=>selected=resolve),hold=new Promise(resolve=>resume=resolve);
+    const scoped=createShopee004StockLedger({pool,schema,enabled:true,mappingContextProvider:async()=>{
+      selected();await hold;return(_shop,item)=>({...matchItem(),companySku:item.name==='Other'?'P2':'P1'});
+    }});
+    const reading=scoped.projection(['P1','P2']);await selectedPromise;
+    try {
+      await pool.query(`UPDATE "${schema}".shopee_orders SET items='[{"name":"Other","quantity":1}]' WHERE order_number='OLDORDER1'`);
+      await pool.query(`UPDATE ${t('positions')} SET source_snapshot=jsonb_set(source_snapshot,'{items}','[{"name":"Other","quantity":1}]')
+        WHERE order_number='OLDORDER1'`);
+      await pool.query(`UPDATE ${t('lines')} SET reserved_quantity=1 WHERE order_number='OLDORDER1'`);
+    } finally { resume(); }
+    expect(await reading).toMatchObject({pendingOrders:0,reviewOrders:1,records:[
+      {productCode:'P1',availabilityStatus:'review_required',reservedQuantity:2},
+      {productCode:'P2',availabilityStatus:'available',reservedQuantity:0}]});
+    expect(await scoped.projection(['P1','P2'])).toMatchObject({pendingOrders:1,reviewOrders:1,records:[
+      {productCode:'P1',availabilityStatus:'review_required',reservedQuantity:1},
+      {productCode:'P2',availabilityStatus:'review_required',reservedQuantity:0}]});
+  });
 });

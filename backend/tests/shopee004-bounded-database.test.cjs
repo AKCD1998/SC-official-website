@@ -52,7 +52,7 @@ test('caller query config is not mutated and cannot extend the ten-second read b
  await wrapped.query({...config,query_timeout:250});expect(raw.query.mock.calls[1][0].query_timeout).toBe(250);wrapped.release();
 });
 test('ledger read timeout skips an unbounded rollback and releases the broken connection',async()=>{
- jest.useFakeTimers();const raw=rawClient(config=>config.text.startsWith('SELECT mode,cutover_at')?readTimeout(config):Promise.resolve({rows:[]}));
+ jest.useFakeTimers();const raw=rawClient(config=>config.text.includes('AS held_lines')?readTimeout(config):Promise.resolve({rows:[]}));
  const ledger=createShopee004StockLedger({pool:{connect:async()=>raw},schema:'synthetic',enabled:true});
  const assertion=expect(ledger.projection([])).rejects.toMatchObject({code:'LEDGER_QUERY_OUTCOME_UNKNOWN',outcomeUnknown:true});
  await jest.advanceTimersByTimeAsync(10000);await assertion;
