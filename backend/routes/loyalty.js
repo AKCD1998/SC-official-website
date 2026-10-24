@@ -5,6 +5,7 @@ const { buildSourceEventKey } = require("../lib/sccrmCrm");
 const { getActivePromotions, quotePoints, receiptEligibleAmount } = require('../lib/sccrmPromotions');
 const { buildReceiptSnapshot } = require('../lib/purchaseHistory');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
+const adaMirror = require('../lib/adaMemberMirror');
 
 const router = express.Router();
 
@@ -109,12 +110,14 @@ function memberFailureStatus(error) {
 }
 
 async function getMemberProfile(memberId, capabilities, db = pool) {
-    return queryOne(`SELECT u.id, u.full_name, u.phone_number AS phone,
+    const row = await queryOne(`SELECT u.id, u.full_name, u.phone_number AS phone,
         u.email, u.sex, u.dob::text AS dob, u.remark, u.created_at,
         m.member_code, m.tier, m.is_active, m.updated_at,
         ${memberPointsSql(capabilities)} AS current_points
         FROM users u JOIN member_profiles m ON m.user_id = u.id
         WHERE u.id = $1::uuid`, [memberId], db);
+    if(row && !row.phone && adaMirror.enabled())row.phone=(await queryOne('SELECT phone_number FROM ada_history.directory WHERE id=$1::uuid',[memberId],db))?.phone_number||null;
+    return row || await adaMirror.legacyProfile(db, memberId);
 }
 
 function normalizeDocRef(value) {
@@ -634,11 +637,13 @@ router.get("/search", requireStaff, async (req, res) => {
                 WHEN LOWER(COALESCE(u.phone_number, '')) LIKE $3 THEN 2
                 ELSE 3 END, u.full_name ASC
             LIMIT 20`, [`%${q.toLowerCase()}%`, q.toLowerCase(), `${q.toLowerCase()}%`]);
-        return res.json(rows.map(row => ({
+        const members = rows.map(row => ({
             id: row.id, displayName: row.full_name || "", phone: row.phone || null,
             email: row.email || null, memberCode: row.member_code || null,
             currentPoints: Number(row.current_points || 0), ...capabilities,
-        })));
+        }));
+        const legacy = await adaMirror.searchLegacy(pool, q, capabilities);
+        return res.json([...members,...legacy.map(row=>({...row,...capabilities}))].filter((row,index,all)=>all.findIndex(other=>other.id===row.id)===index).slice(0,20));
     } catch (error) {
         return res.status(500).json({ error: error.message || "Member search failed." });
     }
@@ -688,7 +693,7 @@ router.put("/:id", requireMemberAccess, async (req, res) => {
         const medical = normalizePharmacyMedRecord(body.pharmacy_med_record);
         const existing = await queryOne(
             `SELECT u.id FROM users u JOIN member_profiles m ON m.user_id = u.id WHERE u.id = $1::uuid`, [memberId]);
-        if (!existing) return res.status(404).json({ error: "Member not found." });
+        if (!existing && !await adaMirror.legacyProfile(pool,memberId)) return res.status(404).json({ error: "Member not found." });
 
         const values = {
             full_name: body.name !== undefined ? String(body.name || "").trim() : undefined,
@@ -707,6 +712,7 @@ router.put("/:id", requireMemberAccess, async (req, res) => {
         let row, medicalRow;
         try {
             await client.query("BEGIN");
+            await adaMirror.ensureLegacyMember(client,memberId);
             if (entries.length) {
                 await client.query(`UPDATE users SET ${entries.map(([key], i) => `${key} = $${i + 1}`).join(", ")}
                     WHERE id = $${params.length + 1}::uuid`, [...params, memberId]);
@@ -806,6 +812,8 @@ router.post("/claims", requireStaff, async (req, res) => {
                         await client.query("ROLLBACK");
                         return res.status(409).json({ message: "Receipt already claimed." });
               }
+
+              await adaMirror.ensureLegacyMember(client,memberId);
 
             // Member must exist and be active
             const memberRow = await client.query(

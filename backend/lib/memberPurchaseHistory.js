@@ -1,5 +1,6 @@
 const pool = require('../db');
 const { parseHistoryCursor, makeHistoryCursor, mapPurchase } = require('./purchaseHistory');
+const ada = require('./adaMemberMirror');
 function normalizeDocRef(value) { return String(value || '').trim().toUpperCase(); }
 async function queryOne(sql, params) { return (await pool.query(sql, params)).rows[0] || null; }
 async function getMemberPurchaseHistory(memberId, query = {}) {
@@ -9,6 +10,7 @@ async function getMemberPurchaseHistory(memberId, query = {}) {
 
   // Member must exist
   const member = await queryOne(
+      ada.enabled()?`SELECT id FROM ada_history.directory WHERE id=$1::uuid`:
       `SELECT u.id FROM users u JOIN member_profiles m ON m.user_id = u.id WHERE u.id = $1::uuid`,
       [memberId],
     );
@@ -18,7 +20,7 @@ async function getMemberPurchaseHistory(memberId, query = {}) {
       `SELECT id, receipt_no, branch_code, sold_at, total_amount, awarded_points, created_at,
     cashier_staff_code,receipt_total_amount,receipt_snapshot,
     COALESCE(sold_at,created_at)::text AS sort_sold_at,created_at::text AS sort_created_at
-       FROM loyalty_claims
+       FROM ${ada.enabled()?`(SELECT id::text,user_id::text,receipt_no,branch_code,sold_at,total_amount,awarded_points,created_at,cashier_staff_code,receipt_total_amount,receipt_snapshot FROM loyalty_claims UNION ALL SELECT id,user_id,receipt_no,branch_code,sold_at,total_amount,awarded_points,created_at,cashier_staff_code,receipt_total_amount,receipt_snapshot FROM ada_history.purchase_claims) claims`:'loyalty_claims'}
         WHERE user_id = $1
         ${cursor?'AND (COALESCE(sold_at,created_at),created_at,id)<($3::timestamptz,$4::timestamptz,$5::text)':''}
         ORDER BY COALESCE(sold_at, created_at) DESC, created_at DESC,id DESC

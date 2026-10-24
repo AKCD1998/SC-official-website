@@ -8,7 +8,7 @@ const messages={INVALID_EMAIL:'กรุณากรอกอีเมลให�
   OTP_RATE_LIMIT:'ขอรหัสบ่อยเกินไป กรุณารอสักครู่แล้วลองใหม่',EMAIL_NOT_LINKED:'อีเมลนี้ยังไม่ได้ผูกกับสมาชิกที่เปิดใช้งาน กรุณาให้พนักงานตรวจสอบและเพิ่มอีเมลในข้อมูลสมาชิกก่อน',
   SESSION_REQUIRED:'กรุณาเข้าสู่ระบบเพื่อดูประวัติของคุณ',PORTAL_NOT_CONFIGURED:'บริการเข้าใช้งานยังไม่พร้อม กรุณาลองใหม่ภายหลัง'};
 function publicPurchase(p) {
-  return {receiptNo:p.receiptNo,branchCode:p.branchCode,soldAt:p.soldAt,totalAmount:p.totalAmount,totalAmountSource:p.totalAmountSource,
+  return {receiptNo:p.receiptNo,branchCode:p.branchCode,soldAt:p.soldAt,totalAmount:p.totalAmount,totalAmountSource:p.totalAmountSource,...(p.documentType?{documentType:p.documentType}:{}),
     receiptDiscount:p.receiptDiscount,items:(p.items||[]).map(i=>({productCode:i.productCode,productName:i.productName,qty:i.qty,
       unitCode:i.unitCode||null,unitName:i.unitName||null,unitPrice:i.unitPrice,lineTotal:i.lineTotal})),
     returns:(p.returns||[]).map(r=>({refundDocNo:r.refundDocNo,refundedAt:r.refundedAt,refundTotal:r.refundTotal,returnedQty:r.returnedQty}))};
