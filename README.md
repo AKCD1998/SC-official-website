@@ -2,6 +2,10 @@
 
 ## Overview
 
+Customer self-service: [purchase history portal and email OTP](docs/MEMBER_PURCHASE_PORTAL.md)
+at `/my-purchases/`. Disabled by default until its scoped storage and mail delivery
+are configured; existing members keep their original identity and purchase history.
+
 SCCRM POS 1.3.9 uses the additive staff-authenticated
 `GET /api/loyalty/claims/status?branchCode=004&receiptNo=...` endpoint to show
 whether a receipt was already saved and its stored member name/code. It checks
