@@ -73,6 +73,7 @@ function mapPurchase(claim, storedItems, returns) {
     : Number(claim.total_amount || 0);
   return {
     claimId: claim.id, receiptNo: claim.receipt_no, branchCode: claim.branch_code,
+    ...(snapshot?.documentType ? { documentType: snapshot.documentType } : {}),
     soldAt: claim.sold_at || claim.created_at,
     totalAmount: hasStoredTotal ? Number(claim.receipt_total_amount) : fallback,
     eligibleAmount: Number(claim.total_amount || 0),

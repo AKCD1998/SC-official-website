@@ -1,5 +1,6 @@
 const pool = require('../db');
 const { parseHistoryCursor } = require('./purchaseHistory');
+const ada = require('./adaMemberMirror');
 
 function invalid(message) { return Object.assign(new Error(message), { status: 400 }); }
 function integer(value, fallback, maximum) {
@@ -24,9 +25,12 @@ async function listMembers(query) {
   const pattern = '%' + search.replace(/[\\%_]/g, '\\$&') + '%';
   const where = `FROM users u JOIN member_profiles m ON m.user_id = u.id
     WHERE ($1 = '' OR u.full_name ILIKE $2 OR u.phone_number ILIKE $2 OR m.member_code ILIKE $2)`;
+  const matching = ada.enabled()
+    ? `SELECT id,full_name,phone_number,member_code,is_active,created_at,source FROM ada_history.directory WHERE ($1='' OR full_name ILIKE $2 OR phone_number ILIKE $2 OR member_code ILIKE $2)`
+    : `SELECT u.id, u.full_name, u.phone_number, m.member_code, m.is_active, m.created_at ${where}`;
   // One statement keeps the count and page in the same database snapshot.
   const { rows } = await pool.query(`WITH matching AS (
-    SELECT u.id, u.full_name, u.phone_number, m.member_code, m.is_active, m.created_at ${where}
+    ${matching}
   ), paged AS (
     SELECT * FROM matching ORDER BY created_at DESC, id DESC LIMIT $3 OFFSET $4
   ) SELECT (SELECT COUNT(*)::int FROM matching) AS total,
@@ -36,6 +40,7 @@ async function listMembers(query) {
   return { ok: true, page, limit, total: Number(result.total), members: result.members.map(row => ({
     id: row.id, memberCode: row.member_code, name: row.full_name, phone: row.phone_number,
     registeredAt: row.created_at, isActive: row.is_active,
+    ...(row.source ? { source: row.source } : {}),
   })) };
 }
 module.exports = { listMembers, directoryQuery, historyQuery };

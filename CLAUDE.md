@@ -1,5 +1,11 @@
 # Public member-registration integration notes
 
+HQ000 Ada mirror integration: see `backend/docs/ada-member-sync.md`. Native
+customer codes are authoritative for imported history; duplicate phones must
+not be auto-merged. The worker's outbound release is create-only, and imported
+points must never be added to the SCCRM ledger as new earnings. Source database
+and schema permissions were verified directly, not inferred from frontend fields.
+
 Purchase-history verification: see `backend/docs/purchase-history.md`. The legacy
 claim amount means eligible spend, not a paid total. Older records cannot establish
 an original header total or item order; the API labels the available fallback.
