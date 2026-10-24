@@ -56,3 +56,37 @@ Status is at `D:\SCCRM-HQ-LiveSync-20261024\live\status\status.json`;
 `live\runtime\pause.request` pauses cycles while leaving the service alive.
 Do not restart SQL Server, change firewall rules, or stop Shopee to manage this
 bridge. Database rollback is not needed to disable the integration.
+
+## Admin website: resolve existing-phone matches
+
+StockDay's **สมาชิก → จัดการรหัส Ada** lists active SCCRM members whose phone
+matches native contacts and who have no approved link. It excludes historical
+review records once the member is linked. The administrator chooses a native
+code, checks the identity confirmation and submits explicitly. Candidate cards
+show exact native code/name/phone, branch, sale/return counts and last sale.
+There is no automatic first-match selection or automatic retry of a write.
+
+The StockDay proxy checks its admin session and CSRF, supplies the authenticated
+actor, and uses a distinct backend-only `SCCRM_ADA_LINK_ADMIN_TOKEN`. It must
+match the official backend's `SC_OFFICIAL_ADA_LINK_ADMIN_TOKEN`; it must not be
+the existing POS/internal credential. The frontend receives neither credential.
+Both services must be deployed/configured before shipping the frontend control.
+
+Internal routes under `/internal/crm/member-directory`:
+
+- `GET /ada-links?page=1&limit=25`: unresolved matching members.
+- `GET /:id/ada-links`: candidate codes with a signed 10-minute review snapshot.
+- `POST /:id/ada-links`: `{adaCode,reviewToken,actor:{id,role:'admin'}}`, requiring
+  both the existing internal credential and `x-ada-link-admin-token`.
+
+Confirmation locks the canonical member and native candidate in Supabase,
+rechecks the phone/snapshot and existing bill owner, then inserts only an
+approved `ada_history.member_links` row with the admin identity and timestamp.
+It cannot overwrite/reassign an existing link, native profile, bill or points.
+An identical confirmation returns success without changing the original audit
+reference. Concurrent choices of the same native code permit only one owner.
+
+`node scripts/check-ada-member-linking-copy.cjs` accepts only a fresh local test
+database named `sccrm_ada_link_test_*`. The copy test covers code selection,
+owner isolation, stale/expired previews, conflicting bill ownership, retries,
+concurrent confirmations and preservation of original profiles/history/points.

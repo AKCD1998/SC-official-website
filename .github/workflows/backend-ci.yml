@@ -50,6 +50,7 @@ jobs:
       SEAMLESS_MIGRATION_TEST_SCHEMA: clasp_scx_seamless_review_ci
       CRM_COUNTER_POSTGRES_SMOKE: "1"
       SHOPEE004_TEST_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/seamless_ci
+      SC_OFFICIAL_ADA_LINK_TEST_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/sccrm_ada_link_test_ci
     defaults:
       run:
         working-directory: backend
@@ -90,3 +91,12 @@ jobs:
 
       - name: Run backend tests
         run: npm test -- --testPathIgnorePatterns=backend-integration.test.cjs
+
+      - name: Verify Ada member linking on a fresh isolated copy
+        run: |
+          node <<'NODE'
+          const {Client}=require('pg');
+          const db=new Client({connectionString:process.env.SC_OFFICIAL_SUPABASE_DATABASE_URL});
+          (async()=>{try{await db.connect();await db.query('CREATE DATABASE sccrm_ada_link_test_ci');}finally{await db.end();}})().catch(error=>{console.error(error.message);process.exit(1);});
+          NODE
+          node scripts/check-ada-member-linking-copy.cjs

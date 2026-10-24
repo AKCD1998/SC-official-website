@@ -525,6 +525,22 @@ router.post("/crm/pos/claim-token", async (req, res) => {
 // Read-only directory for the authenticated StockDay server. Never returns medical/profile secrets.
 const { listMembers, historyQuery } = require('../lib/memberDirectory');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
+const adaLinking = require('../lib/adaMemberLinking');
+function linkFailure(res, error) {
+  return res.status(error.status || 500).json({ error: error.status ? error.message : 'Unable to link member.', ...(error.status && error.code ? { code: error.code } : {}) });
+}
+router.get('/crm/member-directory/ada-links', requireInternalToken, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { return res.json(await adaLinking.pendingLinks(req.query)); } catch (error) { return linkFailure(res, error); }
+});
+router.get('/crm/member-directory/:id/ada-links', requireInternalToken, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { return res.json(await adaLinking.linkOptions(req.params.id)); } catch (error) { return linkFailure(res, error); }
+});
+router.post('/crm/member-directory/:id/ada-links', requireInternalToken, adaLinking.requireLinkAdmin, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { return res.json(await adaLinking.confirmLink(req.params.id, req.body)); } catch (error) { return linkFailure(res, error); }
+});
 router.get('/crm/member-directory', requireInternalToken, async (req, res) => {
   res.set('Cache-Control', 'private, no-store');
   try { return res.json(await listMembers(req.query)); }
