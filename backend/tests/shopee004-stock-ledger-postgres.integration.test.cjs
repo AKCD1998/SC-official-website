@@ -44,6 +44,50 @@ run('durable ledger against isolated PostgreSQL (never production)', () => {
   }
   async function drain(service = ledger) { while (await service.processOne()) {} }
   const read = () => ledger.projection(['P1']);
+  test('idle PostgreSQL polls do not return a large opening document or load mapping evidence', async () => {
+    await source(); await open(); await drain();
+    await pool.query(`UPDATE ${t('control')} SET plan=plan || jsonb_build_object('syntheticPadding',repeat('x',310000))`);
+    let returnedBytes=0;
+    const measuredPool={connect:async()=>{
+      const client=await pool.connect();
+      return {query:async(...args)=>{
+        const result=await client.query(...args);
+        returnedBytes+=Buffer.byteLength(JSON.stringify(result.rows));
+        return result;
+      },release:error=>client.release(error)};
+    }};
+    const provider=jest.fn(async()=>{throw new Error('Idle polls must not load mapping evidence');});
+    const worker=createShopee004StockLedger({pool:measuredPool,schema,enabled:true,mappingContextProvider:provider});
+    for(let i=0;i<20;i++)expect(await worker.processOne()).toBe(false);
+    expect(await worker.requeueResolvedMappings()).toEqual({queuedOrders:0});
+    expect(returnedBytes).toBeLessThan(8192);
+    expect(provider).not.toHaveBeenCalled();
+    expect((await read()).records[0].reservedQuantity).toBe(2);
+  });
+  test('the same worker observes a catalog extension after an idle poll and preserves existing reservations', async () => {
+    await source(); await open();
+    const provider=jest.fn(async(_client,control)=>{
+      const hasP2=control.pos_catalog.some(p=>p.companySku==='P2');
+      return (_shop,item)=>item.name==='Second'
+        ? hasP2 ? {status:'matched',companySku:'P2',quantityUnit:'sachet'} : {status:'unmapped'}
+        : matchItem();
+    });
+    const worker=createShopee004StockLedger({pool,schema,enabled:true,mappingContextProvider:provider});
+    await drain(worker); const before=await read();
+    expect(await worker.processOne()).toBe(false);
+    await ledger.extendPosCatalog({actor,posCatalog:[{...catalog[0],companySku:'P2',stockCode:'P2'}]});
+    await source('NEWPROD02',{old:false,quantity:3});
+    await pool.query(`UPDATE "${schema}".shopee_orders SET items=$1 WHERE order_number='NEWPROD02'`,
+      [JSON.stringify([{name:'Second',quantity:3}])]);
+    await drain(worker);
+    const after=await worker.projection(['P1','P2']);
+    expect(after).toMatchObject({status:'available',cutoverAt:before.cutoverAt});
+    expect(after.records).toEqual(expect.arrayContaining([
+      expect.objectContaining({productCode:'P1',reservedQuantity:2}),
+      expect.objectContaining({productCode:'P2',reservedQuantity:3}),
+    ]));
+    expect(provider).toHaveBeenCalledTimes(2);
+  });
   test('migration reruns; explicit opening set, duplicate activation, worker restart and duplicate events never double reserve', async () => {
     await source(); const plan = await open();
     expect((await read()).status).not.toBe('available');
