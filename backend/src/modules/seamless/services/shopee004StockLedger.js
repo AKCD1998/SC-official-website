@@ -200,14 +200,19 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
   async function processOne() {
     requireEnabled();
     return transaction(async c => {
-      const ctrl = await c.query(`SELECT * FROM ${table('control')} WHERE singleton=1`);
-      const control = ctrl.rows[0];
-      if (!['live','paused'].includes(control?.mode)) return false;
+      // The opening plan/catalog can be hundreds of KiB. Idle maintenance runs
+      // every two seconds, so only read the mode until a dirty row is claimed.
+      const state = (await c.query(`SELECT mode FROM ${table('control')} WHERE singleton=1`)).rows[0];
+      if (!['live','paused'].includes(state?.mode)) return false;
       const work = await c.query(`SELECT * FROM ${table('dirty')}
         WHERE recovery_revision IS DISTINCT FROM revision OR recovery_state='ready'
           OR (recovery_state='retry_wait' AND retry_after<=clock_timestamp())
         ORDER BY queued_at,order_number FOR UPDATE SKIP LOCKED LIMIT 1`);
       if (!work.rows.length) return false;
+      // Read fresh data inside this transaction, including changes made by
+      // another process. Do not cache stock mappings or opening boundaries.
+      const control = (await c.query(`SELECT mode,cutover_at,plan,pos_catalog FROM ${table('control')} WHERE singleton=1`)).rows[0];
+      if (!['live','paused'].includes(control?.mode)) return false;
       const selected = work.rows[0], orderNumber = selected.order_number;
       await c.query('SAVEPOINT stock_order_projection');
       try {
@@ -284,18 +289,21 @@ function createShopee004StockLedger({ pool, schema, enabled = false, matchItem, 
   async function requeueResolvedMappings() {
     requireEnabled();
     const result = await transaction(async c => {
-      const control = (await c.query(`SELECT mode,pos_catalog,cutover_at,plan FROM ${table('control')} WHERE singleton=1 FOR SHARE`)).rows[0];
-      if (!['live','paused'].includes(control?.mode)) return { queuedOrders: 0,nextCursor:'' };
-      const matchItem = await scopedMatcher(c,control);
+      // Keep the existing control-row fence, but defer the large documents and
+      // identity snapshot until this bounded page actually has candidates.
+      const state = (await c.query(`SELECT mode,cutover_at FROM ${table('control')} WHERE singleton=1 FOR SHARE`)).rows[0];
+      if (!['live','paused'].includes(state?.mode)) return { queuedOrders: 0,nextCursor:'' };
       const candidates = await c.query(`SELECT p.order_number,p.eligibility,p.state,p.reasons,p.source_snapshot,o.items,o.ordered_at FROM ${table('positions')} p JOIN ${orders} o
         ON o.order_number=p.order_number AND o.shop_code='sc-drug-store'
         WHERE p.state='review_required' AND ((p.reasons ?| $3::text[]
             AND NOT(p.reasons ? 'order-items-changed-needs-review') AND NOT(p.reasons ? 'mapping-held-contract-changed-needs-review'))
           OR (p.eligibility='legacy' AND p.reasons='["legacy-arrival-needs-opening-review"]'::jsonb AND o.ordered_at >= $2
             AND NOT EXISTS(SELECT 1 FROM ${table('lines')} l WHERE l.order_number=p.order_number)))
-          AND p.order_number>$1 ORDER BY p.order_number LIMIT 50`, [mappingReviewCursor,control.cutover_at,MAPPING_REASONS]);
+          AND p.order_number>$1 ORDER BY p.order_number LIMIT 50`, [mappingReviewCursor,state.cutover_at,MAPPING_REASONS]);
       const nextCursor=candidates.rows.length===50 ? candidates.rows.at(-1).order_number : '';
       if (!candidates.rows.length) return { queuedOrders: 0,nextCursor };
+      const control = (await c.query(`SELECT mode,pos_catalog,cutover_at,plan FROM ${table('control')} WHERE singleton=1`)).rows[0];
+      const matchItem = await scopedMatcher(c,control);
       const { mapShopeeStockLines } = require('./shopeeStockReservationShadow');
       const catalog = validateCatalog(control.pos_catalog);
       const resolved = candidates.rows.filter(o => (o.reasons[0]!=='legacy-arrival-needs-opening-review'
