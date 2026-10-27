@@ -1,4 +1,5 @@
 import { Router } from "express";
+import express from "express";
 import {
   getDeliverSearchProducts,
   getMovements,
@@ -11,11 +12,19 @@ import {
 } from "../controllers/organicReportsController.js";
 import { getPatientDispenseHistory } from "../controllers/dispenseController.js";
 import { getIncidentReportById } from "../controllers/adminIncidentsController.js";
-import { getKy11BulkSourceSnapshot } from "../controllers/ky11BulkSnapshotsController.js";
+import { getKy11BulkSourceSnapshot, putKy11Oct24SourceSnapshot } from "../controllers/ky11BulkSnapshotsController.js";
 import { requireRole, verifyToken } from "../middleware/authMiddleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const router = Router();
+
+router.put(
+  "/reports/ky11-bulk-source-snapshots/:snapshotKey",
+  verifyToken,
+  requireRole("ADMIN"),
+  express.raw({ type: "application/octet-stream", limit: "10mb" }),
+  asyncHandler(putKy11Oct24SourceSnapshot)
+);
 
 router.get(
   "/reports/ky11-bulk-source-snapshots/:snapshotKey",
