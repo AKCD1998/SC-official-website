@@ -11,6 +11,8 @@ const {createLegacyEvidenceGuard}=require('./shopee004LegacyEvidenceGuard');
 const {classifyRecoveryFailure}=require('./shopee004RecoveryPolicy');
 const {mapShopeeStockLines}=require('./shopeeStockReservationShadow');
 const reviewedStockVariants=require('../data/shopeeStockReviewedVariants.v1.json');
+const copyRules=require('../data/shopeeAdaSmartCopyRules.v1.json');
+const ownerReview=require('../data/shopeeStockOwnerReview.v1.json');
 const {acquireBoundedStockClient}=require('./shopee004BoundedDatabase');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const aliasKey=x=>JSON.stringify([normalizeIdentityText(x.productName??x.name),normalizeIdentityText(x.variantName??x.variant)]);
@@ -221,8 +223,14 @@ function createShopee004IdentityStore({pool,schema,ledger,now=()=>new Date()}){
    const product=[...posCatalog.values()].find(p=>p.companySku.toLowerCase()===search.toLowerCase());
    if(!product)return [];
    const stockCode=product.stockCode,usesCode=components=>(components||[]).some(x=>posCatalog.get(x.productCode??x.companySku)?.stockCode===stockCode);
+   // Search must also discover physical matches already used by the stock
+   // display (for example nine-digit TYLENOL SKUs absent from the listing
+   // catalog). These are candidates only: the same canonical matcher, evidence
+   // guard and POS-unit checks below must independently accept each alias.
    const possible=[...data.versions.filter(r=>r.state==='active'&&usesCode(r.components)).flatMap(r=>r.aliases),
-    ...reviewedStockVariants.rules.filter(r=>usesCode(r.components)).map(r=>({productName:r.productName,variantName:r.variant}))];
+    ...reviewedStockVariants.rules.filter(r=>usesCode(r.components)).map(r=>({productName:r.productName,variantName:r.variant})),
+    ...[...copyRules.rules,...ownerReview.rules].filter(r=>r.shopCode==='sc-drug-store'&&usesCode(r.components||[r]))
+      .map(r=>({productName:r.productName,variantName:r.variant}))];
    const aliases=[...new Map(possible.map(a=>[aliasKey(a),{productName:a.productName,variantName:a.variantName}])).values()];
    if(aliases.length>200)fail('STOCK_SEARCH_SCOPE_INVALID');
    return aliases.filter(a=>{

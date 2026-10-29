@@ -12,10 +12,11 @@ const {
 } = require("../services/shopeeShops");
 const {
   enrichShopeeOrderItems,
+  getSkuSearchProductNames,
   summarizeShopeeProductMatches,
 } = require("../services/shopeeProductMatcher");
 const { getTables } = require("../tables");
-const { liveOrderRelation } = require('../services/shopeeOrderObservationService');
+const { liveOrderRelation, officialPaymentJoin } = require('../services/shopeeOrderObservationService');
 const { normalizeIdentityText } = require('../services/shopee004IdentityRules');
 const { resolveSalesOrders } = require("../services/shopeeSalesAccounting");
 const {
@@ -120,7 +121,7 @@ function deriveItemSubtotal(items) {
   return Number(subtotal.toFixed(2));
 }
 
-function buildShopeeOrderSearchText(order, visibility = ALL_FINANCIAL_VISIBILITY) {
+function buildShopeeOrderSearchText(order, visibility = ALL_FINANCIAL_VISIBILITY, { formattedValues = true } = {}) {
   const shopProfile = SHOPEE_SHOP_PROFILES[order?.shopCode];
   const financialVisibility = normalizeUserFinancialVisibility(visibility);
   const values = [
@@ -133,21 +134,21 @@ function buildShopeeOrderSearchText(order, visibility = ALL_FINANCIAL_VISIBILITY
     order?.itemCount > 1 ? `+${order.itemCount - 1}` : "",
     order?.totalQuantity,
     order?.itemSubtotal,
-    order?.itemSubtotal === null || order?.itemSubtotal === undefined
+    !formattedValues || order?.itemSubtotal === null || order?.itemSubtotal === undefined
       ? ""
       : SEARCH_MONEY_FORMATTER.format(order.itemSubtotal),
     financialVisibility.shippingFee ? order?.shippingFee : "",
-    financialVisibility.shippingFee && order?.shippingFee !== null && order?.shippingFee !== undefined
+    formattedValues && financialVisibility.shippingFee && order?.shippingFee !== null && order?.shippingFee !== undefined
       ? SEARCH_MONEY_FORMATTER.format(order.shippingFee)
       : "",
     financialVisibility.totalAmount ? order?.totalAmount : "",
-    financialVisibility.totalAmount && order?.totalAmount !== null && order?.totalAmount !== undefined
+    formattedValues && financialVisibility.totalAmount && order?.totalAmount !== null && order?.totalAmount !== undefined
       ? SEARCH_MONEY_FORMATTER.format(order.totalAmount)
       : "",
     order?.shippingDeadline,
-    formatSearchDate(order?.shippingDeadline),
+    formattedValues ? formatSearchDate(order?.shippingDeadline) : '',
     order?.lastEventAt,
-    formatSearchDateTime(order?.lastEventAt),
+    formattedValues ? formatSearchDateTime(order?.lastEventAt) : '',
     order?.eventCount,
     `ดู ${order?.eventCount || 0}`,
     `เหตุการณ์ ${order?.eventCount || 0}`,
@@ -159,7 +160,7 @@ function buildShopeeOrderSearchText(order, visibility = ALL_FINANCIAL_VISIBILITY
       item?.variant,
       item?.quantity,
       financialVisibility.unitPrice ? item?.unitPrice : "",
-      !financialVisibility.unitPrice || item?.unitPrice === null || item?.unitPrice === undefined
+      !formattedValues || !financialVisibility.unitPrice || item?.unitPrice === null || item?.unitPrice === undefined
         ? ""
         : SEARCH_MONEY_FORMATTER.format(item.unitPrice),
       formatProductMatchSearchText(item?.productMatch),
@@ -172,8 +173,29 @@ function buildShopeeOrderSearchText(order, visibility = ALL_FINANCIAL_VISIBILITY
 function matchesShopeeOrderSearch(order, search, visibility = ALL_FINANCIAL_VISIBILITY) {
   const terms = normalizeSearchText(search).split(" ").filter(Boolean);
   if (!terms.length) return true;
-  const haystack = buildShopeeOrderSearchText(order, visibility);
+  // Exact company SKUs cannot originate in a localized money/date rendering:
+  // those formats add separators, never IC-xxxxxx or nine contiguous digits.
+  // Keep every raw searchable value, including visibility-gated amounts.
+  const haystack = buildShopeeOrderSearchText(order, visibility, { formattedValues: !isCompanySkuSearch(search) });
   return terms.every((term) => haystack.includes(term));
+}
+
+function isCompanySkuSearch(search) {
+  return /^(?:IC-\d{6}|\d{9})$/i.test(normalizeSearchText(search));
+}
+
+async function withOrderSearchSnapshot(read) {
+  const client = await pool.connect();
+  let broken = false;
+  try {
+    await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+    const result = await read(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch { broken = true; }
+    throw error;
+  } finally { client.release(broken ? new Error('ORDER_SEARCH_TRANSACTION_NOT_CLOSED') : undefined); }
 }
 
 function compareShopeeOrders(left, right, sortBy, sortOrder) {
@@ -483,33 +505,69 @@ async function listOrders({
   }
 
   if (search) {
-    const stockAliasKeys = new Set(stockSearchAliases.map(a => JSON.stringify([
-      normalizeIdentityText(a.productName), normalizeIdentityText(a.variantName),
-    ])));
-    const searchResult = await pool.query(
-      `
-        SELECT
-          o.*,
-          (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
-            WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
-        FROM ${liveOrderRelation(tables)} o
-        ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
-      `,
-      params,
-    );
-    const matchingOrders = searchResult.rows
-      .map(mapOrder)
-      .filter((order) => matchesShopeeOrderSearch(order, search, financialVisibility)
-        || (order.shopCode === 'sc-drug-store' && order.items.some(item => stockAliasKeys.has(JSON.stringify([
-          normalizeIdentityText(item.name), normalizeIdentityText(item.variant),
-        ])))))
-      .sort((left, right) => compareShopeeOrders(left, right, sortBy, sortOrder));
-    const offset = isNumberedPage ? (page - 1) * limit : 0;
-    return {
-      hasMore: offset + limit < matchingOrders.length,
-      orders: matchingOrders.slice(offset, offset + limit),
-      totalCount: isNumberedPage ? matchingOrders.length : null,
+    const skuSearch = isCompanySkuSearch(search);
+    // IC-xxxxxx cannot be manufactured by money/date formatting. Use a coarse
+    // superset of raw text and existing matcher names, then retain the full JS
+    // predicate below. Punctuation/Thai/pack differences can only overselect.
+    if (/^IC-\d{6}$/i.test(normalizeSearchText(search))) {
+      const names = [...getSkuSearchProductNames(search), ...stockSearchAliases.map(a => a.productName)];
+      const patterns = [...new Set(names.map(n => {
+        const words = String(n).normalize('NFKC').toLowerCase().match(/[a-z0-9]+/g) || [];
+        return `%${words.sort((a,b) => b.length-a.length)[0] || ''}%`;
+      }))];
+      params.push(normalizeSearchText(search), patterns);
+      const needle = `$${params.length - 1}`, nameKeys = `$${params.length}::text[]`;
+      where.push(`(strpos(translate(o.order_number || ' ' || o.current_status || ' ' || o.shop_code,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),${needle}) > 0
+        OR EXISTS (SELECT 1 FROM jsonb_array_elements(COALESCE(o.items,'[]'::jsonb)) search_item
+          WHERE strpos(translate(normalize(COALESCE(search_item->>'name','') || ' ' || COALESCE(search_item->>'variant',''),NFKC),
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),${needle}) > 0
+          OR translate(normalize(COALESCE(search_item->>'name',''),NFKC),
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZİ','abcdefghijklmnopqrstuvwxyzi') LIKE ANY(${nameKeys})))`);
+    }
+    const readSearch = async (db) => {
+      const stockAliasKeys = new Set(stockSearchAliases.map(a => JSON.stringify([
+        normalizeIdentityText(a.productName), normalizeIdentityText(a.variantName),
+      ])));
+      const searchResult = await db.query(
+        `
+          SELECT
+            o.*,
+            (SELECT COUNT(*) FROM ${tables.shopeeOrderEvents} e
+              WHERE e.shop_code = o.shop_code AND e.order_number = o.order_number) AS event_count
+          FROM ${liveOrderRelation(tables, { includeOfficialPayment: !skuSearch })} o
+          ${where.length ? `WHERE ${where.join(" AND ")}` : ""}
+        `,
+        params,
+      );
+      const matchingOrders = searchResult.rows
+        .map(mapOrder)
+        .filter((order) => matchesShopeeOrderSearch(order, search, financialVisibility)
+          || (order.shopCode === 'sc-drug-store' && order.items.some(item => stockAliasKeys.has(JSON.stringify([
+            normalizeIdentityText(item.name), normalizeIdentityText(item.variant),
+          ])))))
+        .sort((left, right) => compareShopeeOrders(left, right, sortBy, sortOrder));
+      const offset = isNumberedPage ? (page - 1) * limit : 0;
+      let pageOrders = matchingOrders.slice(offset, offset + limit);
+      // Payment proof is not a search field. Preserve its exact existing lookup,
+      // but perform it only for the selected page inside the same read snapshot.
+      if (skuSearch && pageOrders.length) {
+        const keys = pageOrders.flatMap(o => [o.shopCode, o.orderNumber]);
+        const values = pageOrders.map((_, i) => `($${i * 2 + 1}::text,$${i * 2 + 2}::text)`).join(',');
+        const proofs = await db.query(`SELECT p.shop_code,p.order_number,official.proof
+          FROM (VALUES ${values}) p(shop_code,order_number) ${officialPaymentJoin(tables, 'p')}`, keys);
+        const byKey = new Map(proofs.rows.map(r => [JSON.stringify([r.shop_code,r.order_number]),r.proof]));
+        pageOrders = pageOrders.map(o => {
+          const proof = byKey.get(JSON.stringify([o.shopCode,o.orderNumber]));
+          return proof ? { ...o, officialPaymentProof: proof } : o;
+        });
+      }
+      return {
+        hasMore: offset + limit < matchingOrders.length,
+        orders: pageOrders,
+        totalCount: isNumberedPage ? matchingOrders.length : null,
+      };
     };
+    return skuSearch ? withOrderSearchSnapshot(readSearch) : readSearch(pool);
   }
 
   params.push(isNumberedPage ? limit : limit + 1);

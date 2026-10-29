@@ -40,6 +40,18 @@ const databaseOrder = {
   total_quantity: 1,
 };
 
+let searchClient;
+let paymentRows;
+beforeEach(() => {
+  pool.query.mockReset();pool.connect.mockReset();paymentRows=[];
+  searchClient={release:jest.fn(),query:jest.fn(async(sql,params)=>{
+    if(/^(BEGIN|COMMIT|ROLLBACK)/.test(sql))return{rows:[]};
+    if(sql.includes('FROM (VALUES'))return{rows:paymentRows};
+    return pool.query(sql,params);
+  })};
+  pool.connect.mockResolvedValue(searchClient);
+});
+
 test('verified SC stock aliases participate before global pagination without matching another shop or pack', async () => {
   pool.query.mockClear();
   const rows = [databaseOrder, { ...databaseOrder, order_number: '26082471YK8C03' },
@@ -469,7 +481,45 @@ test("global search filters the entire shop scope before numbered pagination", a
   const [sql, params] = pool.query.mock.calls[0];
   expect(sql).not.toMatch(/LIMIT\s+\$\d+/u);
   expect(sql).not.toContain("OFFSET");
-  expect(params).toEqual([["sc-drug-store", "dr-morepen"]]);
+  expect(params[0]).toEqual(["sc-drug-store", "dr-morepen"]);
+  expect(params[1]).toBe('ic-001849');
+  expect(params[2]).toEqual(expect.any(Array));
+});
+
+test('SKU search loads unchanged latest payment proof only for the selected page in one read-only snapshot', async()=>{
+  const rows=[databaseOrder,{...databaseOrder,order_number:'26082471YK8C03'}];
+  pool.query.mockResolvedValueOnce({rows});
+  const proof={paidAt:'2026-08-24T01:02:00.000Z',observedAt:'2026-10-29T01:00:00.000Z',sourceFilename:'orders.xlsx',sourceSha256:'a'.repeat(64)};
+  paymentRows=[{shop_code:'sc-drug-store',order_number:ORDER_NUMBER,proof}];
+  const result=await listOrders({shopCode:'sc-drug-store',search:'IC-999998',stockSearchAliases:[{productName:databaseOrder.items[0].name,variantName:databaseOrder.items[0].variant}],page:2,limit:1});
+  expect(result.totalCount).toBe(2);expect(result.orders[0].officialPaymentProof).toEqual(proof);
+  expect(pool.query.mock.calls[0][0]).not.toContain('LEFT JOIN LATERAL');
+  const [sql,values]=searchClient.query.mock.calls.find(([s])=>s.includes('FROM (VALUES'));
+  expect(values).toEqual(['sc-drug-store',ORDER_NUMBER]);
+  expect(sql).toContain('f.paid_at IS NOT NULL');expect(sql).toContain('ORDER BY s.observed_at DESC LIMIT 1');
+  expect(searchClient.query.mock.calls[0][0]).toBe('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+  expect(searchClient.query.mock.calls.at(-1)[0]).toBe('COMMIT');expect(searchClient.release).toHaveBeenCalledTimes(1);
+});
+
+test('empty SKU pages do not query unrelated payment evidence; failed reads roll back',async()=>{
+  pool.query.mockResolvedValueOnce({rows:[]});
+  const empty=await listOrders({shopCode:'sc-drug-store',search:'IC-999998',page:1});
+  expect(empty).toMatchObject({orders:[],totalCount:0,hasMore:false});
+  expect(searchClient.query.mock.calls.some(([sql])=>sql.includes('FROM (VALUES'))).toBe(false);
+  const failure=Error('synthetic read failure');pool.query.mockRejectedValueOnce(failure);
+  await expect(listOrders({shopCode:'sc-drug-store',search:'IC-999998',page:1})).rejects.toBe(failure);
+  expect(searchClient.query.mock.calls.at(-1)[0]).toBe('ROLLBACK');
+});
+
+test('exact SKU text skips localized rendering without changing raw-value or financial-visibility search',()=>{
+  const samples=[mapOrder(databaseOrder),mapOrder({...databaseOrder,order_number:'260630010040ABC',items:[{name:'ＩＣ－００１８４９ raw name',variant:'',quantity:1,unitPrice:630010040}],total_amount:630010040,shipping_fee:630010040})];
+  for(const order of samples)for(const visibility of [{unitPrice:true,shippingFee:true,totalAmount:true},{unitPrice:false,shippingFee:false,totalAmount:false}])for(const sku of ['IC-001849','ic-001849','630010040']){
+    expect(matchesShopeeOrderSearch(order,sku,visibility)).toBe(buildShopeeOrderSearchText(order,visibility).includes(sku.toLowerCase()));
+  }
+  const dateFormat=jest.spyOn(Intl.DateTimeFormat.prototype,'format','get').mockImplementation(()=>()=>{throw Error('unexpected date rendering');});
+  const moneyFormat=jest.spyOn(Intl.NumberFormat.prototype,'format','get').mockImplementation(()=>()=>{throw Error('unexpected money rendering');});
+  try{expect(()=>matchesShopeeOrderSearch(samples[1],'IC-001849')).not.toThrow();expect(()=>matchesShopeeOrderSearch(samples[1],'630010040')).not.toThrow();}
+  finally{dateFormat.mockRestore();moneyFormat.mockRestore();}
 });
 
 test("sales summary query uses inclusive Bangkok dates and excludes cancelled or returned orders", async () => {
