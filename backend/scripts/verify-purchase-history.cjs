@@ -69,13 +69,13 @@ async function verify(){
  const claims=await db.query('SELECT id,receipt_no,user_id,total_amount,receipt_total_amount,receipt_snapshot,(SELECT count(*)::int FROM loyalty_claim_items i WHERE i.claim_id=c.id) AS lines FROM loyalty_claims c WHERE branch_code=$1 AND receipt_no=ANY($2::text[])',[branch,receipts]);
  assert.equal(claims.rowCount,3);
  const mixed=claims.rows.find(r=>r.receipt_no===receipts[0]),zero=claims.rows.find(r=>r.receipt_no===receipts[1]);
- assert.equal(mixed.user_id,members[0].id);assert.equal(Number(mixed.total_amount),250);assert.equal(Number(mixed.receipt_total_amount),340);assert.equal(mixed.lines,2);
- assert.deepEqual(mixed.receipt_snapshot.items.map(i=>i.seq),[3,5]);assert.equal(mixed.receipt_snapshot.items[0].barcode,'SYNTHETIC-BC');assert.equal(mixed.receipt_snapshot.items[0].lineDiscount,10);assert.equal(mixed.receipt_snapshot.items[0].promotionCode,'TEST-PROMO');assert.equal(zero.lines,1);assert.equal(Number(zero.total_amount),0);
- assert.equal((await db.query('SELECT amount FROM point_ledger WHERE reference_id=$1',[zero.id])).rowCount,0);
+ assert.equal(mixed.user_id,members[0].id);assert.equal(Number(mixed.total_amount),350);assert.equal(Number(mixed.receipt_total_amount),340);assert.equal(mixed.lines,2);
+ assert.deepEqual(mixed.receipt_snapshot.items.map(i=>i.seq),[3,5]);assert.equal(mixed.receipt_snapshot.items[0].barcode,'SYNTHETIC-BC');assert.equal(mixed.receipt_snapshot.items[0].lineDiscount,10);assert.equal(mixed.receipt_snapshot.items[0].promotionCode,'TEST-PROMO');assert.equal(zero.lines,1);assert.equal(Number(zero.total_amount),100);
+ const medicineAward=await db.query('SELECT amount FROM point_ledger WHERE reference_id=$1',[zero.id]);assert.equal(medicineAward.rowCount,1);assert.equal(Number(medicineAward.rows[0].amount),4);
  const mirror=await db.query('SELECT paid_total,pos_code,cashier_code FROM crm_pos_sale_events WHERE branch_code=$1 AND doc_no=$2',[branch,receipts[0]]);
  assert.equal(Number(mirror.rows[0].paid_total),340);assert.equal(mirror.rows[0].pos_code,'TEST-POS');
  const oldShape={receiptNo:marker+'-OLDER-REQUEST',branchCode:branch,memberId:members[0].id,totalAmount:250,previewPoints:99999,items:mixed.receipt_snapshot.items};
- receipts.push(oldShape.receiptNo);assert.equal((await send('/api/loyalty/claims','POST',oldShape)).status,201);
+ receipts.push(oldShape.receiptNo);const oldClaim=await send('/api/loyalty/claims','POST',oldShape);assert.equal(oldClaim.status,201);assert.equal(oldClaim.data.awardedPoints,14);assert.equal(oldClaim.data.eligibleAmount,350);
  const repeated={...oldShape,receiptNo:receipts[0],memberId:members[1].id};
  assert.equal((await send('/api/loyalty/claims','POST',repeated)).status,409);
  assert.equal((await db.query('SELECT user_id FROM loyalty_claims WHERE id=$1',[mixed.id])).rows[0].user_id,members[0].id);
@@ -96,7 +96,7 @@ async function verify(){
  assert.equal((await send(route,'GET',null,null)).status,401);
  await db.query('UPDATE staff_devices SET revoked_at=NOW() WHERE device_id=$1',[deviceId]);
  assert.equal((await send(route)).status,401);
- report.readback={confirmedBills:3,qrAndStaffMembers:true,allReceiptLinesStored:true,originalPaidTotal:340,eligibleAmount:250,zeroPointBillStored:true,duplicateRejected:true,memberIsolation:true,revokedSessionDenied:true,historyRowsTraversed:seen.length,originalItemOrderAndMetadata:true,olderRequestAccepted:true};
+ report.readback={confirmedBills:3,qrAndStaffMembers:true,allReceiptLinesStored:true,originalPaidTotal:340,eligibleAmount:350,medicineOnlyPoints:4,duplicateRejected:true,memberIsolation:true,revokedSessionDenied:true,historyRowsTraversed:seen.length,originalItemOrderAndMetadata:true,olderRequestAccepted:true};
  report.applicationSha256=createHash('sha256').update(fs.readFileSync(path.join(path.dirname(helper),'SCCRMonPOS.exe'))).digest('hex');
 }
 async function cleanup(){

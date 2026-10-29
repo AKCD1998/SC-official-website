@@ -1,6 +1,9 @@
 const crypto = require('node:crypto');
 const BAHT_PER_POINT = 25;
 const MAX_AMOUNT = 10000000;
+// Store the shop's earning-policy revision with new claims. Historical awards
+// retain their original basis; product classification is not a gift permission.
+const RECEIPT_POINTS_POLICY = 'include-medicine-purchases-2026-10-29';
 
 function invalid(message) { return Object.assign(new Error(message), { status: 400 }); }
 function condition(raw) {
@@ -52,16 +55,29 @@ function quotePoints(totalAmount, promotions) {
     appliedPromotions.push({ ...raw, pointsBefore: before, pointsAfter: points });
   }
   return { bahtPerPoint: BAHT_PER_POINT, basePoints, awardedPoints: points, appliedPromotions,
-    revision: crypto.createHash('sha256').update(JSON.stringify(promotions)).digest('hex') };
+    pointsPolicy: RECEIPT_POINTS_POLICY,
+    revision: crypto.createHash('sha256').update(JSON.stringify({ pointsPolicy: RECEIPT_POINTS_POLICY, promotions })).digest('hex') };
 }
 function receiptEligibleAmount(items) {
   if (!Array.isArray(items) || !items.length || items.length > 1000) throw invalid('Receipt items are required (maximum 1000).');
   let cents = 0;
   for (const item of items) {
     if (!item || !Number.isFinite(Number(item.lineTotal)) || Number(item.lineTotal) < 0 || Number(item.lineTotal) > MAX_AMOUNT || !Number.isFinite(Number(item.qty)) || Number(item.qty) <= 0 || !Number.isFinite(Number(item.unitPrice)) || Number(item.unitPrice) < 0) throw invalid('Invalid receipt line.');
-    if (!String(item.productName || '').startsWith('เภสัช')) cents += Math.round(Number(item.lineTotal) * 100);
+    cents += Math.round(Number(item.lineTotal) * 100);
   }
   if (cents > MAX_AMOUNT * 100) throw invalid('Receipt amount exceeds limit.');
   return cents / 100;
 }
-module.exports = { BAHT_PER_POINT, MAX_AMOUNT, validatePromotion, getActivePromotions, quotePoints, receiptEligibleAmount };
+function resolveReceiptEligibleAmount(items, reportedAmount) {
+  const eligible = receiptEligibleAmount(items);
+  const reported = Number(reportedAmount);
+  if (!Number.isFinite(reported) || reported < 0 || reported > MAX_AMOUNT) throw invalid('Invalid eligible amount.');
+  if (Math.abs(eligible - reported) <= 0.011) return eligible;
+  // Older POS versions send all lines but report a subtotal excluding this
+  // prefix. Accept that exact legacy shape, then award on the full validated
+  // lines. Never trust a local preview or an arbitrary mismatching subtotal.
+  const legacyCents = items.reduce((sum, item) => sum + (String(item.productName || '').startsWith('เภสัช') ? 0 : Math.round(Number(item.lineTotal) * 100)), 0);
+  if (Math.abs(legacyCents / 100 - reported) <= 0.011) return eligible;
+  throw invalid('totalAmount must equal receipt lines or the legacy pharmacy-excluded subtotal.');
+}
+module.exports = { BAHT_PER_POINT, MAX_AMOUNT, RECEIPT_POINTS_POLICY, validatePromotion, getActivePromotions, quotePoints, receiptEligibleAmount, resolveReceiptEligibleAmount };

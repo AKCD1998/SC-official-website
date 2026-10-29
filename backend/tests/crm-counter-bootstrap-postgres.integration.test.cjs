@@ -264,7 +264,7 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect((await mockClient.query('SELECT count(*)::int AS n FROM crm_loyalty_awards')).rows[0].n).toBe(3);
   });
 
-  test('persists original POS totals and every ordered line, including zero-point bills, independently of points and member versions', async () => {
+  test('awards medicine purchases from old and new clients while preserving original totals and every ordered line', async () => {
     const auth='Bearer '+staffToken;
     const items=[{seq:3,productCode:'VIT',productName:'วิตามิน fixture',barcode:'SYNTHETIC-BC',unitCode:'BOX',unitName:'กล่อง',qty:2,unitPrice:130,lineTotal:250,lineDiscount:10,promotionCode:'PROMO_FIXTURE'},
       {seq:5,productCode:'DRUG',productName:'เภสัช fixture',qty:1,unitPrice:100,lineTotal:100}];
@@ -272,14 +272,26 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect((await request(app).post('/api/loyalty/claims').set('Authorization',auth).send(claim)).status).toBe(201);
     const drug={...claim,receiptNo:'HISTORY-ZERO',totalAmount:0,receiptTotalAmount:100,receiptDiscount:0,items:[items[1]]};
     const zero=await request(app).post('/api/loyalty/claims').set('Authorization',auth).send(drug);
-    expect(zero.status).toBe(201);expect(zero.body.awardedPoints).toBe(0);
+    expect(zero.status).toBe(201);expect(zero.body).toMatchObject({awardedPoints:4,eligibleAmount:100,pointsPolicy:'include-medicine-purchases-2026-10-29'});
+    const current=await request(app).post('/api/loyalty/claims').set('Authorization',auth).send({...drug,receiptNo:'HISTORY-DRUG-CURRENT',totalAmount:100});
+    expect(current.status).toBe(201);expect(current.body.awardedPoints).toBe(zero.body.awardedPoints);
+    const free=await request(app).post('/api/loyalty/claims').set('Authorization',auth).send({...drug,receiptNo:'HISTORY-FREE',receiptTotalAmount:0,items:[{...items[1],lineTotal:0}]});
+    expect(free.status).toBe(201);expect(free.body.awardedPoints).toBe(0);
     expect((await request(app).post('/api/loyalty/claims').set('Authorization',auth).send(claim)).status).toBe(409);
     let history=await request(app).get(`/api/members/${memberId}/purchase-history`).set('Authorization',auth);
     expect(history.status).toBe(200);
     const mixed=history.body.purchases.find(p=>p.receiptNo===claim.receiptNo);
-    expect(mixed).toMatchObject({totalAmount:340,eligibleAmount:250,totalAmountSource:'pos_header',receiptDiscount:10,posCode:'POS-TEST',receiptCashierCode:'CASH-TEST'});
+    expect(mixed).toMatchObject({totalAmount:340,eligibleAmount:350,awardedPoints:14,totalAmountSource:'pos_header',receiptDiscount:10,posCode:'POS-TEST',receiptCashierCode:'CASH-TEST'});
     expect(mixed.items).toMatchObject(items);
-    expect(history.body.purchases.find(p=>p.receiptNo===drug.receiptNo)).toMatchObject({totalAmount:100,eligibleAmount:0,awardedPoints:0,items:[{productCode:'DRUG'}]});
+    expect(history.body.purchases.find(p=>p.receiptNo===drug.receiptNo)).toMatchObject({totalAmount:100,eligibleAmount:100,awardedPoints:4,items:[{productCode:'DRUG'}]});
+    const policy=await mockClient.query("SELECT receipt_snapshot FROM loyalty_claims WHERE receipt_no='HISTORY-MIXED'");
+    expect(policy.rows[0].receipt_snapshot).toMatchObject({pointsPolicy:'include-medicine-purchases-2026-10-29',reportedEligibleAmount:250});
+    // Already-claimed medicine bills retain the old award; replay cannot backfill them.
+    await mockClient.query("INSERT INTO loyalty_claims(id,receipt_no,branch_code,total_amount,awarded_points,user_id) VALUES('HISTORICAL-DRUG','HISTORY-BEFORE-POLICY','TEST_HISTORY',0,0,$1)",[memberId]);
+    const historical=await request(app).post('/api/loyalty/claims').set('Authorization',auth).send({...drug,receiptNo:'HISTORY-BEFORE-POLICY',totalAmount:100});
+    expect(historical.status).toBe(409);
+    expect((await mockClient.query("SELECT total_amount::int,awarded_points FROM loyalty_claims WHERE id='HISTORICAL-DRUG'")).rows).toEqual([{total_amount:0,awarded_points:0}]);
+    expect((await mockClient.query("SELECT count(*)::int AS n FROM point_ledger WHERE reference_id='HISTORICAL-DRUG'")).rows[0].n).toBe(0);
     const mirrored=await mockClient.query("SELECT paid_total,pos_code,cashier_code FROM crm_pos_sale_events WHERE branch_code='TEST_HISTORY' AND doc_no='HISTORY-MIXED'");
     expect(Number(mirrored.rows[0].paid_total)).toBe(340);expect(mirrored.rows[0].pos_code).toBe('POS-TEST');expect(mirrored.rows[0].cashier_code).toBe('CASH-TEST');
     const units=await mockClient.query("SELECT l.unit_code,l.unit_name FROM crm_pos_sale_line_events l JOIN crm_pos_sale_events s ON s.id=l.sale_event_id WHERE s.branch_code='TEST_HISTORY' AND s.doc_no='HISTORY-MIXED' ORDER BY l.line_no");

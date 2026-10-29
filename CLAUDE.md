@@ -1,5 +1,11 @@
 # Public member-registration integration notes
 
+Medicine earning policy (2026-10-29): the operator reports management approval
+after consulting the provincial public-health office. Implement this as the
+shop's earning instruction, not as an independently verified legal conclusion.
+New receipt claims include medicine line totals; gift/redemption permission,
+historical awards and native Ada customer data are outside this change.
+
 HQ000 Ada mirror integration: see `backend/docs/ada-member-sync.md`. Native
 customer codes are authoritative for imported history; duplicate phones must
 not be auto-merged. The worker's outbound release is create-only, and imported

@@ -3,7 +3,7 @@ const request=require('supertest');
 const jwt=require('jsonwebtoken');
 const mockQuery=jest.fn();
 jest.mock('../db',()=>({query:(...args)=>mockQuery(...args)}));
-const {quotePoints,validatePromotion,receiptEligibleAmount,getActivePromotions}=require('../lib/sccrmPromotions');
+const {quotePoints,validatePromotion,receiptEligibleAmount,resolveReceiptEligibleAmount,RECEIPT_POINTS_POLICY,getActivePromotions}=require('../lib/sccrmPromotions');
 const promotion=(overrides={})=>({id:'11111111-1111-4111-8111-111111111111',name:'Fixture double points',type:'multiplier',value:2,condition_json:{},...overrides});
 function app(){const a=express();a.use(express.json());a.use('/api/sccrm',require('../routes/centralPromotions'));a.use('/sccrm/promotions',require('../routes/promotionPortal'));return a;}
 beforeEach(()=>{mockQuery.mockReset();mockQuery.mockImplementation(async sql=>String(sql).startsWith('SELECT id FROM users')?{rowCount:1,rows:[{id:'admin'}]}:{rowCount:1,rows:[promotion()]});process.env.JWT_SECRET='synthetic-admin-fixture';process.env.SCCRM_PROMOTION_ADMIN_EMAILS='test-admin@example.invalid';});
@@ -25,12 +25,24 @@ test('revision changes when business rules change without changing any app versi
 test.each([{type:'unknown'},{value:-1},{value:Infinity},{value:101},{condition_json:{unexpected:1}},{condition_json:{minimum_spend:-1}},{condition_json:{branch_codes:[]}},{condition_json:{branch_codes:['<script>']}},{starts_at:'bad'},{starts_at:'2026-10-22',ends_at:'2026-10-21'},{is_active:'false'}])('rejects malformed rules %j',input=>{
  expect(()=>validatePromotion(promotion(input))).toThrow();
 });
-test('eligible receipt excludes pharmacy lines on server too',()=>{
+test('medicine purchases earn on all validated lines under the current shop policy',()=>{
  const items=[{productName:'วิตามิน',lineTotal:250,unitPrice:250,qty:1},{productName:'เภสัช ยาทดสอบ',lineTotal:100,unitPrice:100,qty:1}];
- expect(receiptEligibleAmount(items)).toBe(250);
+ expect(receiptEligibleAmount(items)).toBe(350);
+ expect(quotePoints(receiptEligibleAmount(items),[])).toMatchObject({basePoints:14,awardedPoints:14,pointsPolicy:RECEIPT_POINTS_POLICY});
+ expect(quotePoints(receiptEligibleAmount([items[1]]),[]).awardedPoints).toBe(4);
+ expect(quotePoints(receiptEligibleAmount(items),[promotion()]).awardedPoints).toBe(28);
+ expect(quotePoints(receiptEligibleAmount([{...items[1],lineTotal:0}]),[promotion({type:'fixed_bonus',value:5})]).awardedPoints).toBe(0);
  expect(()=>receiptEligibleAmount([{...items[0],qty:-1}])).toThrow();
  expect(()=>quotePoints(Infinity,[])).toThrow();
  expect(()=>quotePoints(10000001,[])).toThrow();
+});
+test('legacy drug-excluded subtotals and new full subtotals resolve to the same award basis',()=>{
+ const items=[{productName:'วิตามิน',lineTotal:250,unitPrice:250,qty:1},{productName:'เภสัช ยาทดสอบ',lineTotal:100,unitPrice:100,qty:1}];
+ expect(resolveReceiptEligibleAmount(items,250)).toBe(350);
+ expect(resolveReceiptEligibleAmount(items,350)).toBe(350);
+ expect(resolveReceiptEligibleAmount([items[1]],0)).toBe(100);
+ for(const amount of [0,100,251,349,999,NaN,-1])expect(()=>resolveReceiptEligibleAmount(items,amount)).toThrow();
+ expect(()=>resolveReceiptEligibleAmount([{...items[1],lineTotal:-100}],0)).toThrow();
 });
 test('branch-restricted test promotions never leak into other branch calculations',async()=>{
  mockQuery.mockResolvedValue({rows:[promotion({condition_json:{branch_codes:['TEST_ONLY']}})]});
