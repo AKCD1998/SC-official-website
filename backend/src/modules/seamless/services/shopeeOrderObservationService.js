@@ -106,27 +106,49 @@ async function recordOrderObservations({ body, dbPool = pool, now = new Date() }
   finally { client.release(); }
 }
 // Same row shape as the email table, including live-only orders without inventing email events.
-function liveOrderRelation(tables) {
-  return `(SELECT combined.*, official.proof AS official_payment FROM
+function officialPaymentJoin(tables, orderAlias = 'combined') {
+  if (!/^[a-z_]+$/.test(orderAlias)) throw new Error('Invalid order relation alias.');
+  return `LEFT JOIN LATERAL (SELECT jsonb_build_object('paidAt',f.paid_at,'observedAt',s.observed_at,
+      'sourceFilename',s.source_filename,'sourceSha256',s.source_sha256) AS proof
+      FROM ${tables.shopeeSalesOrderFacts} f JOIN ${tables.shopeeSalesSources} s USING (shop_code,source_sha256)
+      WHERE f.shop_code=${orderAlias}.shop_code AND f.order_number=${orderAlias}.order_number AND f.paid_at IS NOT NULL
+      ORDER BY s.observed_at DESC LIMIT 1) official ON TRUE`;
+}
+function liveOrderRelation(tables, { includeOfficialPayment = true } = {}) {
+  // Walk distinct order keys through the existing (shop_code,order_number)
+  // index, skipping repeated report versions. The strict tuple comparison
+  // advances each recursive step and terminates even when the facts are empty.
+  // https://wiki.postgresql.org/wiki/Loose_indexscan
+  // Exclude email/live keys before loading an official-only order's payload.
+  return `(SELECT combined.*, ${includeOfficialPayment ? 'official.proof' : 'NULL::jsonb'} AS official_payment FROM
     (SELECT o.*, l.snapshot || jsonb_build_object('internalOrderId',l.internal_order_id) AS live_status FROM ${tables.shopeeOrders} o LEFT JOIN ${tables.shopeeLiveOrders} l USING (shop_code,order_number)
-    UNION ALL SELECT (jsonb_populate_record(NULL::${tables.shopeeOrders}, jsonb_build_object(
+    UNION ALL SELECT synthetic.*, l.snapshot || jsonb_build_object('internalOrderId',l.internal_order_id) AS live_status
+    FROM ${tables.shopeeLiveOrders} l CROSS JOIN LATERAL jsonb_populate_record(NULL::${tables.shopeeOrders}, jsonb_build_object(
       'shop_code',l.shop_code,'order_number',l.order_number,'current_status','seller_center',
-      'items','[]'::jsonb,'item_count',0,'total_quantity',0,'first_event_at',l.first_observed_at,'last_event_at',l.first_observed_at))).*, l.snapshot || jsonb_build_object('internalOrderId',l.internal_order_id) AS live_status
-    FROM ${tables.shopeeLiveOrders} l WHERE NOT EXISTS (SELECT 1 FROM ${tables.shopeeOrders} o WHERE o.shop_code=l.shop_code AND o.order_number=l.order_number)
-    UNION ALL SELECT (jsonb_populate_record(NULL::${tables.shopeeOrders}, jsonb_build_object(
+      'items','[]'::jsonb,'item_count',0,'total_quantity',0,'first_event_at',l.first_observed_at,'last_event_at',l.first_observed_at)) synthetic
+    WHERE NOT EXISTS (SELECT 1 FROM ${tables.shopeeOrders} o WHERE o.shop_code=l.shop_code AND o.order_number=l.order_number)
+    UNION ALL SELECT synthetic.*, NULL::jsonb AS live_status
+      FROM (WITH RECURSIVE report_keys AS (
+        (SELECT shop_code,order_number FROM ${tables.shopeeSalesOrderFacts} ORDER BY shop_code,order_number LIMIT 1)
+        UNION ALL SELECT following.shop_code,following.order_number FROM report_keys previous
+        CROSS JOIN LATERAL (SELECT shop_code,order_number FROM ${tables.shopeeSalesOrderFacts}
+          WHERE (shop_code,order_number)>(previous.shop_code,previous.order_number)
+          ORDER BY shop_code,order_number LIMIT 1) following
+        ) SELECT k.* FROM report_keys k
+        WHERE NOT EXISTS (SELECT 1 FROM ${tables.shopeeOrders} o WHERE o.shop_code=k.shop_code AND o.order_number=k.order_number)
+        AND NOT EXISTS (SELECT 1 FROM ${tables.shopeeLiveOrders} l WHERE l.shop_code=k.shop_code AND l.order_number=k.order_number)) missing
+      CROSS JOIN LATERAL (SELECT payload.*,s.observed_at FROM ${tables.shopeeSalesSources} s
+        CROSS JOIN LATERAL (SELECT f.* FROM ${tables.shopeeSalesOrderFacts} f
+          WHERE f.shop_code=missing.shop_code AND f.order_number=missing.order_number
+            AND f.source_sha256=s.source_sha256 LIMIT 1) payload
+        WHERE s.shop_code=missing.shop_code
+        ORDER BY s.observed_at DESC,s.source_sha256 ASC LIMIT 1) f
+      CROSS JOIN LATERAL jsonb_populate_record(NULL::${tables.shopeeOrders}, jsonb_build_object(
       'shop_code',f.shop_code,'order_number',f.order_number,'current_status','official_report',
       'items',f.items,'item_count',jsonb_array_length(f.items),'item_subtotal',f.item_subtotal,'ordered_at',f.ordered_at,
       'total_quantity',COALESCE((SELECT SUM((item->>'quantity')::numeric) FROM jsonb_array_elements(f.items) item),0),
-      'first_event_at',COALESCE(f.ordered_at,f.observed_at),'last_event_at',COALESCE(f.ordered_at,f.observed_at)))).*, NULL::jsonb AS live_status
-      FROM (SELECT DISTINCT ON (f.shop_code,f.order_number) f.*,s.observed_at
-        FROM ${tables.shopeeSalesOrderFacts} f JOIN ${tables.shopeeSalesSources} s USING (shop_code,source_sha256)
-        ORDER BY f.shop_code,f.order_number,s.observed_at DESC,f.source_sha256 ASC) f
-      WHERE NOT EXISTS (SELECT 1 FROM ${tables.shopeeOrders} o WHERE o.shop_code=f.shop_code AND o.order_number=f.order_number)
-      AND NOT EXISTS (SELECT 1 FROM ${tables.shopeeLiveOrders} l WHERE l.shop_code=f.shop_code AND l.order_number=f.order_number)) combined
-    LEFT JOIN LATERAL (SELECT jsonb_build_object('paidAt',f.paid_at,'observedAt',s.observed_at,
-      'sourceFilename',s.source_filename,'sourceSha256',s.source_sha256) AS proof
-      FROM ${tables.shopeeSalesOrderFacts} f JOIN ${tables.shopeeSalesSources} s USING (shop_code,source_sha256)
-      WHERE f.shop_code=combined.shop_code AND f.order_number=combined.order_number AND f.paid_at IS NOT NULL
-      ORDER BY s.observed_at DESC LIMIT 1) official ON TRUE)`;
+      'first_event_at',COALESCE(f.ordered_at,f.observed_at),'last_event_at',COALESCE(f.ordered_at,f.observed_at))) synthetic
+      ) combined
+    ${includeOfficialPayment ? officialPaymentJoin(tables) : ''})`;
 }
-module.exports = { validateBatch, mergeSnapshot, recordOrderObservations, liveOrderRelation, PROOFS };
+module.exports = { validateBatch, mergeSnapshot, recordOrderObservations, liveOrderRelation, officialPaymentJoin, PROOFS };

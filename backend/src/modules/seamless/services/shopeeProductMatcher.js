@@ -260,6 +260,22 @@ function enrichShopeeOrderItems(shopCode, items) {
   }));
 }
 
+// Candidate hints for search only, derived from the existing accounting matcher.
+// The full matcher still decides each returned item's identity and pack.
+function getSkuSearchProductNames(companySku) {
+  const sku = normalizeShopeeProductText(companySku);
+  const usesSku = record => (record.match.status === 'matched'
+    ? normalizeShopeeProductText(record.match.companySku).includes(sku)
+    : record.match.status === 'bundle' && record.match.components.some(c => normalizeShopeeProductText(c.companySku).includes(sku)));
+  const names = new Set(catalog.records.filter(usesSku).map(r => r.productName));
+  for (const [key, record] of indexes.exactAliases) if (usesSku(record)) names.add(JSON.parse(key)[1]);
+  for (const [key, canonical] of indexes.nameAliases) {
+    const [shop] = JSON.parse(key);
+    if ((indexes.byName.get(nameKey(shop, canonical)) || []).some(usesSku)) names.add(JSON.parse(key)[1]);
+  }
+  return [...names];
+}
+
 function summarizeShopeeProductMatches(items) {
   const summary = {
     catalogVersion: catalog.catalogVersion,
@@ -325,6 +341,7 @@ function getShopeeProductCatalogDigest() {
 }
 
 module.exports = {
+  getSkuSearchProductNames,
   enrichShopeeOrderItems,
   getShopeeProductCatalogDigest,
   getShopeeProductCatalogSummary,
