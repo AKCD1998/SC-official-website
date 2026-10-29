@@ -6,9 +6,9 @@ Rule/evidence version: **sc004-seller-pos-20261029-r1**. Shop: SC Drug Store. Pr
 
 At 2026-10-29T04:50:43.831Z, production had 21 mapping-review orders (morning handoff: 18), with 77 current and 77 original item lines. The full runtime used 30 dynamic rules and 91 trusted evidence facts in addition to the old static matcher and legacy evidence guard. Of the 77 current lines, 54 already mapped; 23 blocked lines represent 15 exact product/variation choices. The 19 static candidates in the handoff were never imported as approvals.
 
-The existing authenticated human-admin contracts have now recorded 7 append-only POS metadata entries, 45 evidence facts and 15 version-1 identity rules. There were 17 serial POSTs; one evidence response timed out and was reconciled by its exact immutable references before continuing, without a repeat POST. Each rule outcome was independently reconciled by its stable operation ID and exact request. No SQL DML, source replay, queue reset, direct worker invocation, merge or deployment was used.
+The existing authenticated human-admin contracts have now recorded 7 append-only POS metadata entries, 45 evidence facts and 15 version-1 identity rules. There were 17 serial POSTs; one evidence response timed out and was reconciled by its exact immutable references before continuing, without a repeat POST. Each rule outcome was independently reconciled by its stable operation ID and exact request. No direct SQL DML, source replay, queue reset, direct worker invocation, merge or deployment was used.
 
-Latest read: 2026-10-29T05:29:36.443Z. Active rules: 45; evidence: 136; POS contracts: 265. Mapping-review positions remaining: **21**. Dirty orders: 410; pending identity recovery jobs: 5. Recovery is still running. A recorded rule is not evidence that its order exception or product fence has disappeared.
+Latest read: 2026-10-29T05:52:59.117Z. Active rules: 45; evidence: 136; POS contracts: 265. Mapping-review positions remaining: **0**. Dirty orders: 269; pending identity recovery jobs: 0. The original 21 target orders have completed worker processing and were independently verified against actual stock lines and the live projection. Related background rechecks are still running; this is not a claim that all product availability is fully confirmed.
 
 ## Exact verified mappings
 
@@ -235,13 +235,23 @@ Seller Centre all-status exports generated on 29 October contain 380 listing des
 | --- | --- |
 | mass_update_sales_info_1763530749_20261029124220.xlsx | 2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26 |
 | mass_update_basic_info_1763530749_20261029124233.xlsx | 798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe |
+| candy-pop-green-apple-10-sachets.jpg | 2e76e652684359f3e646837a77253e5bfdfba48fcda99ffd5a6c2e72273ac425 |
+| vita-c-jar-1000-versus-25-sachets.jpg | 84ddab3e09e5ee47d19161782d2d46c1395bb245d4f1e691b6e888e32c3362e7 |
 | gummy-pink-24-sachets.jpg | c5efe04547e29ce415885c1b24f448cafc1dbd426a0b9fe12f2b398348021639 |
 
-The pink Gummy Plus variation image is th-11134207-81ztj-muhmxezoslj781, visibly labelled one box / 24 sachets. It was read from the live listing and saved privately as evidence. The generic Vita-C tablet description only mentions the 30-tablet sachet. Its 1000-tablet jar conversion is supported by the independently selected strawberry/jar variation and its exact SKU/POS package, not that generic paragraph.
+The pink Gummy Plus variation image is th-11134207-81ztj-muhmxezoslj781, visibly labelled one box / 24 sachets. It was read from the live listing and saved privately as evidence. Supplemental live images read during recovery independently show Candy Pop green apple as 10 sachets / 70 g per box / 7 g per sachet (th-11134207-81zto-muspnn40pmv408), and the red strawberry Vita-C jar as 1000 tablets, separate from its 30-tablet sachet / 25-sachet sale option (th-11134207-81zto-musqn4wcuvpg60). These later image receipts add corroboration; they did not create another evidence import or recovery job. The generic Vita-C tablet description only mentions the 30-tablet sachet. Its 1000-tablet jar conversion is supported by the independently selected strawberry/jar variation and its exact SKU/POS package, not that generic paragraph.
 
 At 2026-10-29T05:12:04.552Z, a second technically read-only POS audit retrieved all 47 component/master codes used by every one of the 77 current and 77 original lines. All were present and their active state, smallest unit and factors agreed with the stored contract. There were zero unit/stock-code conflicts. No current line in this particular queue is a multi-SKU bundle; separate regression suites exercise bundles and supported shared-stock masters.
 
 Private local evidence includes the original XLSX files, full descriptions, POS metadata, all-line audit, before/after snapshots, immutable requests, outcomes and rollback operation IDs. These are not committed as a new runtime registry. The committed JSON fixture is test input only and is never imported by application code.
+
+## Actual production verification
+
+At 2026-10-29T05:52:59.117Z all 21 original target positions were reserved, with no remaining product_mapping_unverified reason and no target left in the dirty queue. Independent arithmetic uses the unchanged original 54 mapped lines plus the 23 new lines and their separately verified SKU/factor evidence. Every target order and all 47 distinct stock identities agree with their actual stored quantities and POS units. The live projection returned HTTP 200 for all 47; global reserved/shipped figures and units agreed exactly with the captured actual stock lines plus the unchanged accepted opening basis. Zero quantity/unit differences were observed. The two reads have separate timestamps and revisions while unrelated background work runs; they are not claimed as an atomic snapshot.
+
+The live exception endpoint was read through all four pages at 2026-10-29T05:54:34.697Z. None of the 21 original exception UUIDs appeared. The remaining 64 lifecycle reviews and related background rechecks were not approved or reset. A new unreviewed cancellation remains separately fenced with its old hold retained.
+
+StockDay production was also inspected directly for both bottle and sachet units. The contemporaneous Hourly POS base minus the verified reservations and unchanged pre-existing unposted figures agrees with the displayed calculation. Both retain the temporary/known-commitments label while wider allocation remains incomplete. No older opening/unposted quantity was introduced by this repair. Screenshots and the per-SKU arithmetic remain private local evidence; they are not committed as stock balances.
 
 ## Proposed / conflicting / superseded
 
