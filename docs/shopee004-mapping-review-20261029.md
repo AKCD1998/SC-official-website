@@ -2,6 +2,8 @@
 
 Rule/evidence version: **sc004-seller-pos-20261029-r1**. Shop: SC Drug Store. Prepared from the existing canonical runtime, not the handoff's offline candidate labels.
 
+An afternoon r2 supplement at the end records the later four-order intake separately. Morning counts below are historical, timestamped results.
+
 ## Baseline and current production status
 
 At 2026-10-29T04:50:43.831Z, production had 21 mapping-review orders (morning handoff: 18), with 77 current and 77 original item lines. The full runtime used 30 dynamic rules and 91 trusted evidence facts in addition to the old static matcher and legacy evidence guard. Of the 77 current lines, 54 already mapped; 23 blocked lines represent 15 exact product/variation choices. The 19 static candidates in the handoff were never imported as approvals.
@@ -276,3 +278,97 @@ Live producer c852ba85c0482671fa5b8ad06363e300be0d5d82 already uses the existing
 The prepared backend patch adds a bounded READ ONLY snapshot for at most 25 orders / 1,000 items, using the same identityStore and mapShopeeStockLines validator. It returns a separate stockProductMatch field. The frontend patch displays the verified SKU, factor and POS unit; blocked/unavailable stock evidence cannot fall back to a convenient accounting SKU or zero. Other shops and the existing OFF path avoid these reads. Accounting productMatch, prices, financial visibility, AdaSmart copy/export and lifecycle states are preserved.
 
 These patches remain unmerged and undeployed pending acceptance. Apply backend before frontend; the old frontend ignores the additive field, and the new frontend tolerates an older backend. Exact company SKU searches also derive verified aliases from the same runtime matcher before all-page pagination. Revoked/blocked aliases and another shop or pack are excluded. An unavailable canonical SKU lookup returns a temporary error rather than a false empty success. Ordinary name/date/amount searches keep their existing behavior. No Hourly, Full Sync, Transfer Delta, flags, credentials, schedules, opening balance or permanent cutover change is included.
+
+<!-- AFTERNOON_20261029 -->
+
+## Afternoon supplement — sc004-seller-pos-20261029-r2
+
+The morning repair is a dated result. A fresh read at 2026-10-29T07:56:39.954Z found four new mapping-review orders after the original 21 had completed recovery. These four orders contain six current lines: two already matched, four blocked. All six original snapshot lines were also checked. The 19 choices verified across r1 (15) and r2 (4) are **not** the handoff's 19 offline static candidates.
+
+All four additions below are verified. Proposed choices awaiting missing evidence: zero. Conflicting SKU/unit choices within this supplement: zero. None requires a new bundle/shared-stock conversion. The existing database registry, canonical matcher, durable worker and operation journal remain the authority.
+
+| Selected option | Listing / variation | Company SKU / stock code | POS units per sale | Seller export row | Production rule / revision |
+| --- | --- | --- | --- | --- | --- |
+| เซนซิเดิร์ม 20 กรัม | 52564345285 / 401532221528 | IC-000482 | 1 หลอด | 239 | f0d30913-62bc-4393-a5a4-51ce91c0ce39 / 1 |
+| ส้ม 10ซอง | 49463620257 / 411176133511 | IC-005323 | 10 ชิ้น | 390 | 64f3e460-b529-4b99-ae7a-63c308a4fd22 / 1 |
+| กัมมี่ เหลือง | 56562041161 / 436046531381 | IC-001849 | 24 ซอง | 82 | 36224a87-f260-481a-b0b2-67adc6f8ccc4 / 1 |
+| สเปรย์ 800 มล. | 44035513071 / 436666739807 | IC-006025 | 1 ขวด | 589 | e43733a3-739e-44b5-9300-3679ae55a625 / 1 |
+
+### เซนซิเดิร์ม 20 กรัม
+
+- Status: verified. Rule/evidence version: sc004-seller-pos-20261029-r2; server rule revision 1.
+- Original inbox name: บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)
+- Original inbox option: เซนซิเดิร์ม 20 กรัม
+- Current saved Seller Centre name: บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)
+- Current saved Seller Centre option: เซนซิเดิร์ม 20 กรัม
+- Exact Seller SKU → company SKU / stock code: IC-000482 → IC-000482 / IC-000482.
+- POS name: สามัญ บีแพนเธนเซนซิเดร์ม 20 กรัม. Active, stockFactor = smallFactor = 1. Smallest unit: หลอด.
+- Conversion per one sale: 1 หลอด.
+- Evidence: Fresh saved Seller export selects Sensiderm 20 g, Seller SKU IC-000482. Description distinguishes Sensiderm 20/50 g from Ointment 30/50/100 g. Fresh POS independently names the 20 g tube, smallest unit one tube.
+- Stable listing: https://seller.shopee.co.th/portal/product/52564345285
+
+### ส้ม 10ซอง
+
+- Status: verified. Rule/evidence version: sc004-seller-pos-20261029-r2; server rule revision 1.
+- Original inbox name: ไวต้า-ซี / โพรโพลิซ แคนดี้ป๊อป อมยิ้มไม่มีน้ำตาล ยกกล่อง 10 ซอง Vita-C / Propoliz Candy Pop
+- Original inbox option: ส้ม 10ซอง
+- Current saved Seller Centre name: ไวต้า-ซี / โพรโพลิซ แคนดี้ป๊อป อมยิ้มไม่มีน้ำตาล ยกกล่อง 10 ซอง Vita-C / Propoliz Candy Pop
+- Current saved Seller Centre option: ส้ม 10ซอง
+- Exact Seller SKU → company SKU / stock code: IC-005323 → IC-005323 / IC-005323.
+- POS name: สามัญ ไวต้าซี แคนดี้ป๊อป กลิ่นส้ม 7 กรัม. Active, stockFactor = smallFactor = 1. Smallest unit: ชิ้น.
+- Conversion per one sale: 10 ชิ้น.
+- Evidence: Exact orange Candy Pop variation/Seller SKU IC-005323. Saved Seller description specifies one box / 10 sachets / 7 g each. Previously captured live listing image independently shows the orange 70 g box / 10 sachets. Fresh POS is the orange 7 g piece, medium factor 10; do not borrow the green-apple SKU.
+- Stable listing: https://seller.shopee.co.th/portal/product/49463620257
+
+### กัมมี่ เหลือง
+
+- Status: verified. Rule/evidence version: sc004-seller-pos-20261029-r2; server rule revision 1.
+- Original inbox name: Vita-C ไวต้า-ซี วิตามินซี กัมมี่ / กัมมี่พลัส / ชิววี่ รสผลไม้รวม แบบยกกล่อง
+- Original inbox option: กัมมี่ เหลือง
+- Current saved Seller Centre name: Vita-C ไวต้า-ซี วิตามินซี กัมมี่ / กัมมี่พลัส / ชิววี่ รสผลไม้รวม แบบยกกล่อง
+- Current saved Seller Centre option: กัมมี่ เหลือง
+- Exact Seller SKU → company SKU / stock code: IC-001849 → IC-001849 / IC-001849.
+- POS name: สามัญ ไวต้า ซี มัลติฟรุตกัมมี่ เหลือง 20 กรัม. Active, stockFactor = smallFactor = 1. Smallest unit: ซอง.
+- Conversion per one sale: 24 ซอง.
+- Evidence: Reuse an existing approved physical-stock contract, not an accounting-only inference: catalog shopee-company-sku-2026-09-03 row 34 has the identical listing 56562041161 / variation 436046531381 and explicit 24-sachet option. The current saved Seller export preserves that stable identity and Seller SKU IC-001849, names yellow 20 g Gummy and sells one whole box. Fresh POS is one yellow 20 g sachet with medium factor 24. The canonical physical matcher resolves the old exact name/24-sachet option as verified existing_verified_pack, using adasoft-base-unit-2026-09-03-v3. No pink/white pack factor or price is used.
+- Stable listing: https://seller.shopee.co.th/portal/product/56562041161
+
+### สเปรย์ 800 มล.
+
+- Status: verified. Rule/evidence version: sc004-seller-pos-20261029-r2; server rule revision 1.
+- Original inbox name: โซฟลอรา กลิ่นเมาน์เทน แอร์ สเปรย์ 800 มล. / สูตรเข้มข้น 500 มล. Zoflora Mountain Air
+- Original inbox option: สเปรย์ 800 มล.
+- Current saved Seller Centre name: โซฟลอรา กลิ่นเมาน์เทน แอร์ สเปรย์ 800 มล. / สูตรเข้มข้น 500 มล. Zoflora Mountain Air
+- Current saved Seller Centre option: สเปรย์ 800 มล.
+- Exact Seller SKU → company SKU / stock code: IC-006025 → IC-006025 / IC-006025.
+- POS name: สามัญ โซฟลอรา กลิ่นเมาน์เทน แอร์ 800 มล. Active, stockFactor = smallFactor = 1. Smallest unit: ขวด.
+- Conversion per one sale: 1 ขวด.
+- Evidence: Exact Mountain Air ready-to-use spray 800 ml variation has Seller SKU IC-006025. Saved Seller description explicitly sells one bottle per selected formula, distinguishes 800 ml spray from 500 ml concentrate and says it is not a two-bottle set. Fresh POS names Mountain Air 800 ml, smallest unit bottle.
+- Stable listing: https://seller.shopee.co.th/portal/product/44035513071
+
+### Supplement source receipts and runtime boundary
+
+All four exact listing/variation/Seller SKU identities occur uniquely in the same 29 October sales/basic-description exports whose SHA-256 receipts are recorded above. The raw files were preserved and read offline during an authorized Chrome backup hold; no browser launch, reconnect or profile change was made for this supplement. Fresh SERVER004/POS 004 metadata was read at 2026-10-29T07:58:03.7818908Z through the existing technically read-only SQL Server reader. Three contracts already existed unchanged; only Zoflora IC-006025 required an append-only contract. Actual inventory balances were not edited.
+
+A second all-line POS read at 2026-10-29T08:20:25.807Z independently checked all six component codes used by the six current and six original lines, including the two previously matched lines. All six were returned with identical active state, stock code, smallest unit and factors; there were zero conflicts and no blocked lines in the evidenced full-runtime replay. The per-line current/original audit remains private. There are no multi-SKU or shared-stock conversions in these six lines.
+
+For yellow Gummy, the old exact physical-stock matcher independently returns IC-001849 ×24 ซอง, quantityRuleStatus=verified, quantityEvidence=existing_verified_pack and matchSource=approved_catalog_and_erp_base_unit. The old title was “Vita-C วิตามินซี กัมมี่ 3 รสชาติ (ส้ม แอปเปิ้ล องุ่น) | Vitamin C Gummy เคี้ยวง่าย อร่อย ทานได้ทุกวัน”, option “24 ซอง”, source row 34, under the identical listing/variation and company SKU. The fresh export preserves the identity and exact yellow 20 g SKU; fresh POS independently confirms the 24-sachet medium unit. The quantity fact is honestly recorded as reviewed_stock_rule, referencing shopee-company-sku-2026-09-03-row-34 and adasoft-base-unit-2026-09-03-v3. The generic current description does not independently state the count. No accounting-only price inference or another colour's pack size is used.
+
+| Prior physical-rule source | SHA-256 |
+| --- | --- |
+| shopeeProductCatalog.v1.json | 726b3fe1a1c24b39e56a3aa3b5aec5c63a774fdacd5acb22fabe690737e36670 |
+| shopeeSkuUnitValidation.v1.json | 65d50abf153bb45b2472388af0c06f6a4736261544da2f9f6d4933648cd5c157 |
+
+An external deployment changed producer c852ba85c0482671fa5b8ad06363e300be0d5d82 to 5a2d1d672d607f47741d9f68f2e0592054264201 before r2 activation. Its seven changed files concern member-code aliases and their docs/tests. A read-only Git diff verified the entire seamless module, worker paths and stock contracts were unchanged. The supervised controller stopped on the old runtime guard before any r2 write; the new exact commit was accepted only after this audit. This task did not merge or deploy that change.
+
+The StockDay API also changed externally from 6ca6fdcd917496405fe370d3ba8c246ac21d1dc9 to 40ef239a43b7ba2104376aad296242b062ba28d1. Its three changed files concern branch 003 POS 002 device-inventory policy and its docs/test. The actual Shopee stock display, projection-recovery, branch-stock and exception-consumer paths are byte-identical across these versions. The final live versions are producer 5a2d1d6, StockDay API 40ef239, StockDay web e1f236d and Seamless ade86d5; none was deployed by this task.
+
+### Supplement simulation, tests and recorded administration
+
+The full 2,042-position frozen-input simulation has zero baseline replay mismatches and zero evidence-only changes. Adding exactly four rules changes exactly four mapping reviews to reserved, preserves the two already matched current lines, maps all six current lines and leaves all 70 independent lifecycle reviews unchanged. The opening plan, permanent cutover and all other stock contracts are unchanged in that simulation. This paragraph describes simulation, not a production recovery claim.
+
+Existing protected administration recorded one append-only POS contract, 12 evidence facts and four version-1 rules through six serial POSTs. Every immutable operation outcome was read back and reconciled; no POST was repeated. Across both batches this task records 19 rules, 57 facts and eight POS additions, through 23 serial administration POSTs. There is no SQL DML, queue reset, worker invocation, lifecycle approval, source replay, credential/flag/schedule change or historical debit.
+
+Latest backend validation: **357 tests pass in 15 suites**, including the four added exact-variation regressions and isolated PostgreSQL. The first r2 full run hit the default 5-second route-test timeout during application loading, causing a following shared-mock assertion to fail; rerunning the same complete suite with a 30-second timeout passed all 357 in 21.074 seconds, without changing application code to accommodate the failure. The local synthetic PostgreSQL instance was stopped afterward. Frontend code is unchanged from its 148-test/build validation. The test fixture remains regression input only; application code never imports it as a second registry.
+
+Production target recovery and final projection/exception comparison are still pending. Recording rules is not presented as proof of completed worker processing.

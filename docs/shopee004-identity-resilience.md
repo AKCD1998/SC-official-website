@@ -1,8 +1,9 @@
 # SC004 stock identity and unit evidence
 
-The [29 October follow-up](shopee004-mapping-review-20261029.md) records the fresh
-21-order review, 15 verified versioned mappings, source receipts and the separate
-Seamless display patch. Its production recovery status is dated explicitly;
+The [29 October follow-up](shopee004-mapping-review-20261029.md) records the initial
+21-order review and 15 verified mappings, followed by four new afternoon orders
+and four separately evidenced choices, source receipts and the separate
+Seamless display patch. Each batch's production recovery status is dated explicitly;
 the historical candidate counts below are not the current exception queue.
 
 This candidate adds a storage-independent rule contract and a whole-store

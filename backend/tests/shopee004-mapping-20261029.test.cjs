@@ -1,4 +1,7 @@
 const fixture = require('./fixtures/shopee004-mapping-20261029.json');
+const afternoon = require('./fixtures/shopee004-mapping-20261029-afternoon.json');
+const bindings = [fixture, afternoon].flatMap(f => f.bindings.map(b => ({ ...b,
+  fixtureVersion: f.version, fixtureObservedAt: f.observedAt })));
 const { randomUUID } = require('node:crypto');
 const { createShopee004IdentityStore } = require('../src/modules/seamless/services/shopee004IdentityStore');
 const { buildCatalogIdentityApproval } = require('../src/modules/seamless/services/shopee004CatalogApproval');
@@ -12,18 +15,20 @@ const { normalizeIdentityText: norm } = require('../src/modules/seamless/service
 async function context(binding, { aliases, pos = binding.pos } = {}) {
   aliases ||= [{ productName: binding.productName, variantName: binding.variantName }];
   const common = { ...fixture.scope, listingId: binding.listingId, variationId: binding.variationId,
-    observedAt: fixture.observedAt };
+    observedAt: binding.fixtureObservedAt || fixture.observedAt };
+  const version = binding.fixtureVersion || fixture.version;
   const facts = [
-    { ...common, reference: randomUUID(), kind: 'seller_catalog', catalogVersion: fixture.version,
+    { ...common, reference: randomUUID(), kind: 'seller_catalog', catalogVersion: version,
       sourceSkus: [binding.sourceSku], aliases, packText: binding.evidence },
-    { ...common, reference: randomUUID(), kind: 'seller_description', aliases, components: binding.components },
+    { ...common, reference: randomUUID(), kind: binding.quantityKind || 'seller_description',
+      ...binding.quantityProvenance, aliases, components: binding.components },
     { ...common, reference: randomUUID(), kind: 'pos_unit', productCode: binding.pos.companySku,
       stockCode: binding.pos.stockCode, unit: binding.pos.smallUnit, stockFactor: 1, smallFactor: 1 },
   ].map(f => normalizeTrustedEvidenceFact(f));
   const posCatalog = validateCatalog([pos]);
   const evidenceRefs = deriveTrustedEvidenceSnapshot(new Map(facts.map(f => [f.reference, { ...f.details, kind: f.kind }])));
   const request = { listingId: binding.listingId, variationId: binding.variationId, expectedVersion: 0,
-    expectedCatalogVersion: fixture.version, acknowledgeUnitEvidence: true,
+    expectedCatalogVersion: version, acknowledgeUnitEvidence: true,
     components: binding.components, evidenceRefs: facts.map(f => f.reference) };
   const { rule } = buildCatalogIdentityApproval({ versions: [], posCatalog, evidenceRefs }, request);
   const queries = [];
@@ -41,7 +46,7 @@ async function context(binding, { aliases, pos = binding.pos } = {}) {
   return { matchItem, posCatalog, rule, store, queries };
 }
 
-test.each(fixture.bindings.map(b => [b.variationId, b]))('verified variation %s uses exact identity and POS sale units', async (_id, b) => {
+test.each(bindings.map(b => [b.variationId, b]))('verified variation %s uses exact identity and POS sale units', async (_id, b) => {
   const { matchItem, posCatalog, store, queries, rule } = await context(b);
   const item = { name: b.oldName, variant: b.oldVariant, quantity: 3 };
   const map = extra => mapShopeeStockLines({ items: [{ ...item, ...extra }], matchItem, posCatalog });
@@ -85,8 +90,9 @@ test('a title rename needs its own exact evidenced alias, even when stable IDs a
 });
 
 test('package counts do not multiply retail contents or borrow another option factor', () => {
-  const factors = Object.fromEntries(fixture.bindings.map(b => [b.sourceSku, [b.components[0].quantityPerSale, b.components[0].unit]]));
+  const factors = Object.fromEntries(bindings.map(b => [b.sourceSku, [b.components[0].quantityPerSale, b.components[0].unit]]));
   expect(factors).toMatchObject({ 'IC-000060': [1, 'กล่อง'], '630010163': [1, 'กล่อง'],
     'IC-006137': [1, 'กล่อง'], '630010040': [1, 'ซอง'], 'IC-002913': [1, 'ขวด'],
-    'IC-000023': [50, 'แผง'], 'IC-005886': [10, 'ซอง'], 'IC-001510': [24, 'ซอง'], 'IC-005598': [10, 'ชิ้น'] });
+    'IC-000023': [50, 'แผง'], 'IC-005886': [10, 'ซอง'], 'IC-001510': [24, 'ซอง'], 'IC-005598': [10, 'ชิ้น'],
+    'IC-000482': [1, 'หลอด'], 'IC-005323': [10, 'ชิ้น'], 'IC-001849': [24, 'ซอง'], 'IC-006025': [1, 'ขวด'] });
 });

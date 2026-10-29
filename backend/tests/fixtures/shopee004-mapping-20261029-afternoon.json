@@ -1,0 +1,129 @@
+{
+  "version": "sc004-seller-pos-20261029-r2",
+  "observedAt": "2026-10-29T08:02:58.221Z",
+  "scope": {
+    "shopCode": "sc-drug-store",
+    "branchCode": "004"
+  },
+  "bindings": [
+    {
+      "status": "verified",
+      "listingId": "52564345285",
+      "variationId": "401532221528",
+      "sourceSku": "IC-000482",
+      "oldName": "บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)",
+      "oldVariant": "เซนซิเดิร์ม 20 กรัม",
+      "productName": "บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)",
+      "variantName": "เซนซิเดิร์ม 20 กรัม",
+      "sellerRow": 239,
+      "components": [
+        {
+          "productCode": "IC-000482",
+          "quantityPerSale": 1,
+          "unit": "หลอด"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-000482",
+        "productName": "สามัญ บีแพนเธนเซนซิเดร์ม 20 กรัม",
+        "stockCode": "IC-000482",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "หลอด"
+      },
+      "evidence": "Fresh saved Seller export selects Sensiderm 20 g, Seller SKU IC-000482. Description distinguishes Sensiderm 20/50 g from Ointment 30/50/100 g. Fresh POS independently names the 20 g tube, smallest unit one tube."
+    },
+    {
+      "status": "verified",
+      "listingId": "49463620257",
+      "variationId": "411176133511",
+      "sourceSku": "IC-005323",
+      "oldName": "ไวต้า-ซี / โพรโพลิซ แคนดี้ป๊อป อมยิ้มไม่มีน้ำตาล ยกกล่อง 10 ซอง Vita-C / Propoliz Candy Pop",
+      "oldVariant": "ส้ม 10ซอง",
+      "productName": "ไวต้า-ซี / โพรโพลิซ แคนดี้ป๊อป อมยิ้มไม่มีน้ำตาล ยกกล่อง 10 ซอง Vita-C / Propoliz Candy Pop",
+      "variantName": "ส้ม 10ซอง",
+      "sellerRow": 390,
+      "components": [
+        {
+          "productCode": "IC-005323",
+          "quantityPerSale": 10,
+          "unit": "ชิ้น"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-005323",
+        "productName": "สามัญ ไวต้าซี แคนดี้ป๊อป กลิ่นส้ม 7 กรัม",
+        "stockCode": "IC-005323",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ชิ้น"
+      },
+      "evidence": "Exact orange Candy Pop variation/Seller SKU IC-005323. Saved Seller description specifies one box / 10 sachets / 7 g each. Previously captured live listing image independently shows the orange 70 g box / 10 sachets. Fresh POS is the orange 7 g piece, medium factor 10; do not borrow the green-apple SKU."
+    },
+    {
+      "status": "verified",
+      "listingId": "56562041161",
+      "variationId": "436046531381",
+      "sourceSku": "IC-001849",
+      "oldName": "Vita-C ไวต้า-ซี วิตามินซี กัมมี่ / กัมมี่พลัส / ชิววี่ รสผลไม้รวม แบบยกกล่อง",
+      "oldVariant": "กัมมี่ เหลือง",
+      "productName": "Vita-C ไวต้า-ซี วิตามินซี กัมมี่ / กัมมี่พลัส / ชิววี่ รสผลไม้รวม แบบยกกล่อง",
+      "variantName": "กัมมี่ เหลือง",
+      "sellerRow": 82,
+      "components": [
+        {
+          "productCode": "IC-001849",
+          "quantityPerSale": 24,
+          "unit": "ซอง"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-001849",
+        "productName": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่ เหลือง 20 กรัม",
+        "stockCode": "IC-001849",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ซอง"
+      },
+      "evidence": "Reuse an existing approved physical-stock contract, not an accounting-only inference: catalog shopee-company-sku-2026-09-03 row 34 has the identical listing 56562041161 / variation 436046531381 and explicit 24-sachet option. The current saved Seller export preserves that stable identity and Seller SKU IC-001849, names yellow 20 g Gummy and sells one whole box. Fresh POS is one yellow 20 g sachet with medium factor 24. The canonical physical matcher resolves the old exact name/24-sachet option as verified existing_verified_pack, using adasoft-base-unit-2026-09-03-v3. No pink/white pack factor or price is used.",
+      "quantityKind": "reviewed_stock_rule",
+      "quantityProvenance": {
+        "reviewedRuleVersion": "adasoft-base-unit-2026-09-03-v3",
+        "reviewedRuleReference": "shopee-company-sku-2026-09-03-row-34",
+        "reviewAuthority": "existing_verified_physical_stock_rule",
+        "auditReference": "sc004-seller-pos-20261029-r2"
+      }
+    },
+    {
+      "status": "verified",
+      "listingId": "44035513071",
+      "variationId": "436666739807",
+      "sourceSku": "IC-006025",
+      "oldName": "โซฟลอรา กลิ่นเมาน์เทน แอร์ สเปรย์ 800 มล. / สูตรเข้มข้น 500 มล. Zoflora Mountain Air",
+      "oldVariant": "สเปรย์ 800 มล.",
+      "productName": "โซฟลอรา กลิ่นเมาน์เทน แอร์ สเปรย์ 800 มล. / สูตรเข้มข้น 500 มล. Zoflora Mountain Air",
+      "variantName": "สเปรย์ 800 มล.",
+      "sellerRow": 589,
+      "components": [
+        {
+          "productCode": "IC-006025",
+          "quantityPerSale": 1,
+          "unit": "ขวด"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-006025",
+        "productName": "สามัญ โซฟลอรา กลิ่นเมาน์เทน แอร์ 800 มล",
+        "stockCode": "IC-006025",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ขวด"
+      },
+      "evidence": "Exact Mountain Air ready-to-use spray 800 ml variation has Seller SKU IC-006025. Saved Seller description explicitly sells one bottle per selected formula, distinguishes 800 ml spray from 500 ml concentrate and says it is not a two-bottle set. Fresh POS names Mountain Air 800 ml, smallest unit bottle."
+    }
+  ]
+}
