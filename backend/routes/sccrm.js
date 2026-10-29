@@ -19,6 +19,7 @@ const express = require("express");
 const multer = require("multer");
 const sgMail = require("@sendgrid/mail");
 const pool = require("../db");
+const memberCodeAliases = require("../lib/memberCodeAliases");
 const {
   comparePassword,
   createId,
@@ -1034,7 +1035,12 @@ router.get("/customers/search", requireStaff, async (req, res) => {
     let customer = null;
 
     if (memberCode) {
-      customer = await getCustomerView("m.member_code = $1", [memberCode.toUpperCase()]);
+      if (memberCodeAliases.enabled()) {
+        const memberId = await memberCodeAliases.findMemberIdByCode(pool, memberCode);
+        customer = memberId ? await getCustomerViewById(memberId) : null;
+      } else {
+        customer = await getCustomerView("m.member_code = $1", [memberCode.toUpperCase()]);
+      }
     } else if (rawPhone) {
       const phone = normalizePhone(rawPhone);
       if (!phone) return jsonError(res, 400, "phone or member_code is required.");
@@ -1049,7 +1055,7 @@ router.get("/customers/search", requireStaff, async (req, res) => {
       customer: { ...customer, balance: await getCustomerBalance(customer.id) },
     });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Search failed.");
+    return jsonError(res, error.status || 500, error.message || "Search failed.");
   }
 });
 
