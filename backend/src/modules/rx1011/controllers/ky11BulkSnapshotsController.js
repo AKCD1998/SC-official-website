@@ -93,3 +93,47 @@ export async function getKy11BulkSourceSnapshot(req, res) {
   res.type("text/csv; charset=utf-8");
   res.send(snapshot.source_csv);
 }
+
+export async function listKy11BulkDraftArtifacts(req, res) {
+  const snapshotKey = String(req.params.snapshotKey || '').trim();
+  const result = await query(
+    `SELECT artifact_key, branch_code, source_filename, pdf_sha256, page_count, job_count,
+            document_status, created_at
+       FROM ky11_bulk_draft_artifacts
+      WHERE snapshot_key = $1
+      ORDER BY branch_code NULLS FIRST`,
+    [snapshotKey]
+  );
+  res.set('Cache-Control', 'private, no-store');
+  res.json({ snapshotKey, artifacts: result.rows.map((row) => ({
+    key: row.artifact_key,
+    branchCode: row.branch_code,
+    filename: row.source_filename,
+    sha256: row.pdf_sha256.trim(),
+    pageCount: row.page_count,
+    jobCount: row.job_count,
+    status: row.document_status,
+    createdAt: row.created_at,
+  })) });
+}
+
+export async function getKy11BulkDraftArtifact(req, res) {
+  const snapshotKey = String(req.params.snapshotKey || '').trim();
+  const artifactKey = String(req.params.artifactKey || '').trim();
+  const result = await query(
+    `SELECT source_filename, pdf_sha256, pdf_bytes
+       FROM ky11_bulk_draft_artifacts
+      WHERE snapshot_key = $1 AND artifact_key = $2`,
+    [snapshotKey, artifactKey]
+  );
+  const artifact = result.rows[0];
+  if (!artifact) throw httpError(404, 'KY11 draft PDF not found');
+  const bytes = Buffer.isBuffer(artifact.pdf_bytes) ? artifact.pdf_bytes : Buffer.from(artifact.pdf_bytes);
+  const actualSha256 = createHash('sha256').update(bytes).digest('hex');
+  if (actualSha256 !== artifact.pdf_sha256.trim()) throw httpError(500, 'KY11 draft PDF checksum mismatch');
+  res.set('Cache-Control', 'private, no-store');
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Content-Disposition', `attachment; filename="${artifact.source_filename}"`);
+  res.type('application/pdf');
+  res.send(bytes);
+}
