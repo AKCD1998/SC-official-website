@@ -12,7 +12,8 @@ import {
 } from "../controllers/organicReportsController.js";
 import { getPatientDispenseHistory } from "../controllers/dispenseController.js";
 import { getIncidentReportById } from "../controllers/adminIncidentsController.js";
-import { getKy11BulkSourceSnapshot, putKy11Oct24SourceSnapshot } from "../controllers/ky11BulkSnapshotsController.js";
+import { getKy11BulkSourceSnapshot, putKy11Oct24SourceSnapshot,
+  listKy11BulkDraftArtifacts, getKy11BulkDraftArtifact } from "../controllers/ky11BulkSnapshotsController.js";
 import { requireRole, verifyToken } from "../middleware/authMiddleware.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
@@ -31,6 +32,19 @@ router.get(
   verifyToken,
   requireRole("ADMIN"),
   asyncHandler(getKy11BulkSourceSnapshot)
+);
+
+router.get(
+  "/reports/ky11-bulk-draft-artifacts/:snapshotKey",
+  verifyToken,
+  requireRole("ADMIN"),
+  asyncHandler(listKy11BulkDraftArtifacts)
+);
+router.get(
+  "/reports/ky11-bulk-draft-artifacts/:snapshotKey/:artifactKey",
+  verifyToken,
+  requireRole("ADMIN"),
+  asyncHandler(getKy11BulkDraftArtifact)
 );
 
 router.get(
