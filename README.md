@@ -13,6 +13,19 @@ the existing `loyalty_claims` rows; no schema migration is required. Responses
 are private/no-store and branch-bound staff cannot inspect another branch.
 Existing claim POST routes and the receipt unique constraint remain unchanged.
 
+Staff member searches can resolve exact old member codes after
+`SC_OFFICIAL_MEMBER_CODE_ALIASES_ENABLED=true` is explicitly configured.
+Provision the private `sccrm_member_codes.aliases` table and grant the API's
+database role schema `USAGE` and table `SELECT` before enabling it. When RLS
+applies, a SELECT policy must also permit that role to read aliases. The flag
+is `false` by default and uses the existing queries without accessing that schema.
+Both `/api/sccrm/customers/search?member_code=...` and `/api/members/search?q=...`
+return the existing member UUID and current `member_profiles.member_code`.
+Conflicting ownership returns 409; an unavailable enabled alias store returns
+503. Disabling the flag restores canonical-code-only lookup without changing
+member records, sessions, points or purchase ownership. Schema provisioning and
+canonical-code publication are separate operations from this application change.
+
 - Frontend: React (Vite) in `frontend-react/`
 - Backend: Node/Express API in `backend/`
 - Legacy static files are archived in `legacy/` and are no longer served.

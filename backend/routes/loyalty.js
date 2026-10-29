@@ -6,6 +6,7 @@ const { getActivePromotions, quotePoints, resolveReceiptEligibleAmount, RECEIPT_
 const { buildReceiptSnapshot } = require('../lib/purchaseHistory');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
 const adaMirror = require('../lib/adaMemberMirror');
+const memberCodeAliases = require('../lib/memberCodeAliases');
 
 const router = express.Router();
 
@@ -637,6 +638,11 @@ router.get("/search", requireStaff, async (req, res) => {
                 WHEN LOWER(COALESCE(u.phone_number, '')) LIKE $3 THEN 2
                 ELSE 3 END, u.full_name ASC
             LIMIT 20`, [`%${q.toLowerCase()}%`, q.toLowerCase(), `${q.toLowerCase()}%`]);
+        const aliasMemberId = await memberCodeAliases.findMemberIdByCode(pool, raw);
+        if (aliasMemberId && !rows.some(row => row.id === aliasMemberId)) {
+            const aliasMember = await getMemberProfile(aliasMemberId, capabilities);
+            if (aliasMember?.id === aliasMemberId && aliasMember.is_active) rows.unshift(aliasMember);
+        }
         const members = rows.map(row => ({
             id: row.id, displayName: row.full_name || "", phone: row.phone || null,
             email: row.email || null, memberCode: row.member_code || null,
@@ -645,7 +651,7 @@ router.get("/search", requireStaff, async (req, res) => {
         const legacy = await adaMirror.searchLegacy(pool, q, capabilities);
         return res.json([...members,...legacy.map(row=>({...row,...capabilities}))].filter((row,index,all)=>all.findIndex(other=>other.id===row.id)===index).slice(0,20));
     } catch (error) {
-        return res.status(500).json({ error: error.message || "Member search failed." });
+        return res.status(error.status || 500).json({ error: error.message || "Member search failed." });
     }
 });
 

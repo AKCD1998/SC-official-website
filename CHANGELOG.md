@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-29 — Preserve member lookup through Ada code aliases
+
+- Resolve exact old SCCRM/Ada aliases to the same member UUID in both staff
+  search APIs while displaying the member's current canonical code.
+- Reject conflicting alias/current-code ownership, preserve active-member
+  filtering, and retain existing authentication, imports and token formats.
+- Keep alias reads disabled until the private schema and scoped SELECT grants
+  are provisioned; no migration, profile update or native Ada write is included.
+
 ## 2026-10-29 — Include medicine purchases in member points
 
 - Include medicine line totals under the operator-approved earning policy while
