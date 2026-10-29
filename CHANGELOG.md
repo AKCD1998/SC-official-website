@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-29 — Include medicine purchases in member points
+
+- Include medicine line totals under the operator-approved earning policy while
+  keeping the 25-baht base rate and existing promotions.
+- Recalculate exact legacy POS subtotals on the server, record the policy in
+  new snapshots, and preserve historical awards and duplicate-bill protection.
+- Verify medicine-only, mixed and zero-value bills with real PostgreSQL routes
+  and WinForms component checks; no Ada writes or historical backfill.
+
 ## 2026-10-21 — Member purchase history
 
 - Allow existing staff sessions to read member history; retain legacy POS keys

@@ -21,9 +21,20 @@ feature covers loyalty points, not AdaPos sale-price discounts.
   client time. A branch-restricted rule requires that branch context.
 - Existing `POST /api/loyalty/claims` fields and response fields remain. An old
   client's `previewPoints` is diagnostic only. The server revalidates eligible
-  line totals, excludes the existing `เภสัช` name prefix, calculates the final
+  line totals including medicine purchases, calculates the final
   award, and persists rules/revision with the claim and award mirror. Per-member
   locking and the receipt unique constraint prevent duplicate/concurrent awards.
+- From 2026-10-29, the shop's operator-approved earning policy includes medicine
+  purchases. This records the operator's instruction, not an independent legal
+  determination or permission to give away/redeem medicines. The base rate,
+  promotion stacking and line-net calculation remain unchanged. Header totals
+  and header discounts remain separately preserved in purchase history.
+- Older POS versions send all receipt lines but exclude names starting `เภสัช`
+  from `totalAmount`. The server accepts only that exact legacy subtotal or the
+  full validated line sum, then awards using the full line sum. Arbitrary
+  mismatches still fail. New snapshots record `pointsPolicy` and the reported
+  amount. Existing claims, points and Ada records are never backfilled or reset;
+  replay of an already claimed bill is still rejected.
 - A central outage fails the request; it never silently substitutes base points
   for a promotion. Catalog responses are `no-store`. Browser/new desktop estimates
   refresh every 30 seconds and every actual award rechecks current rules.
@@ -32,6 +43,9 @@ feature covers loyalty points, not AdaPos sale-price discounts.
   no promotion screen: use the shared browser portal and note that its old local
   estimate excludes bonuses. The final success message uses the server award.
   Version 1.2.0 adds portal links and a central estimate inside the receipt screen.
+  Version 1.3.10 includes medicines in the desktop preview and removes the former
+  red exclusion styling. Earlier desktop previews remain stale until updated;
+  the successful claim always uses the server's current award.
 
 ## Operator permissions and initial account
 

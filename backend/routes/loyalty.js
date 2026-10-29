@@ -2,7 +2,7 @@ const express = require("express");
 const pool    = require("../db");
 const { createId, generateMemberCode, hashOpaqueToken, normalizePhone, parseBearerToken } = require("../lib/sccrm");
 const { buildSourceEventKey } = require("../lib/sccrmCrm");
-const { getActivePromotions, quotePoints, receiptEligibleAmount } = require('../lib/sccrmPromotions');
+const { getActivePromotions, quotePoints, resolveReceiptEligibleAmount, RECEIPT_POINTS_POLICY } = require('../lib/sccrmPromotions');
 const { buildReceiptSnapshot } = require('../lib/purchaseHistory');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
 const adaMirror = require('../lib/adaMemberMirror');
@@ -780,18 +780,18 @@ router.post("/claims", requireStaff, async (req, res) => {
           const cashierStaffCode = String(req.body?.cashierStaffCode || "").trim() || null;
           const soldAt = req.body?.soldAt || null;
           const items = req.body?.items;
-          const totalAmount = Number(req.body?.totalAmount);
+          const reportedTotalAmount = Number(req.body?.totalAmount);
           const previewPoints = req.body?.previewPoints != null ? Number(req.body.previewPoints) : null;
 
       if (!receiptNo) return res.status(400).json({ message: "receiptNo is required." });
           if (!branchCode) return res.status(400).json({ message: "branchCode is required." });
           if (!memberId) return res.status(400).json({ message: "memberId is required." });
           if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ message: "Receipt items are required." });
-          if (!Number.isFinite(totalAmount) || totalAmount < 0) return res.status(400).json({ message: "totalAmount must be a non-negative number." });
+          if (!Number.isFinite(reportedTotalAmount) || reportedTotalAmount < 0) return res.status(400).json({ message: "totalAmount must be a non-negative number." });
 
-      const eligible = receiptEligibleAmount(items);
-      const snapshot=buildReceiptSnapshot(req.body,items);
-      if (Math.abs(eligible - totalAmount) > 0.011) return res.status(400).json({ message: 'totalAmount must equal eligible receipt lines.' });
+      const eligible = resolveReceiptEligibleAmount(items, reportedTotalAmount);
+      const totalAmount = eligible;
+      const snapshot={...buildReceiptSnapshot(req.body,items),pointsPolicy:RECEIPT_POINTS_POLICY,reportedEligibleAmount:reportedTotalAmount};
       if (req.staffDevice.branch_code && normalizeDocRef(req.staffDevice.branch_code) !== normalizeDocRef(branchCode)) return res.status(403).json({ message: 'Receipt branch does not match staff device.' });
           const client = await pool.connect();
 
@@ -899,6 +899,8 @@ router.post("/claims", requireStaff, async (req, res) => {
                       awardedPoints,
                       newPointsBalance: newBalance,
                       promotionRevision: quote.revision,
+                      pointsPolicy: RECEIPT_POINTS_POLICY,
+                      eligibleAmount: eligible,
                       appliedPromotions: quote.appliedPromotions,
             });
       } catch (error) {
