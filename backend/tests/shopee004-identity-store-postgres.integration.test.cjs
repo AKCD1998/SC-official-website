@@ -58,6 +58,21 @@ run('identity administration uses the existing ledger in isolated PostgreSQL onl
   await settle();expect((await ledger.projection(['SYNTH-P1'])).records[0].reservedQuantity).toBe(2);expect(await control()).toEqual(before);
   expect((await pool.query(`SELECT count(*)::int n FROM ${t('reviews')}`)).rows[0].n).toBe(0);
  });
+ test('order display reads canonical units without accounting changes, queueing or ledger writes',async()=>{
+  await importProofs();await approve();await settle();
+  const counts=async()=>(await pool.query(`SELECT (SELECT count(*) FROM ${t('audit')}) audit,(SELECT count(*) FROM ${t('dirty')}) dirty,(SELECT count(*) FROM ${t('identity_recovery_jobs')}) jobs,(SELECT count(*) FROM ${t('reviews')}) reviews`)).rows[0];
+  const before=await counts(),boundary=await control();
+  const productMatch={status:'unmapped',reasonCode:'accounting_price_review'},source={shopCode:'sc-drug-store',items:[{name:'Synthetic previously unknown product',variant:'one sachet',quantity:2,unitPrice:123,productMatch}]};
+  const dr={...source,shopCode:'dr-morepen'};
+  const [display,other]=await store.enrichOrdersForStockDisplay([source,dr]);
+  expect(display.items[0]).toMatchObject({quantity:2,unitPrice:123,stockProductMatch:{status:'verified',branchCode:'004',components:[{companySku:'SYNTH-P1',quantityPerSale:1,quantityUnit:'ซอง'}]}});
+  expect(display.items[0].productMatch).toBe(productMatch);expect(source.items[0].stockProductMatch).toBeUndefined();expect(other).toBe(dr);
+  const [unknown]=await store.enrichOrdersForStockDisplay([{...source,items:[{...source.items[0],quantity:null}]}]);
+  expect(unknown.items[0]).toMatchObject({quantity:null,stockProductMatch:{status:'blocked',components:[]}});
+  expect(await store.stockSearchAliases('SYNTH-P1')).toEqual([{productName:source.items[0].name,variantName:source.items[0].variant}]);
+  await expect(store.enrichOrdersForStockDisplay(Array(26).fill(source))).rejects.toMatchObject({code:'STOCK_DISPLAY_SCOPE_INVALID'});
+  expect(await counts()).toEqual(before);expect(await control()).toEqual(boundary);
+ });
  test('malformed imported proof is rejected before any facts or recovery jobs are committed',async()=>{
   await expect(store.importEvidence({facts:[proofs[0],{...proofs[1],aliases:'bad'}],humanEvidenceVerified:true,actor:'synthetic-admin'})).rejects.toMatchObject({code:'TRUSTED_EVIDENCE_IMPORT_INVALID'});
   expect((await pool.query(`SELECT count(*)::int n FROM ${t('identity_evidence')}`)).rows[0].n).toBe(0);

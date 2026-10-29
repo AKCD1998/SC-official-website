@@ -40,6 +40,22 @@ const databaseOrder = {
   total_quantity: 1,
 };
 
+test('verified SC stock aliases participate before global pagination without matching another shop or pack', async () => {
+  pool.query.mockClear();
+  const rows = [databaseOrder, { ...databaseOrder, order_number: '26082471YK8C03' },
+    { ...databaseOrder, shop_code: 'dr-morepen' },
+    { ...databaseOrder, order_number: '26082471YK8C04', items: [{ ...databaseOrder.items[0], variant: 'different pack' }] }];
+  pool.query.mockResolvedValueOnce({ rows }).mockResolvedValueOnce({ rows });
+  const stockSearchAliases = [{ productName: databaseOrder.items[0].name, variantName: databaseOrder.items[0].variant }];
+  const first = await listOrders({ shopCode: 'all', search: 'IC-999998', page: 1, limit: 1, stockSearchAliases });
+  const second = await listOrders({ shopCode: 'all', search: 'IC-999998', page: 2, limit: 1, stockSearchAliases });
+  expect(first.totalCount).toBe(2);expect(second.totalCount).toBe(2);
+  expect(first.hasMore).toBe(true);expect(second.hasMore).toBe(false);
+  expect([first.orders[0].orderNumber, second.orders[0].orderNumber].sort()).toEqual([ORDER_NUMBER, '26082471YK8C03']);
+  expect(first.orders[0].shopCode).toBe('sc-drug-store');expect(second.orders[0].shopCode).toBe('sc-drug-store');
+  pool.query.mockClear();
+});
+
 function parsedEvent(overrides = {}) {
   return {
     event: {

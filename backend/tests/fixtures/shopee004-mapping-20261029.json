@@ -1,0 +1,445 @@
+{
+  "version": "sc004-seller-pos-20261029-r1",
+  "observedAt": "2026-10-29T04:50:20.547Z",
+  "scope": {
+    "shopCode": "sc-drug-store",
+    "branchCode": "004"
+  },
+  "bindings": [
+    {
+      "status": "verified",
+      "listingId": "44483159777",
+      "variationId": "321303027446",
+      "sourceSku": "630010040",
+      "oldName": "1 ซอง Strepsils HHR สเตร็ปซิล 6/8 เม็ดตามสูตร เลือกรสได้",
+      "oldVariant": "คลู ฟ้า 8 เม็ด",
+      "productName": "1 ซอง Strepsils HHR สเตร็ปซิล 6/8 เม็ดตามสูตร เลือกรสได้",
+      "variantName": "คลู ฟ้า 8 เม็ด",
+      "sellerRow": 577,
+      "descriptionRow": 320,
+      "components": [
+        {
+          "productCode": "630010040",
+          "quantityPerSale": 1,
+          "unit": "ซอง"
+        }
+      ],
+      "pos": {
+        "companySku": "630010040",
+        "productName": "สามัญ ยาอมสเตร็ปซิลคูล เอช เอช อาร์ 8 เม็ด",
+        "stockCode": "630010040",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ซอง"
+      },
+      "evidence": "Description: one selected Cool HHR sachet of 8 lozenges. POS: 8-lozenge sachet, not individual tablets."
+    },
+    {
+      "status": "verified",
+      "listingId": "50268515652",
+      "variationId": "262985307607",
+      "sourceSku": "IC-004132",
+      "oldName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "oldVariant": "T 2x2 นิ้ว 8x8 ซม.",
+      "productName": "SOS Plus พลาสเตอร์ใสปิดแผลกันน้ำ รุ่น T และแผ่นฟิล์มใส เลือกรุ่นและขนาดได้ (กล่องสีแดง)",
+      "variantName": "T 2x2 นิ้ว 8x8 ซม.",
+      "sellerRow": 343,
+      "descriptionRow": 198,
+      "components": [
+        {
+          "productCode": "IC-004132",
+          "quantityPerSale": 1,
+          "unit": "กล่อง"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-004132",
+        "productName": "สามัญ พลาสเตอร์ใสปิดแผลกันน้ำ เอสโอเอส พลัส รุ่น ที ซีรีส์ T 2x2 3 ชิ้น",
+        "stockCode": "IC-004132",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "กล่อง"
+      },
+      "evidence": "Description: selected T 2x2 inch / 8x8 cm package contains 3 dressings. POS: complete 3-piece box."
+    },
+    {
+      "status": "verified",
+      "listingId": "51869529492",
+      "variationId": "283032578162",
+      "sourceSku": "IC-006176",
+      "oldName": "ออพติฟรี เพียวมอยซ์ 90/300 มล. OPTI-FREE PureMoist น้ำยาคอนแทคเลนส์ 1 ขวด",
+      "oldVariant": "300 มล.",
+      "productName": "ออพติฟรี เพียวมอยซ์ 90/300 มล. OPTI-FREE PureMoist น้ำยาคอนแทคเลนส์ 1 ขวด",
+      "variantName": "300 มล.",
+      "sellerRow": 250,
+      "descriptionRow": 150,
+      "components": [
+        {
+          "productCode": "IC-006176",
+          "quantityPerSale": 1,
+          "unit": "ขวด"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-006176",
+        "productName": "สามัญ ออพติ ฟรี เพียวมอยซ์ 300 มล",
+        "stockCode": "IC-006176",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ขวด"
+      },
+      "evidence": "Description: PureMoist 300 ml sold as one bottle. Exact variant Seller SKU is IC-006176; Replenish is a different listing/SKU."
+    },
+    {
+      "status": "verified",
+      "listingId": "52564345285",
+      "variationId": "401532221529",
+      "sourceSku": "IC-005488",
+      "oldName": "บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)",
+      "oldVariant": "เซนซิเดิร์ม 50 กรัม",
+      "productName": "บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)",
+      "variantName": "เซนซิเดิร์ม 50 กรัม",
+      "sellerRow": 235,
+      "descriptionRow": 139,
+      "components": [
+        {
+          "productCode": "IC-005488",
+          "quantityPerSale": 1,
+          "unit": "หลอด"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-005488",
+        "productName": "สามัญ บีแพนเธน เซนซิเดิร์ม ครีม 50 กรัม",
+        "stockCode": "IC-005488",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "หลอด"
+      },
+      "evidence": "Description explicitly includes Sensiderm 50 g, separate from Ointment and Sensiderm 20 g. POS: one 50 g tube."
+    },
+    {
+      "status": "verified",
+      "listingId": "57319902365",
+      "variationId": "326662499414",
+      "sourceSku": "IC-006139",
+      "oldName": "ยาใส่แผลโพวิโดนไอโอดีน 10% ศิริบัญชา เพียวริดีน โพวาดีน ไทเกอร์พล๊าส ลีโอโพวิโดน 15/30 มล.",
+      "oldVariant": "ไทเกอร์พล๊าส,30 มล.",
+      "productName": "ยาใส่แผลโพวิโดนไอโอดีน 10% ศิริบัญชา เพียวริดีน โพวาดีน ไทเกอร์พล๊าส ลีโอโพวิโดน 15/30 มล.",
+      "variantName": "ไทเกอร์พล๊าส,30 มล.",
+      "sellerRow": 47,
+      "descriptionRow": 25,
+      "components": [
+        {
+          "productCode": "IC-006139",
+          "quantityPerSale": 1,
+          "unit": "ขวด"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-006139",
+        "productName": "สามัญ ไทเกอร์พล๊าส ลีโอโพวิโดน 30 มล",
+        "stockCode": "IC-006139",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ขวด"
+      },
+      "evidence": "Description: Tigerplast LeoPovidone 30 ml sold as one bottle. Exact Seller SKU and POS size agree."
+    },
+    {
+      "status": "verified",
+      "listingId": "55569965110",
+      "variationId": "386666310289",
+      "sourceSku": "IC-000060",
+      "oldName": "พลาสเตอร์ผ้าปิดแผล 100 ชิ้น ไทเกอร์พล๊าส เทนโซพล๊าส ไรโนพลาสท์ นีโอพลาสท์-เอส",
+      "oldVariant": "ไทเกอร์พล๊าส 1 กล่อง",
+      "productName": "พลาสเตอร์ผ้าปิดแผล 100 ชิ้น ไทเกอร์พล๊าส เทนโซพล๊าส ไรโนพลาสท์ นีโอพลาสท์-เอส",
+      "variantName": "ไทเกอร์พล๊าส 1 กล่อง",
+      "sellerRow": 132,
+      "descriptionRow": 73,
+      "components": [
+        {
+          "productCode": "IC-000060",
+          "quantityPerSale": 1,
+          "unit": "กล่อง"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-000060",
+        "productName": "สามัญ พลาสเตอร์ ไทเกอร์พล๊าส ชนิดผ้า 100 ชิ้น",
+        "stockCode": "IC-000060",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "กล่อง"
+      },
+      "evidence": "Description: selected Tigerplast cloth dressing sold as one box of 100. POS base unit is the complete 100-piece box."
+    },
+    {
+      "status": "verified",
+      "listingId": "51315697309",
+      "variationId": "366341634058",
+      "sourceSku": "IC-000023",
+      "oldName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว 1 กล่อง 50 แผง",
+      "oldVariant": "รสมะนาว 1 กล่อง,1 กล่อง 50 แผง",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว 1 กล่อง 50 แผง",
+      "variantName": "รสมะนาว 1 กล่อง,1 กล่อง 50 แผง",
+      "sellerRow": 281,
+      "descriptionRow": 166,
+      "components": [
+        {
+          "productCode": "IC-000023",
+          "quantityPerSale": 50,
+          "unit": "แผง"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-000023",
+        "productName": "สามัญ แอร์ เอ็กซ์ มะนาว 10 เม็ด",
+        "stockCode": "IC-000023",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "แผง"
+      },
+      "evidence": "Selected variant explicitly states one box / 50 blisters. Description: 10 tablets per blister. POS base unit is one lemon 10-tablet blister; medium factor 50 confirms the outer box."
+    },
+    {
+      "status": "verified",
+      "listingId": "53361659593",
+      "variationId": "346619420907",
+      "sourceSku": "IC-005886",
+      "oldName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร วิตามินน้ำ 120 มล. Omega-3 / Bio C / Jelly Veggies เจลลี่รสองุ่น 10 ซอง",
+      "oldVariant": "เจลลี่องุ่น 10 ซอง",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร วิตามินน้ำ 120 มล. Omega-3 / Bio C / Jelly Veggies เจลลี่รสองุ่น 10 ซอง",
+      "variantName": "เจลลี่องุ่น 10 ซอง",
+      "sellerRow": 209,
+      "descriptionRow": 121,
+      "components": [
+        {
+          "productCode": "IC-005886",
+          "quantityPerSale": 10,
+          "unit": "ซอง"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-005886",
+        "productName": "สามัญ ดีเดย์ เจลลี่ เวจจี้ รส องุ่น 20 กรัม",
+        "stockCode": "IC-005886",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ซอง"
+      },
+      "evidence": "Description: Jelly Veggies grape sold as one box of 10 sachets, distinct from the liquid formulas. POS base unit is one 20 g sachet; medium factor 10."
+    },
+    {
+      "status": "verified",
+      "listingId": "55662773608",
+      "variationId": "259349169775",
+      "sourceSku": "IC-002913",
+      "oldName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด (30 เม็ด / 25 ซอง และ 1000 เม็ด 1 กระปุก) | Vitamin C Tablet",
+      "oldVariant": "สตรอว์เบอร์รี่,1 กระปุก 1000 เม็ด",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด (30 เม็ด / 25 ซอง และ 1000 เม็ด 1 กระปุก) | Vitamin C Tablet",
+      "variantName": "สตรอว์เบอร์รี่,1 กระปุก 1000 เม็ด",
+      "sellerRow": 120,
+      "descriptionRow": 72,
+      "components": [
+        {
+          "productCode": "IC-002913",
+          "quantityPerSale": 1,
+          "unit": "ขวด"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-002913",
+        "productName": "สามัญ ไวต้าซี วิตามินซี สตอร์เบอรี่ 25 มก 1000  เม็ด",
+        "stockCode": "IC-002913",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ขวด"
+      },
+      "evidence": "Live selected strawberry / one jar of 1000 tablets has Seller SKU IC-002913, distinct from the 25-sachet option IC-002485. POS names the complete strawberry 1000-tablet bottle. Generic description only describes the separate 30-tablet sachet and is not the jar quantity authority."
+    },
+    {
+      "status": "verified",
+      "listingId": "55569965110",
+      "variationId": "386666310292",
+      "sourceSku": "630010163",
+      "oldName": "พลาสเตอร์ผ้าปิดแผล 100 ชิ้น ไทเกอร์พล๊าส เทนโซพล๊าส ไรโนพลาสท์ นีโอพลาสท์-เอส",
+      "oldVariant": "นีโอพลาสท์-เอส1กล่อง",
+      "productName": "พลาสเตอร์ผ้าปิดแผล 100 ชิ้น ไทเกอร์พล๊าส เทนโซพล๊าส ไรโนพลาสท์ นีโอพลาสท์-เอส",
+      "variantName": "นีโอพลาสท์-เอส1กล่อง",
+      "sellerRow": 131,
+      "descriptionRow": 73,
+      "components": [
+        {
+          "productCode": "630010163",
+          "quantityPerSale": 1,
+          "unit": "กล่อง"
+        }
+      ],
+      "pos": {
+        "companySku": "630010163",
+        "productName": "สามัญ พลาสเตอร์ผ้านีโอพลาสท์ 100 แผ่น",
+        "stockCode": "630010163",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "กล่อง"
+      },
+      "evidence": "Description: selected Neoplast-S sold as one box of 100. POS base unit is the complete 100-piece box."
+    },
+    {
+      "status": "verified",
+      "listingId": "44483159777",
+      "variationId": "321303027448",
+      "sourceSku": "630010038",
+      "oldName": "1 ซอง Strepsils HHR สเตร็ปซิล 6/8 เม็ดตามสูตร เลือกรสได้",
+      "oldVariant": "ออริจินอล แดง 8 เม็ด",
+      "productName": "1 ซอง Strepsils HHR สเตร็ปซิล 6/8 เม็ดตามสูตร เลือกรสได้",
+      "variantName": "ออริจินอล แดง 8 เม็ด",
+      "sellerRow": 579,
+      "descriptionRow": 320,
+      "components": [
+        {
+          "productCode": "630010038",
+          "quantityPerSale": 1,
+          "unit": "ซอง"
+        }
+      ],
+      "pos": {
+        "companySku": "630010038",
+        "productName": "สามัญ ยาอมสเตร็ปซิลออริจินัล เอช เอช อาร์ 8 เม็ด",
+        "stockCode": "630010038",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ซอง"
+      },
+      "evidence": "Description: one selected Original HHR sachet of 8 lozenges. POS: 8-lozenge sachet, not individual tablets."
+    },
+    {
+      "status": "verified",
+      "listingId": "55569965110",
+      "variationId": "386666310291",
+      "sourceSku": "IC-006137",
+      "oldName": "พลาสเตอร์ผ้าปิดแผล 100 ชิ้น ไทเกอร์พล๊าส เทนโซพล๊าส ไรโนพลาสท์ นีโอพลาสท์-เอส",
+      "oldVariant": "ไรโนพลาสท์ 1 กล่อง",
+      "productName": "พลาสเตอร์ผ้าปิดแผล 100 ชิ้น ไทเกอร์พล๊าส เทนโซพล๊าส ไรโนพลาสท์ นีโอพลาสท์-เอส",
+      "variantName": "ไรโนพลาสท์ 1 กล่อง",
+      "sellerRow": 130,
+      "descriptionRow": 73,
+      "components": [
+        {
+          "productCode": "IC-006137",
+          "quantityPerSale": 1,
+          "unit": "กล่อง"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-006137",
+        "productName": "สามัญ ไรโนพลาสท์ พลาสเตอร์ผ้า 100 แผ่น",
+        "stockCode": "IC-006137",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "กล่อง"
+      },
+      "evidence": "Description: selected Rhinoplast sold as one box of 100. POS base unit is the complete 100-piece box."
+    },
+    {
+      "status": "verified",
+      "listingId": "57319902365",
+      "variationId": "326662499413",
+      "sourceSku": "IC-006138",
+      "oldName": "ยาใส่แผลโพวิโดนไอโอดีน 10% ศิริบัญชา เพียวริดีน โพวาดีน ไทเกอร์พล๊าส ลีโอโพวิโดน 15/30 มล.",
+      "oldVariant": "ไทเกอร์พล๊าส,15 มล.",
+      "productName": "ยาใส่แผลโพวิโดนไอโอดีน 10% ศิริบัญชา เพียวริดีน โพวาดีน ไทเกอร์พล๊าส ลีโอโพวิโดน 15/30 มล.",
+      "variantName": "ไทเกอร์พล๊าส,15 มล.",
+      "sellerRow": 46,
+      "descriptionRow": 25,
+      "components": [
+        {
+          "productCode": "IC-006138",
+          "quantityPerSale": 1,
+          "unit": "ขวด"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-006138",
+        "productName": "สามัญ ไทเกอร์พล๊าส ลีโอโพวิโดน 15 มล",
+        "stockCode": "IC-006138",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ขวด"
+      },
+      "evidence": "Description: Tigerplast LeoPovidone 15 ml sold as one bottle. Exact Seller SKU and POS size agree."
+    },
+    {
+      "status": "verified",
+      "listingId": "56562041161",
+      "variationId": "436046531379",
+      "sourceSku": "IC-001510",
+      "oldName": "Vita-C ไวต้า-ซี วิตามินซี กัมมี่ / กัมมี่พลัส / ชิววี่ รสผลไม้รวม แบบยกกล่อง",
+      "oldVariant": "กัมมี่ ชมพู",
+      "productName": "Vita-C ไวต้า-ซี วิตามินซี กัมมี่ / กัมมี่พลัส / ชิววี่ รสผลไม้รวม แบบยกกล่อง",
+      "variantName": "กัมมี่ ชมพู",
+      "sellerRow": 80,
+      "descriptionRow": 45,
+      "components": [
+        {
+          "productCode": "IC-001510",
+          "quantityPerSale": 24,
+          "unit": "ซอง"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-001510",
+        "productName": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่พลัส ชมพู 20 กรัม",
+        "stockCode": "IC-001510",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ซอง"
+      },
+      "evidence": "Live pink variation image th-11134207-81ztj-muhmxezoslj781 explicitly states 1 box / 24 sachets. Description identifies pink Gummy Plus, 20 g per sachet. POS: one pink 20 g sachet, medium factor 24. Do not substitute Chewy white 20 sachets or an unproven 12-sachet box."
+    },
+    {
+      "status": "verified",
+      "listingId": "49463620257",
+      "variationId": "282765149031",
+      "sourceSku": "IC-005598",
+      "oldName": "ไวต้า-ซี / โพรโพลิซ แคนดี้ป๊อป อมยิ้มไม่มีน้ำตาล ยกกล่อง 10 ซอง Vita-C / Propoliz Candy Pop",
+      "oldVariant": "แอปเปิ้ลเขียว 10ซอง",
+      "productName": "ไวต้า-ซี / โพรโพลิซ แคนดี้ป๊อป อมยิ้มไม่มีน้ำตาล ยกกล่อง 10 ซอง Vita-C / Propoliz Candy Pop",
+      "variantName": "แอปเปิ้ลเขียว 10ซอง",
+      "sellerRow": 391,
+      "descriptionRow": 212,
+      "components": [
+        {
+          "productCode": "IC-005598",
+          "quantityPerSale": 10,
+          "unit": "ชิ้น"
+        }
+      ],
+      "pos": {
+        "companySku": "IC-005598",
+        "productName": "สามัญ ไวต้าซี แคนดี้ป๊อป กลิ่นแอปเปิ้ลเขียว 7 กรัม",
+        "stockCode": "IC-005598",
+        "active": true,
+        "stockFactor": 1,
+        "smallFactor": 1,
+        "smallUnit": "ชิ้น"
+      },
+      "evidence": "Description: selected green-apple Candy Pop is one box of 10 sachets, each 7 g. POS smallest unit is one 7 g piece (medium factor 10); not a whole 70 g box."
+    }
+  ]
+}
