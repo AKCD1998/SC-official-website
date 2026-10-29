@@ -69,6 +69,7 @@ run('identity administration uses the existing ledger in isolated PostgreSQL onl
   expect(display.items[0].productMatch).toBe(productMatch);expect(source.items[0].stockProductMatch).toBeUndefined();expect(other).toBe(dr);
   const [unknown]=await store.enrichOrdersForStockDisplay([{...source,items:[{...source.items[0],quantity:null}]}]);
   expect(unknown.items[0]).toMatchObject({quantity:null,stockProductMatch:{status:'blocked',components:[]}});
+  expect(await store.stockSearchAliases('SYNTH-P1')).toEqual([{productName:source.items[0].name,variantName:source.items[0].variant}]);
   await expect(store.enrichOrdersForStockDisplay(Array(26).fill(source))).rejects.toMatchObject({code:'STOCK_DISPLAY_SCOPE_INVALID'});
   expect(await counts()).toEqual(before);expect(await control()).toEqual(boundary);
  });

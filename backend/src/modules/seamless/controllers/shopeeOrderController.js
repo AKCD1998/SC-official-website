@@ -9,7 +9,7 @@ const { TIMELINE_EVENT_TYPES } = require("../services/shopeeOrderEmailParser");
 const { syncShopeeOrderPage } = require("../services/shopeeOrderTimelineService");
 const { getShopeeSalesSummary } = require("../services/shopeeSalesSummaryService");
 const { exportShopeeSalesSummary } = require("../services/shopeeSalesSummaryExportService");
-const { enrichOrderStockDisplay } = require('../services/shopeeOrderStockDisplay');
+const { enrichOrderStockDisplay, getOrderStockSearchAliases } = require('../services/shopeeOrderStockDisplay');
 const { getShopeeFinancialReconciliation } = require("../services/shopeeFinancialReconciliationService");
 const {
   getViewerFinancialVisibility,
@@ -146,6 +146,7 @@ async function listOrders(req, res) {
     req.appRole,
     userFinancialVisibility,
   );
+  const stockSearchAliases = shopCode === 'dr-morepen' ? [] : await getOrderStockSearchAliases(search);
   const result = await repository.listOrders({
     cursor: parseOpaqueCursor(req.query?.cursor, shopCode),
     financialVisibility,
@@ -156,6 +157,7 @@ async function listOrders(req, res) {
     sortBy,
     sortOrder,
     status: parseStatus(req.query?.status),
+    ...(stockSearchAliases.length ? { stockSearchAliases } : {}),
   });
   const lastOrder = result.orders[result.orders.length - 1];
   const displayOrders = await enrichOrderStockDisplay(result.orders);

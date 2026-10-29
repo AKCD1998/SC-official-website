@@ -10,6 +10,7 @@ const {itemMatchesIdentity}=require('./shopee004ExceptionReadModel');
 const {createLegacyEvidenceGuard}=require('./shopee004LegacyEvidenceGuard');
 const {classifyRecoveryFailure}=require('./shopee004RecoveryPolicy');
 const {mapShopeeStockLines}=require('./shopeeStockReservationShadow');
+const reviewedStockVariants=require('../data/shopeeStockReviewedVariants.v1.json');
 const {acquireBoundedStockClient}=require('./shopee004BoundedDatabase');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const aliasKey=x=>JSON.stringify([normalizeIdentityText(x.productName??x.name),normalizeIdentityText(x.variantName??x.variant)]);
@@ -34,12 +35,13 @@ function createShopee004IdentityStore({pool,schema,ledger,now=()=>new Date()}){
   const evidenceRefs=deriveTrustedEvidenceSnapshot(new Map(proofs.rows.map(r=>[r.reference,{...r.details,kind:r.kind}])));
   return {versions:rules.rows.map(r=>r.rule),evidenceRefs,posCatalog:validateCatalog(control.pos_catalog)};
  }
- async function mappingContextProvider(c,control){
-  const data=await snapshot(c,control),exact=createIdentityRuleMatcher({rules:data.versions,...data}),legacyGuard=createLegacyEvidenceGuard(data);
+ function matcherFromSnapshot(data){
+  const exact=createIdentityRuleMatcher({rules:data.versions,...data}),legacyGuard=createLegacyEvidenceGuard(data);
   const match=(shop,item,options)=>exact(shop,item,options)||legacyGuard(shop,item,resolveStockProductMatch(shop,item,options));
   match.baseUnit=(shop,code)=>exact.baseUnit(shop,code)||getStockBaseUnit(shop,code);
   return match;
  }
+ async function mappingContextProvider(c,control){return matcherFromSnapshot(await snapshot(c,control));}
  function actorRequired(actor){if(typeof actor!=='string'||!actor.trim()||actor.length>200)fail('HUMAN_ADMIN_REQUIRED');}
  async function control(c,lock=true){const row=(await c.query(`SELECT mode,cutover_at,plan,pos_catalog FROM "${schema}".shopee004_stock_control WHERE singleton=1 ${lock?'FOR SHARE':''}`)).rows[0];if(!['live','paused'].includes(row?.mode))fail('ACTIVE_CUTOVER_REQUIRED');return row;}
  async function duplicate(c,operationId,request){
@@ -194,7 +196,10 @@ function createShopee004IdentityStore({pool,schema,ledger,now=()=>new Date()}){
    ||orders.reduce((n,o)=>n+o.items.length,0)>1000)fail('STOCK_DISPLAY_SCOPE_INVALID');
   if(!orders.some(o=>o.shopCode==='sc-drug-store'))return orders;
   return transaction(async c=>{
-   const ctl=await control(c,false),matchItem=await mappingContextProvider(c,ctl),posCatalog=validateCatalog(ctl.pos_catalog);
+   // Display needs the POS contract, not the opening/cutover plan document.
+   const ctl=(await c.query(`SELECT mode,pos_catalog FROM "${schema}".shopee004_stock_control WHERE singleton=1`)).rows[0];
+   if(!['live','paused'].includes(ctl?.mode))fail('ACTIVE_CUTOVER_REQUIRED');
+   const matchItem=await mappingContextProvider(c,ctl),posCatalog=validateCatalog(ctl.pos_catalog);
    return orders.map(o=>o.shopCode!=='sc-drug-store'?o:{...o,items:o.items.map(item=>{
     const mapped=mapShopeeStockLines({items:[item],posCatalog,matchItem});
     const stockProductMatch=mapped.status==='mapped'?{status:'verified',branchCode:'004',
@@ -205,6 +210,27 @@ function createShopee004IdentityStore({pool,schema,ledger,now=()=>new Date()}){
    })});
   },true);
  }
- return {mappingContextProvider,approveMapping,approveCatalogMapping,revoke,drainRecovery,exceptions,importEvidence,enrichOrdersForStockDisplay};
+ // Exact SKU lookup supplies verified aliases to the existing all-page order
+ // search. It does not fuzzily match names or change the accounting index.
+ async function stockSearchAliases(search){
+  if(typeof search!=='string'||search.length>100)fail('STOCK_SEARCH_SCOPE_INVALID');
+  return transaction(async c=>{
+   const ctl=(await c.query(`SELECT mode,pos_catalog FROM "${schema}".shopee004_stock_control WHERE singleton=1`)).rows[0];
+   if(!['live','paused'].includes(ctl?.mode))fail('ACTIVE_CUTOVER_REQUIRED');
+   const data=await snapshot(c,ctl),matchItem=matcherFromSnapshot(data),posCatalog=data.posCatalog;
+   const product=[...posCatalog.values()].find(p=>p.companySku.toLowerCase()===search.toLowerCase());
+   if(!product)return [];
+   const stockCode=product.stockCode,usesCode=components=>(components||[]).some(x=>posCatalog.get(x.productCode??x.companySku)?.stockCode===stockCode);
+   const possible=[...data.versions.filter(r=>r.state==='active'&&usesCode(r.components)).flatMap(r=>r.aliases),
+    ...reviewedStockVariants.rules.filter(r=>usesCode(r.components)).map(r=>({productName:r.productName,variantName:r.variant}))];
+   const aliases=[...new Map(possible.map(a=>[aliasKey(a),{productName:a.productName,variantName:a.variantName}])).values()];
+   if(aliases.length>200)fail('STOCK_SEARCH_SCOPE_INVALID');
+   return aliases.filter(a=>{
+    const result=mapShopeeStockLines({items:[{name:a.productName,variant:a.variantName,quantity:1}],posCatalog,matchItem});
+    return result.status==='mapped'&&result.lines.some(l=>l.stockCode===stockCode);
+   });
+  },true);
+ }
+ return {mappingContextProvider,approveMapping,approveCatalogMapping,revoke,drainRecovery,exceptions,importEvidence,enrichOrdersForStockDisplay,stockSearchAliases};
 }
 module.exports={createShopee004IdentityStore};

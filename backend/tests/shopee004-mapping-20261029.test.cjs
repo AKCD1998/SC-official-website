@@ -5,6 +5,7 @@ const { buildCatalogIdentityApproval } = require('../src/modules/seamless/servic
 const { normalizeTrustedEvidenceFact, deriveTrustedEvidenceSnapshot } = require('../src/modules/seamless/services/shopee004TrustedEvidence');
 const { validateCatalog } = require('../src/modules/seamless/services/shopee004StockPolicy');
 const { mapShopeeStockLines } = require('../src/modules/seamless/services/shopeeStockReservationShadow');
+const { normalizeIdentityText: norm } = require('../src/modules/seamless/services/shopee004IdentityRules');
 
 // Regression inputs only. Runtime continues to read the existing versioned DB
 // registry. Neither this fixture nor this test imports/approves production facts.
@@ -41,7 +42,7 @@ async function context(binding, { aliases, pos = binding.pos } = {}) {
 }
 
 test.each(fixture.bindings.map(b => [b.variationId, b]))('verified variation %s uses exact identity and POS sale units', async (_id, b) => {
-  const { matchItem, posCatalog, store, queries } = await context(b);
+  const { matchItem, posCatalog, store, queries, rule } = await context(b);
   const item = { name: b.oldName, variant: b.oldVariant, quantity: 3 };
   const map = extra => mapShopeeStockLines({ items: [{ ...item, ...extra }], matchItem, posCatalog });
   expect(map()).toMatchObject({ status: 'mapped', lines: b.components.map(c => ({ stockCode: c.productCode, quantity: c.quantityPerSale * 3 })) });
@@ -62,6 +63,12 @@ test.each(fixture.bindings.map(b => [b.variationId, b]))('verified variation %s 
   expect(display.items[0].productMatch).toBe(accountingMatch);
   expect(display.items[0].unitPrice).toBe(123);
   expect(source.items[0].stockProductMatch).toBeUndefined();
+  const aliases = await store.stockSearchAliases(b.sourceSku.toLowerCase());
+  const sameAlias = a => norm(a.productName) === norm(b.productName) && norm(a.variantName) === norm(b.variantName);
+  expect(aliases.some(sameAlias)).toBe(true);
+  expect(await store.stockSearchAliases('IC-999999')).toEqual([]);
+  rule.state = 'revoked';
+  expect((await store.stockSearchAliases(b.sourceSku)).some(sameAlias)).toBe(false);
   expect(queries).toContain('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
   expect(queries.every(sql => /^(SELECT |BEGIN |SET |COMMIT)/.test(sql))).toBe(true);
 });

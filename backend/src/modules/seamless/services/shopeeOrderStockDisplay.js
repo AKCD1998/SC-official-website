@@ -17,4 +17,17 @@ async function enrichOrderStockDisplay(orders, dependencies = {}) {
   }
 }
 
-module.exports = { enrichOrderStockDisplay };
+async function getOrderStockSearchAliases(search, dependencies = {}) {
+  const enabled = dependencies.enabled ?? process.env.SHOPEE004_STOCK_LEDGER_ENABLED === 'true';
+  // Existing company SKU formats; ordinary name/date/amount searches need no
+  // additional registry read. The store still requires an exact stored POS key.
+  if (!enabled || !/^(?:IC-\d{6}|\d{9})$/i.test(search || '')) return [];
+  try {
+    const store = dependencies.identityStore || require('./shopee004StockRuntime').getIdentityStore();
+    return await store.stockSearchAliases(search);
+  } catch {
+    throw Object.assign(Error('Stock SKU search is temporarily unavailable.'), { statusCode: 503, code: 'STOCK_SEARCH_UNAVAILABLE' });
+  }
+}
+
+module.exports = { enrichOrderStockDisplay, getOrderStockSearchAliases };

@@ -16,6 +16,7 @@ const {
 } = require("../services/shopeeProductMatcher");
 const { getTables } = require("../tables");
 const { liveOrderRelation } = require('../services/shopeeOrderObservationService');
+const { normalizeIdentityText } = require('../services/shopee004IdentityRules');
 const { resolveSalesOrders } = require("../services/shopeeSalesAccounting");
 const {
   ALL_FINANCIAL_VISIBILITY,
@@ -457,6 +458,7 @@ async function listOrders({
   sortBy = "lastEventAt",
   sortOrder = "desc",
   status = null,
+  stockSearchAliases = [],
 } = {}) {
   const shopCode = requireListShopScope(shopCodeValue);
   const tables = getTables();
@@ -481,6 +483,9 @@ async function listOrders({
   }
 
   if (search) {
+    const stockAliasKeys = new Set(stockSearchAliases.map(a => JSON.stringify([
+      normalizeIdentityText(a.productName), normalizeIdentityText(a.variantName),
+    ])));
     const searchResult = await pool.query(
       `
         SELECT
@@ -494,7 +499,10 @@ async function listOrders({
     );
     const matchingOrders = searchResult.rows
       .map(mapOrder)
-      .filter((order) => matchesShopeeOrderSearch(order, search, financialVisibility))
+      .filter((order) => matchesShopeeOrderSearch(order, search, financialVisibility)
+        || (order.shopCode === 'sc-drug-store' && order.items.some(item => stockAliasKeys.has(JSON.stringify([
+          normalizeIdentityText(item.name), normalizeIdentityText(item.variant),
+        ])))))
       .sort((left, right) => compareShopeeOrders(left, right, sortBy, sortOrder));
     const offset = isNumberedPage ? (page - 1) * limit : 0;
     return {
