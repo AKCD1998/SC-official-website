@@ -9,6 +9,7 @@ const {buildCatalogIdentityApproval}=require('./shopee004CatalogApproval');
 const {itemMatchesIdentity}=require('./shopee004ExceptionReadModel');
 const {createLegacyEvidenceGuard}=require('./shopee004LegacyEvidenceGuard');
 const {classifyRecoveryFailure}=require('./shopee004RecoveryPolicy');
+const {mapShopeeStockLines}=require('./shopeeStockReservationShadow');
 const {acquireBoundedStockClient}=require('./shopee004BoundedDatabase');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const aliasKey=x=>JSON.stringify([normalizeIdentityText(x.productName??x.name),normalizeIdentityText(x.variantName??x.variant)]);
@@ -186,6 +187,24 @@ function createShopee004IdentityStore({pool,schema,ledger,now=()=>new Date()}){
    return {recorded:true,addedEvidence:added,lifecycleApprovalsAdded:false,openingBoundaryPreserved:true};
   });
  }
- return {mappingContextProvider,approveMapping,approveCatalogMapping,revoke,drainRecovery,exceptions,importEvidence};
+ // A bounded read model for the order screen. Keep financial productMatch and
+ // prices intact; display the same validated physical units used by the ledger.
+ async function enrichOrdersForStockDisplay(orders){
+  if(!Array.isArray(orders)||orders.length>25||orders.some(o=>!Array.isArray(o?.items))
+   ||orders.reduce((n,o)=>n+o.items.length,0)>1000)fail('STOCK_DISPLAY_SCOPE_INVALID');
+  if(!orders.some(o=>o.shopCode==='sc-drug-store'))return orders;
+  return transaction(async c=>{
+   const ctl=await control(c,false),matchItem=await mappingContextProvider(c,ctl),posCatalog=validateCatalog(ctl.pos_catalog);
+   return orders.map(o=>o.shopCode!=='sc-drug-store'?o:{...o,items:o.items.map(item=>{
+    const mapped=mapShopeeStockLines({items:[item],posCatalog,matchItem});
+    const stockProductMatch=mapped.status==='mapped'?{status:'verified',branchCode:'004',
+     components:mapped.lines.map(l=>({companySku:l.stockCode,quantityPerSale:l.quantity/item.quantity,
+      quantityUnit:posCatalog.get(l.stockCode).smallUnit}))}
+     :{status:'blocked',branchCode:'004',components:[],reasonCode:Object.keys(mapped.reasonCounts)[0]||'product_mapping_unverified'};
+    return {...item,stockProductMatch};
+   })});
+  },true);
+ }
+ return {mappingContextProvider,approveMapping,approveCatalogMapping,revoke,drainRecovery,exceptions,importEvidence,enrichOrdersForStockDisplay};
 }
 module.exports={createShopee004IdentityStore};

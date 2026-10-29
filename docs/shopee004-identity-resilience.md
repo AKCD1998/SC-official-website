@@ -1,5 +1,10 @@
 # SC004 stock identity and unit evidence
 
+The [29 October follow-up](shopee004-mapping-review-20261029.md) records the fresh
+21-order review, 15 verified versioned mappings, source receipts and the separate
+Seamless display patch. Its production recovery status is dated explicitly;
+the historical candidate counts below are not the current exception queue.
+
 This candidate adds a storage-independent rule contract and a whole-store
 preaudit. It does not create another reservation ledger or approve a dispatch,
 cancellation, return, opening balance or stock-count adjustment.

@@ -26,6 +26,12 @@ const orderRow = {
 };
 
 const listOrdersMock = jest.fn(async () => ({ hasMore: true, orders: [orderRow], totalCount: 51 }));
+const stockDisplayMock = jest.fn(async orders => orders.map(order => ({ ...order, items: order.items.map(item => ({
+  ...item, stockProductMatch: { status: 'verified', branchCode: '004', components: [{ companySku: 'SYNTH-STOCK', quantityPerSale: 24, quantityUnit: 'ซอง' }] },
+})) })));
+jest.mock('../src/modules/seamless/services/shopee004StockRuntime', () => ({
+  getIdentityStore: () => ({ enrichOrdersForStockDisplay: (...args) => stockDisplayMock(...args) }),
+}));
 const listOrdersForSalesSummaryMock = jest.fn(async () => [orderRow]);
 const getAdaSmartCopyPlanMock = jest.fn(async filters => ({ ...filters, status: 'ready', rows: [], issues: [], targetCents: 0, totalCents: 0 }));
 jest.mock('../src/modules/seamless/services/shopeeAdaSmartCopyService', () => ({
@@ -135,6 +141,23 @@ beforeEach(() => {
   delete process.env.SEAMLESS_APP_BASIC_PASSWORD;
   delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
   delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
+  delete process.env.SHOPEE004_STOCK_LEDGER_ENABLED;
+});
+
+test('list and detail expose canonical stock units while respecting financial visibility', async () => {
+  process.env.SHOPEE004_STOCK_LEDGER_ENABLED = 'true';
+  try {
+    const app = buildApp();
+    for (const url of ['/api/app/shopee/orders?shopCode=sc-drug-store', '/api/app/shopee/orders/26082471YK8C02?shopCode=sc-drug-store']) {
+      const response = await request(app).get(url);
+      expect(response.status).toBe(200);
+      const item = (response.body.orders?.[0] || response.body.order).items[0];
+      expect(item.stockProductMatch).toMatchObject({ status: 'verified', components: [{ companySku: 'SYNTH-STOCK', quantityPerSale: 24, quantityUnit: 'ซอง' }] });
+      expect(item).not.toHaveProperty('unitPrice');
+      expect(item.quantity).toBe(1);
+    }
+    expect(stockDisplayMock).toHaveBeenCalledTimes(2);
+  } finally { delete process.env.SHOPEE004_STOCK_LEDGER_ENABLED; }
 });
 
 test("lists persisted Shopee orders with an opaque cursor", async () => {
