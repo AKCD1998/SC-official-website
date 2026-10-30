@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-30 — Search approved member links by every retained phone
+
+- Search phones retained on all explicitly linked Ada codes, including formatted
+  numbers, without copying them into login credentials or merging from a search.
+- Keep the existing primary `phone` field and add `phoneNumbers` only for contacts
+  with multiple numbers. Existing POS clients keep their response contract.
+- Preserve the nonblank canonical-phone fallback in explicit mirror provisioning.
+
 ## 2026-10-29 — Preserve member lookup through Ada code aliases
 
 - Resolve exact old SCCRM/Ada aliases to the same member UUID in both staff

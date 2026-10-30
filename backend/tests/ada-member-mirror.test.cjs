@@ -58,3 +58,12 @@ test('legacy search works when points storage is unavailable and keeps separate 
   expect(db.query.mock.calls[0][0]).not.toContain('point_ledger');
   expect(db.query.mock.calls[0][0]).toContain("d.member_code<>'ADA-0'");
 });
+
+test('search retains primary phone and exposes linked alternatives without writing any identity',async()=>{
+  process.env.SC_OFFICIAL_ADA_SYNC_ENABLED='true';
+  const db={query:jest.fn(async()=>({rows:[{id,display_name:'Contact',phone:'0990000001',member_code:'AR001-000786',current_points:0,contact_phones:['0990000002','0990000001']}]}))};
+  const found=await ada.searchLegacy(db,'099-000-0002');
+  expect(found[0]).toMatchObject({id,phone:'0990000001',phoneNumbers:['0990000001','0990000002']});
+  expect(db.query.mock.calls[0][1][2]).toBe('%0990000002%');
+  expect(db.query.mock.calls.every(([sql])=>!/^\s*(INSERT|UPDATE|DELETE)/i.test(sql))).toBe(true);
+});

@@ -54,7 +54,7 @@ END $$;
 REVOKE ALL ON FUNCTION ada_history.apply_batch(text,text,text,jsonb,uuid,text) FROM PUBLIC;
 
 CREATE OR REPLACE VIEW ada_history.directory AS
- SELECT u.id,u.full_name,COALESCE(u.phone_number,a.phone) phone_number,m.member_code,m.is_active,m.created_at,'sccrm'::text source FROM public.users u JOIN public.member_profiles m ON m.user_id=u.id LEFT JOIN LATERAL(SELECT c.phone FROM ada_history.member_links l JOIN ada_history.customers c ON c.source_id=l.source_id AND c.ada_code=l.ada_code WHERE l.member_id=u.id ORDER BY c.ada_code LIMIT 1) a ON true
+ SELECT u.id,u.full_name,COALESCE(u.phone_number,a.phone) phone_number,m.member_code,m.is_active,m.created_at,'sccrm'::text source FROM public.users u JOIN public.member_profiles m ON m.user_id=u.id LEFT JOIN LATERAL(SELECT c.phone FROM ada_history.member_links l JOIN ada_history.customers c ON c.source_id=l.source_id AND c.ada_code=l.ada_code WHERE l.member_id=u.id ORDER BY (NULLIF(btrim(c.phone),'') IS NULL),CASE WHEN c.ada_code=m.member_code THEN 0 ELSE 1 END,c.ada_code LIMIT 1) a ON true
  UNION ALL
  SELECT c.directory_id,c.name,c.phone,'ADA-'||c.ada_code,c.active='1',c.updated_at,'ada'::text FROM ada_history.customers c WHERE NOT EXISTS(SELECT 1 FROM ada_history.member_links l WHERE l.source_id=c.source_id AND l.ada_code=c.ada_code);
 
