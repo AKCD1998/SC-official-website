@@ -1,6 +1,7 @@
 const pool = require('../db');
 const { parseHistoryCursor } = require('./purchaseHistory');
 const ada = require('./adaMemberMirror');
+const contacts = require('./memberContactPhones');
 
 function invalid(message) { return Object.assign(new Error(message), { status: 400 }); }
 function integer(value, fallback, maximum) {
@@ -26,7 +27,7 @@ async function listMembers(query) {
   const where = `FROM users u JOIN member_profiles m ON m.user_id = u.id
     WHERE ($1 = '' OR u.full_name ILIKE $2 OR u.phone_number ILIKE $2 OR m.member_code ILIKE $2)`;
   const matching = ada.enabled()
-    ? `SELECT id,full_name,phone_number,member_code,is_active,created_at,source FROM ada_history.directory WHERE ($1='' OR full_name ILIKE $2 OR phone_number ILIKE $2 OR member_code ILIKE $2)`
+    ? `SELECT d.id,d.full_name,d.phone_number,d.member_code,d.is_active,d.created_at,d.source,${contacts.linkedPhonesSql('d.id')} contact_phones FROM ada_history.directory d WHERE ($1='' OR d.full_name ILIKE $2 OR d.phone_number ILIKE $2 OR d.member_code ILIKE $2 OR ${contacts.phoneMatchSql('d.id','d.phone_number','$2','$5')})`
     : `SELECT u.id, u.full_name, u.phone_number, m.member_code, m.is_active, m.created_at ${where}`;
   // One statement keeps the count and page in the same database snapshot.
   const { rows } = await pool.query(`WITH matching AS (
@@ -35,12 +36,13 @@ async function listMembers(query) {
     SELECT * FROM matching ORDER BY created_at DESC, id DESC LIMIT $3 OFFSET $4
   ) SELECT (SELECT COUNT(*)::int FROM matching) AS total,
     COALESCE((SELECT json_agg(p ORDER BY p.created_at DESC, p.id DESC) FROM paged p), '[]'::json) AS members`,
-    [search, pattern, limit, (page - 1) * limit]);
+    [search, pattern, limit, (page - 1) * limit,...(ada.enabled()?[contacts.digitPattern(search)]:[])]);
   const result = rows[0];
   return { ok: true, page, limit, total: Number(result.total), members: result.members.map(row => ({
     id: row.id, memberCode: row.member_code, name: row.full_name, phone: row.phone_number,
     registeredAt: row.created_at, isActive: row.is_active,
     ...(row.source ? { source: row.source } : {}),
+    ...contacts.contactFields(row.phone_number,row.contact_phones),
   })) };
 }
 module.exports = { listMembers, directoryQuery, historyQuery };

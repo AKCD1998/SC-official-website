@@ -14,6 +14,12 @@ and Supabase role, verified TLS, and machine-encrypted credentials.
 
 ## Identity and data behavior
 
+- Approved links retain every original Ada phone. Staff/POS and the private
+  member directory search all linked phones without changing login credentials.
+  The existing `phone` response remains the primary phone; `phoneNumbers` is an
+  additive list when multiple contacts exist. A phone search never creates a
+  link or merges identities. Same-phone contacts with separate UUIDs remain
+  separate choices. No new schema, configuration or POS update is required.
 - Native source identity is `hq000/AdaAcc` plus the exact Ada customer code.
   Duplicate phones and blank phones remain separate; names/phones never
   automatically establish a customer login or combine histories.
