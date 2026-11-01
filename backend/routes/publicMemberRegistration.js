@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const { CONSENT_VERSION, validatePublicRegistration } = require("../lib/publicMemberRegistration");
+const { recordMemberRegistration } = require("../lib/memberRegistrations");
 
 const publicDirectory = path.join(__dirname, "../public/member-registration");
 const received = { ok: true, message: "รับข้อมูลเรียบร้อยแล้ว" };
@@ -86,6 +87,7 @@ function createPublicMemberRegistration({ pool, now = Date.now, maxRequests = 30
              VALUES ($1, $2, $3, 'bronze', TRUE, $4, NOW(), NOW())`,
             [randomUUID(), userId, memberCode, "ลงทะเบียนด้วยตนเองผ่าน QR"],
           );
+          await recordMemberRegistration(client, { memberId: userId, source: 'qr', branchCode: validated.value.branchCode });
           await client.query(
             `INSERT INTO crm_member_consents
               (id, user_id, consent_version, pdpa_general, pdpa_health, marketing_email, marketing_sms, consented_at)

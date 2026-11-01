@@ -49,6 +49,7 @@ jobs:
       SEAMLESS_MIGRATION_TEST_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/seamless_ci
       SEAMLESS_MIGRATION_TEST_SCHEMA: clasp_scx_seamless_review_ci
       CRM_COUNTER_POSTGRES_SMOKE: "1"
+      SCCRM_REGISTRATION_TEST_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/crm_registration_test_ci
       SHOPEE004_TEST_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/seamless_ci
       SC_OFFICIAL_ADA_LINK_TEST_DATABASE_URL: postgresql://seamless_ci:seamless_ci@127.0.0.1:5432/sccrm_ada_link_test_ci
     defaults:
@@ -88,6 +89,14 @@ jobs:
 
       - name: Verify Seamless migration contract
         run: npm run seamless:migrate:verify
+
+      - name: Create isolated member-registration reporting database
+        run: |
+          node <<'NODE'
+          const {Client}=require('pg');
+          const db=new Client({connectionString:process.env.SC_OFFICIAL_SUPABASE_DATABASE_URL});
+          (async()=>{try{await db.connect();await db.query('CREATE DATABASE crm_registration_test_ci');}finally{await db.end();}})().catch(error=>{console.error(error.message);process.exit(1);});
+          NODE
 
       - name: Run backend tests
         run: npm test -- --testPathIgnorePatterns=backend-integration.test.cjs

@@ -27,7 +27,11 @@ function validatePublicRegistration(body) {
   if (!lastName) return { error: "กรุณากรอกนามสกุลให้ถูกต้อง (ไม่เกิน 100 ตัวอักษร)", field: "lastName" };
   if (!phone) return { error: "กรุณากรอกเบอร์โทรศัพท์ไทย 9–10 หลักให้ถูกต้อง", field: "phone" };
   if (body.consent !== true) return { error: "กรุณายินยอมให้เก็บข้อมูลเพื่อสมัครสมาชิก", field: "consent" };
-  return { value: { fullName: `${firstName} ${lastName}`, phone } };
+  // Old QR pages can still submit without a branch; these stay unattributed.
+  if (body.branchCode != null && body.branchCode !== '' && !['001', '003', '004', '005'].includes(body.branchCode)) {
+    return { error: "กรุณาเลือกสาขาที่สมัครให้ถูกต้อง", field: "branchCode" };
+  }
+  return { value: { fullName: `${firstName} ${lastName}`, phone, branchCode: body.branchCode || null } };
 }
 
 module.exports = { CONSENT_VERSION, normalizeThaiPhone, validatePublicRegistration };

@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('../db');
+const { recordMemberRegistration } = require('../lib/memberRegistrations');
 const {
   createId,
   generateMemberCode,
@@ -117,6 +118,9 @@ router.post('/members', requireStaff, async (req, res) => {
          VALUES (gen_random_uuid(), $1, $2, 'bronze', TRUE, $3, NOW(), NOW())`,
         [userId, memberCode, remark || null]
       );
+
+      await recordMemberRegistration(client, { memberId: userId, source: 'counter',
+        branchCode: req.staffDevice.branch_code, deviceId: req.staffDevice.device_id });
 
       // 3. PDPA consent record
       await client.query(

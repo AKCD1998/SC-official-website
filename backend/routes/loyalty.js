@@ -7,6 +7,7 @@ const { buildReceiptSnapshot } = require('../lib/purchaseHistory');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
 const adaMirror = require('../lib/adaMemberMirror');
 const memberCodeAliases = require('../lib/memberCodeAliases');
+const { recordMemberRegistration } = require('../lib/memberRegistrations');
 
 const router = express.Router();
 
@@ -961,6 +962,8 @@ router.post("/", requireStaff, async (req, res) => {
         [createId(), userId, memberCode],
       );
 
+      await recordMemberRegistration(client, { memberId: userId, source: 'pos',
+        branchCode: req.staffDevice.branch_code, deviceId: req.staffDevice.device_id });
       if (capabilities.pharmacyMedRecordAvailable) await upsertPharmacyMedRecord(client, userId, pharmacyMedRecord);
 
       await client.query("COMMIT");

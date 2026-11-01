@@ -62,6 +62,7 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
 
     await mockClient.query("BEGIN");
     await mockClient.query(sql);
+    await mockClient.query(fs.readFileSync(path.join(__dirname, '../migrations/20261101042429_crm_member_registrations.sql'), 'utf8'));
     process.env.SCCRM_STAFF_PIN = "synthetic-fixture-pin";
     process.env.SCCRM_REFRESH_TOKEN_SECRET = "synthetic-fixture-hmac-secret";
     process.env.SCCRM_ALLOWED_STAFF_DEVICE_NAMES = "synthetic-counter-fixture";
@@ -151,7 +152,7 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     await mockClient.query(sql);
     const counts = await mockClient.query(`SELECT
       (SELECT count(*)::int FROM public.users) AS users,
-      (SELECT count(*)::int FROM public.crm_counter_schema_migrations) AS ledger`);
+      (SELECT count(*)::int FROM public.crm_counter_schema_migrations WHERE filename='202610200001_crm_counter_bootstrap.sql') AS ledger`);
     expect(counts.rows[0]).toEqual({ users: 1, ledger: 1 });
   });
 
