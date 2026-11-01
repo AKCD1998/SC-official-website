@@ -41,7 +41,7 @@ test('physical bundle identity alone does not authorize financial allocation',()
  expect(r).not.toHaveProperty('unitPrice');expect(r).not.toHaveProperty('allocationPolicy');
 });
 
-test('known Smart kit pack contradiction remains an explicit hold even if generic identity is provided',()=>{
+test('unapproved Smart variant remains an explicit hold even if generic identity is provided',()=>{
  const h=rules.copyIdentityHolds[0],source={...item,name:h.productName,variant:h.variant};
  expect(resolveCopyProduct(shop,source,proof(source))).toMatchObject({reason:h.reason,
   matchingReview:{reasonCode:'copy_pack_evidence_conflict'}});
@@ -61,7 +61,7 @@ test('monthly reader deduplicates items rather than applying the 25-order displa
  expect(await readCopyIdentityEvidence(tooMany,{enabled:true,identityStore})).toMatchObject({status:'unavailable',reasonCode:'COPY_IDENTITY_SCOPE_LIMIT'});
 });
 
-test.each(rules.supplementalCopyIdentities)('exact Seller/POS copy evidence: $companySku / $variant',r=>{
+test.each(rules.supplementalCopyIdentities.filter(r=>!r.components))('exact Seller/POS copy evidence: $companySku / $variant',r=>{
  const source={name:r.productName,variant:r.variant,quantity:1,productMatch:{status:'unmapped'}};
  expect(resolveCopyProduct(shop,source)).toMatchObject({sku:r.companySku,factor:r.quantityPerSale,unit:r.evidence.pos.smallUnit});
  expect(resolveSupplementalCopyIdentity(shop,{...source,variant:`${source.variant} changed pack`},masters)).toBeNull();

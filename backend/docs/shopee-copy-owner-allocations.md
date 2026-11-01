@@ -52,7 +52,7 @@ Each secondary component records `nominalLineCentsPerSale`; this amount is per
 SKU line per set, not per ERP base unit.
 
 For an 850.00 THB Safe AQ max III set, the approved interpretation is meter
-IC-004131 ×1 = 849.80, strips IC-006009 ×1 = 0.10, and needles IC-001230 ×2 =
+IC-006009 ×1 = 849.80, strips IC-004131 ×1 = 0.10, and needles IC-001230 ×2 =
 0.10 in total, or 0.05 per box of 50. Multiply both quantities and nominal line
 amounts by the purchased set count. Preserve every source set's original total
 and the usual exact-satang SKU consolidation. Ordinary paid sales of a secondary
@@ -71,3 +71,32 @@ approved. Reject insufficient source totals and nominal amounts that cannot
 keep every ERP unit positive at two decimal places. No approval is seeded in
 Git; the approved response hash and exact per-kit policy remain in the existing
 private ledger. This does not authorize AdaSmart entry or stock/lifecycle writes.
+
+Live SERVER004 metadata on 1 November corrected the earlier assistant's
+reversed meter/strip SKU labels. The v2 private policy moves the main-product
+amount to IC-006009 while preserving component quantities, original kit totals
+and every other source sale. Keep the disabled v1 record for audit; do not reuse
+the earlier exported v1 prices for the three affected daily batches.
+
+## Owner-confirmed Smart kit and exact accounting identity
+
+The purchased 50-strip/50-needle variant has conflicting illustration and
+current variation text. The owner confirmed the purchased variant and then
+specified one IC-006010 meter box with its ten included strips, plus one
+IC-003101 box of 50 additional strips and one IC-001230 box of 50 needles.
+Use one ERP box of each component. The existing accounting supplement records
+the exact shop/title/variation, Seller evidence, current POS units and the
+owner's contents-confirmation hash. It does not change the physical matcher.
+
+Each component must have an active, independently evidenced POS identity with
+a unit factor of one. Reject duplicate components, conflicting or partial
+listing IDs, unexpected source SKUs/barcodes, missing owner evidence, and
+changed pack names. The 100-needle variant remains held and cannot borrow the
+50-needle rule. Financial allocation still needs a separate enabled approval
+in the existing private ledger; identity evidence alone supplies no price.
+
+For the approved 500.00 THB kit, the main-product method allocates 499.80 to
+IC-006010 and 0.10 each to IC-003101 and IC-001230. Do not substitute whole-kit
+IC-003200: its current title says 50 strips while its POS BOM contains a
+25-strip component. This change neither repairs that product master nor
+authorizes an AdaSmart document or a physical stock/lifecycle action.

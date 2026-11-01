@@ -5657,7 +5657,7 @@
       "scope": "Exact ERP identities and base units only; no stock or master prices used for historical sales."
     }
   ],
-  "supplementalCopyIdentityVersion": "seller-pos-copy-2026-11-01-v1",
+  "supplementalCopyIdentityVersion": "seller-pos-copy-2026-11-01-v2",
   "supplementalCopyIdentities": [
     {
       "shopCode": "sc-drug-store",
@@ -6134,15 +6134,87 @@
           "active": 1
         }
       }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Sinocare Safe AQ Smart เครื่องตรวจน้ำตาลในเลือด ชุดเครื่องพร้อมแผ่นตรวจและเข็ม / เครื่อง / แผ่นตรวจ 50 ชิ้น",
+      "variant": "เครื่องแผ่น50เข็ม50",
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "components": [
+        {
+          "companySku": "IC-006010",
+          "quantityPerSale": 1
+        },
+        {
+          "companySku": "IC-003101",
+          "quantityPerSale": 1
+        },
+        {
+          "companySku": "IC-001230",
+          "quantityPerSale": 1
+        }
+      ],
+      "evidence": {
+        "listingId": "40735044760",
+        "variationId": "298008802896",
+        "sellerSku": "",
+        "sellerPackBarcode": "",
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "posSourceSha256": "aac2acdb3395caa84710b0e1a2498cc090c3bca795e4c150be3fe16b296eb387",
+        "posObservedAt": "2026-11-01T09:34:17.5576750Z",
+        "purchaseEmailSha256": "611f3f0cbbed72e6d568cfdb702908f71b2bffbc027ca08a28d04716a06f41e3",
+        "ownerConfirmation": {
+          "kind": "user_confirmed_bundle_contents",
+          "responseSha256": "1a1bf70f326c3f77e8db021de090f914dad3bd58a6a9d7e810e7d2aad05ccf8a",
+          "verifiedOn": "2026-11-01"
+        },
+        "packBasis": "Owner confirmed follow the purchased 50-strip/50-needle variant, despite conflicting illustration/current variant text. One IC-006010 meter box includes its ten standard strips; add one IC-003101 box of 50 strips and one IC-001230 box of 50 needles. Three separate ERP boxes per sale. Do not substitute whole-kit IC-003200: its live POS BOM contains a 25-strip component despite its 50-strip title.",
+        "posComponents": [
+          {
+            "companySku": "IC-006010",
+            "productName": "สามัญ เครื่องวัดน้ำตาลเซฟเอคิว สมาทร์ 1 เครื่อง+แผ่นตรวจ 10 ชิ้น",
+            "smallUnit": "กล่อง",
+            "smallFactor": 1,
+            "active": 1
+          },
+          {
+            "companySku": "IC-003101",
+            "productName": "สามัญ แผ่นตรวจวัดน้ำตาลซิโนเเคร์ เซฟเอคิว 50 ชิ้น",
+            "smallUnit": "กล่อง",
+            "smallFactor": 1,
+            "active": 1
+          },
+          {
+            "companySku": "IC-001230",
+            "productName": "สามัญ ซิโนแคร์ ซอฟทวิสเข็ม 50 ชิ้น",
+            "smallUnit": "กล่อง",
+            "smallFactor": 1,
+            "active": 1
+          }
+        ],
+        "priorConflict": {
+          "listingId": "40735044760",
+          "variationId": "298008802896",
+          "originalVariant": "เครื่องแผ่น50เข็ม50",
+          "currentVariant": "เครื่องแผ่น50เข็ม100",
+          "descriptionNeedles": 50,
+          "posMeterSku": "IC-006010",
+          "posMeterIncludedStrips": 10,
+          "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+          "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+          "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd"
+        }
+      }
     }
   ],
   "copyIdentityHolds": [
     {
       "shopCode": "sc-drug-store",
       "productName": "Sinocare Safe AQ Smart เครื่องตรวจน้ำตาลในเลือด ชุดเครื่องพร้อมแผ่นตรวจและเข็ม / เครื่อง / แผ่นตรวจ 50 ชิ้น",
-      "variant": "เครื่องแผ่น50เข็ม50",
+      "variant": "เครื่องแผ่น50เข็ม100",
       "status": "conflicting",
-      "reason": "หลักฐานแพ็ก Safe AQ Smart ขัดกัน: รายการขายเดิมเข็ม 50 ชิ้น แต่ตัวเลือกปัจจุบันเข็ม 100 ชิ้น; เครื่อง IC-006010 มีแผ่นตรวจ 10 ชิ้นในกล่อง ต้องยืนยันชุดจริงและการแบ่งราคาก่อน",
+      "reason": "ตัวเลือกเข็ม 100 ยังไม่มีการยืนยันส่วนประกอบต่อชุด ห้ามใช้กฎที่เจ้าของร้านยืนยันสำหรับออเดอร์เข็ม 50 แทน",
       "evidence": {
         "listingId": "40735044760",
         "variationId": "298008802896",
@@ -6153,7 +6225,9 @@
         "posMeterIncludedStrips": 10,
         "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
         "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
-        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd"
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "ownerConfirmedVariant": "เครื่องแผ่น50เข็ม50",
+        "ownerResponseSha256": "1a1bf70f326c3f77e8db021de090f914dad3bd58a6a9d7e810e7d2aad05ccf8a"
       }
     }
   ]
