@@ -1,0 +1,13 @@
+# Shopee monthly summary process OOM — 1 November 2026
+
+The SC Drug Store report for 1–31 October returned 502 after 63,222 ms at 07:07:58 UTC. The web process logged `FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory` at the same instant. Increasing a browser timeout cannot recover a crashed process.
+
+The primary report automatically built the full order-history financial reconciliation for the entire range before sending product, Business Insights or document summary data. Rolling report snapshots make this full history much larger than the primary response, which already omits the order ledgers after constructing them.
+
+Emergency containment: for primary summary requests over seven inclusive days, retain the original complete product, confirmed-sales and official-document summaries but do not construct full financial order ledgers. Return `reconciliation: null`, `reconciliationDeferred` with the requested/max day count and explanation, and `accounting.periodReconciliation: not_evaluated`. Never substitute zero or claim that the period reconciles. Daily and seven-day requests retain the existing full reconciliation. The dedicated detailed reconciliation API is unchanged; optimizing that full-history reader is separate work, and large direct requests can still be expensive.
+
+The companion frontend displays the deferred explanation and keeps the report visible. This does not alter order cohorts, money components, SKU/pack rules, AdaSmart copy eligibility or export calculations. In particular, a product-summary total uses its existing order-creation basis and must not be treated as the confirmed-payment AdaSmart copy cohort. Existing copy issues remain review-required.
+
+Validation: targeted service/export/reconciliation tests pass. A production READ ONLY candidate run with a 256 MB Node heap completed the exact October range in 23.975 seconds, producing 343 products /7,080 contributing creation-date orders, 4,306,260 JSON bytes and 54 MB measured JS heap at completion. This is a local application measurement against production data, not a live HTTP measurement. The separate unchanged copy endpoint returned HTTP 200 in 32.201 seconds, 7,404 payment-cohort orders /238 rows /1,749 issues and `review_required`; no copy columns were enabled or fabricated.
+
+No database mutation, migration, account or permission change, lifecycle approval, opening/cutover change, worker or sync change is included. The latest main at investigation was `8076dc0f60a5f034d949153e3b229c8b9dee2e33`; rollback uses the preceding code version and requires no data rollback. Live HTTP/browser validation is recorded in the local incident result after release.

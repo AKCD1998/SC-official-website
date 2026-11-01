@@ -174,6 +174,23 @@ async function getShopeeSalesSummary({
     summary.officialDocuments = await getOfficialDocumentSummary({ endDate, shopCode, startDate });
   }
   if (includeReconciliation) {
+    // Rolling OrderAll exports retain every historical snapshot. Loading a
+    // month of full financial ledgers can exhaust the shared web process before
+    // it sends any sales data. Keep the primary report usable; an unevaluated
+    // reconciliation must never be reported as zero variance or reconciled.
+    const dayCount = (Date.parse(`${endDate}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) / 86400000 + 1;
+    if (dayCount > 7) {
+      summary.reconciliation = null;
+      summary.reconciliationDeferred = {
+        reasonCode: 'ORDER_HISTORY_REQUIRES_NARROWER_RANGE',
+        maxDays: 7,
+        requestedDays: dayCount,
+        message: 'รายงานหลักแสดงครบตามช่วงวันที่ แต่ยังไม่ได้สืบย้อนการเงินรายออเดอร์ กรุณาเลือกช่วงไม่เกิน 7 วันเพื่อตรวจส่วนนี้',
+      };
+      summary.accounting.periodReconciliation = 'not_evaluated';
+      summary.accounting.periodReconciliationDetails = summary.reconciliationDeferred;
+      return summary;
+    }
     const { getShopeeFinancialReconciliation } = require('./shopeeFinancialReconciliationService');
     const fullReconciliation = await getShopeeFinancialReconciliation({ endDate, shopCode, startDate });
     // The sales-summary view needs aggregate controls, not hundreds of order
