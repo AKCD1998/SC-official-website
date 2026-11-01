@@ -46,7 +46,8 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
   const record = approvedPolicy(policies, shopCode, policy => policy?.type === 'bundle'
     && policy.productName === identity.productName && policy.variant === identity.variant);
   const policy = record?.policy;
-  if (!policy || !['paid_component_and_free_gift', 'paid_component_with_nominal_gift_price', 'equal_components'].includes(policy.method)
+  if (!policy || !['paid_component_and_free_gift', 'paid_component_with_nominal_gift_price', 'equal_components',
+    'primary_component_with_nominal_secondary_lines'].includes(policy.method)
     || !Array.isArray(policy.components) || policy.components.length !== components.length) return null;
   const parts = components.map(component => ({ ...component,
     allocation: policy.components.find(row => row.sku === component.sku && row.factor === component.factor) }));
@@ -60,7 +61,29 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
     || !Number.isSafeInteger(policy.sourcePriceCentsPerSale)
     || totalCents !== policy.sourcePriceCentsPerSale * item.quantity)) return null;
   let amounts;
-  if (policy.method === 'paid_component_with_nominal_gift_price') {
+  if (policy.method === 'primary_component_with_nominal_secondary_lines') {
+    // The owner chooses the main SKU explicitly: canonical component order may
+    // put needles before the meter. Each secondary SKU receives its approved
+    // line amount per purchased set, not that amount per ERP base unit.
+    const primary = parts.find(row => row.sku === policy.primarySku);
+    if (parts.length < 2 || new Set(parts.map(row => row.sku)).size !== parts.length
+      || !primary || !Number.isSafeInteger(totalCents) || totalCents < 0
+      || !Number.isSafeInteger(item.quantity) || item.quantity < 1
+      || parts.some(row => !Number.isSafeInteger(row.factor) || row.factor < 1
+        || row.allocation.freeGift || row.allocation.giftUnitPriceCents !== undefined
+        || (row === primary
+          ? row.allocation.weight !== 1 || row.allocation.nominalLineCentsPerSale !== undefined
+          : row.allocation.weight !== 0 || !Number.isSafeInteger(row.allocation.nominalLineCentsPerSale)
+            || row.allocation.nominalLineCentsPerSale < row.factor))) return null;
+    const fixed = parts.map(row => row === primary ? 0n
+      : BigInt(row.allocation.nominalLineCentsPerSale) * BigInt(item.quantity));
+    const remainder = BigInt(totalCents) - fixed.reduce((sum, amount) => sum + amount, 0n);
+    // Preserve strictly positive base-unit prices at the supported satang
+    // precision, even when the general copy builder splits adjacent prices.
+    if (remainder < BigInt(primary.factor) * BigInt(item.quantity)) return null;
+    amounts = fixed.map((amount, index) => Number(parts[index] === primary ? remainder : amount));
+    if (amounts.some(amount => !Number.isSafeInteger(amount))) return null;
+  } else if (policy.method === 'paid_component_with_nominal_gift_price') {
     // This is an approved accounting allocation, not a source selling price.
     // Charge each gift base unit its positive nominal amount, then assign the
     // exact remainder to the one paid component. Never add money to the bundle.
@@ -81,7 +104,9 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
   } else amounts = allocateCents(totalCents, parts.map(row => row.allocation.weight));
   if (!amounts) return null;
   return { record, components: parts.map((row, index) => ({ sku: row.sku, factor: row.factor,
-    name: row.name, unit: row.unit, amountCents: amounts[index], freeGift: row.allocation.freeGift === true })) };
+    name: row.name, unit: row.unit, amountCents: amounts[index], freeGift: row.allocation.freeGift === true,
+    ...(policy.method === 'primary_component_with_nominal_secondary_lines'
+      ? { allocationRole: row.sku === policy.primarySku ? 'primary' : 'nominal_secondary' } : {}) })) };
 }
 
 function policyReference(record) {

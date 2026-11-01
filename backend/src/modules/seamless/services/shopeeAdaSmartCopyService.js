@@ -239,6 +239,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
           productName: item.name, variant: item.variant, amountCents: part.amountCents,
           priceBasis: bundle ? 'user_approved_bundle_allocation' : money.basis,
           ...(bundle ? { bundleAllocationPolicyKey: bundle.record.policyKey } : {}),
+          ...(part.allocationRole ? { bundleAllocationRole: part.allocationRole } : {}),
           ...(money.sellerAllocation ? { sellerAllocationPolicyKey: money.sellerAllocation.policyKey,
             sourceLineSellerDiscountCents: money.allocatedSellerCents[index] } : {}),
           ...(voucher.sellerCents != null ? { sellerVoucherBasis: 'restored_from_explicit_campaign_evidence',
