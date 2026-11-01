@@ -5745,6 +5745,62 @@
     },
     {
       "shopCode": "sc-drug-store",
+      "productName": "ออยลาตุ้ม สบู่ก้อน / คลีนซิ่งมิลค์ทำความสะอาดผิวหน้า 100 กรัม เลือกแบบ Oilatum",
+      "variant": "สบู่ 1 ก้อน",
+      "companySku": "IC-005879",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "57167848475",
+        "variationId": "441511592912",
+        "sellerSku": "IC-005879",
+        "sellerPackBarcode": "5011309025514",
+        "sellerSourceRow": 63,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact soap variant and GTIN confirm one 100g bar with its box, not cleansing milk. POS IC-005879 base unit is box containing that one bar.",
+        "pos": {
+          "companySku": "IC-005879",
+          "productName": "สามัญ สบู่ ออยลาตุ้ม เจนเทิล โซป บาร์ 100 กรัม",
+          "smallUnit": "กล่อง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "มะนาว4เม็ดexp15.1.27",
+      "companySku": "IC-005779",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "53165692767",
+        "variationId": "381685694463",
+        "sellerSku": "IC-005779",
+        "sellerPackBarcode": "8852673004418",
+        "sellerSourceRow": 229,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact variation explicitly selects lemon four-tablet blister IC-005779 / GTIN8852673004418, independently confirmed by POS four-tablet base blister. Generic family title/description says ten tablets and is not applied to this explicit separate four-tablet option. Never use IC-000023 ten-tablet blister or a fractional conversion.",
+        "pos": {
+          "companySku": "IC-005779",
+          "productName": "สามัญ แอร์ เอ็กซ์ มะนาว 4 เม็ด",
+          "smallUnit": "แผง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
       "productName": "แอ๊คติวูน แผ่นแปะซิลิโคนดูแลรอยแผลเป็น (Actewound Silicone Gel Sheet) แบบแผ่นและแบบม้วน",
       "variant": "2.5x100 ซม. ม้วน",
       "companySku": "IC-004138",
@@ -5878,6 +5934,34 @@
           "companySku": "IC-006084",
           "productName": "สามัญ เอสเซนต้า สเปรย์ลอกคราบกาว 50 มล",
           "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "รสมิ้นต์",
+      "companySku": "630010148",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "53165692767",
+        "variationId": "381685694464",
+        "sellerSku": "630010148",
+        "sellerPackBarcode": "8852673000144",
+        "sellerSourceRow": 230,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact mint variant / GTIN8852673000144 and listing description ten tablets per blister agree with POS 630010148 ten-tablet base blister.",
+        "pos": {
+          "companySku": "630010148",
+          "productName": "สามัญ แอร์ เอ็กซ์ มินต์ 10 เม็ด",
+          "smallUnit": "แผง",
           "smallFactor": 1,
           "active": 1
         }
@@ -6021,6 +6105,55 @@
           "smallFactor": 1,
           "active": 1
         }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Kangaroo Brand จิงโจ้ สเปรย์ปรับอากาศ น้ำมันยูคาลิปตัส 300 มล. 1 กระป๋อง",
+      "variant": "จิงโจ้ 300 มล.",
+      "companySku": "630020333",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "44721016534",
+        "variationId": "436685946234",
+        "sellerSku": "630020333",
+        "sellerPackBarcode": "8850672010058",
+        "sellerSourceRow": 589,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact variation / GTIN8850672010058, description one 300ml can, agrees with POS 630020333 base can. Numeric company code is preserved as text.",
+        "pos": {
+          "companySku": "630020333",
+          "productName": "สามัญ สเปรย์น้ำมันยูคาลิปตัส ตราจิงโจ้ 300 มล.",
+          "smallUnit": "กระป๋อง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    }
+  ],
+  "copyIdentityHolds": [
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Sinocare Safe AQ Smart เครื่องตรวจน้ำตาลในเลือด ชุดเครื่องพร้อมแผ่นตรวจและเข็ม / เครื่อง / แผ่นตรวจ 50 ชิ้น",
+      "variant": "เครื่องแผ่น50เข็ม50",
+      "status": "conflicting",
+      "reason": "หลักฐานแพ็ก Safe AQ Smart ขัดกัน: รายการขายเดิมเข็ม 50 ชิ้น แต่ตัวเลือกปัจจุบันเข็ม 100 ชิ้น; เครื่อง IC-006010 มีแผ่นตรวจ 10 ชิ้นในกล่อง ต้องยืนยันชุดจริงและการแบ่งราคาก่อน",
+      "evidence": {
+        "listingId": "40735044760",
+        "variationId": "298008802896",
+        "originalVariant": "เครื่องแผ่น50เข็ม50",
+        "currentVariant": "เครื่องแผ่น50เข็ม100",
+        "descriptionNeedles": 50,
+        "posMeterSku": "IC-006010",
+        "posMeterIncludedStrips": 10,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd"
       }
     }
   ]

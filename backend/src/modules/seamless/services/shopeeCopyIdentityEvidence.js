@@ -81,4 +81,10 @@ function resolveSupplementalCopyIdentity(shopCode,item,masters) {
       sellerSourceSha256:e.sellerSourceSha256,posSourceSha256:e.posSourceSha256,
       packBasis:e.packBasis,posObservedAt:e.posObservedAt}};
 }
-module.exports={copyIdentityKey,readCopyIdentityEvidence,resolveCopyIdentityEvidence,resolveSupplementalCopyIdentity};
+function copyIdentityHold(shopCode,item){
+  const held=(rules.copyIdentityHolds || []).filter(r=>r.shopCode===shopCode
+    && r.productName===item.name&&r.variant===(item.variant || ''));
+  return held.length?{reason:held[0].reason,
+    matchingReview:{status:'review',reasonCode:'copy_pack_evidence_conflict',candidates:[]}}:null;
+}
+module.exports={copyIdentityKey,readCopyIdentityEvidence,resolveCopyIdentityEvidence,resolveSupplementalCopyIdentity,copyIdentityHold};

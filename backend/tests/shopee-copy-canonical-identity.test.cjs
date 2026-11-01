@@ -41,6 +41,13 @@ test('physical bundle identity alone does not authorize financial allocation',()
  expect(r).not.toHaveProperty('unitPrice');expect(r).not.toHaveProperty('allocationPolicy');
 });
 
+test('known Smart kit pack contradiction remains an explicit hold even if generic identity is provided',()=>{
+ const h=rules.copyIdentityHolds[0],source={...item,name:h.productName,variant:h.variant};
+ expect(resolveCopyProduct(shop,source,proof(source))).toMatchObject({reason:h.reason,
+  matchingReview:{reasonCode:'copy_pack_evidence_conflict'}});
+ expect(resolveCopyProduct(shop,source,proof(source))).not.toHaveProperty('sku');
+});
+
 test('monthly reader deduplicates items rather than applying the 25-order display limit; no cache survives a read',async()=>{
  const identityStore={copyIdentityEvidence:jest.fn(async items=>items.map(i=>proof(i)))};
  const orders=Array.from({length:60},(_,i)=>({shopCode:shop,items:[{...item,quantity:i+1}]}));

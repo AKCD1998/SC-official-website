@@ -7,7 +7,7 @@ const { allocateCents, sellerAllocationPolicy, bundleAllocation, policyReference
 const { resolveCopySellerVoucher } = require('./shopeeCopySellerVoucher');
 const { VERIFIED_COPY_MATCH_VERSION, resolveVerifiedCopyMatch, sourceIdentifierConflict } = require('./shopeeVerifiedCopyMatcher');
 const { datesInRange, summarizeConfirmedSales } = require('./shopeeConfirmedSalesService');
-const {copyIdentityKey,readCopyIdentityEvidence,resolveCopyIdentityEvidence,resolveSupplementalCopyIdentity}=require('./shopeeCopyIdentityEvidence');
+const {copyIdentityKey,readCopyIdentityEvidence,resolveCopyIdentityEvidence,resolveSupplementalCopyIdentity,copyIdentityHold}=require('./shopeeCopyIdentityEvidence');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
@@ -95,7 +95,7 @@ function resolveCopyProduct(shopCode,item,identityRecord) {
   // Existing supported copy lines and explicit financial/unit conflicts keep
   // their precedence. Canonical evidence only fills missing identity/pack data.
   if(!original.reason || !original.reason.startsWith('ยังจับคู่รหัส IC/SKU ไม่สำเร็จ'))return original;
-  return resolveSupplementalCopyIdentity(shopCode,item,masters)
+  return copyIdentityHold(shopCode,item) || resolveSupplementalCopyIdentity(shopCode,item,masters)
     || resolveCopyIdentityEvidence(shopCode,item,identityRecord,masters) || original;
 }
 
