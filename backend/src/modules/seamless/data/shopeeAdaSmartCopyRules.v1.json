@@ -5656,5 +5656,505 @@
       "sourceUrl": "https://sc-stockday-ordering.onrender.com/#/branch-stock",
       "scope": "Exact ERP identities and base units only; no stock or master prices used for historical sales."
     }
+  ],
+  "supplementalCopyIdentityVersion": "seller-pos-copy-2026-11-01-v1",
+  "supplementalCopyIdentities": [
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด (30 เม็ด / 25 ซอง และ 1000 เม็ด 1 กระปุก) | Vitamin C Tablet",
+      "variant": "องุ่น,1 กระปุก 1000 เม็ด",
+      "companySku": "IC-002911",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "55662773608",
+        "variationId": "259349169773",
+        "sellerSku": "IC-002911",
+        "sellerPackBarcode": "8857121535063",
+        "sellerSourceRow": 121,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller variation: grape, one 1000-tablet jar; POS IC-002911 is the complete 1000-tablet retail bottle, not individual tablets.",
+        "pos": {
+          "companySku": "IC-002911",
+          "productName": "สามัญ ไวต้าซี วิตามินซี องุ่น 25 มก 1000 เม็ด",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พลาสเตอร์ผ้าปิดแผล 100 ชิ้น ไทเกอร์พล๊าส เทนโซพล๊าส ไรโนพลาสท์ นีโอพลาสท์-เอส",
+      "variant": "เทนโซพล๊าส 1 กล่อง",
+      "companySku": "630010164",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "55569965110",
+        "variationId": "386666310290",
+        "sellerSku": "630010164",
+        "sellerPackBarcode": "8850672210014",
+        "sellerSourceRow": 129,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller description explicitly sells one selected Tensoplast box of 100 pieces; POS base unit is one box of 100.",
+        "pos": {
+          "companySku": "630010164",
+          "productName": "สามัญ พลาสเตอร์ผ้าเทนโซพลาสท์ 100 ชิ้น",
+          "smallUnit": "กล่อง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "เดอร์มาติกซ์ เจลดูแลแผลเป็น สูตรเด็ก รอยสิว และสมานแผล (Dermatix Ultra / Kids / Acne Scar / Wound Care)",
+      "variant": "รอยสิว 5 กรัม",
+      "companySku": "IC-001828",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "49816353658",
+        "variationId": "341661424156",
+        "sellerSku": "IC-001828",
+        "sellerPackBarcode": "8055348241532",
+        "sellerSourceRow": 366,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Selected Dermatix Acne Scar 5g; listing sells each selected formula separately; POS is one 5g tube.",
+        "pos": {
+          "companySku": "IC-001828",
+          "productName": "สามัญ เดอร์มาติกซ์แอคเน่สการ์ 5 กรัม",
+          "smallUnit": "หลอด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ออยลาตุ้ม สบู่ก้อน / คลีนซิ่งมิลค์ทำความสะอาดผิวหน้า 100 กรัม เลือกแบบ Oilatum",
+      "variant": "สบู่ 1 ก้อน",
+      "companySku": "IC-005879",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "57167848475",
+        "variationId": "441511592912",
+        "sellerSku": "IC-005879",
+        "sellerPackBarcode": "5011309025514",
+        "sellerSourceRow": 63,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact soap variant and GTIN confirm one 100g bar with its box, not cleansing milk. POS IC-005879 base unit is box containing that one bar.",
+        "pos": {
+          "companySku": "IC-005879",
+          "productName": "สามัญ สบู่ ออยลาตุ้ม เจนเทิล โซป บาร์ 100 กรัม",
+          "smallUnit": "กล่อง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "มะนาว4เม็ดexp15.1.27",
+      "companySku": "IC-005779",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "53165692767",
+        "variationId": "381685694463",
+        "sellerSku": "IC-005779",
+        "sellerPackBarcode": "8852673004418",
+        "sellerSourceRow": 229,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact variation explicitly selects lemon four-tablet blister IC-005779 / GTIN8852673004418, independently confirmed by POS four-tablet base blister. Generic family title/description says ten tablets and is not applied to this explicit separate four-tablet option. Never use IC-000023 ten-tablet blister or a fractional conversion.",
+        "pos": {
+          "companySku": "IC-005779",
+          "productName": "สามัญ แอร์ เอ็กซ์ มะนาว 4 เม็ด",
+          "smallUnit": "แผง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "แอ๊คติวูน แผ่นแปะซิลิโคนดูแลรอยแผลเป็น (Actewound Silicone Gel Sheet) แบบแผ่นและแบบม้วน",
+      "variant": "2.5x100 ซม. ม้วน",
+      "companySku": "IC-004138",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "26346129120",
+        "variationId": "441661004867",
+        "sellerSku": "IC-004138",
+        "sellerPackBarcode": "8859243305753",
+        "sellerSourceRow": 696,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller description: roll 2.5 x 100 cm, one roll; POS IC-004138 is one whole roll in base unit piece.",
+        "pos": {
+          "companySku": "IC-004138",
+          "productName": "สามัญ แอ็คติวูน แผ่นแปะซิลิโคนแบบม้วน 2.5x100 ซม. 1 ชิ้น",
+          "smallUnit": "ชิ้น",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "โซฟลอรา กลิ่นเมาน์เทน แอร์ สเปรย์ 800 มล. / สูตรเข้มข้น 500 มล. Zoflora Mountain Air",
+      "variant": "เข้มข้น 500 มล.",
+      "companySku": "IC-006192",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "44035513071",
+        "variationId": "436666739806",
+        "sellerSku": "IC-006192",
+        "sellerPackBarcode": "4011548054482",
+        "sellerSourceRow": 588,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller description explicitly sells one selected 500ml concentrated Mountain Air bottle; not the 800ml spray.",
+        "pos": {
+          "companySku": "IC-006192",
+          "productName": "สามัญ โซฟลอรา กลิ่นเมาน์เทน แอร์ 500 มล",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด (30 เม็ด / 25 ซอง และ 1000 เม็ด 1 กระปุก) | Vitamin C Tablet",
+      "variant": "ส้ม,25 ซอง",
+      "companySku": "IC-002516",
+      "quantityPerSale": 25,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "55662773608",
+        "variationId": "262972841231",
+        "sellerSku": "IC-002516",
+        "sellerPackBarcode": "8856513000127",
+        "sellerSourceRow": 125,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller variation: orange, 25 sachets; description: 30 tablets per sachet; POS base unit sachet of 30 tablets. Factor 25, not 750.",
+        "pos": {
+          "companySku": "IC-002516",
+          "productName": "สามัญ ไวต้าซี วิตามินซี กลิ่นส้ม 25 มก 30 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด (30 เม็ด / 25 ซอง และ 1000 เม็ด 1 กระปุก) | Vitamin C Tablet",
+      "variant": "เลมอน,1 กระปุก 1000 เม็ด",
+      "companySku": "IC-002909",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "55662773608",
+        "variationId": "259349169774",
+        "sellerSku": "IC-002909",
+        "sellerPackBarcode": "8856513006372",
+        "sellerSourceRow": 122,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller variation: lemon, one 1000-tablet jar; POS IC-002909 is the complete 1000-tablet retail bottle.",
+        "pos": {
+          "companySku": "IC-002909",
+          "productName": "สามัญ ไวต้าซี วิตามินซี มะนาว 25 มก 1000 เม็ด",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ConvaTec ESENTA เอสเซนต้า สเปรย์ลอกคราบกาว / สเปรย์ปกป้องผิว 50 มล. ม่วง เขียว",
+      "variant": "ม่วง ลอกกาว",
+      "companySku": "IC-006084",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "46769725786",
+        "variationId": "263038864632",
+        "sellerSku": "IC-006084",
+        "sellerPackBarcode": "768455170135",
+        "sellerSourceRow": 475,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller description: purple Adhesive Remover REF423289, 50ml, one bottle with box; not green Skin Barrier.",
+        "pos": {
+          "companySku": "IC-006084",
+          "productName": "สามัญ เอสเซนต้า สเปรย์ลอกคราบกาว 50 มล",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "รสมิ้นต์",
+      "companySku": "630010148",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "53165692767",
+        "variationId": "381685694464",
+        "sellerSku": "630010148",
+        "sellerPackBarcode": "8852673000144",
+        "sellerSourceRow": 230,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact mint variant / GTIN8852673000144 and listing description ten tablets per blister agree with POS 630010148 ten-tablet base blister.",
+        "pos": {
+          "companySku": "630010148",
+          "productName": "สามัญ แอร์ เอ็กซ์ มินต์ 10 เม็ด",
+          "smallUnit": "แผง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ไวต้า-ซี วิตามินซี 25 มก. 30 เม็ด 5 กลิ่น เลือก 1 ซอง / 3 ซอง Vita-C Vitamin C Tablet",
+      "variant": "ส้ม,1 ซอง",
+      "companySku": "IC-002516",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "45612097006",
+        "variationId": "386673747977",
+        "sellerSku": "IC-002516",
+        "sellerPackBarcode": "8856513000127",
+        "sellerSourceRow": 532,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller variation orange, one sachet; description 30 tablets/12g per sachet; POS base sachet of 30 tablets.",
+        "pos": {
+          "companySku": "IC-002516",
+          "productName": "สามัญ ไวต้าซี วิตามินซี กลิ่นส้ม 25 มก 30 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ไวต้า-ซี วิตามินซี 25 มก. 30 เม็ด 5 กลิ่น เลือก 1 ซอง / 3 ซอง Vita-C Vitamin C Tablet",
+      "variant": "เลมอน,1 ซอง",
+      "companySku": "IC-002484",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "45612097006",
+        "variationId": "386673747982",
+        "sellerSku": "IC-002484",
+        "sellerPackBarcode": "8856513005573",
+        "sellerSourceRow": 528,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller variation lemon, one sachet; description 30 tablets/12g per sachet; POS base sachet of 30 tablets.",
+        "pos": {
+          "companySku": "IC-002484",
+          "productName": "สามัญ ไวต้าซี วิตามินซี กลิ่นเลมอน 25 มก 30 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ไวต้า-ซี วิตามินซี 25 มก. 30 เม็ด 5 กลิ่น เลือก 1 ซอง / 3 ซอง Vita-C Vitamin C Tablet",
+      "variant": "สตรอเบอร์รี่,1 ซอง",
+      "companySku": "IC-002485",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "45612097006",
+        "variationId": "401668650546",
+        "sellerSku": "IC-002485",
+        "sellerPackBarcode": "8857121535858",
+        "sellerSourceRow": 533,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller variation strawberry, one sachet; description 30 tablets/12g per sachet; POS base sachet of 30 tablets.",
+        "pos": {
+          "companySku": "IC-002485",
+          "productName": "สามัญ ไวต้าซี วิตามินซีกลิ่นสตอเบอรี่ 25 มก 30 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ไวต้า-ซี วิตามินซี 25 มก. 30 เม็ด 5 กลิ่น เลือก 1 ซอง / 3 ซอง Vita-C Vitamin C Tablet",
+      "variant": "องุ่น,1 ซอง",
+      "companySku": "IC-002353",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "45612097006",
+        "variationId": "401668650547",
+        "sellerSku": "IC-002353",
+        "sellerPackBarcode": "8857121535056",
+        "sellerSourceRow": 526,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller variation grape, one sachet; description 30 tablets/12g per sachet; POS base sachet of 30 tablets.",
+        "pos": {
+          "companySku": "IC-002353",
+          "productName": "สามัญ ไวต้าซี วิตามินซี กลิ่นองุ่น 25 มก 30 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "SOS Plus ผ้าก๊อซปิดแผลแบบพร้อมใช้ รุ่น S Series พร้อมแผ่นดูดซับ เลือกขนาดได้ (กล่องสีน้ำเงิน)",
+      "variant": "S 3×3 นิ้ว12x12ซม.",
+      "companySku": "IC-000645",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "29695968791",
+        "variationId": "311555660540",
+        "sellerSku": "IC-000645",
+        "sellerPackBarcode": "8857122406324",
+        "sellerSourceRow": 672,
+        "sellerSourceSha256": "2fdedecfc8388ba56ebcc6bc40f937c911f4c05f8bc82464681ce0d82b04fe26",
+        "descriptionSourceSha256": "798bef5f3f1bcf94a73772929d8038c8b3f391855261552a8f3529afd4b49ebe",
+        "posSourceSha256": "210abde2bf3fb99bc75c9563ea36669e683a2b47fd1f1ce1f2ab3723bf130fd8",
+        "posObservedAt": "2026-11-01T07:53:19.2632473Z",
+        "packBasis": "Seller description: S 3x3 inch, overall dressing 12x12 cm, 3 sheets per box; POS IC-000645 is one box of 3 sheets. Factor 1, not 3.",
+        "pos": {
+          "companySku": "IC-000645",
+          "productName": "สามัญ ผ้าก๊อซปิดแผลแบบพร้อมใช้ S 3x3 นิ้ว 3 แผ่น",
+          "smallUnit": "กล่อง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Kangaroo Brand จิงโจ้ สเปรย์ปรับอากาศ น้ำมันยูคาลิปตัส 300 มล. 1 กระป๋อง",
+      "variant": "จิงโจ้ 300 มล.",
+      "companySku": "630020333",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_copy_only",
+      "evidence": {
+        "listingId": "44721016534",
+        "variationId": "436685946234",
+        "sellerSku": "630020333",
+        "sellerPackBarcode": "8850672010058",
+        "sellerSourceRow": 589,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd",
+        "posObservedAt": "2026-11-01T08:10:46.1433033Z",
+        "packBasis": "Latest Seller exact variation / GTIN8850672010058, description one 300ml can, agrees with POS 630020333 base can. Numeric company code is preserved as text.",
+        "pos": {
+          "companySku": "630020333",
+          "productName": "สามัญ สเปรย์น้ำมันยูคาลิปตัส ตราจิงโจ้ 300 มล.",
+          "smallUnit": "กระป๋อง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      }
+    }
+  ],
+  "copyIdentityHolds": [
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Sinocare Safe AQ Smart เครื่องตรวจน้ำตาลในเลือด ชุดเครื่องพร้อมแผ่นตรวจและเข็ม / เครื่อง / แผ่นตรวจ 50 ชิ้น",
+      "variant": "เครื่องแผ่น50เข็ม50",
+      "status": "conflicting",
+      "reason": "หลักฐานแพ็ก Safe AQ Smart ขัดกัน: รายการขายเดิมเข็ม 50 ชิ้น แต่ตัวเลือกปัจจุบันเข็ม 100 ชิ้น; เครื่อง IC-006010 มีแผ่นตรวจ 10 ชิ้นในกล่อง ต้องยืนยันชุดจริงและการแบ่งราคาก่อน",
+      "evidence": {
+        "listingId": "40735044760",
+        "variationId": "298008802896",
+        "originalVariant": "เครื่องแผ่น50เข็ม50",
+        "currentVariant": "เครื่องแผ่น50เข็ม100",
+        "descriptionNeedles": 50,
+        "posMeterSku": "IC-006010",
+        "posMeterIncludedStrips": 10,
+        "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "posSourceSha256": "5510d04c1dedf52b5ceccb1eb1814ce886648f3c5340f9e99d9c362efc2b21cd"
+      }
+    }
   ]
 }

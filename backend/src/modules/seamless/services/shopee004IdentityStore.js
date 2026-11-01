@@ -1,5 +1,5 @@
 'use strict';
-const {randomUUID}=require('node:crypto');
+const {randomUUID,createHash}=require('node:crypto');
 const {isDeepStrictEqual}=require('node:util');
 const {createIdentityRuleMatcher,appendIdentityRule,revokeIdentityRule,normalizeIdentityText,normalizeIdentityUnit}=require('./shopee004IdentityRules');
 const {resolveStockProductMatch,getStockBaseUnit}=require('./shopeeStockProductMatch');
@@ -14,6 +14,7 @@ const reviewedStockVariants=require('../data/shopeeStockReviewedVariants.v1.json
 const copyRules=require('../data/shopeeAdaSmartCopyRules.v1.json');
 const ownerReview=require('../data/shopeeStockOwnerReview.v1.json');
 const {acquireBoundedStockClient}=require('./shopee004BoundedDatabase');
+const {copyIdentityKey}=require('./shopeeCopyIdentityEvidence');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const aliasKey=x=>JSON.stringify([normalizeIdentityText(x.productName??x.name),normalizeIdentityText(x.variantName??x.variant)]);
 const identity=x=>JSON.stringify([x.listingId,x.variationId]);
@@ -239,6 +240,34 @@ function createShopee004IdentityStore({pool,schema,ledger,now=()=>new Date()}){
    });
   },true);
  }
- return {mappingContextProvider,approveMapping,approveCatalogMapping,revoke,drainRecovery,exceptions,importEvidence,enrichOrdersForStockDisplay,stockSearchAliases};
+ // Reuse identity/quantity evidence for accounting without importing physical
+ // lifecycle decisions or prices. Read one snapshot for bounded distinct items.
+ async function copyIdentityEvidence(items){
+  if(!Array.isArray(items)||items.length>1000)fail('COPY_IDENTITY_SCOPE_INVALID');
+  return transaction(async c=>{
+   const ctl=(await c.query(`SELECT mode,pos_catalog FROM "${schema}".shopee004_stock_control WHERE singleton=1`)).rows[0];
+   if(!['live','paused'].includes(ctl?.mode))fail('ACTIVE_CUTOVER_REQUIRED');
+   const data=await snapshot(c,ctl),matchItem=matcherFromSnapshot(data),posCatalog=data.posCatalog;
+   const snapshotSha256=createHash('sha256').update(JSON.stringify({versions:data.versions,
+    evidence:[...data.evidenceRefs].sort(([a],[b])=>a.localeCompare(b)),
+    posCatalog:[...ctl.pos_catalog].sort((a,b)=>a.companySku.localeCompare(b.companySku))})).digest('hex');
+   return items.map(item=>{
+    const source={...item,quantity:1},key=copyIdentityKey('sc-drug-store',source);
+    const raw=matchItem('sc-drug-store',source,{posCatalog});
+    const mapped=mapShopeeStockLines({items:[source],posCatalog,matchItem});
+    if(mapped.status!=='mapped')return{key,status:'blocked',reasonCode:Object.keys(mapped.reasonCounts)[0]};
+    const parts=raw.status==='matched'?[{companySku:raw.companySku,
+     quantityPerSale:raw.quantityRuleStatus==='verified'?raw.quantityPerSale:1}]:raw.components;
+    const components=(parts||[]).map(part=>{const p=posCatalog.get(part.companySku);return{
+     sku:part.companySku,factor:part.quantityPerSale,unit:p?.smallUnit,name:p?.productName};});
+    if(!components.length||components.some(p=>!p.sku||!p.unit||!p.name||!Number.isSafeInteger(p.factor)||p.factor<1))return{key,status:'blocked',reasonCode:'COPY_POS_METADATA_INCOMPLETE'};
+    const ruleReferences=data.versions.filter(r=>r.state==='active'&&r.aliases.some(a=>aliasKey(a)===aliasKey(source)))
+     .map(r=>({ruleId:r.ruleId,version:r.version,evidenceRefs:r.evidenceRefs}));
+    return{key,status:'verified',basis:'canonical_sc004_seller_pos',snapshotSha256,
+     matchSource:raw.matchSource,components,ruleReferences};
+   });
+  },true);
+ }
+ return {mappingContextProvider,approveMapping,approveCatalogMapping,revoke,drainRecovery,exceptions,importEvidence,enrichOrdersForStockDisplay,stockSearchAliases,copyIdentityEvidence};
 }
 module.exports={createShopee004IdentityStore};
