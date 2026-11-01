@@ -255,6 +255,7 @@ async function createUserWithMemberProfile({
   password,
   lineUid,
   googleUid,
+  staffDevice = null,
 }) {
   const userId = createId();
   const passwordHash = password ? await hashPassword(password) : null;
@@ -274,6 +275,11 @@ async function createUserWithMemberProfile({
        VALUES (gen_random_uuid(), $1, $2, 'bronze', TRUE, NOW(), NOW())`,
       [userId, memberCode]
     );
+
+    await require('../lib/memberRegistrations').recordMemberRegistration(client, {
+      memberId: userId, source: staffDevice ? 'staff' : 'app',
+      branchCode: staffDevice?.branch_code, deviceId: staffDevice?.device_id || null,
+    });
 
     // 3. Record auth provider links
     if (email) {
@@ -1101,6 +1107,7 @@ router.post("/customers", requireStaff, async (req, res) => {
       fullName,
       email,
       password: null, // staff-created accounts have no password initially
+      staffDevice: req.staffDevice,
     });
     return res.status(201).json({ ok: true, customer });
   } catch (error) {

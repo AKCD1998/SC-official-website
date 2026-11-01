@@ -522,6 +522,12 @@ router.post("/crm/pos/claim-token", async (req, res) => {
 });
 
 
+router.get('/crm/member-registrations', requireInternalToken, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { return res.json(await require('../lib/memberRegistrations').registrationCounts(pool, req.query)); }
+  catch (error) { return res.status(error.status || 503).json({ error: error.status ? error.message : 'Registration report is temporarily unavailable.' }); }
+});
+
 // Read-only directory for the authenticated StockDay server. Never returns medical/profile secrets.
 const { listMembers, historyQuery } = require('../lib/memberDirectory');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');

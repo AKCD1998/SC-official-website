@@ -30,9 +30,9 @@ h1 { margin: 0 0 12px; font-size: 32px; line-height: 1.4; letter-spacing: -.6px;
 .field { margin-bottom: 22px; min-width: 0; }
 .field label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 9px; }
 .field label span { color: var(--brand); }
-input:not([type="checkbox"]) { display: block; width: 100%; min-height: 50px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--ink); background: var(--white); font: inherit; }
+select, input:not([type="checkbox"]) { display: block; width: 100%; min-height: 50px; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; color: var(--ink); background: var(--white); font: inherit; }
 input::placeholder { color: var(--muted); font-size: 14px; }
-input:focus-visible, button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; border-color: var(--brand); }
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; border-color: var(--brand); }
 .hint { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
 .consent-panel { margin: 4px 0 24px; padding: 16px; border-radius: 12px; background: var(--brand-soft); }
 .consent { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.9; cursor: pointer; }

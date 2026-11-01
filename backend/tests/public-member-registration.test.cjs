@@ -36,7 +36,7 @@ describe("public QR member registration", () => {
 
   test("normalizes names without accepting caller-supplied verification or membership fields", () => {
     expect(validatePublicRegistration({ ...valid, firstName: "  ทดสอบ  ", is_verified: true, tier: "gold" }))
-      .toEqual({ value: { fullName: "ทดสอบ ระบบสมาชิก", phone: valid.phone } });
+      .toEqual({ value: { fullName: "ทดสอบ ระบบสมาชิก", phone: valid.phone, branchCode: null } });
   });
 
   test("serves the customer form and printable QR without staff login", async () => {
