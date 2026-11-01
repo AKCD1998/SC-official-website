@@ -7,6 +7,7 @@ const { allocateCents, sellerAllocationPolicy, bundleAllocation, policyReference
 const { resolveCopySellerVoucher } = require('./shopeeCopySellerVoucher');
 const { VERIFIED_COPY_MATCH_VERSION, resolveVerifiedCopyMatch, sourceIdentifierConflict } = require('./shopeeVerifiedCopyMatcher');
 const { datesInRange, summarizeConfirmedSales } = require('./shopeeConfirmedSalesService');
+const {copyIdentityKey,readCopyIdentityEvidence,resolveCopyIdentityEvidence,resolveSupplementalCopyIdentity}=require('./shopeeCopyIdentityEvidence');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
@@ -20,7 +21,7 @@ const AUTOMATIC_REVIEW_LABELS = {
   automatic_bundle_or_special_authority_hold: 'ชุดหลายสินค้าหรือกฎเฉพาะต้องใช้การจับคู่ที่ยืนยันไว้',
 };
 
-function resolveCopyProduct(shopCode, item) {
+function resolveLegacyCopyProduct(shopCode, item) {
   let override = rules.rules.find(row => row.shopCode === shopCode
     && row.productName === item.name && row.variant === (item.variant || ''));
   const originalMatch = item.productMatch;
@@ -87,6 +88,15 @@ function resolveCopyProduct(shopCode, item) {
   return { sku, factor, unit: master.unit, name: master.name,
     authority: override?.authority || 'existing_verified_catalog', originalMatch,
     ...(automaticMatch?.provenance ? { matchingProvenance: automaticMatch.provenance } : {}) };
+}
+
+function resolveCopyProduct(shopCode,item,identityRecord) {
+  const original=resolveLegacyCopyProduct(shopCode,item);
+  // Existing supported copy lines and explicit financial/unit conflicts keep
+  // their precedence. Canonical evidence only fills missing identity/pack data.
+  if(!original.reason || !original.reason.startsWith('ยังจับคู่รหัส IC/SKU ไม่สำเร็จ'))return original;
+  return resolveSupplementalCopyIdentity(shopCode,item,masters)
+    || resolveCopyIdentityEvidence(shopCode,item,identityRecord,masters) || original;
 }
 
 // Financial amounts stay tied to their source line. Old immutable imports have
@@ -165,6 +175,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
   const evidence = new Map();
   const keys = new Set();
   const allocationPolicies = context.allocationPolicies || [];
+  const copyIdentities=new Map((context.copyIdentityEvidence?.records||[]).map(r=>[r.key,r]));
   const usedPolicies = new Map(); const voucherRestorations = [];
   let merchandiseCents = 0; let supportCents = 0; let sellerCents = 0;
   let cohortCents = 0; let financialComplete = true; let sourceLineCount = 0;
@@ -210,7 +221,7 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
       if (!Number.isSafeInteger(item.quantity) || item.quantity < 1) {
         addIssue('จำนวนสินค้าในไฟล์ไม่ถูกต้อง', order, item, index); return;
       }
-      const product = resolveCopyProduct(shopCode, item);
+      const product = resolveCopyProduct(shopCode, item,copyIdentities.get(copyIdentityKey(shopCode,item)));
       const bundle = product.components && bundleAllocation(allocationPolicies, shopCode, item, product.components, money.amounts[index]);
       if (product.reason && !bundle) { addIssue(product.reason, order, item, index, product.sku, product.components, product.matchingReview); return; }
       if (bundle) usedPolicies.set(bundle.record.policyKey, policyReference(bundle.record));
@@ -299,6 +310,8 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
   }
   const ready = issues.length === 0 && financialComplete && targetCents === readyTotalCents;
   return { ...filters, matchingAlgorithmVersion: VERIFIED_COPY_MATCH_VERSION,
+    copyIdentityVersion:`canonical-copy-identity-v1+${rules.supplementalCopyIdentityVersion || 'none'}`,
+    copyIdentityReadStatus:context.copyIdentityEvidence?.status || 'not_requested',
     timezone: 'Asia/Bangkok', dateBasis: cohort.corrections.length ? 'verified_business_date' : 'paid_at',
     businessDateCorrections: cohort.corrections, lineFinancialEvidence: lineEvidence.evidence, policyVersion: rules.policyVersion,
     allocationPolicies: [...usedPolicies.values()], sellerVoucherRestorations: voucherRestorations,
@@ -320,7 +333,8 @@ async function getAdaSmartCopyPlan(filters) {
   const [cohort, confirmed] = await Promise.all([getOrdersForCopyCohort(filters), getConfirmedSalesSummary(filters)]);
   const { orders, businessDateCorrections, lineFinancialEvidence } = cohort;
   const enriched = orders.map(order => ({ ...order, items: enrichShopeeOrderItems(order.shopCode, order.items) }));
-  return buildAdaSmartCopyPlan(enriched, confirmed, filters, businessDateCorrections, lineFinancialEvidence, cohort);
+  const copyIdentityEvidence=await readCopyIdentityEvidence(enriched);
+  return buildAdaSmartCopyPlan(enriched, confirmed, filters, businessDateCorrections, lineFinancialEvidence, {...cohort,copyIdentityEvidence});
 }
 
 module.exports = { buildAdaSmartCopyPlan, getAdaSmartCopyPlan, resolveCopyProduct, resolveLineAmounts };

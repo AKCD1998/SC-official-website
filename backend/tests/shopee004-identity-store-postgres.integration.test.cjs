@@ -77,6 +77,24 @@ run('identity administration uses the existing ledger in isolated PostgreSQL onl
   await expect(store.importEvidence({facts:[proofs[0],{...proofs[1],aliases:'bad'}],humanEvidenceVerified:true,actor:'synthetic-admin'})).rejects.toMatchObject({code:'TRUSTED_EVIDENCE_IMPORT_INVALID'});
   expect((await pool.query(`SELECT count(*)::int n FROM ${t('identity_evidence')}`)).rows[0].n).toBe(0);
  });
+ test('accounting identity reads preserve the retail SKU in shared stock and never enqueue or reserve on repeated reads',async()=>{
+  const boundary=await control(),pos=boundary.pos_catalog.map(p=>({...p,stockCode:'SYNTH-MASTER',
+   masterStockCode:'SYNTH-MASTER',masterActive:true,masterStockFactor:1,masterSmallFactor:1}));
+  pos.push({companySku:'SYNTH-MASTER',productName:'Synthetic shared stock parent',stockCode:'SYNTH-MASTER',
+   stockFactor:1,smallFactor:1,active:true,smallUnit:'ซอง'});
+  await pool.query(`UPDATE ${t('control')} SET pos_catalog=$1`,[JSON.stringify(pos)]);
+  proofs=proofs.map(p=>p.kind==='pos_unit'?{...p,stockCode:'SYNTH-MASTER',masterStockCode:'SYNTH-MASTER',
+   masterActive:true,masterStockFactor:1,masterSmallFactor:1}:p);
+  await importProofs();await approve();await settle();
+  const state=async()=>({control:await control(),tables:await Promise.all(['audit','dirty','lines','identity_recovery_jobs','reviews','positions'].map(async name=>
+   (await pool.query(`SELECT * FROM ${t(name)} ORDER BY 1`)).rows))});
+  const before=await state(),source={name:'Synthetic previously unknown product',variant:'one sachet',quantity:99};
+  const first=await store.copyIdentityEvidence([source]),second=await store.copyIdentityEvidence([source]);
+  expect(first).toEqual(second);expect(first[0]).toMatchObject({status:'verified',basis:'canonical_sc004_seller_pos',
+   components:[{sku:'SYNTH-P1',factor:1,unit:'ซอง',name:'Synthetic POS sachet'}]});
+  expect((await store.copyIdentityEvidence([{...source,listingProductId:'conflicting',listingVariationId:'VARIANT-1'}]))[0].status).toBe('blocked');
+  expect(await state()).toEqual(before);
+ });
  test('the second failed item is shown and approved; an already-mapped first item cannot substitute for it',async()=>{
   await importProofs();await approve();await settle();
   const at=new Date(),first={name:'Synthetic previously unknown product',variant:'one sachet',quantity:1,listingProductId:'LISTING-1',listingVariationId:'VARIANT-1'},second={name:'Synthetic second product',variant:'one sachet',quantity:1,listingProductId:'LISTING-2',listingVariationId:'VARIANT-2'};

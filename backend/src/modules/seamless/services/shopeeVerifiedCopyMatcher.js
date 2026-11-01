@@ -549,7 +549,9 @@ function sourceIdentifierConflict(shopCode, item, resolvedRule, matchIndex = ind
 }
 function getVerifiedCopyMatcherDigest() {
   return crypto.createHash('sha256').update(JSON.stringify({ version: VERIFIED_COPY_MATCH_VERSION,
-    masters: rules.masters, rules: rules.rules, unitReviews: rules.unitReviews })).digest('hex');
+    masters: rules.masters, rules: rules.rules, unitReviews: rules.unitReviews,
+    supplementalCopyIdentityVersion:rules.supplementalCopyIdentityVersion,
+    supplementalCopyIdentities:rules.supplementalCopyIdentities })).digest('hex');
 }
 module.exports = { VERIFIED_COPY_MATCH_VERSION, buildVerifiedCopyIndex, formattingKey,
   getVerifiedCopyMatcherDigest, normalizeStructuralText, resolveVerifiedCopyMatch, sourceIdentifierConflict };
