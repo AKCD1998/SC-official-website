@@ -57,29 +57,51 @@ function resolveSupplementalCopyIdentity(shopCode,item,masters) {
   const matches=(rules.supplementalCopyIdentities || []).filter(r=>r.shopCode===shopCode
     && r.productName===item.name && r.variant===(item.variant || ''));
   if(matches.length!==1)return null;
-  const r=matches[0],e=r.evidence,p=e?.pos;
+  const r=matches[0],e=r.evidence,p=e?.pos,isBundle=Array.isArray(r.components);
   if(r.status!=='verified' || !e?.listingId || !e.variationId
     || !/^[a-f0-9]{64}$/.test(e.sellerSourceSha256 || '')
     || !/^[a-f0-9]{64}$/.test(e.posSourceSha256 || '')
-    || !e.packBasis || p?.companySku!==r.companySku || p.active!==1
-    || !p.smallUnit || p.smallFactor!==1 || !p.productName
-    || !Number.isSafeInteger(r.quantityPerSale) || r.quantityPerSale<1
-    || r.quantityPerSale>1000)return null;
+    || !e.packBasis)return null;
   const supplied=keys=>[...new Set(keys.map(k=>String(item[k]??'').trim()).filter(Boolean))];
   const product=supplied(['productId','listingProductId']),variation=supplied(['variationId','listingVariationId']);
   if(product.length||variation.length){
     if(product.length!==1||variation.length!==1||product[0]!==e.listingId||variation[0]!==e.variationId)return null;
   }
-  if(supplied(['sourceSku','variantSku']).some(s=>s!==r.companySku)
+  if(supplied(['sourceSku','variantSku']).some(s=>s!==(isBundle?e.sellerSku:r.companySku))
     || supplied(['barcode','sourceBarcode']).some(b=>b!==e.sellerPackBarcode))return null;
+  const provenance={version:rules.supplementalCopyIdentityVersion,
+    method:'exact_seller_variation_pos_unit',listingId:e.listingId,variationId:e.variationId,
+    sellerSourceSha256:e.sellerSourceSha256,posSourceSha256:e.posSourceSha256,
+    packBasis:e.packBasis,posObservedAt:e.posObservedAt};
+  if(isBundle){
+    // Only the existing accounting supplement reads this owner-confirmed kit.
+    // Physical matching, kit masters/BOMs and lifecycle remain unchanged.
+    if(r.scope!=='accounting_copy_only' || r.components.length<2 || r.components.length>10
+      || new Set(r.components.map(c=>c.companySku)).size!==r.components.length
+      || e.ownerConfirmation?.kind!=='user_confirmed_bundle_contents'
+      || !/^[a-f0-9]{64}$/.test(e.ownerConfirmation.responseSha256 || '')
+      || !Array.isArray(e.posComponents) || e.posComponents.length!==r.components.length
+      || new Set(e.posComponents.map(c=>c.companySku)).size!==r.components.length)return null;
+    const components=[];
+    for(const part of r.components){
+      const pos=e.posComponents.find(c=>c.companySku===part.companySku),master=masters.get(part.companySku);
+      if(!/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(part.companySku || '')
+        || !Number.isSafeInteger(part.quantityPerSale) || part.quantityPerSale<1 || part.quantityPerSale>1000
+        || pos?.active!==1 || pos.smallFactor!==1 || !pos.smallUnit || !pos.productName
+        || (master&&normalizeIdentityUnit(master.unit)!==normalizeIdentityUnit(pos.smallUnit)))return null;
+      components.push({sku:part.companySku,factor:part.quantityPerSale,unit:pos.smallUnit,name:master?.name || pos.productName});
+    }
+    return{components,authority:'verified_seller_pos_owner_bundle_copy_only',originalMatch:item.productMatch,
+      matchingProvenance:{...provenance,method:'exact_owner_confirmed_seller_bundle_pos_units',ownerResponseSha256:e.ownerConfirmation.responseSha256},
+      reason:'ยืนยันส่วนประกอบชุดตามออเดอร์และเจ้าของร้านแล้ว แต่ยังต้องใช้กฎแบ่งราคาที่อนุมัติ'};
+  }
+  if(p?.companySku!==r.companySku || p.active!==1 || !p.smallUnit || p.smallFactor!==1 || !p.productName
+    || !Number.isSafeInteger(r.quantityPerSale) || r.quantityPerSale<1 || r.quantityPerSale>1000)return null;
   const master=masters.get(r.companySku);
   if(master&&normalizeIdentityUnit(master.unit)!==normalizeIdentityUnit(p.smallUnit))return null;
   return{sku:r.companySku,factor:r.quantityPerSale,unit:p.smallUnit,name:master?.name || p.productName,
     authority:'verified_seller_pos_copy_only',originalMatch:item.productMatch,
-    matchingProvenance:{version:rules.supplementalCopyIdentityVersion,
-      method:'exact_seller_variation_pos_unit',listingId:e.listingId,variationId:e.variationId,
-      sellerSourceSha256:e.sellerSourceSha256,posSourceSha256:e.posSourceSha256,
-      packBasis:e.packBasis,posObservedAt:e.posObservedAt}};
+    matchingProvenance:provenance};
 }
 function copyIdentityHold(shopCode,item){
   const held=(rules.copyIdentityHolds || []).filter(r=>r.shopCode===shopCode
