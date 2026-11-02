@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-11-02 — Use Ada as the points authority
+
+- Add the opt-in `SC_OFFICIAL_ADA_POINTS_MODE=ada-primary` cutover. Staff and
+  customer balances read the verified private Ada projection; unavailable/stale
+  balances are explicit and never fall back to the archived SCCRM ledger.
+- Save receipt history without awarding points again. Display Ada's original
+  receipt award, preserve the old SCCRM award separately, and require earning,
+  redemption and refund point changes to originate in Ada.
+- Share bill ownership and locking across staff, mobile and import paths so a
+  previously recorded bill shows its saved member and cannot be reassigned.
+- Replace the local promotion preview with Ada workflow guidance in this mode.
+  Existing auth, membership, purchase records and archived ledger are preserved.
+- Validation: 190 backend tests; deployment and live cutover are recorded in the
+  separate operations evidence rather than inferred from the test results.
+
 ## 2026-10-30 — Search approved member links by every retained phone
 
 - Search phones retained on all explicitly linked Ada codes, including formatted

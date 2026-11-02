@@ -5,6 +5,7 @@ const mockQuery=jest.fn();
 jest.mock('../db',()=>({query:(...args)=>mockQuery(...args)}));
 const {quotePoints,validatePromotion,receiptEligibleAmount,resolveReceiptEligibleAmount,RECEIPT_POINTS_POLICY,getActivePromotions}=require('../lib/sccrmPromotions');
 const promotion=(overrides={})=>({id:'11111111-1111-4111-8111-111111111111',name:'Fixture double points',type:'multiplier',value:2,condition_json:{},...overrides});
+afterEach(()=>{delete process.env.SC_OFFICIAL_ADA_POINTS_MODE;});
 function app(){const a=express();a.use(express.json());a.use('/api/sccrm',require('../routes/centralPromotions'));a.use('/sccrm/promotions',require('../routes/promotionPortal'));return a;}
 beforeEach(()=>{mockQuery.mockReset();mockQuery.mockImplementation(async sql=>String(sql).startsWith('SELECT id FROM users')?{rowCount:1,rows:[{id:'admin'}]}:{rowCount:1,rows:[promotion()]});process.env.JWT_SECRET='synthetic-admin-fixture';process.env.SCCRM_PROMOTION_ADMIN_EMAILS='test-admin@example.invalid';});
 test('same central award ignores client version and local point estimate',()=>{
@@ -68,6 +69,18 @@ test('staff token cannot publish a promotion; allowlisted site admin can',async(
  expect((await request(app()).post('/api/sccrm/promotions').set('Authorization','Bearer '+ordinary).send(promotion())).status).toBe(403);
  const admin=jwt.sign({userId:'00000000-0000-4000-8000-000000000001',email:'test-admin@example.invalid'},process.env.JWT_SECRET);
  expect((await request(app()).post('/api/sccrm/promotions').set('Authorization','Bearer '+admin).send(promotion())).status).toBe(201);
+});
+test('Ada mode blocks point-rule writes even for an allowlisted admin and publishes the authority mode',async()=>{
+ process.env.SC_OFFICIAL_ADA_POINTS_MODE='ada-primary';
+ const admin=jwt.sign({userId:'00000000-0000-4000-8000-000000000001',email:'test-admin@example.invalid'},process.env.JWT_SECRET);
+ const catalog=await request(app()).get('/api/sccrm/promotions/active');
+ expect(catalog.body).toMatchObject({pointsMode:'ada-primary',pointsSource:'ada',bahtPerPoint:null,previewAvailable:false});
+ for(const method of ['post','put']){
+  const response=await request(app())[method]('/api/sccrm/promotions'+(method==='put'?'/11111111-1111-4111-8111-111111111111':''))
+   .set('Authorization','Bearer '+admin).send(promotion());
+  expect(response.status).toBe(409);expect(response.body.code).toBe('USE_ADA_POINTS');
+ }
+ expect(mockQuery.mock.calls.some(([sql])=>/^(INSERT INTO|UPDATE) promotions/.test(sql))).toBe(false);
 });
 test('public portal works on old devices without requiring a session or app download',async()=>{
  const response=await request(app()).get('/sccrm/promotions');expect(response.status).toBe(200);expect(response.text).toContain('โปรโมชั่นสะสมแต้ม');expect(response.headers['content-security-policy']).toContain("frame-ancestors 'none'");

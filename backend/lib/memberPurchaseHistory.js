@@ -1,6 +1,7 @@
 const pool = require('../db');
 const { parseHistoryCursor, makeHistoryCursor, mapPurchase } = require('./purchaseHistory');
 const ada = require('./adaMemberMirror');
+const adaPoints = require('./adaPointAuthority');
 function normalizeDocRef(value) { return String(value || '').trim().toUpperCase(); }
 async function queryOne(sql, params) { return (await pool.query(sql, params)).rows[0] || null; }
 async function getMemberPurchaseHistory(memberId, query = {}) {
@@ -79,9 +80,16 @@ async function getMemberPurchaseHistory(memberId, query = {}) {
       });
   }
 
+  const nativePoints=adaPoints.enabled()?await adaPoints.readReceiptPointSummaries(pool,memberId,
+    claims.filter(c=>/^[0-9]{3}$/.test(normalizeDocRef(c.branch_code))&&/^[A-Z0-9][A-Z0-9._\/-]{0,99}$/.test(normalizeDocRef(c.receipt_no)))
+      .map(c=>({branchCode:normalizeDocRef(c.branch_code),receiptNo:normalizeDocRef(c.receipt_no)}))):null;
   const purchases = claims.map((c) => {
   const key = normalizeDocRef(c.branch_code) + "|" + normalizeDocRef(c.receipt_no);
-  return mapPurchase(c,itemsByClaim.get(c.id)||[],returnsByKey.get(key)||[]);
+  const purchase=mapPurchase(c,itemsByClaim.get(c.id)||[],returnsByKey.get(key)||[]);
+  if(!nativePoints)return purchase;
+  const quote=nativePoints.get(key)||{awardedPoints:null,awardedPointsExact:null,pointsAvailable:false,pointsSource:'ada',pointsStatus:'unknown',pointsCredited:false};
+  return {...purchase,archivedSccrmPoints:String(c.id).startsWith('ada:')||c.receipt_snapshot?.pointsPolicy==='ada-native-recorded'?null:purchase.awardedPoints,...quote,
+    pointsReversalStatus:'managed_by_ada',returns:purchase.returns.map(item=>({...item,pointsReversed:null,pointsReversalStatus:'managed_by_ada'}))};
   });
 
   return { ok: true, memberId, purchases,hasMore,nextCursor };

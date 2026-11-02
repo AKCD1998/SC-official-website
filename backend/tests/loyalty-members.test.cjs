@@ -295,6 +295,16 @@ function createApp() {
   return app;
 }
 
+test('Ada-mode registration retains registration behavior and reports an unknown balance until native publication',async()=>{
+  process.env.SC_OFFICIAL_ADA_POINTS_MODE='ada-primary';
+  try{
+    const response=await request(createApp()).post('/api/members').set('Authorization','Bearer test-staff-token')
+      .send({fullName:'Synthetic native registration',phone:'0990000001'});
+    expect(response.status).toBe(201);
+    expect(response.body).toMatchObject({name:'Synthetic native registration',currentPoints:null,pointsAvailable:false,pointsSource:'ada',pointsStatus:'unknown',balanceExact:null});
+  }finally{delete process.env.SC_OFFICIAL_ADA_POINTS_MODE;}
+});
+
 beforeEach(() => {
   resetState();
   process.env.POS_API_KEY = "pos-key";

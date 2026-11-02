@@ -20,6 +20,9 @@ const multer = require("multer");
 const sgMail = require("@sendgrid/mail");
 const pool = require("../db");
 const memberCodeAliases = require("../lib/memberCodeAliases");
+const adaPoints = require('../lib/adaPointAuthority');
+const adaPointWorkflow = require('../lib/adaPointWorkflow');
+const { recordNativeTransaction } = require('../lib/adaPointHistoryWriter');
 const {
   comparePassword,
   createId,
@@ -113,6 +116,7 @@ async function getCustomerViewById(userId) {
 // ─── Point helpers ────────────────────────────────────────────────────────────
 
 async function getCustomerBalance(userId) {
+  if (adaPoints.enabled()) return (await adaPoints.readProfileBalance(pool,userId)).balance;
   const row = await queryOne(
     `SELECT COALESCE(SUM(amount), 0) AS balance
      FROM   point_ledger
@@ -122,7 +126,14 @@ async function getCustomerBalance(userId) {
   return Number(row?.balance || 0);
 }
 
+async function getCustomerPointFields(userId) {
+  if (!adaPoints.enabled()) return { balance: await getCustomerBalance(userId) };
+  const balance = await adaPoints.readProfileBalance(pool,userId);
+  return { balance: balance.balance, ...adaPoints.publicFields(balance), lifetimeEarnedAvailable:false };
+}
+
 async function getCustomerLifetimeEarned(userId) {
+  if (adaPoints.enabled()) return null;
   const row = await queryOne(
     `SELECT COALESCE(SUM(amount), 0) AS earned
      FROM   point_ledger
@@ -188,6 +199,7 @@ async function getClaimStatusRow(claimId, userId) {
 }
 
 async function recalculateTier(userId) {
+  if (adaPoints.enabled()) return (await queryOne('SELECT tier FROM member_profiles WHERE user_id=$1',[userId]))?.tier || null;
   const lifetimeEarned = await getCustomerLifetimeEarned(userId);
   const tier = calculateTier(lifetimeEarned);
   await pool.query(
@@ -1058,7 +1070,7 @@ router.get("/customers/search", requireStaff, async (req, res) => {
     if (!customer) return res.json({ ok: true, customer: null });
     return res.json({
       ok: true,
-      customer: { ...customer, balance: await getCustomerBalance(customer.id) },
+      customer: { ...customer, ...(await getCustomerPointFields(customer.id)) },
     });
   } catch (error) {
     return jsonError(res, error.status || 500, error.message || "Search failed.");
@@ -1082,7 +1094,7 @@ router.get("/customers/:id", requireStaffOrSameCustomer, async (req, res) => {
       ok: true,
       customer: {
         ...customer,
-        balance: await getCustomerBalance(customer.id),
+        ...(await getCustomerPointFields(customer.id)),
         recentTransactions: transactions.rows,
       },
     });
@@ -1155,6 +1167,19 @@ router.patch("/customers/:id", requireStaffOrSameCustomer, async (req, res) => {
 
 router.post("/points/earn", requireStaff, async (req, res) => {
   try {
+    if (adaPoints.enabled()) {
+      const memberId = String(req.body?.customer_id || '').trim();
+      const receiptNo = String(req.body?.reference_id || '').trim().toUpperCase();
+      const branchCode = String(req.staffDevice.branch_code || '').trim().toUpperCase();
+      adaPointWorkflow.requireStaffBranch(req.staffDevice,branchCode);
+      if (!receiptNo) return jsonError(res,409,'กรุณาเลือกสมาชิกและบันทึกแต้มผ่าน Ada ก่อน');
+      const customer = await getCustomerViewById(memberId);
+      if (!customer) return jsonError(res,404,'Customer not found.');
+      const result = await withTransaction(client => recordNativeTransaction(client,{
+        memberId,branchCode,receiptNo,source:'manual',branchId:req.staffDevice.branch_id,deviceId:req.staffDevice.id,
+      }));
+      return res.status(201).json({ok:true,...result,pointsAwarded:result.awardedPoints,tier:customer.tier});
+    }
     const userId      = String(req.body?.customer_id || "").trim();
     const amountThb   = Number(req.body?.amount_thb);
     const referenceId = req.body?.reference_id ? String(req.body.reference_id).trim() : null;
@@ -1204,12 +1229,13 @@ router.post("/points/earn", requireStaff, async (req, res) => {
       tier,
     });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to earn points.");
+    return jsonError(res, error.status || 500, error.message || "Failed to earn points.");
   }
 });
 
 router.post("/points/redeem", requireStaff, async (req, res) => {
   try {
+    if (adaPoints.enabled()) return res.status(409).json({error:'กรุณาใช้แต้มผ่าน Ada',code:'USE_ADA_POINTS',pointsSource:'ada',pointsCredited:false});
     const userId     = String(req.body?.customer_id || "").trim();
     const points     = Number(req.body?.points);
     const rewardName = String(req.body?.reward_name || "").trim();
@@ -1254,16 +1280,20 @@ router.get("/points/:customer_id/balance", requireStaffOrSameCustomer, async (re
     return res.json({
       ok: true,
       customerId:     req.params.customer_id,
-      balance:        await getCustomerBalance(req.params.customer_id),
+      ...(await getCustomerPointFields(req.params.customer_id)),
       lifetimeEarned: await getCustomerLifetimeEarned(req.params.customer_id),
     });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to load balance.");
+    return jsonError(res, error.status || 500, error.message || "Failed to load balance.");
   }
 });
 
 router.get("/points/:customer_id/history", requireStaffOrSameCustomer, async (req, res) => {
   try {
+    if (adaPoints.enabled()) {
+      const result = await adaPoints.readPointHistory(pool,req.params.customer_id);
+      return res.status(result.pointsAvailable?200:503).json({ok:result.pointsAvailable,...result});
+    }
     const result = await pool.query(
       `SELECT id, amount, type, reference_id, note, created_by, created_at
        FROM   point_ledger
@@ -1273,7 +1303,7 @@ router.get("/points/:customer_id/history", requireStaffOrSameCustomer, async (re
     );
     return res.json({ ok: true, items: result.rows });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to load history.");
+    return jsonError(res, error.status || 500, error.message || "Failed to load history.");
   }
 });
 
@@ -1336,13 +1366,21 @@ router.post("/claims/confirm", requireCustomer, async (req, res) => {
     if (new Date(claim.expires_at).getTime() < Date.now()) return jsonError(res, 410, "Claim token expired.");
 
     const userId = req.customerAuth.customerId;
+    const adaMode = adaPoints.enabled();
     const transactionResult = await withTransaction(async (client) => {
       const claimId = createId();
       const claimTokenId = claim.claim_token_id;
       const saleEventId = claim.sale_event_id;
       const saleAmount = Number(claim.paid_total || 0);
-      const promotions = await getActivePromotions(claim.sale_branch_code || claim.branch_code);
-      const points = resolvePointsWithPromotions(saleAmount, promotions);
+      const branchCode = String(claim.sale_branch_code || claim.branch_code || '').trim().toUpperCase();
+      const receiptNo = String(claim.sale_doc_no || claim.doc_no || '').trim().toUpperCase();
+      if (adaMode) {
+        await adaPointWorkflow.guardReceipt(client,branchCode,receiptNo,userId);
+        await adaPointWorkflow.nativeReceipt(client,branchCode,receiptNo,userId,false);
+      }
+      const promotions = adaMode ? [] : await getActivePromotions(branchCode);
+      const quote = adaMode ? await adaPoints.readReceiptPoints(client,{branchCode,receiptNo,memberId:userId}) : null;
+      const points = adaMode ? quote.awardedPoints : resolvePointsWithPromotions(saleAmount, promotions);
       const ledgerId = createId();
       const awardId = createId();
 
@@ -1367,20 +1405,20 @@ router.post("/claims/confirm", requireCustomer, async (req, res) => {
         [saleEventId]
       );
 
-      await client.query(
+      if (!adaMode) await client.query(
         `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
          VALUES ($1, $2, $3, 'purchase', $4, 'Post-sale claim', 'system', NOW())`,
         [ledgerId, userId, points, saleEventId]
       );
 
-      await client.query(
+      if (!adaMode) await client.query(
         `INSERT INTO crm_loyalty_awards
            (id, sale_event_id, customer_account_id, points_awarded, promotion_snapshot, ledger_entry_id, created_at)
          VALUES ($1, $2, $3, $4, $5::jsonb, $6, NOW())`,
         [awardId, saleEventId, userId, points, JSON.stringify(promotions), ledgerId]
       );
 
-      return { claimId, points };
+      return { claimId, points, ...(adaMode?{adaQuote:quote}:{} ) };
     });
 
     const tier = await recalculateTier(userId);
@@ -1390,9 +1428,10 @@ router.post("/claims/confirm", requireCustomer, async (req, res) => {
       pointsAwarded: transactionResult.points,
       balance: await getCustomerBalance(userId),
       tier,
+      ...(adaMode?{...transactionResult.adaQuote,historyRecorded:true,pointsCredited:false}:{} ),
     });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to confirm claim.");
+    return jsonError(res, error.status || 500, error.message || "Failed to confirm claim.");
   }
 });
 
@@ -1400,6 +1439,9 @@ router.get("/claims/:id/status", requireCustomer, async (req, res) => {
   try {
     const row = await getClaimStatusRow(req.params.id, req.customerAuth.customerId);
     if (!row) return jsonError(res, 404, "Claim not found.");
+    const nativeQuote = adaPoints.enabled() ? await adaPoints.readReceiptPoints(pool,{
+      branchCode:row.branch_code,receiptNo:row.doc_no,memberId:req.customerAuth.customerId,
+    }) : null;
     return res.json({
       ok: true,
       claim: {
@@ -1411,12 +1453,13 @@ router.get("/claims/:id/status", requireCustomer, async (req, res) => {
         docNo: row.doc_no,
         branchCode: row.branch_code,
         saleAt: row.sale_at,
-        pointsAwarded: Number(row.points_awarded || 0),
-        pointsReversed: Number(row.points_reversed || 0),
+        pointsAwarded: nativeQuote ? nativeQuote.awardedPoints : Number(row.points_awarded || 0),
+        pointsReversed: nativeQuote ? null : Number(row.points_reversed || 0),
+        ...(nativeQuote?{...nativeQuote,pointsReversalStatus:'managed_by_ada'}:{}),
       },
     });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to load claim status.");
+    return jsonError(res, error.status || 500, error.message || "Failed to load claim status.");
   }
 });
 
@@ -1441,6 +1484,9 @@ router.get("/transactions/:id", requireCustomer, async (req, res) => {
       [req.params.id, req.customerAuth.customerId]
     );
     if (!row) return jsonError(res, 404, "Transaction not found.");
+    const nativeQuote = adaPoints.enabled() ? await adaPoints.readReceiptPoints(pool,{
+      branchCode:row.branch_code,receiptNo:row.doc_no,memberId:req.customerAuth.customerId,
+    }) : null;
 
     const refunds = await pool.query(
       `SELECT refund_doc_no, refund_at, refund_total
@@ -1468,7 +1514,8 @@ router.get("/transactions/:id", requireCustomer, async (req, res) => {
         docNo: row.doc_no,
         saleAt: row.sale_at,
         paidTotal: Number(row.paid_total || 0),
-        pointsAwarded: Number(row.points_awarded || 0),
+        pointsAwarded: nativeQuote ? nativeQuote.awardedPoints : Number(row.points_awarded || 0),
+        ...(nativeQuote?nativeQuote:{}),
         tenderRows: row.tender_rows || [],
         refunds: refunds.rows.map((item) => ({
           refundDocNo: item.refund_doc_no,
@@ -1484,7 +1531,7 @@ router.get("/transactions/:id", requireCustomer, async (req, res) => {
       },
     });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to load transaction.");
+    return jsonError(res, error.status || 500, error.message || "Failed to load transaction.");
   }
 });
 
@@ -1551,8 +1598,8 @@ router.post("/customers/resolve-scan-token", requireStaff, async (req, res) => {
 
     const customer = await getCustomerViewById(userId);
     if (!customer) return jsonError(res, 404, "Member not found.");
-    const balance = await getCustomerBalance(userId);
-    return res.json({ ok: true, customer: { ...customer, balance } });
+    const fields = await getCustomerPointFields(userId);
+    return res.json({ ok: true, customer: { ...customer, ...fields } });
   } catch (error) {
     return jsonError(res, 500, error.message || "Failed to resolve scan token.");
   }
@@ -1566,6 +1613,15 @@ router.get("/points/:customer_id/recent-earn", requireStaffOrSameCustomer, async
   try {
     const since = req.query.since ? new Date(req.query.since) : null;
     if (!since || isNaN(since.getTime())) return jsonError(res, 400, "since (ISO timestamp) is required.");
+    if (adaPoints.enabled()) {
+      const history = await adaPoints.readPointHistory(pool,req.params.customer_id);
+      if (!history.pointsAvailable) return res.status(503).json({ok:false,...history});
+      const row = history.items.filter(item=>item.type==='purchase' && item.amount>0 && item.created_at && Date.parse(item.created_at)>since.getTime())
+        .sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at))[0];
+      const {items,...fields}=history;
+      return res.json({ok:true,found:Boolean(row),...fields,...(row?{earnedPoints:row.amount,receiptNumber:row.reference_id,
+        totalAmount:null,branchName:null,createdAt:row.created_at}:{} )});
+    }
 
     const row = await queryOne(
       `SELECT pl.id, pl.amount, pl.reference_id, pl.created_at,
@@ -1594,7 +1650,7 @@ router.get("/points/:customer_id/recent-earn", requireStaffOrSameCustomer, async
       balance:       await getCustomerBalance(req.params.customer_id),
     });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to check recent earn.");
+    return jsonError(res, error.status || 500, error.message || "Failed to check recent earn.");
   }
 });
 
@@ -1656,6 +1712,25 @@ router.post("/import/pos", requireStaff, upload.single("file"), async (req, res)
     }
 
     const summary = { imported: 0, skipped_duplicates: 0, unmatched_customers: 0, errors: [] };
+    if (adaPoints.enabled()) {
+      const branchCode=String(req.staffDevice.branch_code||'').trim().toUpperCase();
+      adaPointWorkflow.requireStaffBranch(req.staffDevice,branchCode);
+      for (let index=0;index<rows.length;index++) {
+        const {normalized,errors}=normalizeImportRow(rows[index]);
+        if(errors.length){summary.errors.push({index,errors});continue;}
+        try {
+          await withTransaction(client=>recordNativeTransaction(client,{branchCode,
+            receiptNo:normalized.pos_ref_id.toUpperCase(),source:normalized.source,
+            branchId:req.staffDevice.branch_id,deviceId:req.staffDevice.id}));
+          summary.imported++;
+        } catch(error) {
+          if(error.code==='ALREADY_RECORDED') summary.skipped_duplicates++;
+          else if(error.code==='MEMBER_NOT_MATERIALIZED') summary.unmatched_customers++;
+          else summary.errors.push({index,errors:[error.status?error.message:'ข้อมูลประวัติจาก Ada ยังไม่พร้อม']});
+        }
+      }
+      return res.json({ok:true,summary,pointsSource:'ada',pointsCredited:false});
+    }
 
     for (let index = 0; index < rows.length; index += 1) {
       const { normalized, errors } = normalizeImportRow(rows[index]);
@@ -1697,7 +1772,7 @@ router.post("/import/pos", requireStaff, upload.single("file"), async (req, res)
 
     return res.json({ ok: true, summary });
   } catch (error) {
-    return jsonError(res, 500, error.message || "Import failed.");
+    return jsonError(res, error.status || 500, error.message || "Import failed.");
   }
 });
 
