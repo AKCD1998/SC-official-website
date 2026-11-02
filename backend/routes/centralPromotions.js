@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const {setupSigningSecret}=require('../lib/promotionAdminSetup');
 const pool = require('../db');
+const adaPoints = require('../lib/adaPointAuthority');
 const { createId } = require('../lib/sccrm');
 const { BAHT_PER_POINT, validatePromotion, getActivePromotions, quotePoints } = require('../lib/sccrmPromotions');
 const router = express.Router();
@@ -26,12 +27,16 @@ function branch(req) {
 }
 router.get('/promotions/active',async(req,res)=>{
   try {
+    if (adaPoints.enabled()) return res.json({ok:true,promotions:[],bahtPerPoint:null,revision:'ada-native-recorded',
+      pointsMode:'ada-primary',pointsSource:'ada',previewAvailable:false,serverTime:new Date().toISOString()});
     const promotions = await getActivePromotions(pool,branch(req));
-    return res.json({ok:true,promotions,bahtPerPoint:BAHT_PER_POINT,revision:quotePoints(0,promotions).revision,serverTime:new Date().toISOString()});
+    return res.json({ok:true,promotions,bahtPerPoint:BAHT_PER_POINT,pointsMode:'sccrm',revision:quotePoints(0,promotions).revision,serverTime:new Date().toISOString()});
   } catch(e){return res.status(e.status || 503).json({error:e.status?e.message:'Central promotions are unavailable. Please retry.'});}
 });
 router.get('/promotions/quote',async(req,res)=>{
   try {
+    if (adaPoints.enabled()) return res.status(409).json({error:'Ada เป็นผู้คำนวณแต้ม โปรดดูแต้มที่ Ada บันทึกหลังชำระเงิน',
+      code:'USE_ADA_POINTS',pointsSource:'ada',previewAvailable:false});
     if (req.query.amount == null || req.query.amount === '') return res.status(400).json({error:'amount is required.'});
     const promotions=await getActivePromotions(pool,branch(req));
     return res.json({ok:true,...quotePoints(req.query.amount,promotions),serverTime:new Date().toISOString()});
@@ -56,11 +61,12 @@ router.post('/promotions/admin/setup',async(req,res)=>{
   }catch(e){return res.status(e.code==='23505'?409:401).json({error:e.code==='23505'?'บัญชีนี้ถูกสร้างแล้ว':'ลิงก์ตั้งรหัสผ่านไม่ถูกต้องหรือหมดอายุ กรุณาขอลิงก์ใหม่'});}
 });
 router.get('/promotions',requirePromotionAdmin,async(_req,res)=>{
-  try{return res.json({ok:true,promotions:(await pool.query('SELECT id, name, type, value, condition_json, starts_at, ends_at, is_active, updated_at FROM promotions ORDER BY created_at DESC, id ASC')).rows});}
+  try{return res.json({ok:true,pointsMode:adaPoints.enabled()?'ada-primary':'sccrm',promotions:(await pool.query('SELECT id, name, type, value, condition_json, starts_at, ends_at, is_active, updated_at FROM promotions ORDER BY created_at DESC, id ASC')).rows});}
   catch{return res.status(503).json({error:'Promotions unavailable.'});}
 });
 async function save(req,res,update) {
   try {
+    if(adaPoints.enabled()) return res.status(409).json({error:'ขณะนี้ใช้กติกาแต้มจาก Ada กรุณาจัดการโปรโมชั่นแต้มใน Ada',code:'USE_ADA_POINTS',pointsMode:'ada-primary'});
     const p=validatePromotion(req.body || {}),id=update?req.params.id:createId();
     if (!/^[a-f\d-]{36}$/i.test(id))return res.status(400).json({error:'Invalid promotion ID.'});
     const values=[id,p.name,p.type,p.value,JSON.stringify(p.condition_json),p.starts_at,p.ends_at,p.is_active];

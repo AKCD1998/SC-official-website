@@ -8,6 +8,8 @@ const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
 const adaMirror = require('../lib/adaMemberMirror');
 const memberCodeAliases = require('../lib/memberCodeAliases');
 const { recordMemberRegistration } = require('../lib/memberRegistrations');
+const adaPoints = require('../lib/adaPointAuthority');
+const adaPointWorkflow = require('../lib/adaPointWorkflow');
 
 const router = express.Router();
 
@@ -85,6 +87,7 @@ async function memberStorageCapabilities() {
 }
 
 function memberPointsSql(capabilities) {
+    if (adaPoints.enabled()) return 'NULL::numeric';
     return capabilities.pointsAvailable
         ? "COALESCE((SELECT SUM(pl.amount) FROM point_ledger pl WHERE pl.user_id = u.id::uuid), 0)"
         : "0::bigint";
@@ -119,7 +122,9 @@ async function getMemberProfile(memberId, capabilities, db = pool) {
         FROM users u JOIN member_profiles m ON m.user_id = u.id
         WHERE u.id = $1::uuid`, [memberId], db);
     if(row && !row.phone && adaMirror.enabled())row.phone=(await queryOne('SELECT phone_number FROM ada_history.directory WHERE id=$1::uuid',[memberId],db))?.phone_number||null;
-    return row || await adaMirror.legacyProfile(db, memberId);
+    const profile = row || await adaMirror.legacyProfile(db, memberId);
+    if (profile && adaPoints.enabled()) profile.ada_points = await adaPoints.readProfileBalance(db, memberId);
+    return profile;
 }
 
 function normalizeDocRef(value) {
@@ -607,11 +612,12 @@ function buildMemberResponse(row, pharmacyMedRecordRow, capabilities = {}) {
         memberCode: row.member_code || null,
         tier: row.tier || null,
         isActive: row.is_active,
-        currentPoints: Number(row.current_points || 0),
+        currentPoints: adaPoints.enabled() ? row.ada_points?.balance ?? null : Number(row.current_points || 0),
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         pharmacy_med_record: mapPharmacyMedRecordRow(pharmacyMedRecordRow),
         ...capabilities,
+        ...(adaPoints.enabled() ? adaPoints.publicFields(row.ada_points) : {}),
     };
 }
 
@@ -644,13 +650,17 @@ router.get("/search", requireStaff, async (req, res) => {
             const aliasMember = await getMemberProfile(aliasMemberId, capabilities);
             if (aliasMember?.id === aliasMemberId && aliasMember.is_active) rows.unshift(aliasMember);
         }
+        const balances = adaPoints.enabled() ? await adaPoints.readProfileBalances(pool, rows.map(row => row.id)) : null;
         const members = rows.map(row => ({
             id: row.id, displayName: row.full_name || "", phone: row.phone || null,
             email: row.email || null, memberCode: row.member_code || null,
-            currentPoints: Number(row.current_points || 0), ...capabilities,
+            currentPoints: balances ? balances.get(row.id)?.balance ?? null : Number(row.current_points || 0), ...capabilities,
+            ...(balances ? adaPoints.publicFields(balances.get(row.id)) : {}),
         }));
         const legacy = await adaMirror.searchLegacy(pool, q, capabilities);
-        return res.json([...members,...legacy.map(row=>({...row,...capabilities}))].filter((row,index,all)=>all.findIndex(other=>other.id===row.id)===index).slice(0,20));
+        return res.json([...members,...legacy.map(row=>({...row,...capabilities,...(adaPoints.enabled()?{
+          pointsAvailable:row.pointsAvailable,pointsSource:row.pointsSource,pointsStatus:row.pointsStatus,
+          pointsObservedAt:row.pointsObservedAt,balanceExact:row.balanceExact}:{} )}))].filter((row,index,all)=>all.findIndex(other=>other.id===row.id)===index).slice(0,20));
     } catch (error) {
         return res.status(error.status || 500).json({ error: error.message || "Member search failed." });
     }
@@ -669,7 +679,7 @@ router.get("/:id", requireMemberAccess, async (req, res) => {
             ? await getPharmacyMedRecord(req.params.id) : null;
         return res.json(buildMemberResponse(row, medical, capabilities));
     } catch (error) {
-        return res.status(500).json({ error: error.message || "Failed to fetch member." });
+        return res.status(error.status || 500).json({ error: error.message || "Failed to fetch member." });
     }
 });
 
@@ -754,14 +764,28 @@ router.get("/claims/status", requireStaff, async (req, res) => {
     return res.status(403).json({ error: "Receipt branch does not match staff device." });
   }
   try {
+    const adaMode=adaPoints.enabled();
     const { rows } = await pool.query(
-      `SELECT lc.id, lc.created_at, lc.user_id, u.full_name, m.member_code
+      adaMode?`SELECT saved.id,saved.created_at,saved.user_id,u.full_name,m.member_code
+        FROM (
+          SELECT id::text,created_at,user_id FROM loyalty_claims WHERE branch_code=$1 AND receipt_no=$2
+          UNION ALL SELECT c.id::text,c.claimed_at,c.customer_account_id FROM crm_sale_claims c
+            JOIN crm_pos_sale_events s ON s.id=c.sale_event_id WHERE s.branch_code=$1 AND s.doc_no=$2
+          UNION ALL SELECT a.id::text,a.created_at,a.customer_account_id FROM crm_loyalty_awards a
+            JOIN crm_pos_sale_events s ON s.id=a.sale_event_id WHERE s.branch_code=$1 AND s.doc_no=$2
+          UNION ALL SELECT t.id::text,t.created_at,t.user_id FROM transactions t WHERE t.pos_ref_id=$2
+        ) saved LEFT JOIN users u ON u.id=saved.user_id
+        LEFT JOIN member_profiles m ON m.user_id=saved.user_id ORDER BY saved.created_at,saved.id`
+      :`SELECT lc.id, lc.created_at, lc.user_id, u.full_name, m.member_code
        FROM loyalty_claims lc
        LEFT JOIN users u ON u.id = lc.user_id
        LEFT JOIN member_profiles m ON m.user_id = lc.user_id
        WHERE lc.branch_code = $1 AND lc.receipt_no = $2 LIMIT 1`,
       [branchCode, receiptNo],
     );
+    if(adaMode && (rows.some(row=>!row.user_id)||new Set(rows.map(row=>String(row.user_id).toLowerCase())).size>1)) {
+      return res.status(409).json({error:'ข้อมูลเจ้าของบิลขัดแย้ง กรุณาให้ผู้ดูแลตรวจสอบ',code:'BILL_OWNER_CONFLICT'});
+    }
     const claim = rows[0];
     return res.json({
       ok: true, branchCode, receiptNo, claimed: Boolean(claim),
@@ -798,16 +822,22 @@ router.post("/claims", requireStaff, async (req, res) => {
 
       const eligible = resolveReceiptEligibleAmount(items, reportedTotalAmount);
       const totalAmount = eligible;
-      const snapshot={...buildReceiptSnapshot(req.body,items),pointsPolicy:RECEIPT_POINTS_POLICY,reportedEligibleAmount:reportedTotalAmount};
+      const adaMode = adaPoints.enabled();
+      const snapshot={...buildReceiptSnapshot(req.body,items),pointsPolicy:adaMode?'ada-native-recorded':RECEIPT_POINTS_POLICY,reportedEligibleAmount:reportedTotalAmount};
+      if (adaMode) adaPointWorkflow.requireStaffBranch(req.staffDevice, branchCode);
       if (req.staffDevice.branch_code && normalizeDocRef(req.staffDevice.branch_code) !== normalizeDocRef(branchCode)) return res.status(403).json({ message: 'Receipt branch does not match staff device.' });
           const client = await pool.connect();
 
       try {
               await client.query("BEGIN");
+              if (adaMode) {
+                await adaPointWorkflow.guardReceipt(client,branchCode,receiptNo,memberId);
+                await adaPointWorkflow.nativeReceipt(client,branchCode,receiptNo,memberId,false);
+              }
               // Serialize awards for this member, including concurrent devices.
               await client.query('SELECT user_id FROM member_profiles WHERE user_id=$1::uuid FOR UPDATE', [memberId]);
-              const promotions = await getActivePromotions(client, branchCode);
-              const quote = quotePoints(eligible, promotions);
+              const promotions = adaMode ? [] : await getActivePromotions(client, branchCode);
+              const quote = adaMode ? await adaPoints.readReceiptPoints(client,{branchCode,receiptNo,memberId}) : quotePoints(eligible, promotions);
               const awardedPoints = quote.awardedPoints;
 
             // Duplicate receipt check
@@ -826,7 +856,7 @@ router.post("/claims", requireStaff, async (req, res) => {
             const memberRow = await client.query(
                       `SELECT u.id, u.full_name,
                                       m.member_code,
-                                                      COALESCE((SELECT SUM(pl.amount) FROM point_ledger pl WHERE pl.user_id = u.id::uuid), 0) AS current_points
+                                                      ${adaMode?'NULL::numeric':'COALESCE((SELECT SUM(pl.amount) FROM point_ledger pl WHERE pl.user_id = u.id::uuid), 0)'} AS current_points
                                                                FROM users u
                                                                         JOIN member_profiles m ON m.user_id = u.id AND m.is_active = TRUE
                                                                                  WHERE u.id = $1::uuid`,
@@ -846,7 +876,7 @@ router.post("/claims", requireStaff, async (req, res) => {
                                              total_amount, preview_points, awarded_points, user_id, promotion_snapshot, promotion_revision,receipt_total_amount,receipt_snapshot)
                                                       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11,$12,$13::jsonb)`,
                         [claimId, receiptNo, branchCode, cashierStaffCode, soldAt,
-                                   Number(totalAmount), previewPoints, awardedPoints, memberId, JSON.stringify(quote.appliedPromotions), quote.revision,snapshot.totalAmount,JSON.stringify(snapshot)],
+                                   Number(totalAmount), previewPoints, awardedPoints, memberId, JSON.stringify(quote.appliedPromotions || []), quote.revision || 'ada-native-recorded',snapshot.totalAmount,JSON.stringify(snapshot)],
                       );
 
             // Insert line items
@@ -868,9 +898,9 @@ router.post("/claims", requireStaff, async (req, res) => {
             }
 
             // Write to point_ledger (source of truth)
-            const newBalance = Number(member.current_points) + awardedPoints;
+            const newBalance = adaMode ? quote.balance : Number(member.current_points) + awardedPoints;
             let ledgerEntryId = null;
-              if (awardedPoints > 0) {
+              if (!adaMode && awardedPoints > 0) {
                         ledgerEntryId = createId();
                         await client.query(
                                     `INSERT INTO point_ledger (id, user_id, amount, type, reference_id, note, created_by, created_at)
@@ -890,7 +920,7 @@ router.post("/claims", requireStaff, async (req, res) => {
                         claimId,
                         items,
             });
-            await mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId, quote.appliedPromotions);
+            if (!adaMode) await mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId, quote.appliedPromotions);
 
             await client.query("COMMIT");
 
@@ -905,10 +935,11 @@ router.post("/claims", requireStaff, async (req, res) => {
                       },
                       awardedPoints,
                       newPointsBalance: newBalance,
-                      promotionRevision: quote.revision,
-                      pointsPolicy: RECEIPT_POINTS_POLICY,
+                      promotionRevision: quote.revision || 'ada-native-recorded',
+                      pointsPolicy: adaMode ? 'ada-native-recorded' : RECEIPT_POINTS_POLICY,
                       eligibleAmount: eligible,
-                      appliedPromotions: quote.appliedPromotions,
+                      appliedPromotions: quote.appliedPromotions || [],
+                      ...(adaMode ? {...quote,historyRecorded:true,pointsCredited:false} : {}),
             });
       } catch (error) {
               await client.query("ROLLBACK");
@@ -918,7 +949,8 @@ router.post("/claims", requireStaff, async (req, res) => {
       }
     } catch (error) {
           const status = error.status || (error.code === '23505' ? 409 : 500);
-          return res.status(status).json({ error: status === 409 ? 'Receipt already claimed.' : error.message || "Failed to create loyalty claim." });
+          return res.status(status).json({ error: status === 409 && !error.status ? 'Receipt already claimed.' : error.message || "Failed to create loyalty claim.",
+            ...(error.code && error.status ? {code:error.code} : {}) });
     }
 });
 
@@ -982,6 +1014,7 @@ router.post("/", requireStaff, async (req, res) => {
         currentPoints: 0,
         pharmacy_med_record: capabilities.pharmacyMedRecordAvailable && pharmacyMedRecord !== undefined ? pharmacyMedRecord : null,
         ...capabilities,
+        ...(adaPoints.enabled()?{currentPoints:null,...adaPoints.publicFields({available:false,reason:'unknown'})}:{}),
       });
     } catch (error) {
       await client.query("ROLLBACK");

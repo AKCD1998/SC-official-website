@@ -167,8 +167,20 @@ afterAll(() => {
   delete process.env.SCCRM_INTERNAL_API_TOKEN;
   delete process.env.SCCRM_REFRESH_TOKEN_SECRET;
 });
+afterEach(()=>{delete process.env.SC_OFFICIAL_ADA_POINTS_MODE;});
 
 describe("SCCRM internal routes", () => {
+  test('Ada mode retains refund history but leaves both archived awards and real native point changes alone',async()=>{
+    process.env.SC_OFFICIAL_ADA_POINTS_MODE='ada-primary';
+    const awards=JSON.stringify(state.awards);
+    const response=await request(createApp()).post('/internal/crm/pos/refunds').set('x-internal-token','internal-test-token')
+      .send({branch_code:'005',refund_doc_no:'RF-ADA',original_doc_no:'SALE-1',refund_total:120,
+        line_rows:[{line_no:1,product_code:'SKU-1',qty:2,net_amount:120}]});
+    expect(response.status).toBe(200);
+    expect(response.body.results[0].reversal).toMatchObject({status:'native_owned',pointsReversed:0,pointsSource:'ada',pointsCredited:false});
+    expect(state.refunds).toHaveLength(1);expect(state.refundLines).toHaveLength(1);
+    expect(state.ledger).toEqual([]);expect(state.reversals).toEqual([]);expect(JSON.stringify(state.awards)).toBe(awards);
+  });
   test("POST /crm/pos/refunds creates a loyalty reversal inside the same transaction", async () => {
     const response = await request(createApp())
       .post("/internal/crm/pos/refunds")

@@ -1,5 +1,6 @@
 const express = require("express");
 const pool = require("../db");
+const adaPoints = require('../lib/adaPointAuthority');
 const { createId, hashOpaqueToken, requireEnv } = require("../lib/sccrm");
 const {
   buildSaleEventRecord,
@@ -245,6 +246,12 @@ async function ensureAwardMirrorForLoyaltyClaim(client, refundEventId) {
 }
 
 async function maybeCreateReversal(client, refundEventId) {
+  // Keep refund history, but the real Ada transaction owns the points reversal.
+  // Never mirror an archived SCCRM award back into the current Ada balance.
+  if (adaPoints.enabled()) return {
+    status:'native_owned', pointsReversed:0, pointsSource:'ada', pointsCredited:false,
+    reason:'Ada records refund point changes; SCCRM does not adjust the balance.',
+  };
   const existing = await queryOneOn(
     client,
     `SELECT id, points_reversed
