@@ -15,3 +15,4 @@ Thumbs.db
 # Local accounting preview and disposable database
 tmp/
 backend/.local-accounting/
+backend/supabase/.temp/
