@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-03 — Accept existing POS sessions for fleet commands
+
+- Verify native device tokens with the same namespaced HMAC helper used by the
+  existing staff login and member API. The first fleet route used a plain digest
+  and rejected valid installed POS sessions with 401.
+- Preserve existing tokens, revocation and administrator-key verification. Add
+  integration checks using the real shared helper and reject plain-digest rows.
+  No POS reinstall, device re-login or customer change is required by this fix.
+
 ## 2026-11-03 — Administrator-requested SCCRM device updates
 
 - Add a private, paused-by-default operational queue for explicitly requested

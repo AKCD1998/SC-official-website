@@ -1,6 +1,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {Pool}=require('pg'),express=require('express'),request=require('supertest');
 const {createFleetRouter}=require('../routes/sccrmFleet');
+const {hashOpaqueToken}=require('../lib/sccrm');
 const database=process.env.SC_OFFICIAL_FLEET_TEST_DATABASE_URL;
 const suite=database?describe:describe.skip;
 suite('fleet queue on a fresh, explicitly isolated PostgreSQL database',()=>{
@@ -10,6 +11,7 @@ suite('fleet queue on a fresh, explicitly isolated PostgreSQL database',()=>{
  const adminId='33333333-3333-4333-8333-333333333333';
  const admin='fleet-admin-fixture-secret-00000001',staff='fleet-staff-fixture-secret-00000001',other='fleet-staff-fixture-secret-00000002';
  const hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+ const previousStaffSecret=process.env.SCCRM_REFRESH_TOKEN_SECRET;
  const pollBody=(n=node)=>({protocol:1,nodeId:n,hostname:n===node?'POS2':'POSSRV',version:'1.3.15.0',binaryHash:'b'.repeat(64),readiness:'idle'});
  const send=(endpoint,body,token=staff)=>request(app).post(endpoint).set('Authorization','Bearer '+token).send(body);
  const poll=()=>send('/device/poll',pollBody());
@@ -17,6 +19,7 @@ suite('fleet queue on a fresh, explicitly isolated PostgreSQL database',()=>{
  const report=(id,state,extra={},token=staff)=>send('/device/report',{jobId:id,state,code:'TEST',...extra},token);
  const enable=()=>pool.query('UPDATE sccrm_fleet.settings SET enabled=true WHERE id=1');
  beforeAll(async()=>{
+  process.env.SCCRM_REFRESH_TOKEN_SECRET='isolated-fleet-staff-hmac-fixture';
   const url=new URL(database);
   if(!['localhost','127.0.0.1','::1','[::1]'].includes(url.hostname)||!/^\/crm_fleet_test_[a-z0-9_]+$/.test(url.pathname))throw Error('ISOLATED_FLEET_DATABASE_REQUIRED');
   pool=new Pool({connectionString:database,max:4});
@@ -26,16 +29,28 @@ suite('fleet queue on a fresh, explicitly isolated PostgreSQL database',()=>{
    CREATE TABLE public.staff_devices(id uuid PRIMARY KEY,device_id text,token_hash text,revoked_at timestamptz);
    CREATE TABLE public.customer_sentinel(id integer PRIMARY KEY,payload text);INSERT INTO public.customer_sentinel VALUES(1,'existing-customer-code-owner-score-unchanged');`);
   await pool.query(fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261103060203_sccrm_fleet_manual_updates.sql'),'utf8'));
-  await pool.query('INSERT INTO public.staff_devices(id,device_id,token_hash) VALUES($1,$2,$3),($4,$5,$6)',[one,'fixture-one',hash(staff),two,'fixture-two',hash(other)]);
+  await pool.query('INSERT INTO public.staff_devices(id,device_id,token_hash) VALUES($1,$2,$3),($4,$5,$6)',[one,'fixture-one',hashOpaqueToken(staff),two,'fixture-two',hashOpaqueToken(other)]);
   await pool.query("INSERT INTO sccrm_fleet.admin_keys(id,token_hash,station) VALUES($1,$2,'SCPRODUCTDEV')",[adminId,hash(admin)]);
  });
  beforeEach(async()=>{
   await pool.query('TRUNCATE sccrm_fleet.events,sccrm_fleet.jobs,sccrm_fleet.batches,sccrm_fleet.devices RESTART IDENTITY CASCADE');
   await pool.query('UPDATE sccrm_fleet.settings SET enabled=false WHERE id=1;UPDATE public.staff_devices SET revoked_at=NULL');
+  await pool.query('UPDATE public.staff_devices SET token_hash=$2 WHERE id=$1',[one,hashOpaqueToken(staff)]);
   release={version:'1.3.16',sha256:'a'.repeat(64),envelope:'isolated signed-release fixture'};
   app=express();app.use(createFleetRouter({pool,getRelease:async()=>release}));
  });
- afterAll(async()=>{if(pool){expect((await pool.query('SELECT payload FROM public.customer_sentinel WHERE id=1')).rows[0].payload).toBe('existing-customer-code-owner-score-unchanged');await pool.end();}});
+ afterAll(async()=>{try{if(pool){expect((await pool.query('SELECT payload FROM public.customer_sentinel WHERE id=1')).rows[0].payload).toBe('existing-customer-code-owner-score-unchanged');await pool.end();}}finally{if(previousStaffSecret===undefined)delete process.env.SCCRM_REFRESH_TOKEN_SECRET;else process.env.SCCRM_REFRESH_TOKEN_SECRET=previousStaffSecret;}});
+ test('existing staff login HMAC authenticates without changing its stored token',async()=>{
+  const before=(await pool.query('SELECT token_hash FROM public.staff_devices WHERE id=$1',[one])).rows[0].token_hash;
+  expect(before).toBe(hashOpaqueToken(staff));expect(before).not.toBe(hash(staff));
+  expect((await poll()).status).toBe(200);
+  expect((await pool.query('SELECT token_hash FROM public.staff_devices WHERE id=$1',[one])).rows[0].token_hash).toBe(before);
+ });
+ test('an unnamespaced SHA token digest cannot authenticate as an existing staff session',async()=>{
+  await pool.query('UPDATE public.staff_devices SET token_hash=$2 WHERE id=$1',[one,hash(staff)]);
+  expect((await poll()).status).toBe(401);
+  expect((await pool.query('SELECT count(*)::int AS n FROM sccrm_fleet.devices')).rows[0].n).toBe(0);
+ });
  test('default disabled inventory shows every approved POS without inventing enrollment',async()=>{
   const r=await request(app).get('/admin/status').set('Authorization','Bearer '+admin);
   expect(r.status).toBe(200);expect(r.body.enabled).toBe(false);expect(r.body.devices).toHaveLength(8);
