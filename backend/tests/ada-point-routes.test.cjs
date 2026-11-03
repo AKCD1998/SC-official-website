@@ -4,6 +4,7 @@ jest.mock('../db',()=>({query:jest.fn(),connect:jest.fn()}));
 jest.mock('@sendgrid/mail',()=>({setApiKey:jest.fn(),send:jest.fn()}));
 const pool=require('../db');
 const {issueCustomerAccessToken}=require('../lib/sccrm');
+const {saleWithItemVoid}=require('./fixtures/ada-item-void.cjs');
 const id='11111111-1111-4111-8111-111111111111';
 const other='22222222-2222-4222-8222-222222222222';
 const code='AR005-000001',receipt='S2610005001-000001';
@@ -118,6 +119,51 @@ test('bill without native award records history with explicit zero and no promis
   const response=await staffClaim();expect(response.status).toBe(201);
   expect(response.body).toMatchObject({awardedPoints:0,pointsStatus:'not_recorded_by_ada',pointsCredited:false});
   expect(forbiddenWrites()).toEqual([]);
+});
+
+test('installed POS can save a paid sale with removed/re-added medicine, without creating an Ada award',async()=>{
+  state.events=[];state.nativeReceipt=null;
+  const payload={receiptNo:receipt,branchCode:'005',memberId:id,totalAmount:175,receiptTotalAmount:175,
+    receiptDiscount:0,posCode:'001',soldAt:'2026-11-03T17:50:58+07:00',items:saleWithItemVoid()};
+  const send=(body=payload)=>request(app()).post('/loyalty/claims').set('Authorization','Bearer staff-fixture').send(body);
+  const response=await send();expect(response.status).toBe(201);
+  expect(response.body).toMatchObject({eligibleAmount:175,awardedPoints:0,historyRecorded:true,pointsCredited:false});
+  expect(state.lines).toHaveLength(2);
+  expect(state.lines.map(p=>({sku:p[2],qty:p[4],net:p[6]}))).toEqual([
+    {sku:'SALINE-FIXTURE',qty:2,net:90},{sku:'MEDICINE-FIXTURE',qty:1,net:85},
+  ]);
+  expect(state.claims[0].snapshot).toMatchObject({totalAmount:175,posCode:'001',
+    items:[{seq:3,unitName:'ขวด',qty:2},{seq:4,unitName:'ขวด',qty:1}],
+    lineAdjustments:{sourceItems:payload.items,pairs:[{originalSeq:1,voidSeq:2}]}});
+  const history=await request(app()).get(`/loyalty/${id}/purchase-history`).set('Authorization','Bearer staff-fixture');
+  expect(history.status).toBe(200);expect(history.body.purchases[0].items).toHaveLength(2);
+  expect(history.body.purchases[0]).not.toHaveProperty('lineAdjustments');
+  expect((await send()).status).toBe(409);
+  expect((await send({...payload,memberId:other})).status).toBe(409);
+  expect(state.claims).toHaveLength(1);expect(state.lines).toHaveLength(2);expect(forbiddenWrites()).toEqual([]);
+});
+
+test('valid item-removal lines retain the exact native award instead of calculating a new award',async()=>{
+  const response=await request(app()).post('/loyalty/claims').set('Authorization','Bearer staff-fixture').send({
+    receiptNo:receipt,branchCode:'005',memberId:id,totalAmount:175,items:saleWithItemVoid(),
+  });
+  expect(response.status).toBe(201);expect(response.body).toMatchObject({awardedPoints:3,pointsCredited:false});
+  expect(forbiddenWrites()).toEqual([]);
+});
+
+test('unknown negative/partial cancellation and inflated client total fail before opening a transaction',async()=>{
+  for(const change of [{qty:-1,lineTotal:-85},{productName:'Return fixture'},{lineTotal:-169}]) {
+    const items=saleWithItemVoid();items[1]={...items[1],...change};
+    const response=await request(app()).post('/loyalty/claims').set('Authorization','Bearer staff-fixture').send({
+      receiptNo:receipt,branchCode:'005',memberId:id,totalAmount:175,items,
+    });
+    expect(response.status).toBe(400);expect(response.body.code).toBe('INVALID_RECEIPT_VOID');
+  }
+  const inflated=await request(app()).post('/loyalty/claims').set('Authorization','Bearer staff-fixture').send({
+    receiptNo:receipt,branchCode:'005',memberId:id,totalAmount:345,items:saleWithItemVoid(),
+  });
+  expect(inflated.status).toBe(400);expect(calls.some(c=>c.text==='BEGIN')).toBe(false);
+  expect(state.claims).toHaveLength(0);expect(forbiddenWrites()).toEqual([]);
 });
 test.each(['staff-first','mobile-first','manual-first'])('shared ownership guard blocks duplicates across methods: %s',async order=>{
   const first=order==='staff-first'?await staffClaim():order==='mobile-first'?await mobileClaim():await manualClaim();

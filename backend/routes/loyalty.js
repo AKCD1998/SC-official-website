@@ -4,6 +4,7 @@ const { createId, generateMemberCode, hashOpaqueToken, normalizePhone, parseBear
 const { buildSourceEventKey } = require("../lib/sccrmCrm");
 const { getActivePromotions, quotePoints, resolveReceiptEligibleAmount, RECEIPT_POINTS_POLICY } = require('../lib/sccrmPromotions');
 const { buildReceiptSnapshot } = require('../lib/purchaseHistory');
+const { normalizeReceiptItems } = require('../lib/receiptLines');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
 const adaMirror = require('../lib/adaMemberMirror');
 const memberCodeAliases = require('../lib/memberCodeAliases');
@@ -811,20 +812,22 @@ router.post("/claims", requireStaff, async (req, res) => {
           const memberId = String(req.body?.memberId || "").trim();
           const cashierStaffCode = String(req.body?.cashierStaffCode || "").trim() || null;
           const soldAt = req.body?.soldAt || null;
-          const items = req.body?.items;
+          const rawItems = req.body?.items;
           const reportedTotalAmount = Number(req.body?.totalAmount);
           const previewPoints = req.body?.previewPoints != null ? Number(req.body.previewPoints) : null;
 
       if (!receiptNo) return res.status(400).json({ message: "receiptNo is required." });
           if (!branchCode) return res.status(400).json({ message: "branchCode is required." });
           if (!memberId) return res.status(400).json({ message: "memberId is required." });
-          if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ message: "Receipt items are required." });
+          if (!Array.isArray(rawItems) || rawItems.length === 0) return res.status(400).json({ message: "Receipt items are required." });
           if (!Number.isFinite(reportedTotalAmount) || reportedTotalAmount < 0) return res.status(400).json({ message: "totalAmount must be a non-negative number." });
 
+      const { items, lineAdjustments } = normalizeReceiptItems(rawItems);
       const eligible = resolveReceiptEligibleAmount(items, reportedTotalAmount);
       const totalAmount = eligible;
       const adaMode = adaPoints.enabled();
       const snapshot={...buildReceiptSnapshot(req.body,items),pointsPolicy:adaMode?'ada-native-recorded':RECEIPT_POINTS_POLICY,reportedEligibleAmount:reportedTotalAmount};
+      if (lineAdjustments) snapshot.lineAdjustments = lineAdjustments;
       if (adaMode) adaPointWorkflow.requireStaffBranch(req.staffDevice, branchCode);
       if (req.staffDevice.branch_code && normalizeDocRef(req.staffDevice.branch_code) !== normalizeDocRef(branchCode)) return res.status(403).json({ message: 'Receipt branch does not match staff device.' });
           const client = await pool.connect();

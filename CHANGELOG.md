@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-03 — Record paid Ada sales containing item-removal Void lines
+
+- Accept installed POS payloads containing an exact original/negative Void pair.
+  Cancel both lines and retain later re-added goods, SKU, units, quantity and sale
+  time; never discard negatives alone or treat returns as item removal.
+- Preserve whitelisted original lines and cancellation pairs in the private
+  receipt snapshot; customer history and sale mirrors contain actual purchases.
+- Reject unmatched, partial/unproven or all-cancelled receipts with a clear
+  reason. Keep Ada point authority, receipt ownership and duplicate locks intact.
+  No Ada database changes or POS installation is required for this server fix.
+
 ## 2026-11-03 — Automatic registration source from terminal QR
 
 - Serve one registration form through eight approved terminal referrals. Resolve
