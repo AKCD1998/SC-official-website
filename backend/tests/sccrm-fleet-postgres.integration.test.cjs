@@ -39,7 +39,7 @@ suite('fleet queue on a fresh, explicitly isolated PostgreSQL database',()=>{
  test('default disabled inventory shows every approved POS without inventing enrollment',async()=>{
   const r=await request(app).get('/admin/status').set('Authorization','Bearer '+admin);
   expect(r.status).toBe(200);expect(r.body.enabled).toBe(false);expect(r.body.devices).toHaveLength(8);
-  expect(r.body.devices.every(d=>!d.enrolled)).toBe(true);expect(JSON.stringify(r.body)).not.toMatch(/token_hash|secret-000|customer_sentinel/);
+  expect(r.body.devices.every(d=>!d.enrolled&&d.online===false)).toBe(true);expect(JSON.stringify(r.body)).not.toMatch(/token_hash|secret-000|customer_sentinel/);
  });
  test('ordinary polling never creates an update command',async()=>{
   await enable();for(let i=0;i<3;i++){const r=await poll();expect(r.status).toBe(200);expect(r.body.command).toBeNull();}
