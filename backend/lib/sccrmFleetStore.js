@@ -57,7 +57,7 @@ async function report(pool,staff,body){
 async function inventory(pool){
  const devices=(await pool.query(`SELECT n.node_id AS "nodeId",n.branch_code AS "branchCode",n.pos_code AS "posCode",n.hostname,
   d.version,d.binary_hash AS "binaryHash",d.readiness,d.last_seen_at AS "lastSeenAt",d.protocol,
-  (sd.revoked_at IS NULL AND d.staff_device_id IS NOT NULL) AS enrolled,(d.last_seen_at>now()-interval '90 seconds') AS online,
+  (sd.revoked_at IS NULL AND d.staff_device_id IS NOT NULL) AS enrolled,COALESCE(d.last_seen_at>now()-interval '90 seconds',false) AS online,
   j.id AS "jobId",j.state AS "jobState",j.release_version AS "targetVersion",j.result_code AS "resultCode",j.updated_at AS "jobUpdatedAt"
   FROM sccrm_fleet.nodes n LEFT JOIN sccrm_fleet.devices d ON d.node_id=n.node_id
   LEFT JOIN public.staff_devices sd ON sd.id=d.staff_device_id

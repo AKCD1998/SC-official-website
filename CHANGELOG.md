@@ -9,6 +9,8 @@
   executable hash before reporting success. No customer, Ada, point or purchase
   records participate in this queue.
 - Add isolated PostgreSQL protocol/security checks and publisher signature checks.
+- Return a definite offline boolean for terminals awaiting first enrollment so
+  the native console can read the inventory before any terminal connects.
 
 ## 2026-11-03 — Keep member search and registration readable by older POS clients
 
