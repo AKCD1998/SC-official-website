@@ -27,6 +27,7 @@ describePostgres("public registration with disposable PostgreSQL", () => {
     const schema = fs.readFileSync(path.join(__dirname, "../migrations/202610200001_crm_counter_bootstrap.sql"), "utf8");
     await pool.query(schema);
     await pool.query(fs.readFileSync(path.join(__dirname, '../migrations/20261101042429_crm_member_registrations.sql'), 'utf8'));
+    await pool.query(fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261103084446_crm_terminal_referrals.sql'), 'utf8'));
     app = express();
     app.use("/join", createPublicMemberRegistration({ pool, maxRequests: 1000 }));
     log = jest.spyOn(console, "error").mockImplementation(() => {});

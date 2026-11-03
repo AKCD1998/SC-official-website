@@ -12,6 +12,7 @@ async function provisionMemberRegistrationReporting(client, { apply = false, act
     const ready = await client.query("SELECT to_regclass('public.crm_counter_schema_migrations') IS NOT NULL AND to_regclass('public.member_profiles') IS NOT NULL AS ready");
     if (!ready.rows[0].ready) throw Error('CRM_BOOTSTRAP_REQUIRED');
     await client.query(fs.readFileSync(path.join(__dirname, '../migrations', filename), 'utf8'));
+    await client.query(fs.readFileSync(path.join(__dirname, '../supabase/migrations/20261103084446_crm_terminal_referrals.sql'), 'utf8'));
     const privacy = await client.query(`SELECT count(*)::int AS count, bool_and(c.relrowsecurity) AS rls
       FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
       WHERE n.nspname='crm_reporting' AND c.relname IN ('member_registrations','registration_tracking') AND c.relkind='r'`);

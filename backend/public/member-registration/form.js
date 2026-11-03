@@ -5,7 +5,8 @@ const submit = document.getElementById("submit");
 const errorElement = document.getElementById("error");
 let submitting = false;
 const branch = new URLSearchParams(location.search).get('branch');
-if (['001', '003', '004', '005'].includes(branch)) form.elements.branchCode.value = branch;
+const referralCode = form.elements.referralCode?.value;
+if (!referralCode && ['001', '003', '004', '005'].includes(branch)) form.elements.branchCode.value = branch;
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -30,6 +31,7 @@ form.addEventListener("submit", async (event) => {
         phone: form.elements.phone.value.trim(),
         consent: form.elements.consent.checked,
         branchCode: form.elements.branchCode.value,
+        ...(referralCode ? { referralCode } : {}),
       }),
     });
     let result;

@@ -1,11 +1,29 @@
 const express = require("express");
 const path = require("node:path");
+const fs = require("node:fs");
 const { randomUUID } = require("node:crypto");
 const { CONSENT_VERSION, validatePublicRegistration } = require("../lib/publicMemberRegistration");
 const { recordMemberRegistration } = require("../lib/memberRegistrations");
+const { registrationReferral } = require('../lib/registrationReferrals');
 
 const publicDirectory = path.join(__dirname, "../public/member-registration");
 const received = { ok: true, message: "รับข้อมูลเรียบร้อยแล้ว" };
+const formTemplate = fs.readFileSync(path.join(publicDirectory, 'index.html'), 'utf8');
+const qrTemplate = fs.readFileSync(path.join(publicDirectory, 'qr.html'), 'utf8');
+
+function referralPage(req, res, printable = false) {
+  const origin = registrationReferral(req.params.referralCode);
+  if (!origin) return res.status(404).type('text').send('ไม่พบลิงก์สมัครสมาชิก กรุณาสแกน QR ที่ร้านอีกครั้ง');
+  const { referralCode, branchCode, posCode } = origin;
+  if (printable) return res.type('html').send(qrTemplate
+    .replace('/join/assets/qr.svg', `/join/assets/referrals/${referralCode}.png`)
+    .replace('sc-official-website.onrender.com/join</span>', `sc-official-website.onrender.com/join/r/${referralCode}</span>`)
+    .replace('<!-- local-preview-banner -->', `<p class="referral-label">สาขา ${branchCode} · เครื่อง ${posCode}</p>`));
+  return res.type('html').send(formTemplate
+    .replace('<!-- referral-fields -->', `<input type="hidden" name="referralCode" value="${referralCode}">`)
+    .replace(/<div class="field" id="branch-selection">[\s\S]*?<\/div>/,
+      `<p class="hint referral-label">สมัครที่สาขา ${branchCode}</p><input type="hidden" name="branchCode" value="${branchCode}">`));
+}
 
 // Bounded, process-local protection. This sub-app alone trusts the last reverse
 // proxy (Render); the shared backend's existing proxy/auth settings are unchanged.
@@ -50,7 +68,16 @@ function createPublicMemberRegistration({ pool, now = Date.now, maxRequests = 30
     next();
   });
 
-  app.get("/", (_req, res) => res.sendFile(path.join(publicDirectory, "index.html")));
+  app.get("/", (req, res) => {
+    if (Object.hasOwn(req.query, 'ref')) {
+      const referral = registrationReferral(req.query.ref);
+      if (!referral) return res.status(404).type('text').send('ไม่พบลิงก์สมัครสมาชิก กรุณาสแกน QR ที่ร้านอีกครั้ง');
+      return res.redirect(302, `/join/r/${referral.referralCode}`);
+    }
+    return res.sendFile(path.join(publicDirectory, "index.html"));
+  });
+  app.get('/r/:referralCode', (req, res) => referralPage(req, res));
+  app.get('/r/:referralCode/qr', (req, res) => referralPage(req, res, true));
   app.get("/qr", (_req, res) => res.sendFile(path.join(publicDirectory, "qr.html")));
   app.use("/assets", express.static(publicDirectory, { index: false, dotfiles: "deny" }));
   app.post("/submit", createRateLimiter({ now, maxRequests, windowMs }),
@@ -87,7 +114,8 @@ function createPublicMemberRegistration({ pool, now = Date.now, maxRequests = 30
              VALUES ($1, $2, $3, 'bronze', TRUE, $4, NOW(), NOW())`,
             [randomUUID(), userId, memberCode, "ลงทะเบียนด้วยตนเองผ่าน QR"],
           );
-          await recordMemberRegistration(client, { memberId: userId, source: 'qr', branchCode: validated.value.branchCode });
+          await recordMemberRegistration(client, { memberId: userId, source: 'qr', branchCode: validated.value.branchCode,
+            referralCode: validated.value.referralCode, posCode: validated.value.posCode });
           await client.query(
             `INSERT INTO crm_member_consents
               (id, user_id, consent_version, pdpa_general, pdpa_health, marketing_email, marketing_sms, consented_at)

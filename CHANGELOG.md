@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-03 — Automatic registration source from terminal QR
+
+- Serve one registration form through eight approved terminal referrals. Resolve
+  branch/POS on the server without a customer branch selector or trusting posted
+  branch values. Keep generic printed links compatible and reject unknown sources.
+- Record referral/POS alongside the existing atomic signup event; concurrent
+  retries and existing numbers preserve their original profile and recruitment.
+- Add nullable private reporting metadata only, with an origin constraint and
+  isolated PostgreSQL coverage. No Ada, point or historical signup changes.
+
 ## 2026-11-03 — Accept existing POS sessions for fleet commands
 
 - Verify native device tokens with the same namespaced HMAC helper used by the
