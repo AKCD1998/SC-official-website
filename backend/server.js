@@ -95,6 +95,7 @@ app.use(express.json({
   },
 }));
 app.use('/api/sccrm', sccrmRoutes);
+app.use('/api/sccrm-fleet', require('./routes/sccrmFleet').createFleetRouter());
 app.use('/internal', sccrmInternalRoutes);
 app.use('/api/members', loyaltyRoutes);
 app.use('/api/loyalty', loyaltyRoutes);

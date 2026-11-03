@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-03 — Administrator-requested SCCRM device updates
+
+- Add a private, paused-by-default operational queue for explicitly requested
+  updates. Device sessions receive only their own immutable signed release;
+  a separate hashed admin credential controls commands from SCProductDev.
+- Retain queued offline work, deduplicate retries and require the exact installed
+  executable hash before reporting success. No customer, Ada, point or purchase
+  records participate in this queue.
+- Add isolated PostgreSQL protocol/security checks and publisher signature checks.
+
 ## 2026-11-03 — Keep member search and registration readable by older POS clients
 
 - Omit the optional `currentPoints` number when Ada marks a balance unavailable.
