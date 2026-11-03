@@ -312,6 +312,37 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect(history.body.purchases.every(p=>p.branchCode!=='TEST_OTHER')).toBe(true);
   });
 
+  test('item-removal sale persists actual purchases, private original rows, and exactly one owner across retries', async () => {
+    const {saleWithItemVoid}=require('./fixtures/ada-item-void.cjs');
+    const auth='Bearer '+staffToken;
+    const claim={receiptNo:'SYNTHETIC-VOID-PAID',branchCode:'TEST_VOID',memberId,totalAmount:175,
+      receiptTotalAmount:175,receiptDiscount:0,posCode:'001',soldAt:'2026-11-03T17:50:58+07:00',items:saleWithItemVoid()};
+    const send=body=>request(app).post('/api/loyalty/claims').set('Authorization',auth).send(body);
+    const saved=await send(claim);expect(saved.status).toBe(201);
+    const history=await request(app).get(`/api/members/${memberId}/purchase-history`).set('Authorization',auth);
+    const purchase=history.body.purchases.find(p=>p.receiptNo===claim.receiptNo);
+    expect(purchase).toMatchObject({totalAmount:175,eligibleAmount:175,posCode:'001',
+      items:[{seq:3,productCode:'SALINE-FIXTURE',qty:2,unitName:'ขวด',lineTotal:90},
+        {seq:4,productCode:'MEDICINE-FIXTURE',qty:1,unitName:'ขวด',lineTotal:85}]});
+    expect(new Date(purchase.soldAt).toISOString()).toBe('2026-11-03T10:50:58.000Z');
+    expect(purchase).not.toHaveProperty('lineAdjustments');
+    const stored=await mockClient.query('SELECT receipt_snapshot FROM loyalty_claims WHERE id=$1',[saved.body.claimId]);
+    expect(stored.rows[0].receipt_snapshot.lineAdjustments.sourceItems).toHaveLength(4);
+    const lines=await mockClient.query('SELECT product_code,qty,line_total FROM loyalty_claim_items WHERE claim_id=$1 ORDER BY product_code',[saved.body.claimId]);
+    expect(lines.rows.map(r=>[r.product_code,Number(r.qty),Number(r.line_total)])).toEqual([
+      ['MEDICINE-FIXTURE',1,85],['SALINE-FIXTURE',2,90],
+    ]);
+    const mirror=await mockClient.query('SELECT l.product_code,l.qty FROM crm_pos_sale_line_events l JOIN crm_pos_sale_events s ON s.id=l.sale_event_id WHERE s.branch_code=$1 AND s.doc_no=$2 ORDER BY l.line_no',[claim.branchCode,claim.receiptNo]);
+    expect(mirror.rows.map(r=>[r.product_code,Number(r.qty)])).toEqual([['SALINE-FIXTURE',2],['MEDICINE-FIXTURE',1]]);
+    const before=await mockClient.query('SELECT count(*)::int AS n FROM point_ledger');
+    expect((await send(claim)).status).toBe(409);
+    const someoneElse=await mockClient.query('SELECT user_id FROM member_profiles WHERE user_id<>$1 LIMIT 1',[memberId]);
+    expect(someoneElse.rowCount).toBe(1);
+    expect((await send({...claim,memberId:someoneElse.rows[0].user_id})).status).toBe(409);
+    expect((await mockClient.query('SELECT count(*)::int AS n FROM loyalty_claims WHERE receipt_no=$1',[claim.receiptNo])).rows[0].n).toBe(1);
+    expect((await mockClient.query('SELECT count(*)::int AS n FROM point_ledger')).rows).toEqual(before.rows);
+  });
+
   test('keyset pagination reaches every bill beyond 100 without duplicates at tied timestamps and never crosses members', async () => {
     await mockClient.query(`INSERT INTO loyalty_claims(id,receipt_no,branch_code,sold_at,total_amount,awarded_points,user_id,created_at)
       SELECT 'PAGE-'||lpad(i::text,4,'0'),'PAGE-'||i,'TEST_PAGE','2027-01-01 00:00:00.123456+00',0,0,$1,'2027-01-01 00:00:00.654321+00' FROM generate_series(1,105) AS i`,[memberId]);
