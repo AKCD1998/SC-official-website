@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-03 — Keep member search and registration readable by older POS clients
+
+- Omit the optional `currentPoints` number when Ada marks a balance unavailable.
+  Preserve the member identity, source/status and `pointsAvailable=false`; do not
+  substitute zero or change stored scores. POS versions through 1.3.11 use a
+  non-nullable Int32 and rejected the entire member response on JSON null.
+- Cover search, profile/edit and successful registration responses. Available
+  native balances, normal preview responses, registration transactions and
+  duplicate-phone rejection keep their existing behavior.
+
 ## 2026-11-02 — Use Ada as the points authority
 
 - Add the opt-in `SC_OFFICIAL_ADA_POINTS_MODE=ada-primary` cutover. Staff and

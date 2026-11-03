@@ -197,7 +197,8 @@ test('staff member search/profile both publish the same exact Ada balance and ex
   }
   state.cacheState='pending';
   const unavailable=await request(app()).get('/loyalty/search?q=fixture').set('Authorization','Bearer staff-fixture');
-  expect(unavailable.body[0]).toMatchObject({currentPoints:null,balanceExact:null,pointsAvailable:false,pointsStatus:'source_unavailable'});
+  expect(unavailable.body[0]).toMatchObject({balanceExact:null,pointsAvailable:false,pointsStatus:'source_unavailable'});
+  expect(unavailable.body[0]).not.toHaveProperty('currentPoints');
   expect(calls.some(({text})=>/SUM\(pl.amount\)|FROM point_ledger/.test(text))).toBe(false);
 });
 test('mobile claim/detail reads use actual native award rather than the archived 807-point award',async()=>{
