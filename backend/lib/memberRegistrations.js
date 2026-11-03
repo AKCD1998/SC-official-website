@@ -9,7 +9,18 @@ function registrationBranch(value) {
 
 // Only explicit NEW-member writers call this, in their existing transaction.
 // Imports, legacy adoption, profile edits and code reassignment never call it.
-async function recordMemberRegistration(db, { memberId, source, branchCode, deviceId = null }) {
+async function recordMemberRegistration(db, { memberId, source, branchCode, deviceId = null, referralCode = null, posCode = null }) {
+  if (referralCode !== null) {
+    const referral = require('./registrationReferrals').registrationReferral(referralCode);
+    if (source !== 'qr' || !referral || referral.branchCode !== branchCode || referral.posCode !== posCode) {
+      throw new Error('INVALID_REGISTRATION_ORIGIN');
+    }
+    await db.query(`INSERT INTO crm_reporting.member_registrations
+      (member_id, source, branch_code, device_id, referral_code, pos_code)
+      VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (member_id) DO NOTHING`,
+    [memberId, source, branchCode, deviceId, referralCode, posCode]);
+    return;
+  }
   await db.query(`INSERT INTO crm_reporting.member_registrations
     (member_id, source, branch_code, device_id)
     VALUES ($1, $2, $3, $4) ON CONFLICT (member_id) DO NOTHING`,

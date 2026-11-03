@@ -34,6 +34,7 @@ select, input:not([type="checkbox"]) { display: block; width: 100%; min-height: 
 input::placeholder { color: var(--muted); font-size: 14px; }
 select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; border-color: var(--brand); }
 .hint { margin: 8px 0 0; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.referral-label { margin: 0 0 20px; color: var(--brand); text-align: center; }
 .consent-panel { margin: 4px 0 24px; padding: 16px; border-radius: 12px; background: var(--brand-soft); }
 .consent { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.9; cursor: pointer; }
 .consent input { flex-shrink: 0; accent-color: var(--brand); width: 19px; height: 19px; margin: 3px 0 0; }

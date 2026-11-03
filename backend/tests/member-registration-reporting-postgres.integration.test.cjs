@@ -69,6 +69,31 @@ describeDb('new-member reporting with real PostgreSQL and registration routes', 
     const { rows } = await mockPool.query("SELECT branch_code FROM crm_reporting.member_registrations WHERE source='qr' ORDER BY branch_code NULLS LAST");
     expect(rows).toEqual([{ branch_code: '005' }, { branch_code: null }]);
   });
+  test.each(Object.values(require('../lib/registrationReferrals').REFERRALS))('QR $referralCode records its server-resolved branch/POS once, even after concurrent retries', async origin => {
+    const index = Object.keys(require('../lib/registrationReferrals').REFERRALS).indexOf(origin.referralCode);
+    const qr = { firstName: 'Synthetic', lastName: 'Terminal', phone: `09900001${String(index).padStart(2, '0')}`,
+      consent: true, referralCode: origin.referralCode, branchCode: '999', posCode: '999' };
+    const send = body => request(app).post('/join/submit').send(body);
+    const replies = await Promise.all(Array.from({ length: 3 }, () => send(qr)));
+    expect(replies.every(r => r.status === 200)).toBe(true);
+    expect((await send({ ...qr, firstName: 'Changed', referralCode: '005-002' })).status).toBe(200);
+    const { rows } = await mockPool.query(`SELECT u.full_name, r.source,r.branch_code,r.pos_code,r.referral_code,
+      (SELECT count(*)::int FROM member_profiles p WHERE p.user_id=u.id) AS profiles
+      FROM users u JOIN crm_reporting.member_registrations r ON r.member_id=u.id WHERE u.phone_number=$1`, [qr.phone]);
+    expect(rows).toEqual([{ full_name: 'Synthetic Terminal', source: 'qr', branch_code: origin.branchCode,
+      pos_code: origin.posCode, referral_code: origin.referralCode, profiles: 1 }]);
+  });
+  test('database origin guard and transaction failure never leave partial or misattributed signup', async () => {
+    const id = ids(9999);
+    await expect(mockPool.query(`INSERT INTO crm_reporting.member_registrations(member_id,source,branch_code,referral_code,pos_code)
+      VALUES($1,'qr','001','005-002','002')`, [id])).rejects.toMatchObject({ code: '23514' });
+    await mockPool.query("ALTER TABLE crm_reporting.member_registrations ADD CONSTRAINT fixture_no_ref CHECK(referral_code IS NULL) NOT VALID");
+    try {
+      const qr = { firstName: 'Synthetic', lastName: 'Rollback', phone: '0990000199', consent: true, referralCode: '003-002' };
+      expect((await request(app).post('/join/submit').send(qr)).status).toBe(503);
+      expect((await mockPool.query('SELECT count(*)::int n FROM users WHERE phone_number=$1', [qr.phone])).rows[0].n).toBe(0);
+    } finally { await mockPool.query('ALTER TABLE crm_reporting.member_registrations DROP CONSTRAINT fixture_no_ref'); }
+  });
   test('event-storage failure rolls back the complete signup', async () => {
     await mockPool.query("ALTER TABLE crm_reporting.member_registrations ADD CONSTRAINT fixture_no_pos CHECK(source<>'pos') NOT VALID");
     try {

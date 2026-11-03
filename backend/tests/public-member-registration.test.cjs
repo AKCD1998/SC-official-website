@@ -2,6 +2,7 @@ const express = require("express");
 const request = require("supertest");
 const { createPublicMemberRegistration } = require("../routes/publicMemberRegistration");
 const { normalizeThaiPhone, validatePublicRegistration } = require("../lib/publicMemberRegistration");
+const { REFERRALS } = require('../lib/registrationReferrals');
 
 const valid = { firstName: "ทดสอบ", lastName: "ระบบสมาชิก", phone: "0990000001", consent: true };
 
@@ -13,6 +14,39 @@ function createApp(options = {}) {
 }
 
 describe("public QR member registration", () => {
+  test.each(Object.values(REFERRALS))('terminal $referralCode fixes the branch without a customer selector', async origin => {
+    const { app, pool } = createApp();
+    const page = await request(app).get(`/join/r/${origin.referralCode}?branch=005`);
+    expect(page.status).toBe(200);
+    expect(page.text).toContain(`name="referralCode" value="${origin.referralCode}"`);
+    expect(page.text).toContain(`name="branchCode" value="${origin.branchCode}"`);
+    expect(page.text).not.toContain('<select');
+    expect(page.headers['cache-control']).toContain('no-store');
+    const printable = await request(app).get(`/join/r/${origin.referralCode}/qr`);
+    expect(printable.status).toBe(200);
+    expect(printable.text).toContain(`/join/assets/referrals/${origin.referralCode}.png`);
+    expect((await request(app).get(`/join/assets/referrals/${origin.referralCode}.png`)).status).toBe(200);
+    const alias = await request(app).get(`/join?ref=${origin.referralCode}`);
+    expect(alias.status).toBe(302);
+    expect(alias.headers.location).toBe(`/join/r/${origin.referralCode}`);
+    expect(validatePublicRegistration({ ...valid, ...origin, branchCode: '999', posCode: '999' }).value)
+      .toEqual({ fullName: 'ทดสอบ ระบบสมาชิก', phone: valid.phone, ...origin });
+    expect(pool.connect).not.toHaveBeenCalled();
+  });
+
+  test.each(['999-001', '', '__proto__', ['003-001'], null, { code: '003-001' }])('rejects invalid referral %p before saving', async referralCode => {
+    const { app, pool } = createApp();
+    expect((await request(app).post('/join/submit').send({ ...valid, referralCode })).status).toBe(400);
+    expect(pool.connect).not.toHaveBeenCalled();
+  });
+
+  test('unknown or repeated query references never silently become unattributed', async () => {
+    const { app } = createApp();
+    expect((await request(app).get('/join/r/999-001')).status).toBe(404);
+    expect((await request(app).get('/join?ref=unknown')).status).toBe(404);
+    expect((await request(app).get('/join?ref=003-001&ref=005-002')).status).toBe(404);
+  });
+
   test.each([
     ["099 000 0001", "0990000001"], ["099-000-0001", "0990000001"],
     ["+66 99 000 0001", "0990000001"], ["0066990000001", "0990000001"],

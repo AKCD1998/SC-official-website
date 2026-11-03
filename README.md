@@ -4,6 +4,8 @@
 
 SCCRM operator-controlled branch updates: [provisioning, status and pause](docs/SCCRM_FLEET_UPDATES.md).
 
+Terminal registration QR: [automatic branch/POS source and rollout](docs/TERMINAL_REGISTRATION_QR.md).
+
 Customer self-service: [purchase history portal and email OTP](docs/MEMBER_PURCHASE_PORTAL.md)
 at `/my-purchases/`. Disabled by default until its scoped storage and mail delivery
 are configured; existing members keep their original identity and purchase history.
