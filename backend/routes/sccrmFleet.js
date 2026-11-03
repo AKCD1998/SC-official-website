@@ -4,6 +4,7 @@ const crypto=require('node:crypto');
 const defaultPool=require('../db');
 const releases=require('../lib/sccrmFleetRelease');
 const store=require('../lib/sccrmFleetStore');
+const {hashOpaqueToken}=require('../lib/sccrm');
 
 function createFleetRouter({pool=defaultPool,getRelease=releases.latest}={}){
  const router=express.Router();
@@ -23,7 +24,7 @@ function createFleetRouter({pool=defaultPool,getRelease=releases.latest}={}){
  async function device(req,res,next){
   const key=token(req);if(!key)return res.status(401).json({ok:false,code:'STAFF_DEVICE_AUTH_REQUIRED'});
   try{
-   req.fleetDevice=(await pool.query('SELECT id,device_id FROM public.staff_devices WHERE token_hash=$1 AND revoked_at IS NULL',[hash(key)])).rows[0];
+   req.fleetDevice=(await pool.query('SELECT id,device_id FROM public.staff_devices WHERE token_hash=$1 AND revoked_at IS NULL',[hashOpaqueToken(key)])).rows[0];
    if(!req.fleetDevice)return res.status(401).json({ok:false,code:'STAFF_DEVICE_AUTH_REQUIRED'});
    next();
   }catch(e){sendError(res,e);}
