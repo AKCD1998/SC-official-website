@@ -10,6 +10,7 @@ const memberCodeAliases = require('../lib/memberCodeAliases');
 const { recordMemberRegistration } = require('../lib/memberRegistrations');
 const adaPoints = require('../lib/adaPointAuthority');
 const adaPointWorkflow = require('../lib/adaPointWorkflow');
+const { memberResponse } = require('../lib/memberResponse');
 
 const router = express.Router();
 
@@ -600,7 +601,7 @@ async function mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledg
 }
 
 function buildMemberResponse(row, pharmacyMedRecordRow, capabilities = {}) {
-    return {
+    return memberResponse({
         id: row.id,
         name: row.full_name || "",
         displayName: row.full_name || "",
@@ -618,7 +619,7 @@ function buildMemberResponse(row, pharmacyMedRecordRow, capabilities = {}) {
         pharmacy_med_record: mapPharmacyMedRecordRow(pharmacyMedRecordRow),
         ...capabilities,
         ...(adaPoints.enabled() ? adaPoints.publicFields(row.ada_points) : {}),
-    };
+    });
 }
 
 // ── GET /api/members/search?q=... ─────────────────────────────────────────────
@@ -660,7 +661,7 @@ router.get("/search", requireStaff, async (req, res) => {
         const legacy = await adaMirror.searchLegacy(pool, q, capabilities);
         return res.json([...members,...legacy.map(row=>({...row,...capabilities,...(adaPoints.enabled()?{
           pointsAvailable:row.pointsAvailable,pointsSource:row.pointsSource,pointsStatus:row.pointsStatus,
-          pointsObservedAt:row.pointsObservedAt,balanceExact:row.balanceExact}:{} )}))].filter((row,index,all)=>all.findIndex(other=>other.id===row.id)===index).slice(0,20));
+          pointsObservedAt:row.pointsObservedAt,balanceExact:row.balanceExact}:{} )}))].filter((row,index,all)=>all.findIndex(other=>other.id===row.id)===index).slice(0,20).map(memberResponse));
     } catch (error) {
         return res.status(error.status || 500).json({ error: error.message || "Member search failed." });
     }
@@ -1000,7 +1001,7 @@ router.post("/", requireStaff, async (req, res) => {
 
       await client.query("COMMIT");
 
-      return res.status(201).json({
+      return res.status(201).json(memberResponse({
         ok:            true,
         id:            userId,
         name:          fullName,
@@ -1015,7 +1016,7 @@ router.post("/", requireStaff, async (req, res) => {
         pharmacy_med_record: capabilities.pharmacyMedRecordAvailable && pharmacyMedRecord !== undefined ? pharmacyMedRecord : null,
         ...capabilities,
         ...(adaPoints.enabled()?{currentPoints:null,...adaPoints.publicFields({available:false,reason:'unknown'})}:{}),
-      });
+      }));
     } catch (error) {
       await client.query("ROLLBACK");
       throw error;
