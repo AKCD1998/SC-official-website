@@ -169,15 +169,39 @@ async function readSalesSourceBuffer(buffer, {
   if (path.extname(sourceFilename).toLowerCase() === '.zip') {
     return readOrdersArchive(buffer, { shopCode, observedAt, sourceFilename, sourceSha256: computedSha256 });
   }
-  const ExcelJS = require('exceljs');
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buffer);
-  const sheet = workbook.getWorksheet('orders');
-  if (!sheet) throw new Error('Original orders worksheet is required.');
-  const rows = [];
-  sheet.eachRow({ includeEmpty: true }, (row) => {
-    rows.push(Array.from({ length: sheet.columnCount }, (_, i) => row.getCell(i + 1).value));
+  // Native month-long exports can contain two large XLSX members. Avoid a
+  // document workbook's per-cell/style object graph and parse only orders.
+  // SheetJS also reads CSV/ODS; keep the original XLSX-only source contract.
+  const workbookNames = new Set();
+  unzipSync(new Uint8Array(buffer), { filter(file) { workbookNames.add(file.name); return false; } });
+  if (!workbookNames.has('[Content_Types].xml') || !workbookNames.has('xl/workbook.xml')) {
+    throw new Error('Original Orders XLSX workbook is required.');
+  }
+  const XLSX = require('xlsx');
+  const workbook = XLSX.read(buffer, {
+    type: 'buffer', dense: true, sheets: ['orders'], cellDates: true,
+    cellFormula: true, cellHTML: false, cellStyles: false,
   });
+  const sheet = workbook.Sheets.orders;
+  if (!sheet) throw new Error('Original orders worksheet is required.');
+  const rows = Array.from(sheet['!data'] || [], row => Array.from(row || [], cell => {
+    if (!cell) return null;
+    // Preserve the old strict rejection of structured/formula source values.
+    if (Object.hasOwn(cell, 'f')) return { formula: cell.f, result: cell.v };
+    if (cell.t === 'e') return { error: cell.v };
+    if (cell.l) return { text: cell.v, hyperlink: cell.l.Target };
+    if (cell.r && /<(?:[A-Za-z_][\w.-]*:)?r(?:\s|>)/u.test(cell.r)) return { richText: cell.r };
+    return cell.v ?? null;
+  }));
+  // ExcelJS resolves merged-cell values through their master cell. Retain that
+  // behavior and original row offsets without retaining the workbook model.
+  for (const range of sheet['!merges'] || []) {
+    const value = rows[range.s.r]?.[range.s.c] ?? null;
+    for (let r = range.s.r; r <= range.e.r; r += 1) {
+      while (rows.length <= r) rows.push([]);
+      for (let c = range.s.c; c <= range.e.c; c += 1) rows[r][c] = value;
+    }
+  }
   return parseSalesSourceRows(rows, {
     shopCode,
     observedAt,
