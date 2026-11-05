@@ -83,7 +83,7 @@ function resolveLegacyCopyProduct(shopCode, item) {
   const equivalent = rules.unitEquivalences.some(row => row.companySku === sku
     && row.sourceQuantityUnit === originalMatch?.quantityUnit && row.erpUnit === master.unit);
   if (!override && !equivalent && unit && unit !== master.unit) {
-    return { sku, reason: `หน่วยชุดขาย ${unit} ยังไม่ตรงกับหน่วย ERP ${master.unit}` };
+    return { sku, packUnitMismatch:true, reason: `หน่วยชุดขาย ${unit} ยังไม่ตรงกับหน่วย ERP ${master.unit}` };
   }
   return { sku, factor, unit: master.unit, name: master.name,
     authority: override?.authority || 'existing_verified_catalog', originalMatch,
@@ -92,6 +92,10 @@ function resolveLegacyCopyProduct(shopCode, item) {
 
 function resolveCopyProduct(shopCode,item,identityRecord) {
   const original=resolveLegacyCopyProduct(shopCode,item);
+  // A verified exact pack can express the same product in its POS base units.
+  // Identifier conflicts and explicit review holds never reach this branch.
+  if(original.packUnitMismatch)return copyIdentityHold(shopCode,item)
+    || resolveSupplementalCopyIdentity(shopCode,item,masters,original.sku) || original;
   // Existing supported copy lines and explicit financial/unit conflicts keep
   // their precedence. Canonical evidence only fills missing identity/pack data.
   if(!original.reason || !original.reason.startsWith('ยังจับคู่รหัส IC/SKU ไม่สำเร็จ'))return original;

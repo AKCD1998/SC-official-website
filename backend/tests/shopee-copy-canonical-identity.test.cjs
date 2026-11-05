@@ -72,3 +72,14 @@ test.each(rules.supplementalCopyIdentities.filter(r=>!r.components))('exact Sell
   barcode:r.evidence.sellerPackBarcode,sourceSku:r.companySku},masters)).toBeTruthy();
  expect(rules.rules.some(p=>p.productName===r.productName&&p.variant===r.variant)).toBe(false);
 });
+
+test('verified 2×50 pack converts only the exact same POS item and preserves other unit holds',()=>{
+ const rule=rules.supplementalCopyIdentities.find(r=>r.resolvesPackUnitMismatch);
+ const match={status:'matched',companySku:rule.companySku,quantityUnit:'pack'};
+ const source={name:rule.productName,variant:rule.variant,quantity:2,productMatch:match};
+ expect(resolveCopyProduct(shop,source)).toMatchObject({sku:'IC-001928',factor:100,unit:'ชิ้น'});
+ expect(resolveCopyProduct(shop,{...source,variant:'4 แพ๊ค'})).toMatchObject({packUnitMismatch:true});
+ expect(resolveCopyProduct(shop,{...source,sourceSku:'WRONG'}).reason).toBeTruthy();
+ expect(resolveCopyProduct(shop,{...source,productMatch:{...match,companySku:'IC-000024'}}).reason).toBeTruthy();
+ expect(resolveCopyProduct('dr-morepen',source)).toMatchObject({packUnitMismatch:true});
+});

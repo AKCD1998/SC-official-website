@@ -53,11 +53,13 @@ function resolveCopyIdentityEvidence(shopCode,item,record,masters) {
 
 // These exact accounting identities live alongside the existing copy rules.
 // Physical matchers read only rules/masters and never consume this supplement.
-function resolveSupplementalCopyIdentity(shopCode,item,masters) {
+function resolveSupplementalCopyIdentity(shopCode,item,masters,packUnitMismatchSku) {
   const matches=(rules.supplementalCopyIdentities || []).filter(r=>r.shopCode===shopCode
     && r.productName===item.name && r.variant===(item.variant || ''));
   if(matches.length!==1)return null;
   const r=matches[0],e=r.evidence,p=e?.pos,isBundle=Array.isArray(r.components);
+  if(packUnitMismatchSku && (r.resolvesPackUnitMismatch!==true || isBundle
+    || r.companySku!==packUnitMismatchSku || r.quantityPerSale<=1))return null;
   if(r.status!=='verified' || !e?.listingId || !e.variationId
     || !/^[a-f0-9]{64}$/.test(e.sellerSourceSha256 || '')
     || !/^[a-f0-9]{64}$/.test(e.posSourceSha256 || '')
