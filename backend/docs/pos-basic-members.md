@@ -1,5 +1,26 @@
 # POS basic membership against the existing Supabase database
 
+## Shared Ada contacts and medical editing — 2026-11-05
+
+An authenticated edit may keep an Ada contact's displayed phone when another
+separate account owns the same number. Under the existing per-member transaction
+lock, resending that unchanged number does not claim it in `users.phone_number`;
+the existing Ada directory/link remains its contact source. A genuinely changed
+number still uses the unique account constraint. No person/company merge, login
+transfer, Ada write or purchase reassignment occurs.
+
+The additive `supabase/migrations/20261105014604_member_pharmacy_records.sql`
+provisions the pre-existing medical API contract, enables RLS and revokes browser
+role access. It does not copy the separate `crm_member_health_records` data or
+rewrite members, purchases or points. Apply this scoped migration explicitly;
+do not run all legacy migrations. Roll back application code without dropping
+medical records. Keep medical values out of logs and rollout evidence.
+
+POS 1.3.20 fixes Thai Windows birth-date parsing/serialization. The popup returns
+its draft through **ใช้ข้อมูลนี้**; the parent member Save commits both together.
+Copy tests cover shared-number edits, readback/retry, changed-number collision
+rollback, distinct identities, unchanged Ada snapshots/history and RLS denial.
+
 SCCRMonPOS uses the same `users` and `member_profiles` identities as `/join` QR
 registration. No new database, table or migration is required for basic member
 creation, search, detail and editing.

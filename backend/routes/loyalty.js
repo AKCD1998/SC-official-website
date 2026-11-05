@@ -725,13 +725,20 @@ router.put("/:id", requireMemberAccess, async (req, res) => {
         if (values.full_name === "" || values.phone_number === "") {
             return res.status(400).json({ error: "name and phone must not be empty." });
         }
-        const entries = Object.entries(values).filter(([, value]) => value !== undefined);
-        const params = entries.map(([, value]) => value);
         const client = await pool.connect();
         let row, medicalRow;
         try {
             await client.query("BEGIN");
             await adaMirror.ensureLegacyMember(client,memberId);
+            if (adaMirror.enabled() && values.phone_number !== undefined) {
+                const current = await getMemberProfile(memberId, capabilities, client);
+                // Separate Ada contacts may intentionally share a contact number.
+                // Resending the displayed number must not claim it as a unique login phone.
+                // A changed number still goes through the existing unique constraint.
+                if (current && normalizeMemberPhone(current.phone) === values.phone_number) delete values.phone_number;
+            }
+            const entries = Object.entries(values).filter(([, value]) => value !== undefined);
+            const params = entries.map(([, value]) => value);
             if (entries.length) {
                 await client.query(`UPDATE users SET ${entries.map(([key], i) => `${key} = $${i + 1}`).join(", ")}
                     WHERE id = $${params.length + 1}::uuid`, [...params, memberId]);

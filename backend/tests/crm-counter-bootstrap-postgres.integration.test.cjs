@@ -343,6 +343,72 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect((await mockClient.query('SELECT count(*)::int AS n FROM point_ledger')).rows).toEqual(before.rows);
   });
 
+  test('separate Ada contacts sharing a phone can edit demographics and medical records without merging accounts', async () => {
+    const priorMirror = process.env.SC_OFFICIAL_ADA_SYNC_ENABLED;
+    const save = await mockPool.connect();
+    await save.query('BEGIN');
+    try {
+      await mockClient.query(fs.readFileSync(path.join(__dirname, '../sql/ada-member-mirror.sql'), 'utf8'));
+      const medicalSql = fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261105014604_member_pharmacy_records.sql'),'utf8');
+      await mockClient.query(medicalSql);
+      process.env.SC_OFFICIAL_ADA_SYNC_ENABLED = 'true';
+      const sharedPhone = member.phone;
+      const source = 'hq000/AdaAcc', code = 'AR004-TESTEDIT';
+      const inserted = await mockClient.query(`INSERT INTO ada_history.customers
+        (source_id,ada_code,name,phone,active,source_payload,payload_hash,source_snapshot)
+        VALUES($1,$2::varchar(20),'Separate personal fixture',$3,'1',jsonb_build_object('FTCstCode',$2::text),repeat('a',64),gen_random_uuid())
+        RETURNING directory_id`,[source,code,sharedPhone]);
+      const id = inserted.rows[0].directory_id;
+      await mockClient.query(`INSERT INTO ada_history.receipts
+        (source_id,receipt_key,branch_code,pos_code,doc_no,doc_type,customer_code,sale_date,grand_total,source_payload,payload_hash,source_snapshot)
+        VALUES($1,repeat('b',64),'004','001','SYNTHETIC-PERSON-HISTORY','1',$2,'2026-11-01',100,'{}',repeat('c',64),gen_random_uuid())`,[source,code]);
+      const historyBefore = (await mockClient.query('SELECT id,user_id,receipt_no FROM ada_history.purchase_claims WHERE user_id=$1',[id])).rows;
+      expect(historyBefore).toHaveLength(1);
+      const otherBefore = (await mockClient.query('SELECT to_jsonb(u) AS row FROM users u WHERE id=$1',[memberId])).rows;
+      const adaBefore = (await mockClient.query('SELECT to_jsonb(c) AS row FROM ada_history.customers c WHERE directory_id=$1',[id])).rows;
+      const ledgerBefore = (await mockClient.query('SELECT count(*)::int n FROM point_ledger')).rows;
+      const auth = 'Bearer '+staffToken;
+      const send = body => request(app).put(`/api/members/${id}`).set('Authorization',auth).send(body);
+      const payload = {name:'Personal fixture updated',phone:'+66 '+sharedPhone.slice(1),sex:'female',dob:'1991-05-20',
+        pharmacy_med_record:{weightKg:61.25,heightCm:168,hasDiabetes:true,drugAllergies:'Synthetic allergy',medicalHistory:'Synthetic history'}};
+      // Real unique users.phone_number index: the other account owns this number.
+      const updated = await send(payload);
+      expect(updated.status).toBe(200);
+      expect(updated.body).toMatchObject({id,displayName:payload.name,phone:sharedPhone,sex:'female',dob:'1991-05-20',
+        pharmacy_med_record:{weightKg:61.25,hasDiabetes:true,drugAllergies:'Synthetic allergy'}});
+      expect((await send(payload)).status).toBe(200);
+      const reopened = await request(app).get(`/api/members/${id}`).set('Authorization',auth);
+      expect(reopened.body).toMatchObject({id,phone:sharedPhone,sex:'female',dob:payload.dob,
+        pharmacy_med_record:{medicalHistory:'Synthetic history',weightKg:61.25}});
+      expect((await mockClient.query('SELECT phone_number FROM users WHERE id=$1',[id])).rows[0].phone_number).toBeNull();
+      expect((await mockClient.query('SELECT to_jsonb(u) AS row FROM users u WHERE id=$1',[memberId])).rows).toEqual(otherBefore);
+      expect((await mockClient.query('SELECT to_jsonb(c) AS row FROM ada_history.customers c WHERE directory_id=$1',[id])).rows).toEqual(adaBefore);
+      expect((await mockClient.query('SELECT count(*)::int n FROM point_ledger')).rows).toEqual(ledgerBefore);
+      expect((await mockClient.query('SELECT id,user_id,receipt_no FROM ada_history.purchase_claims WHERE user_id=$1',[id])).rows).toEqual(historyBefore);
+      expect((await mockClient.query('SELECT member_id FROM ada_history.member_links WHERE source_id=$1 AND ada_code=$2',[source,code])).rows).toEqual([{member_id:id}]);
+      // A genuinely new, unused phone may change; a later collision must roll back every field.
+      expect((await send({...payload,phone:'0990000088'})).status).toBe(200);
+      const conflict = await send({...payload,name:'Must not save',phone:sharedPhone,pharmacy_med_record:{weightKg:99}});
+      expect(conflict.status).toBe(409);
+      const afterConflict = await request(app).get(`/api/members/${id}`).set('Authorization',auth);
+      expect(afterConflict.body).toMatchObject({displayName:payload.name,phone:'0990000088',pharmacy_med_record:{weightKg:61.25}});
+      const search = await request(app).get('/api/members/search').query({q:payload.name}).set('Authorization',auth);
+      expect(search.body.filter(row=>row.id===id)).toHaveLength(1);
+      expect((await request(app).put(`/api/members/${id}`).send(payload)).status).toBe(401);
+      // Reapplying setup retains records; browser/Data API roles cannot read them.
+      await mockClient.query(medicalSql);
+      expect((await mockClient.query('SELECT count(*)::int n FROM member_pharmacy_med_records WHERE member_id=$1',[id])).rows[0].n).toBe(1);
+      await mockClient.query('GRANT SELECT ON public.member_pharmacy_med_records TO crm_counter_reader_ci');
+      await mockClient.query('SET LOCAL ROLE crm_counter_reader_ci');
+      try { expect((await mockClient.query('SELECT count(*)::int n FROM public.member_pharmacy_med_records')).rows[0].n).toBe(0); }
+      finally { await mockClient.query('RESET ROLE'); }
+    } finally {
+      if(priorMirror===undefined)delete process.env.SC_OFFICIAL_ADA_SYNC_ENABLED;
+      else process.env.SC_OFFICIAL_ADA_SYNC_ENABLED=priorMirror;
+      await save.query('ROLLBACK');
+    }
+  });
+
   test('keyset pagination reaches every bill beyond 100 without duplicates at tied timestamps and never crosses members', async () => {
     await mockClient.query(`INSERT INTO loyalty_claims(id,receipt_no,branch_code,sold_at,total_amount,awarded_points,user_id,created_at)
       SELECT 'PAGE-'||lpad(i::text,4,'0'),'PAGE-'||i,'TEST_PAGE','2027-01-01 00:00:00.123456+00',0,0,$1,'2027-01-01 00:00:00.654321+00' FROM generate_series(1,105) AS i`,[memberId]);
