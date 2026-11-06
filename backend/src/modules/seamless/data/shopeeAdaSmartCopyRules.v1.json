@@ -6767,7 +6767,7 @@
       "variationReusePeriods": [
         {
           "validFrom": "2026-11-01",
-          "validThrough": "2026-11-04",
+          "validThrough": "2026-11-05",
           "sellerAliasUnique": true,
           "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
           "prior": {
@@ -6782,6 +6782,15 @@
             "descriptionSourceRow": 375,
             "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
             "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 732,
+            "descriptionSourceRow": 391,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
           }
         }
       ]
@@ -6850,7 +6859,7 @@
       "variationReusePeriods": [
         {
           "validFrom": "2026-11-01",
-          "validThrough": "2026-11-04",
+          "validThrough": "2026-11-05",
           "sellerAliasUnique": true,
           "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
           "prior": {
@@ -6865,6 +6874,15 @@
             "descriptionSourceRow": 375,
             "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
             "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 736,
+            "descriptionSourceRow": 391,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
           }
         }
       ]
@@ -6964,7 +6982,7 @@
       "variationReusePeriods": [
         {
           "validFrom": "2026-11-01",
-          "validThrough": "2026-11-04",
+          "validThrough": "2026-11-05",
           "sellerAliasUnique": true,
           "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
           "prior": {
@@ -6979,6 +6997,15 @@
             "descriptionSourceRow": 375,
             "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
             "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 731,
+            "descriptionSourceRow": 391,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
           }
         }
       ]
@@ -7016,7 +7043,7 @@
       "variationReusePeriods": [
         {
           "validFrom": "2026-11-01",
-          "validThrough": "2026-11-04",
+          "validThrough": "2026-11-05",
           "sellerAliasUnique": true,
           "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
           "prior": {
@@ -7031,6 +7058,15 @@
             "descriptionSourceRow": 24,
             "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
             "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 44,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
           }
         }
       ]
@@ -7068,7 +7104,7 @@
       "variationReusePeriods": [
         {
           "validFrom": "2026-11-01",
-          "validThrough": "2026-11-04",
+          "validThrough": "2026-11-05",
           "sellerAliasUnique": true,
           "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
           "prior": {
@@ -7083,6 +7119,15 @@
             "descriptionSourceRow": 24,
             "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
             "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 46,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
           }
         }
       ]
@@ -7276,7 +7321,7 @@
       "variationReusePeriods": [
         {
           "validFrom": "2026-11-01",
-          "validThrough": "2026-11-04",
+          "validThrough": "2026-11-05",
           "sellerAliasUnique": true,
           "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
           "prior": {
@@ -7291,6 +7336,15 @@
             "descriptionSourceRow": 24,
             "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
             "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 45,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
           }
         }
       ]
@@ -7483,7 +7537,7 @@
       "variationReusePeriods": [
         {
           "validFrom": "2026-11-01",
-          "validThrough": "2026-11-04",
+          "validThrough": "2026-11-05",
           "sellerAliasUnique": true,
           "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
           "prior": {
@@ -7498,6 +7552,15 @@
             "descriptionSourceRow": 24,
             "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
             "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 43,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
           }
         }
       ]

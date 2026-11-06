@@ -1,18 +1,18 @@
 'use strict';
 
-// Offline only. Arguments are the captured cohort, canonical proof records,
-// pre-121 plan, verified 121 plan, and the exact native part-2 XLSX.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 const { readSalesSourceBuffer } = require('../src/modules/seamless/services/shopeeSalesSourceService');
 const { enrichShopeeOrderItems } = require('../src/modules/seamless/services/shopeeProductMatcher');
 const { buildAdaSmartCopyPlan } = require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
-const { buildCopyVariationMatcher, groupCopyVariationReviews } = require('../src/modules/seamless/services/shopeeCopyVariationMatcher');
+const { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationShadowResult } =
+  require('../src/modules/seamless/services/shopeeCopyVariationMatcher');
 
 const lineKey = (orderNumber, sourceRow) => JSON.stringify([orderNumber, sourceRow]);
 const signature = (sku, unit, factor) => JSON.stringify([sku,unit,factor]);
-const json = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+const json = file => JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/u,''));
 function allocations(plan) {
   const byLine = new Map();
   for (const row of plan.rows) for (const source of row.sources) {
@@ -26,101 +26,192 @@ function allocations(plan) {
   return byLine;
 }
 
-async function main(files) {
-  assert.equal(files.length, 5, 'Provide cohort, proof records, pre-121 plan, verified plan, native XLSX');
-  const [capture, proofs, before, golden] = files.slice(0,4).map(json);
-  const { filters, cohort, confirmed } = capture;
-  const { sourceFilename, sourceSha256, observedAt } = golden.sourceEvidence[0];
-  const source = await readSalesSourceBuffer(fs.readFileSync(path.resolve(files[4])), {
-    shopCode:filters.shopCode, sourceFilename, sourceSha256, observedAt:new Date(observedAt).toISOString(),
-  });
-  const raw = new Map(source.facts.map(order => [order.orderNumber, order]));
-  const orders = cohort.orders.map(order => {
-    const workbook = raw.get(order.orderNumber);
-    assert.equal(order.sourceSha256, source.sourceSha256);
-    assert.deepEqual(workbook.sourceRows, order.sourceRows);
+async function withWorkbookIdentities(capture, sources) {
+  const lineage = new Map(capture.cohort.orders.map(order => [order.sourceSha256,order]));
+  const workbooks = new Map();
+  for (const file of sources) {
+    const bytes = fs.readFileSync(file);
+    const sha = createHash('sha256').update(bytes).digest('hex');
+    const order = lineage.get(sha);
+    assert.ok(order && !workbooks.has(sha), 'Provide each original Order All XLSX part from the captured cohort once');
+    const parsed = await readSalesSourceBuffer(bytes, {
+      shopCode:capture.filters.shopCode, sourceFilename:order.sourceFilename,
+      sourceSha256:sha, observedAt:new Date(order.observedAt).toISOString(),
+    });
+    workbooks.set(sha,new Map(parsed.facts.map(fact => [fact.orderNumber,fact])));
+  }
+  assert.equal(workbooks.size,lineage.size,'Order All workbook coverage');
+  return capture.cohort.orders.map(order => {
+    const workbook = workbooks.get(order.sourceSha256).get(order.orderNumber);
+    assert.ok(workbook,'Order All order identity');
+    assert.equal(Date.parse(workbook.orderedAt),Date.parse(order.orderedAt));
+    assert.equal(Date.parse(workbook.paidAt || '') || null,Date.parse(order.paidAt || '') || null);
+    assert.deepEqual(workbook.sourceRows,order.sourceRows);
     const items = workbook.items.map(({ copySourceIdentity, ...item }, index) => {
       const saved = order.items[index];
-      for (const field of ['name','variant','quantity','unitPrice']) assert.equal(item[field],saved[field]);
-      return copySourceIdentity ? { ...saved, copySourceIdentity } : saved;
+      for (const field of ['name','variant','quantity','unitPrice']) assert.equal(item[field],saved[field],field);
+      return copySourceIdentity ? { ...saved,copySourceIdentity } : saved;
     });
-    return { ...order, items:enrichShopeeOrderItems(order.shopCode, items) };
+    return { ...order,items:enrichShopeeOrderItems(order.shopCode,items) };
   });
-  const candidate = buildCopyVariationMatcher();
-  const context = { ...cohort, copyIdentityEvidence:{ status:'available',records:proofs } };
-  const run = shadowProductResolver => buildAdaSmartCopyPlan(orders, confirmed, filters,
-    cohort.businessDateCorrections, cohort.lineFinancialEvidence, { ...context, shadowProductResolver });
-  const legacy = run();
-  assert.deepEqual(legacy.rows,golden.rows);
-  assert.deepEqual(legacy.dailyReconciliation,golden.dailyReconciliation);
-  assert.deepEqual(legacy.columns,golden.columns);
-  assert.equal(legacy.status,'ready');
-  const failed = new Set(before.issues.filter(i => i.productName).map(i => lineKey(i.orderNumber,i.sourceRow)));
-  assert.equal(failed.size,208);
-  const expected = allocations(golden);
-  const beforeSupported = allocations(before);
-  const decisions = new Map();
-  const previouslyPassingMatches = new Map();
-  const evidence = [];
-  let incorrect = 0;
-  for (const order of orders) order.items.forEach((item,index) => {
-    const key = lineKey(order.orderNumber,order.sourceRows[index]);
-    const decision = candidate.resolve(order.shopCode,item,order);
-    if (failed.has(key)) decisions.set(key,decision);
-    if (decision.status !== 'matched') {
-      if (failed.has(key)) evidence.push({ decision, orderNumber:order.orderNumber, productName:item.name, variant:item.variant });
-      return;
-    }
-    const { sku, unit, factor } = decision.product;
-    const exact = [...expected.get(key)].map(value => JSON.parse(value)[0]);
-    if (exact.length !== 1 || exact[0] !== signature(sku,unit,factor)) incorrect++;
-    if (!failed.has(key)) previouslyPassingMatches.set(key,decision.product);
-  });
-  assert.equal(decisions.size,failed.size);
-  assert.equal(incorrect,0);
-  const combined = run((_shop, _item, order, index) => {
-    const key = lineKey(order.orderNumber,order.sourceRows[index]);
-    return decisions.get(key)?.product || previouslyPassingMatches.get(key);
-  });
-  const isolated = run((_shop, _item, order, index) => {
-    const decision = decisions.get(lineKey(order.orderNumber,order.sourceRows[index]));
-    return decision && (decision.product || { reason:decision.reasonCode });
-  });
-  assert.deepEqual(allocations(combined),expected);
-  assert.deepEqual(combined.dailyReconciliation,golden.dailyReconciliation);
-  assert.deepEqual(combined.allocationPolicies,golden.allocationPolicies);
-  assert.deepEqual(combined.columns,golden.columns);
-  for (const [key, value] of beforeSupported) assert.deepEqual(expected.get(key),value);
-  assert.equal(combined.status,'ready');
-  assert.equal(isolated.status,'review_required');
-  assert.equal(isolated.columns,null);
-  const review = groupCopyVariationReviews(evidence);
-  const matched = [...decisions.values()].filter(d => d.status === 'matched');
-  assert.equal(matched.length,69);
-  assert.equal(review.reduce((sum,g) => sum+g.lineCount,0),139);
-  assert.equal(isolated.issues.filter(i => i.productName).length,139);
-  const exact121Lines = new Set(golden.rows.flatMap(row => row.sources)
-    .filter(source => source.authority === 'verified_seller_pos_copy_only')
-    .map(source => lineKey(source.orderNumber,source.sourceRow)));
-  assert.ok([...failed].every(key => exact121Lines.has(key)));
-  const examples = [...new Map(matched.map(d => [d.product.matchingProvenance.variationId,d.product])).values()]
-    .map(({ sku, unit, factor, matchingProvenance:p }) => ({ sku,unit,factor,variationId:p.variationId,method:p.method }));
-  console.log(JSON.stringify({ filters, fileSha256:source.sourceSha256, nativeVariationIdLines:orders
-    .flatMap(order => order.items).filter(item => item.copySourceIdentity?.variationId).length,
-    reviewedLines:failed.size, correctByNewRule:matched.length, heldWithout121Aliases:evidence.length,
-    matchedBy121Fallback:evidence.length, incorrect, reviewGroups:review.length,
-    priorPassingLinesUnchanged:beforeSupported.size, priorPassingAlsoMatchedByNewRule:previouslyPassingMatches.size,
-    allSourceLinesCompared:expected.size,
-    pre121Cents:before.totalCents, variationOnlyCents:isolated.totalCents,
-    combinedCents:combined.totalCents, businessInsightsCents:combined.targetCents,
-    daily:combined.dailyReconciliation.map(day => {
-      const partial = isolated.dailyReconciliation.find(row => row.date === day.date);
-      return { date:day.date, matchedCents:day.totalCents,targetCents:day.targetCents,
-        variationOnlyCents:partial.totalCents, status:day.status };
-    }), examples },null,2));
 }
 
-main(process.argv.slice(2)).catch(error => {
+function checkProspectiveEvidence(lines, decisions) {
+  const expected = new Map();
+  for (const line of lines) {
+    const key = lineKey(line.orderNumber,line.sourceRow);
+    const actual = decisions.get(key);
+    assert.ok(actual && line.sourceSha256 === actual.order.sourceSha256 && !expected.has(key), 'Verified line does not bind to one workbook row');
+    assert.ok(typeof line.evidenceRef === 'string' && line.evidenceRef.trim(), 'Independent evidence reference is required');
+    assert.ok(['matched','held','fallback'].includes(line.outcome), 'Unknown verified outcome');
+    expected.set(key,line);
+  }
+  assert.ok(expected.size,'Provide independently verified sample outcomes');
+  for (const [key, actual] of decisions) {
+    const line = expected.get(key);
+    const { decision } = actual;
+    if (!line && !selectCopyVariationShadowResult(decision)) continue;
+    assert.ok(line, 'Independent evidence is missing for a proposed match or hold');
+    const outcome = decision.status === 'matched' ? 'matched' : decision.inScope ? 'held' : 'fallback';
+    assert.equal(outcome,line.outcome,'Verified line outcome');
+    if (outcome === 'matched') {
+      const { sku,unit,factor } = decision.product;
+      assert.equal(signature(sku,unit,factor),signature(line.sku,line.unit,line.factor),'Verified SKU, POS unit and multiplier');
+    }
+    if (outcome === 'held') {
+      assert.ok(line.reasonCode,'A verified hold requires its expected reason');
+      assert.equal(decision.reasonCode,line.reasonCode,'Verified hold reason');
+    }
+  }
+  return expected.size;
+}
+
+async function runReplay({ capture, proofs, baseline, sources, before, verifiedLines, expectedCounts }) {
+  const { filters,cohort,confirmed } = capture;
+  assert.equal(filters.shopCode,'sc-drug-store');
+  for (const key of ['shopCode','startDate','endDate']) assert.equal(filters[key],baseline[key]);
+  assert.notEqual(Boolean(before),Boolean(verifiedLines),'Choose a historical benchmark or independently verified new lines');
+  if (!before) {
+    assert.equal(confirmed.status,'source_backed','The new cohort needs confirmed Business Insights');
+    assert.ok(Number.isSafeInteger(baseline.targetCents),'The new cohort needs a verified Business Insights target');
+  }
+  const orders = await withWorkbookIdentities(capture,sources);
+  const matcher = buildCopyVariationMatcher();
+  const context = { ...cohort,copyIdentityEvidence:{ status:baseline.copyIdentityReadStatus,records:proofs } };
+  const run = shadowProductResolver => buildAdaSmartCopyPlan(orders,confirmed,filters,
+    cohort.businessDateCorrections,cohort.lineFinancialEvidence,{ ...context,shadowProductResolver });
+  const legacy = run();
+  for (const field of ['rows','issues','dailyReconciliation','columns','status','targetCents','sourceLineCount']) {
+    assert.deepEqual(legacy[field],baseline[field],`Captured baseline ${field}`);
+  }
+  const failed = new Set(before?.issues.filter(i => i.productName).map(i => lineKey(i.orderNumber,i.sourceRow)));
+  const baselineAllocations = allocations(baseline);
+  // The copy plan uses paid/verified business dates. Only source rows that the
+  // baseline actually evaluated participate in the shadow comparison.
+  const inCohort = new Set([...baselineAllocations.keys(), ...baseline.issues
+    .filter(i => i.sourceRow && i.productName).map(i => lineKey(i.orderNumber,i.sourceRow))]);
+  const decisions = new Map();
+  let incorrect = 0;
+  let priorPassingAlsoMatchedByNewRule = 0;
+  for (const order of orders) order.items.forEach((item,index) => {
+    const key = lineKey(order.orderNumber,order.sourceRows[index]);
+    if (!inCohort.has(key)) return;
+    assert.ok(!decisions.has(key),'Ambiguous source line key');
+    const decision = matcher.resolve(order.shopCode,item,order);
+    decisions.set(key,{ decision,order,item });
+    if (!before || decision.status !== 'matched') return;
+    const { sku,unit,factor } = decision.product;
+    const exact = [...(baselineAllocations.get(key) || [])].map(value => JSON.parse(value)[0]);
+    if (exact.length !== 1 || exact[0] !== signature(sku,unit,factor)) incorrect++;
+    if (!failed.has(key)) priorPassingAlsoMatchedByNewRule++;
+  });
+  const verifiedCount = before ? 0 : checkProspectiveEvidence(verifiedLines,decisions);
+  assert.equal(decisions.size,baseline.sourceLineCount,'Shadow comparison must account for every source line');
+  assert.equal(incorrect,0,'Historical matches diverged from PR #121');
+  const shadow = (order,index) => decisions.get(lineKey(order.orderNumber,order.sourceRows[index]))?.decision;
+  const combined = run((_shop,_item,order,index) => selectCopyVariationShadowResult(shadow(order,index)));
+  const combinedAllocations = allocations(combined);
+  for (const [key,value] of baselineAllocations) {
+    if (selectCopyVariationShadowResult(decisions.get(key)?.decision)) continue;
+    assert.deepEqual(combinedAllocations.get(key),value,'Legacy fallback allocation changed');
+  }
+  for (const [key,{ decision }] of decisions) {
+    if (decision.status === 'review' && decision.inScope) {
+      assert.ok(!combinedAllocations.has(key),'A held line must not reach copy output');
+      assert.equal(combined.columns,null,'A held line must block copy columns');
+    }
+    if (decision.status === 'matched') {
+      const { sku,unit,factor } = decision.product;
+      const accepted = [...(combinedAllocations.get(key) || [])].map(value => JSON.parse(value)[0]);
+      assert.deepEqual(accepted,[signature(sku,unit,factor)],'Matched identity must be in the accounting output');
+    }
+  }
+  const isolated = before && run((_shop,_item,order,index) => {
+    const decision = shadow(order,index);
+    return selectCopyVariationShadowResult(decision)
+      || (decision && failed.has(lineKey(order.orderNumber,order.sourceRows[index])) ? { reason:decision.reasonCode } : null);
+  });
+  const reviewed = [...decisions].filter(([key]) => !before || failed.has(key));
+  const evidence = reviewed.filter(([key,x]) => x.decision.status === 'review'
+    && (before || x.decision.inScope || !combinedAllocations.has(key))).map(([,x]) => ({
+    decision:x.decision,orderNumber:x.order.orderNumber,productName:x.item.name,variant:x.item.variant,
+  }));
+  const review = groupCopyVariationReviews(evidence);
+  const matched = reviewed.filter(([,x]) => x.decision.status === 'matched');
+  const held = reviewed.filter(([,x]) => x.decision.status === 'review' && x.decision.inScope);
+  const fallback = reviewed.filter(([key,x]) => x.decision.status === 'review' && !x.decision.inScope && combinedAllocations.has(key));
+  const totals = { reviewedLines:reviewed.length,correctByNewRule:matched.length,heldInCombined:held.length,
+    legacyFallbackLines:fallback.length,unresolvedOutsidePilot:reviewed.length - matched.length - held.length - fallback.length,
+    reviewGroups:review.length,incorrect };
+  if (before) {
+    assert.equal(reviewed.length,failed.size);
+    for (const [key,value] of baselineAllocations) {
+      const decision = decisions.get(key)?.decision;
+      if (decision?.status === 'review' && decision.inScope) continue;
+      assert.deepEqual(combinedAllocations.get(key),value,'An accepted historical allocation changed');
+    }
+    assert.deepEqual(combined.allocationPolicies,baseline.allocationPolicies);
+    assert.equal(isolated.status,'review_required');
+    assert.equal(isolated.columns,null);
+  }
+  for (const [key,value] of Object.entries(expectedCounts || {})) assert.equal(totals[key],value,key);
+  const days = combined.dailyReconciliation || [{
+    date:filters.startDate,status:combined.status,totalCents:combined.totalCents,targetCents:combined.targetCents,
+  }];
+  if (!before) assert.ok(days.every(day => Number.isSafeInteger(day.targetCents)),'A confirmed Business Insights target is required for each day');
+  const hardReviews = [...decisions.values()].filter(x => x.decision.status === 'review' && x.decision.inScope);
+  const heldGroups = groupCopyVariationReviews(hardReviews.map(x => ({ decision:x.decision,
+    orderNumber:x.order.orderNumber,productName:x.item.name,variant:x.item.variant })));
+  const priorPassing = before && allocations(before);
+  const previouslyPassingHeld = before ? [...priorPassing.keys()].filter(key => !combinedAllocations.has(key)).length : null;
+  return { filters,nativeVariationIdLines:[...decisions.values()].filter(x => x.item.copySourceIdentity?.variationId).length,
+    ...totals,independentlyVerifiedSampleLines:verifiedCount,
+    ...(before ? { heldWithout121Aliases:evidence.length,previouslyPassingHeld,
+      priorPassingLinesUnchanged:priorPassing.size - previouslyPassingHeld,
+      priorPassingAlsoMatchedByNewRule,variationOnlyCents:isolated.totalCents } : {}),
+    hardHeldLines:hardReviews.length,
+    hardReviewGroups:heldGroups.map(({ productName,variant,lineCount,reasonCodes }) => ({ productName,variant,lineCount,reasonCodes })),
+    allSourceLinesCompared:decisions.size,combinedCents:combined.totalCents,businessInsightsCents:combined.targetCents,
+    copyReady:combined.status === 'ready',daily:days.map(day => ({
+      date:day.date,matchedCents:day.totalCents,targetCents:day.targetCents,status:day.status,
+    })) };
+}
+
+async function main(files) {
+  assert.equal(files.length,1,'Provide the read-only replay manifest JSON');
+  const manifest = json(files[0]);
+  const base = path.dirname(path.resolve(files[0]));
+  const read = file => json(path.resolve(base,file));
+  const result = await runReplay({ capture:read(manifest.capture),proofs:read(manifest.proofRecords),
+    baseline:read(manifest.baseline),sources:manifest.sources.map(file => path.resolve(base,file)),
+    before:manifest.before && read(manifest.before),verifiedLines:manifest.verifiedLines && read(manifest.verifiedLines),
+    expectedCounts:manifest.expectedCounts });
+  console.log(JSON.stringify(result,null,2));
+}
+
+if (require.main === module) main(process.argv.slice(2)).catch(error => {
   console.error(error.message.split('\n')[0]);
   process.exitCode = 1;
 });
+
+module.exports = { runReplay };

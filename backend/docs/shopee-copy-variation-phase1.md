@@ -1,56 +1,70 @@
 # SC Drug Store copy variation Phase 1
 
-The production copy endpoint continues to use the existing resolver. The Phase 1 matcher runs through the offline replay below. There is no activation switch in this PR.
+The existing copy endpoint keeps its resolver. Phase 1 runs through a read-only replay on this branch.
 
-## Evidence and review
+## Evidence and hold behavior
 
-- The SC Order All reader retains recognized SKU Reference No., Product/Item ID and Variation/Model ID columns in copy-only item metadata. Text keeps its leading zeros. Imprecise numeric identifiers and conflicting headers are flagged without rejecting the financial report. Existing snapshots and same-hash replays retain immutable item data.
-- The seven pilot entries extend the existing accounting registry. Each links the old verified exact rule to the Seller Centre export before and after the rename. The records capture the listing and variation IDs, SKU, GTIN, export hashes and row numbers, plus the approved POS unit and pack basis. Both export files were checked for exact alias uniqueness.
-- An order must carry the same SKU and identify one eligible Seller variation. If its variation ID is absent, the exact name and option must link to a certified unique Seller entry. Source SKU hits are candidate hints. The verified period uses the order creation date in Bangkok. Overlapping periods, contradictory source fields and pack evidence gaps produce grouped review decisions.
-- The pilot window is 1–4 November 2026. Coverage outside this window requires evidence for the applicable pack period. Established exact rules continue to handle other orders.
+- The SC Order All reader retains recognized SKU Reference No., Product/Item ID and Variation/Model ID columns in copy-only item metadata. Text keeps leading zeros. Imprecise numeric identifiers and contradictory columns are flagged without rejecting the financial report. Same-hash replays preserve immutable items.
+- The seven pilot options link the old verified exact rule to Seller Centre exports and POS 004 evidence. The verified period uses the order creation date in Bangkok. The initial 1–4 November evidence is now corroborated through 5 November for these seven options by the 6 November Seller Sales and Basic exports and a fresh read of POS 004.
+- The workbook needs the verified SKU, a certified Seller label for the applicable period, and agreement with any native IDs. Known exact pack counts and Seller option collisions are checked across the accounting registry, including entries outside the pilot. An unverified label with native IDs still needs pack evidence.
+- The combined replay keeps hard holds for conflicting identifiers, packs, ambiguous evidence, and unsupported periods of enrolled options. Only out-of-scope decisions may use the existing rule. A proven old exact identity with agreeing source evidence may still use its historical rule before the pilot period.
+- The Klean&Kare regression presents a verified 10-bottle carton label with the same SKU and the IDs of a single bottle. The combined plan holds it and withholds copy columns even though the money would otherwise balance. A second test does the same for a conflicting Order All SKU. Air-X synthetic tests keep 1 and 50 blisters distinct and use order creation time at a verified period boundary.
 
-## Read-only replay against PR #121
+## Replays from actual files
 
-The captured SC cohort contains 1,406 orders and 2,100 source product lines. The native Order All part had the SKU column and zero native variation IDs in the cohort. The 69 new matches therefore used the unique Seller evidence route. Native IDs and changing pack windows were exercised by tests.
+| Metric | Historical 1–4 Nov 2026 | New 5 Nov 2026 |
+|---|---:|---:|
+| Orders | 1,406 | 345 |
+| Source lines compared | 2,100 | 521 |
+| Correct pilot matches among the reviewed exceptions or new cohort | 69 of the original 208 | 19 |
+| PR #121 fallback among the original 208 or new cohort | 139 | 474 |
+| Earlier accepted lines now held for a source SKU conflict | 17 | 4 |
+| Existing unresolved lines outside the pilot | 0 | 24 |
+| Incorrect SKU, POS unit or pack factor among the verified matches | 0 | 0 |
+| Combined eligible subtotal | ฿417,579.00 | ฿93,235.00 |
+| Business Insights target | ฿420,071.00 | ฿104,563.00 |
+| Copy status | Review required | Review required |
 
-| Result for the 208 pre-121 exceptions | Source lines |
-|---|---:|
-| Correct with the new rule alone | 69 across 7 options |
-| Held without the PR #121 exact-name fallback | 139 across 46 review groups |
-| Resolved by the existing PR #121 exact-name fallback | 139 |
-| Wrong SKU, POS unit or multiplier | 0 |
+Historical replay preserves 1,875 of the 1,892 previously passing allocations. The other 17 are deliberate holds that were visible once the replay retained the workbook SKU. I-Herb 8 lozenges accounts for five lines, MEGA Lecithin 100 capsules for three and MEGA Lecithin 30 capsules for nine. Both the historical and new runs withhold the copy columns.
 
-The replay checks all 2,100 lines against the verified PR #121 allocations. It confirms that the 1,892 previously passing source lines retain their results, including 27 that the Phase 1 matcher independently matched. The combined run reproduces the exact copy columns, approved allocation policies, and source cents. The isolated run keeps the 139 held lines out of the ready subtotal and returns no copy columns.
+| Bangkok business date | Combined eligible subtotal | Business Insights |
+|---|---:|---:|
+| 1 Nov | ฿111,447.00 | ฿112,383.00 |
+| 2 Nov | ฿92,143.00 | ฿92,680.00 |
+| 3 Nov | ฿107,368.00 | ฿107,825.00 |
+| 4 Nov | ฿106,621.00 | ฿107,183.00 |
+| 5 Nov | ฿93,235.00 | ฿104,563.00 |
 
-| Bangkok business date | Phase 1 only plus previously passing | Combined | Business Insights |
-|---|---:|---:|---:|
-| 1 Nov | ฿109,595.00 | ฿112,383.00 | ฿112,383.00 |
-| 2 Nov | ฿90,027.00 | ฿92,680.00 | ฿92,680.00 |
-| 3 Nov | ฿102,432.00 | ฿107,825.00 | ฿107,825.00 |
-| 4 Nov | ฿103,172.00 | ฿107,183.00 | ฿107,183.00 |
-| Total | ฿405,226.00 | ฿420,071.00 | ฿420,071.00 |
+The 5 November workbook has zero native variation IDs in the selected cohort. All seven options were reconfirmed by identical SKU, GTIN, selected label and pack description in the 5 and 6 November Seller exports. The 19 order lines each match a unique Seller option and a verified POS base unit. A separate expected-results file binds those lines and the four SKU conflicts to the original workbook hash and row. The new holds are two I-Herb 8-lozenge lines with workbook SKU `IC-003652` against reviewed `IC-004806` and two MEGA Lecithin 30-capsule lines with `IC-000105` against `IC-003712`. Both conflicting pairs resolve to distinct active POS items. The 24 open lines already appear in the live baseline.
 
-## Before and after examples
+### Source fingerprints
 
-| Seller option | Before the rename | Current Order All label | New match |
-|---|---|---|---|
-| Klean&Kare dumbbell 1000 mL | `1000 มล. ดัมเบล` under the Klean&Kare-only listing title | `K&K 1000มล. ดัมเบล` under the combined saline title | Variation `396391334428`, SKU `630020295`, ×1 bottle |
-| Tylenol 500 | `ไทลินอล 500` under the older paracetamol listing title | Same option label under the expanded listing title | Variation `351510475163`, SKU `630010105`, ×1 blister |
-| Air-X orange, synthetic test | One blister and a case share the same SKU | Each verified option has its own identity | SKU `630010147`, ×1 or ×50 blisters according to the option |
+| Source | SHA-256 |
+|---|---|
+| Order All 1–4 Nov member | `098bd4c27ae6628754fa51d7d02d03710a3a034972f71e72bf7684167bef42c3` |
+| Order All 5 Nov member | `aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe` |
+| 6 Nov Seller Sales | `20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574` |
+| 6 Nov Seller Basic | `c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759` |
+| POS 004 reconfirmation | `59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6` |
 
-The changed-pack test uses the same variation with consecutive verified periods. A pre-cutover order keeps ×1 even if paid later. A new order in the second period uses ×50, and conflicting label or overlapping period evidence holds the line.
+## Reproduction with a new SC cohort
 
-## Reproduction
-
-Run from the backend package with the authorized local evidence from the November incident. The original workbook and private order captures are kept outside Git. The script checks the original XLSX against SHA-256 `098bd4c27ae6628754fa51d7d02d03710a3a034972f71e72bf7684167bef42c3` and emits aggregate results without writing to the database or AdaSmart.
+Run from the backend package with a private manifest. Paths resolve relative to the manifest.
 
 ```sh
-node scripts/replay-shopee-copy-variation-phase1.cjs \
-  /private/incident-20261105-context.json \
-  /private/incident-20261105-copy-proof-records.json \
-  /private/incident-20261105-sc-recent.json \
-  /private/incident-20261105-copy-plan-candidate.json \
-  /private/sources/Order.all.20261005_20261104_part_2_of_2.xlsx
+node scripts/replay-shopee-copy-variation-phase1.cjs /private/replay-manifest.json
 ```
 
-The fourth input is the candidate whose full row array matched the live PR #121 result after deployment.
+```json
+{
+  "capture": "copy-cohort-with-confirmed-bi.json",
+  "proofRecords": "canonical-copy-proofs.json",
+  "baseline": "captured-live-copy-plan.json",
+  "sources": ["original-order-all-part-1.xlsx", "original-order-all-part-2.xlsx"],
+  "verifiedLines": "independently-verified-lines.json"
+}
+```
+
+The workbook list includes one original XLSX member per hash in the captured cohort. The baseline can be ready or already require review. For a prospective run, `verifiedLines` contains one record per proposed match or hard hold, keyed by `orderNumber`, `sourceRow` and `sourceSha256`. It records `evidenceRef`, `outcome` and the expected `sku`, `unit`, `factor` for a match or `reasonCode` for a hold. An expected fallback may also be included. A missing verification, incorrect identity, incomplete source coverage or absent daily BI target makes the replay fail. Use `before` in place of `verifiedLines` for the historical pre-121 plan. `expectedCounts` is optional for either mode.
+
+Original workbooks and row-level captures stay outside Git. The replay emits aggregate results and review groups without writing to a database or AdaSmart.

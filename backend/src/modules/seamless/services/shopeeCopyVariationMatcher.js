@@ -5,12 +5,13 @@ const { localDate, validDate } = require('./shopeeCopyBusinessDate');
 const { normalizeIdentityUnit } = require('./shopee004IdentityRules');
 
 const SC = 'sc-drug-store';
-const VERSION = 'sc-copy-variation-phase1-v1';
+const VERSION = 'sc-copy-variation-phase1-v2';
 const id = value => typeof value === 'string' && /^\d{1,40}$/u.test(value);
 const hash = value => /^[a-f0-9]{64}$/u.test(value || '');
 const label = value => String(value ?? '').normalize('NFC').replace(/\s+/gu, ' ').trim();
 const aliasKey = (name, variant) => JSON.stringify([label(name), label(variant)]);
 const variantKey = e => JSON.stringify([e.listingId, e.variationId]);
+const covers = (period, date) => date && date >= period.validFrom && date <= period.validThrough;
 
 function append(index, key, value) {
   const values = index.get(key) || [];
@@ -27,19 +28,27 @@ function buildCopyVariationMatcher(registry = rules) {
   const aliases = new Map();
   const byVariation = new Map();
   const bySku = new Map();
+  const sellerLabels = new Map();
   const holds = new Set((registry.copyIdentityHolds || []).filter(row => row.shopCode === SC)
     .map(row => aliasKey(row.productName, row.variant)));
   for (const row of registry.supplementalCopyIdentities.filter(row => row.shopCode === SC)) {
     const e = row.evidence;
     if (!id(e?.listingId) || !id(e.variationId)) continue;
     // SKU matches are only hints, even for other verified exact-name rules.
-    if (row.status === 'verified' && row.companySku) append(bySku, row.companySku, row);
+    if (row.status === 'verified' && row.scope === 'accounting_copy_only') {
+      append(sellerLabels, aliasKey(row.productName, row.variant), row);
+      if (row.companySku) append(bySku, row.companySku, row);
+    }
     for (const period of row.variationReusePeriods || []) {
       const prior = period.prior;
       const anchors = exact.get(aliasKey(prior?.productName, prior?.variant)) || [];
       const anchor = anchors.length === 1 ? anchors[0] : null;
       const master = masters.get(anchor?.companySku);
       const pos = e.pos;
+      const fresh = period.reconfirmed;
+      const reconfirmed = !fresh || (validDate(fresh.observedDate) && fresh.observedDate >= period.validThrough
+        && [fresh.sellerSourceSha256,fresh.descriptionSourceSha256,fresh.posSourceSha256].every(hash)
+        && [fresh.sellerSourceRow,fresh.descriptionSourceRow].every(value => Number.isSafeInteger(value) && value > 1));
       const verified = Boolean(anchor?.authority && !anchor.components && !row.components
         && row.status === 'verified' && row.scope === 'accounting_copy_only'
         && anchor.companySku === row.companySku && row.companySku === e.sellerSku
@@ -54,7 +63,7 @@ function buildCopyVariationMatcher(registry = rules) {
         && [e.sellerSourceRow, e.descriptionSourceRow, prior?.sellerSourceRow, prior?.descriptionSourceRow]
           .every(value => Number.isSafeInteger(value) && value > 1)
         && validDate(period.validFrom) && validDate(period.validThrough)
-        && period.validFrom <= period.validThrough && period.packBasis && e.packBasis);
+        && period.validFrom <= period.validThrough && period.packBasis && e.packBasis && reconfirmed);
       const record = { row, period, anchor, master, verified };
       append(byVariation, e.variationId, record);
       if (period.sellerAliasUnique === true) append(aliases, aliasKey(row.productName, row.variant), record);
@@ -77,38 +86,79 @@ function buildCopyVariationMatcher(registry = rules) {
       reviewKey:JSON.stringify([SC, identity || [key, source?.listingId || '', source?.variationId || '', source?.sourceSku || '']]),
       candidates:hints });
     if (holds.has(key)) return review('existing_copy_identity_hold');
+    const date = localDate(order?.orderedAt);
+    const exactRules = exact.get(key) || [];
+    const sellers = (sellerLabels.get(key) || []).filter(row =>
+      !row.variationReusePeriods?.length || row.variationReusePeriods.some(period => covers(period,date)));
+    const known = [...exactRules, ...sellers];
     const identified = source?.variationId ? byVariation.get(source.variationId) || [] : named;
-    if (!identified.length && !named.length) return review('no_verified_variation_rule', null, false);
     const stableKeys = new Set(identified.map(r => variantKey(r.row.evidence)));
     const identity = stableKeys.size === 1 ? [...stableKeys][0] : null;
-    if (!source?.sourceSku || source.invalid || (source.listingId && !id(source.listingId))
+    if (source?.invalid) return review('missing_or_invalid_order_identity', identity);
+    if (!identified.length && !named.length) {
+      // An exact existing match can stay the fallback only when its own known
+      // Seller identifiers and SKU do not contradict the workbook.
+      if (known.some(row => row.companySku && source?.sourceSku && row.companySku !== source.sourceSku)
+        || sellers.some(row => (source?.listingId && source.listingId !== row.evidence.listingId)
+          || (source?.variationId && source.variationId !== row.evidence.variationId))) {
+        return review('order_variation_conflict');
+      }
+      return review('no_verified_variation_rule', null, false);
+    }
+    if (!source?.sourceSku || (source.listingId && !id(source.listingId))
       || (source.variationId && !id(source.variationId))) return review('missing_or_invalid_order_identity', identity);
 
-    const date = localDate(order?.orderedAt);
-    const active = identified.filter(r => date && date >= r.period.validFrom && date <= r.period.validThrough);
+    const active = identified.filter(r => covers(r.period,date));
     if (!identified.length) return review('order_variation_conflict');
-    if (!active.length) return review('outside_verified_pack_period', identity);
+    if (!active.length) {
+      const prior = identified.find(r => r.verified && date && date < r.period.validFrom
+        && key === aliasKey(r.anchor.productName,r.anchor.variant) && source.sourceSku === r.row.evidence.sellerSku
+        && (!source.listingId || source.listingId === r.row.evidence.listingId));
+      if (prior && stableKeys.size === 1 && exactRules.length === 1
+        && sellers.every(row => variantKey(row.evidence) === variantKey(prior.row.evidence))) {
+        return review('historical_exact_rule', identity, false);
+      }
+      return review('outside_verified_pack_period', identity);
+    }
     // Evaluate uniqueness before using SKU as corroboration. A SKU can be
     // shared by multiple offers and package sizes.
     if (active.length !== 1) return review('ambiguous_variation_or_pack_period', identity);
     const { row, period, anchor, master, verified } = active[0];
     const e = row.evidence;
     if (!verified) return review('seller_pos_pack_evidence_conflict', identity);
-    const namedActive = named.filter(r => date >= r.period.validFrom && date <= r.period.validThrough);
+    const namedActive = named.filter(r => covers(r.period,date));
     const conflictingLabel = (namedActive.length ? namedActive : named).some(r =>
-      variantKey(r.row.evidence) !== variantKey(e) || r.row.quantityPerSale !== row.quantityPerSale);
+      variantKey(r.row.evidence) !== variantKey(e) || r.row.companySku !== row.companySku
+      || r.row.quantityPerSale !== row.quantityPerSale);
+    const conflictingPack = known.some(other => other.components || other.companySku !== row.companySku
+      || other.quantityPerSale !== row.quantityPerSale
+      || (other.evidence?.pos && normalizeIdentityUnit(other.evidence.pos.smallUnit) !== normalizeIdentityUnit(master.unit)));
     if ((source.listingId && source.listingId !== e.listingId)
-      || conflictingLabel || source.sourceSku !== e.sellerSku) return review('order_variation_conflict', identity);
+      || conflictingLabel || conflictingPack || sellers.some(other => variantKey(other.evidence) !== variantKey(e))
+      || source.sourceSku !== e.sellerSku) return review('order_variation_conflict', identity);
+    // Even native IDs may be carried over when a listing is repacked. A new
+    // label needs Seller evidence for this offer and period before reuse.
+    if (!namedActive.some(r => r === active[0])) return review('unverified_order_pack_label', identity);
     return { status:'matched', product:{ sku:anchor.companySku, factor:anchor.quantityPerSale,
       unit:master.unit, name:master.name, authority:'verified_copy_variation_reuse',
       originalMatch:item.productMatch, matchingProvenance:{ version:VERSION,
         method:source.variationId ? 'order_variation_id' : 'unique_seller_alias',
         listingId:e.listingId, variationId:e.variationId, validFrom:period.validFrom, validThrough:period.validThrough,
         anchorProductName:anchor.productName, anchorVariant:anchor.variant,
-        sellerSourceSha256:e.sellerSourceSha256, posSourceSha256:e.posSourceSha256 } } };
+        sellerSourceSha256:e.sellerSourceSha256, posSourceSha256:e.posSourceSha256,
+        ...(period.reconfirmed ? { reconfirmed:period.reconfirmed } : {}) } } };
   }
 
   return { resolve };
+}
+
+function selectCopyVariationShadowResult(decision) {
+  if (decision?.status === 'matched') return decision.product;
+  if (decision?.status === 'review' && decision.inScope) {
+    return { reason:decision.reasonCode, matchingReview:decision };
+  }
+  // Only evidence that is out of scope can defer to the legacy resolver.
+  return null;
 }
 
 function groupCopyVariationReviews(entries) {
@@ -129,4 +179,4 @@ function groupCopyVariationReviews(entries) {
   }));
 }
 
-module.exports = { buildCopyVariationMatcher, groupCopyVariationReviews, VERSION };
+module.exports = { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationShadowResult, VERSION };
