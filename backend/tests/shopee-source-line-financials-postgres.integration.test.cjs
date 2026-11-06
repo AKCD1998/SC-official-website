@@ -24,16 +24,18 @@ describePostgres('source product financial components in PostgreSQL', () => {
   });
 
   test('same-hash replay fills a missing component array once and refuses changed allocation or identity', async () => {
-    const source = parseSalesSourceRows([Object.values(HEADERS), ...[
+    const source = parseSalesSourceRows([[...Object.values(HEADERS), 'SKU Reference No.', 'Item ID', 'Variation ID'], ...[
       { name: 'Synthetic spray', quantity: 1, unitPrice: 102, itemSubtotal: 102, shopeeProductDiscount: 1 },
       { name: 'Synthetic lozenge', quantity: 1, unitPrice: 19, itemSubtotal: 19, shopeeProductDiscount: 0 },
-    ].map(values => Object.keys(HEADERS).map(key => ({ orderNumber: '200101SRCFIN01', status: 'สำเร็จแล้ว',
+    ].map((values,index) => [...Object.keys(HEADERS).map(key => ({ orderNumber: '200101SRCFIN01', status: 'สำเร็จแล้ว',
       orderedAt: '2020-01-01 12:00', paidAt: '2020-01-01 12:01', completedAt: '-', variant: '',
-      voucherCodes: '-', sellerVoucher: 0, ...values })[key]))], {
+      voucherCodes: '-', sellerVoucher: 0, ...values })[key]), '00010' + index, '009', '0010' + index])], {
       shopCode: 'sc-drug-store', sourceFilename: 'Order.all.20200101_20200101.xlsx',
       sourceSha256: '8'.repeat(64), observedAt: '2020-01-02T00:00:00Z',
     });
-    const legacy = { ...source, facts: source.facts.map(({ lineFinancials, ...fact }) => fact) };
+    const legacy = { ...source, facts: source.facts.map(({ lineFinancials, items, ...fact }) => ({
+      ...fact, items:items.map(({ copySourceIdentity, ...item }) => item),
+    })) };
     const opts = { client, actor: 'synthetic-source-line-test', manageTransaction: false };
     const table = getTables().shopeeSalesOrderFacts;
     const read = async () => (await client.query(`SELECT * FROM ${table} WHERE source_sha256=$1`, [source.sourceSha256])).rows[0];
@@ -58,5 +60,18 @@ describePostgres('source product financial components in PostgreSQL', () => {
     ] }] };
     await expect(importSalesSources([wrongIdentity], opts)).rejects.toThrow('immutable order lineage');
     expect((await read()).source_line_components).toBeNull();
+
+    // A newly imported source retains the refs in order and cannot replay with
+    // a different identity. Use a different observation time for this export.
+    const fresh = { ...source, sourceSha256:'9'.repeat(64), observedAt:'2020-01-03T00:00:00.000Z' };
+    expect(await importSalesSources([fresh],opts)).toEqual({ imported:1,unchanged:0 });
+    const freshRow = async () => (await client.query(`SELECT items FROM ${table} WHERE source_sha256=$1`,[fresh.sourceSha256])).rows[0].items;
+    expect(await freshRow()).toEqual(source.facts[0].items);
+    expect(await importSalesSources([fresh],opts)).toEqual({ imported:0,unchanged:1 });
+    const facts = fresh.facts.map(fact => ({ ...fact, items:fact.items.map((item,index) => index ? item : {
+      ...item, copySourceIdentity:{ ...item.copySourceIdentity, variationId:'999' },
+    }) }));
+    await expect(importSalesSources([{ ...fresh, facts }],opts)).rejects.toThrow('immutable order lineage');
+    expect(await freshRow()).toEqual(source.facts[0].items);
   });
 });

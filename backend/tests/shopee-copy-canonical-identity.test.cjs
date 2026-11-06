@@ -61,7 +61,7 @@ test('monthly reader deduplicates items rather than applying the 25-order displa
  expect(await readCopyIdentityEvidence(tooMany,{enabled:true,identityStore})).toMatchObject({status:'unavailable',reasonCode:'COPY_IDENTITY_SCOPE_LIMIT'});
 });
 
-test.each(rules.supplementalCopyIdentities.filter(r=>!r.components))('exact Seller/POS copy evidence: $companySku / $variant',r=>{
+test.each(rules.supplementalCopyIdentities.filter(r=>!r.components && r.scope!=='accounting_shadow_only'))('exact Seller/POS copy evidence: $companySku / $variant',r=>{
  const source={name:r.productName,variant:r.variant,quantity:1,productMatch:{status:'unmapped'}};
  expect(resolveCopyProduct(shop,source)).toMatchObject({sku:r.companySku,factor:r.quantityPerSale,unit:r.evidence.pos.smallUnit});
  expect(resolveSupplementalCopyIdentity(shop,{...source,variant:`${source.variant} changed pack`},masters)).toBeNull();

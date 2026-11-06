@@ -15,6 +15,40 @@ const HEADERS = Object.freeze({
   completedAt: 'เวลาที่ทำการสั่งซื้อสำเร็จ',
 });
 
+const COPY_IDENTITY_HEADERS = {
+  sourceSku: ['เลขอ้างอิง SKU (SKU Reference No.)', 'SKU Reference No.', 'เลขอ้างอิง SKU'],
+  listingId: ['Product ID', 'Item ID', 'รหัสสินค้า', 'รหัสสินค้า (Product ID)', 'รหัสสินค้า (Item ID)'],
+  variationId: ['Variation ID', 'Model ID', 'รหัสตัวเลือก', 'รหัสตัวเลือก (Variation ID)', 'รหัสตัวเลือก (Model ID)'],
+};
+
+function copyIdentityColumns(headers) {
+  return Object.fromEntries(Object.entries(COPY_IDENTITY_HEADERS).map(([key, labels]) => [key,
+    headers.flatMap((header, index) => labels.some(label => label.toLowerCase() === header.toLowerCase()) ? [index] : []),
+  ]));
+}
+
+function readCopySourceIdentity(row, columns) {
+  const identity = {};
+  for (const [key, indices] of Object.entries(columns)) {
+    for (const index of indices) {
+      const cell = row[index];
+      if (cell == null || cell === '' || cell === '-') continue;
+      // Excel numbers with over 15 digits can already be rounded. Preserve
+      // longer references only when the workbook supplies actual text.
+      const value = typeof cell === 'string' ? cell.trim()
+        : Number.isSafeInteger(cell) && cell >= 0 && cell < 1e15 ? String(cell) : null;
+      if (value === '' || value === '-') continue;
+      const pattern = key === 'sourceSku' ? /^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/u : /^\d{1,40}$/u;
+      if (!value || !pattern.test(value) || (identity[key] && identity[key] !== value)) {
+        identity.invalid = true;
+      } else {
+        identity[key] = value;
+      }
+    }
+  }
+  return Object.keys(identity).length ? identity : null;
+}
+
 function text(value) {
   if (value && typeof value === 'object') throw new Error('Formula/rich-text source cells are not supported.');
   // NFKC decomposes Thai sara-am (ำ), so use NFC for exact Thai labels.
@@ -95,6 +129,7 @@ function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, ob
     if (indices.length !== 1) throw new Error(`Missing/duplicate header: ${header}`);
     return [key, indices[0]];
   }));
+  const identityColumns = shopCode === 'sc-drug-store' ? copyIdentityColumns(headers) : null;
   const orders = new Map();
   rows.slice(1).forEach((row, index) => {
     if (row.every((value) => value === null || value === undefined || value === '')) return;
@@ -142,7 +177,8 @@ function parseSalesSourceRows(rows, { shopCode, sourceFilename, sourceSha256, ob
     if (!safeItem || safeItem.name !== item.name || safeItem.variant !== item.variant || order.items.length >= 100) {
       throw new Error(`Source product fields exceed the privacy/size contract: ${id}`);
     }
-    order.items.push(safeItem);
+    const copySourceIdentity = identityColumns && readCopySourceIdentity(row, identityColumns);
+    order.items.push(copySourceIdentity ? { ...safeItem, copySourceIdentity } : safeItem);
     // These are already separate source cells. Retaining them avoids losing
     // attribution when several products share one order; no allocation is made.
     order.lineFinancials.push({ netSale: lineNetCents / 100, shopeeProductDiscount: lineDiscountCents / 100 });

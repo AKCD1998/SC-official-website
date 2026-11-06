@@ -56,7 +56,14 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
                OR (f.voucher_codes IS NOT NULL AND f.voucher_codes IS DISTINCT FROM item.voucher_codes)
                OR (item.source_line_components IS NOT NULL AND (
                  (f.source_line_components IS NOT NULL AND f.source_line_components IS DISTINCT FROM item.source_line_components)
-                 OR f.items IS DISTINCT FROM item.items
+                 OR (f.items IS DISTINCT FROM item.items AND EXISTS (
+                   SELECT 1
+                   FROM jsonb_array_elements(f.items) WITH ORDINALITY AS saved(value, line)
+                   FULL JOIN jsonb_array_elements(item.items) WITH ORDINALITY AS incoming(value, line) USING (line)
+                   WHERE (saved.value - 'copySourceIdentity') IS DISTINCT FROM (incoming.value - 'copySourceIdentity')
+                      OR (saved.value ? 'copySourceIdentity' AND
+                          saved.value->'copySourceIdentity' IS DISTINCT FROM incoming.value->'copySourceIdentity')
+                 ))
                  OR f.source_rows IS DISTINCT FROM item.source_rows
                  OR f.item_subtotal IS DISTINCT FROM item.item_subtotal
                  OR f.seller_voucher IS DISTINCT FROM item.seller_voucher
@@ -70,6 +77,8 @@ async function importSalesSources(sources, { client, actor, manageTransaction = 
           // Migrations 021/022/031 introduced these fields after earlier source
           // imports. Same-hash replay may fill only NULL lineage columns from
           // the exact same immutable workbook; it never changes existing values.
+          // Older rows may lack copy-only identity metadata. Keep their item
+          // JSON immutable even when the new reader can see those columns.
           await client.query(`
             UPDATE ${tables.shopeeSalesOrderFacts} f
             SET paid_at = COALESCE(f.paid_at, item.paid_at),

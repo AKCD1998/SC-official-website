@@ -225,7 +225,10 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
       if (!Number.isSafeInteger(item.quantity) || item.quantity < 1) {
         addIssue('จำนวนสินค้าในไฟล์ไม่ถูกต้อง', order, item, index); return;
       }
-      const product = resolveCopyProduct(shopCode, item,copyIdentities.get(copyIdentityKey(shopCode,item)));
+      const legacyProduct = resolveCopyProduct(shopCode, item,copyIdentities.get(copyIdentityKey(shopCode,item)));
+      // Only an explicit read-only replay supplies a shadow resolver. The
+      // endpoint continues using the existing accounting copy matcher.
+      const product = context.shadowProductResolver?.(shopCode, item, order, index, legacyProduct) || legacyProduct;
       const bundle = product.components && bundleAllocation(allocationPolicies, shopCode, item, product.components, money.amounts[index]);
       if (product.reason && !bundle) { addIssue(product.reason, order, item, index, product.sku, product.components, product.matchingReview); return; }
       if (bundle) usedPolicies.set(bundle.record.policyKey, policyReference(bundle.record));

@@ -6763,7 +6763,37 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-05",
+          "sellerAliasUnique": true,
+          "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
+          "prior": {
+            "listingId": "40083721832",
+            "variationId": "396391334428",
+            "sellerSku": "630020295",
+            "sellerPackBarcode": "8854060615344",
+            "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+            "variant": "1000 มล. ดัมเบล",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 688,
+            "descriptionSourceRow": 375,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 732,
+            "descriptionSourceRow": 391,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6825,7 +6855,37 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-05",
+          "sellerAliasUnique": true,
+          "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
+          "prior": {
+            "listingId": "40083721832",
+            "variationId": "396391334426",
+            "sellerSku": "630020296",
+            "sellerPackBarcode": "8854060615023",
+            "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+            "variant": "500 มล. ฝาแหลม",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 686,
+            "descriptionSourceRow": 375,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 736,
+            "descriptionSourceRow": 391,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6918,7 +6978,37 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-05",
+          "sellerAliasUnique": true,
+          "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
+          "prior": {
+            "listingId": "40083721832",
+            "variationId": "396391334427",
+            "sellerSku": "630020297",
+            "sellerPackBarcode": "8854060615030",
+            "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+            "variant": "1000 มล. ฝาแหลม",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 687,
+            "descriptionSourceRow": 375,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 731,
+            "descriptionSourceRow": 391,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6949,7 +7039,37 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-05",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "351510475163",
+            "sellerSku": "630010105",
+            "sellerPackBarcode": "8850007850229",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "ไทลินอล 500",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 42,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 44,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6980,7 +7100,37 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-05",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "366558915835",
+            "sellerSku": "IC-002039",
+            "sellerPackBarcode": "8855451003306",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "บาคามอล 500",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 44,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 46,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -7167,7 +7317,37 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-05",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "366558915834",
+            "sellerSku": "630010140",
+            "sellerPackBarcode": "8851473006233",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "ซาร่า เม็ดยาว",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 43,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 45,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -7353,7 +7533,37 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-05",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "366558915836",
+            "sellerSku": "IC-004238",
+            "sellerPackBarcode": "8856513009908",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "พาราแมน",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 45,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          },
+          "reconfirmed": {
+            "observedDate": "2026-11-06",
+            "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+            "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+            "sellerSourceRow": 43,
+            "descriptionSourceRow": 24,
+            "posSourceSha256": "59e6975af802b1d00a81430ae014d7ff6b8b92b19a399e1e0351a659c7d62cd6",
+            "posObservedAt": "2026-11-06T04:21:56.9477525Z"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -7849,6 +8059,1008 @@
           "smallFactor": 1,
           "active": 1
         }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "I-Herb ไอ-เฮิร์บ เม็ดอมสมุนไพร 8 เม็ด และยาอม OTC โอทีซี 18 เม็ด เลือกสูตรได้",
+      "variant": "เม็ดอม 8 เม็ด",
+      "companySku": "IC-003652",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "40483166601",
+        "variationId": "441302625673",
+        "sellerSku": "IC-003652",
+        "sellerPackBarcode": "8858923900264",
+        "sellerSourceRow": 709,
+        "descriptionSourceRow": 383,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "priorDescriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "priorSellerSourceRow": 662,
+        "priorDescriptionSourceRow": 367,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8858923900264",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "8 lozenges per standard single sachet. November Seller SKU and GTIN agree with POS and the image linked to the selected option. The older approved zip sachet is distinct.",
+        "sellerVariationImage": "https://down-th.img.susercontent.com/th-11134207-81ztk-mrbfi63jlgxwf4",
+        "pos": {
+          "companySku": "IC-003652",
+          "productName": "สามัญ ลูกอมสมุนไพร ไอเฮิร์บ สูตรปราศจากน้ำตาล 8 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "098bd4c27ae6628754fa51d7d02d03710a3a034972f71e72bf7684167bef42c3",
+            "rows": [
+              2476,
+              2796,
+              2820,
+              3055,
+              3192
+            ]
+          },
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4370,
+              4867
+            ]
+          }
+        ],
+        "previous": {
+          "companySku": "IC-004806",
+          "factor": 1,
+          "authority": "user_confirmed_pack_and_stockday_exact_identity_20260930"
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care Lecithin 1200 mg เลซิติน 1200 มก. ผลิตภัณฑ์เสริมอาหาร 30/100 แคปซูล",
+      "variant": "100 แคปซูล",
+      "companySku": "IC-000105",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "43684501657",
+        "variationId": "386519945394",
+        "sellerSku": "IC-003712",
+        "sellerPackBarcode": "8850769001662",
+        "sellerSourceRow": 641,
+        "descriptionSourceRow": 345,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "priorDescriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "priorSellerSourceRow": 609,
+        "priorDescriptionSourceRow": 332,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8850769001662",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "100 capsules in one bottle. Seller size and GTIN agree with POS 004. Seller and Order All SKU field IC-003712 points to the 30-capsule bottle.",
+        "pos": {
+          "companySku": "IC-000105",
+          "productName": "สามัญ เลซิตินเมกกะ 1200 มก 100 แคป",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "098bd4c27ae6628754fa51d7d02d03710a3a034972f71e72bf7684167bef42c3",
+            "rows": [
+              2482,
+              3909,
+              4207
+            ]
+          }
+        ],
+        "previous": {
+          "companySku": "IC-000105",
+          "factor": 1,
+          "authority": "stockday_verified_exact_identity_20260928"
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "MEGA We care Lecithin 1200 mg เลซิติน 1200 มก. ผลิตภัณฑ์เสริมอาหาร 30/100 แคปซูล",
+      "variant": "30 แคปซูล",
+      "companySku": "IC-003712",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "43684501657",
+        "variationId": "386519945393",
+        "sellerSku": "IC-000105",
+        "sellerPackBarcode": "8850769002010",
+        "sellerSourceRow": 642,
+        "descriptionSourceRow": 345,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+        "priorDescriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9",
+        "priorSellerSourceRow": 608,
+        "priorDescriptionSourceRow": 332,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8850769002010",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "30 capsules in one bottle. Seller size and GTIN agree with POS 004. Seller and Order All SKU field IC-000105 points to the 100-capsule bottle.",
+        "pos": {
+          "companySku": "IC-003712",
+          "productName": "สามัญ เลซิตินเมกกะ 1200 มก 30 แคปซูล",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "098bd4c27ae6628754fa51d7d02d03710a3a034972f71e72bf7684167bef42c3",
+            "rows": [
+              2526,
+              2539,
+              2603,
+              2996,
+              3185,
+              3399,
+              3535,
+              4143,
+              4155
+            ]
+          },
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4492,
+              4748
+            ]
+          }
+        ],
+        "previous": {
+          "companySku": "IC-003712",
+          "factor": 1,
+          "authority": "stockday_verified_exact_identity_20260928"
+        }
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พิมเสนน้ำตราโป๊ยเซียน ยกโหล 12 ขวด ขวดแก้ว 3 มล. สำลี 8 มล. ลูกกลิ้ง 5 มล.",
+      "variant": "ขวดแก้ว 12 ขวด",
+      "companySku": "630010159",
+      "quantityPerSale": 12,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "45071162477",
+        "variationId": "421694051458",
+        "sellerSku": "630010159",
+        "sellerPackBarcode": "8851447430101",
+        "sellerSourceRow": 596,
+        "descriptionSourceRow": 319,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 595,
+        "priorDescriptionSourceRow": 319,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8851447430101",
+          "level": "medium",
+          "factor": 12
+        },
+        "posPackFactor": 12,
+        "packBasis": "One dozen 3 mL flat glass bottles; POS uses one bottle.",
+        "pos": {
+          "companySku": "630010159",
+          "productName": "สามัญ พิมเสนน้ำโป๊ยเซียน ขวดแบน 3 มล",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4356,
+              4537,
+              4571
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมตราโป๊ยเซียน มาร์คทู 1.7 มล. 1 กล่อง 5 โหล 60 หลอด POY-SIAN Mark II",
+      "variant": "1 กล่อง 60 หลอด",
+      "companySku": "630010137",
+      "quantityPerSale": 60,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "53421043081",
+        "variationId": "366694185109",
+        "sellerSku": "630010137",
+        "sellerPackBarcode": "8851447010020",
+        "sellerSourceRow": 227,
+        "descriptionSourceRow": 125,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 227,
+        "priorDescriptionSourceRow": 125,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8851447010020",
+          "level": "large",
+          "factor": 60
+        },
+        "posPackFactor": 60,
+        "packBasis": "One case of five dozen 1.7 mL Mark II tubes; POS uses one tube.",
+        "pos": {
+          "companySku": "630010137",
+          "productName": "สามัญ ยาดมโป๊ยเซียน 1.7 มล.",
+          "smallUnit": "หลอด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4365,
+              4386,
+              4430,
+              4474
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "ตราเสือ",
+      "companySku": "IC-003000",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "42886503329",
+        "variationId": "381693868891",
+        "sellerSku": "IC-003000",
+        "sellerPackBarcode": "8888650438013",
+        "sellerSourceRow": 658,
+        "descriptionSourceRow": 352,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 657,
+        "priorDescriptionSourceRow": 352,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8888650438013",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "One selected Tiger inhaler tube.",
+        "pos": {
+          "companySku": "IC-003000",
+          "productName": "สามัญ ยาดมตราเสือ 1 หลอด",
+          "smallUnit": "หลอด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4390
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "แบล็คเคอร์ฯ 20 ซอง",
+      "companySku": "IC-004321",
+      "quantityPerSale": 20,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "40085294524",
+        "variationId": "263031796524",
+        "sellerSku": "IC-004321",
+        "sellerPackBarcode": "8852294032050",
+        "sellerSourceRow": 724,
+        "descriptionSourceRow": 389,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 727,
+        "priorDescriptionSourceRow": 389,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8852294032050",
+          "level": "medium",
+          "factor": 20
+        },
+        "posPackFactor": 20,
+        "packBasis": "Blackcurrant variant has 20 sachets of 10 lozenges; POS uses one sachet.",
+        "pos": {
+          "companySku": "IC-004321",
+          "productName": "สามัญ เกร๊ทเตอร์ มายเซพติค มายบาซินเม็ดอมซิงค์ พลัสลูทีนและบิลเบอร์รี่ กลิ่นแบล็คเคอร์แรนท์ 10 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4423
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "องุ่นมะนาว 20 ซอง",
+      "companySku": "IC-004322",
+      "quantityPerSale": 20,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "40085294524",
+        "variationId": "263031796525",
+        "sellerSku": "IC-004322",
+        "sellerPackBarcode": "8852294033057",
+        "sellerSourceRow": 721,
+        "descriptionSourceRow": 389,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 726,
+        "priorDescriptionSourceRow": 389,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8852294033057",
+          "level": "medium",
+          "factor": 20
+        },
+        "posPackFactor": 20,
+        "packBasis": "Grape-lime variant has 20 sachets of 10 lozenges; POS uses one sachet.",
+        "pos": {
+          "companySku": "IC-004322",
+          "productName": "สามัญ เม็ดอมซิงค์ พลัสวิตามินซีและโคคิวเทน กลิ่นองุ่น มะนาว 10 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4424
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "สตรอว์เบอร์ฯ 20 ซอง",
+      "companySku": "IC-005366",
+      "quantityPerSale": 20,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "40085294524",
+        "variationId": "263031796528",
+        "sellerSku": "IC-005366",
+        "sellerPackBarcode": "8852294034023",
+        "sellerSourceRow": 725,
+        "descriptionSourceRow": 389,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 729,
+        "priorDescriptionSourceRow": 389,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8852294034023",
+          "level": "medium",
+          "factor": 20
+        },
+        "posPackFactor": 20,
+        "packBasis": "Strawberry variant has 20 sachets of 10 lozenges; POS uses one sachet.",
+        "pos": {
+          "companySku": "IC-005366",
+          "productName": "สามัญ มายเซพติค มายบาซิน ซิงค์พลัสเบต้า กลูแคน กลิ่นสตรอว์เบอร์รี่ 10 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4425
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "ลิ้นจี่ 20 ซอง",
+      "companySku": "IC-005715",
+      "quantityPerSale": 20,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "40085294524",
+        "variationId": "263031796529",
+        "sellerSku": "IC-005715",
+        "sellerPackBarcode": "8852294037024",
+        "sellerSourceRow": 729,
+        "descriptionSourceRow": 389,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 721,
+        "priorDescriptionSourceRow": 389,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8852294037024",
+          "level": "medium",
+          "factor": 20
+        },
+        "posPackFactor": 20,
+        "packBasis": "Lychee variant has 20 sachets of 10 lozenges; POS uses one sachet.",
+        "pos": {
+          "companySku": "IC-005715",
+          "productName": "สามัญ เม็ดอมซิงค์ พลัส วิตามินซี กลิ่นลิ้นจี่ 10 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4426
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "ฟิลด์ กลิ่นส้ม",
+      "companySku": "IC-006128",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "42886503329",
+        "variationId": "381693868897",
+        "sellerSku": "IC-006128",
+        "sellerPackBarcode": "8850109273117",
+        "sellerSourceRow": 656,
+        "descriptionSourceRow": 352,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 655,
+        "priorDescriptionSourceRow": 352,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8850109273117",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "One selected Peppermint Field orange 2 mL tube.",
+        "pos": {
+          "companySku": "IC-006128",
+          "productName": "สามัญ ยาดมเป๊ปเปอร์มิ้นท์ ฟิลด์ กลิ่นส้ม 2 มล",
+          "smallUnit": "หลอด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4503
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "ฟิลด์ ดั้งเดิม",
+      "companySku": "630010138",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "42886503329",
+        "variationId": "381693868898",
+        "sellerSku": "630010138",
+        "sellerPackBarcode": "8850109073311",
+        "sellerSourceRow": 657,
+        "descriptionSourceRow": 352,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 656,
+        "priorDescriptionSourceRow": 352,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8850109073311",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "One selected Peppermint Field original 2 mL tube.",
+        "pos": {
+          "companySku": "630010138",
+          "productName": "สามัญ ยาดมเป๊ปเปอร์มิ้นท์ฟิลด์ 2 มล.",
+          "smallUnit": "หลอด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4504
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)",
+      "variant": "ออยเมนต์ 100 กรัม",
+      "companySku": "IC-004429",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "52564345285",
+        "variationId": "401660707860",
+        "sellerSku": "IC-004429",
+        "sellerPackBarcode": "4057599007718",
+        "sellerSourceRow": 265,
+        "descriptionSourceRow": 148,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 264,
+        "priorDescriptionSourceRow": 148,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "4057599007718",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "One selected Bepanthen ointment 100 g tube.",
+        "pos": {
+          "companySku": "IC-004429",
+          "productName": "สามัญ บีแพนเธน ออยเมนต์ 100 กรัม",
+          "smallUnit": "หลอด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4524
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาหอมเทพจิตร ตราห้าม้า ชนิดเม็ด ยกกล่อง 12 หรือ 24 หลอด Five Horse",
+      "variant": "ฟ้าเล็ก 24 หลอด",
+      "companySku": "630010067",
+      "quantityPerSale": 24,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "53871117210",
+        "variationId": "436695311243",
+        "sellerSku": "630010067",
+        "sellerPackBarcode": "8856570150032",
+        "sellerSourceRow": 209,
+        "descriptionSourceRow": 110,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 210,
+        "priorDescriptionSourceRow": 110,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8856570150032",
+          "level": "medium",
+          "factor": 24
+        },
+        "posPackFactor": 24,
+        "packBasis": "One blue Five Horse pack of 24 tubes, each with 30 tablets. POS uses one complete 30-tablet tube under its base unit piece.",
+        "pos": {
+          "companySku": "630010067",
+          "productName": "สามัญ ยาหอมเทพจิตร ตรา ห้าม้า 30 เม็ด",
+          "smallUnit": "ชิ้น",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4538,
+              4547
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "วาเป๊กซ์",
+      "companySku": "630010134",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "42886503329",
+        "variationId": "381693868893",
+        "sellerSku": "630010134",
+        "sellerPackBarcode": "8850172241419",
+        "sellerSourceRow": 660,
+        "descriptionSourceRow": 352,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 659,
+        "priorDescriptionSourceRow": 352,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8850172241419",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "One selected Vapex 2 mL tube.",
+        "pos": {
+          "companySku": "630010134",
+          "productName": "สามัญ ยาดมวาเป็กซ์ 2 มล.",
+          "smallUnit": "หลอด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4562
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. แบบแผง ไทลินอล ซาร่า บาคามอล พาราแมน ซีมอล เบลล่า พารา พาราแคพ",
+      "variant": "เบลล่า พารา",
+      "companySku": "IC-004545",
+      "quantityPerSale": 1,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "57567808462",
+        "variationId": "278065346141",
+        "sellerSku": "IC-004545",
+        "sellerPackBarcode": "8859564200805",
+        "sellerSourceRow": 42,
+        "descriptionSourceRow": 24,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 44,
+        "priorDescriptionSourceRow": 24,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8859564200805",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 1,
+        "packBasis": "One selected Bella Para 10-tablet blister.",
+        "pos": {
+          "companySku": "IC-004545",
+          "productName": "สามัญ เบลลา พารา 500 มก 10 เม็ด",
+          "smallUnit": "แผง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4617
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "พิมเสนน้ำตราโป๊ยเซียน ยกโหล 12 ขวด ขวดแก้ว 3 มล. สำลี 8 มล. ลูกกลิ้ง 5 มล.",
+      "variant": "สำลี 12 ขวด",
+      "companySku": "630010157",
+      "quantityPerSale": 12,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "45071162477",
+        "variationId": "421694051459",
+        "sellerSku": "630010157",
+        "sellerPackBarcode": "8851447430026",
+        "sellerSourceRow": 597,
+        "descriptionSourceRow": 319,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 596,
+        "priorDescriptionSourceRow": 319,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8851447430026",
+          "level": "medium",
+          "factor": 12
+        },
+        "posPackFactor": 12,
+        "packBasis": "One dozen 8 mL cotton bottles; POS uses one bottle.",
+        "pos": {
+          "companySku": "630010157",
+          "productName": "สามัญ พิมเสนน้ำโป๊ยเซียน สำลี 8 มล.",
+          "smallUnit": "ขวด",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4627
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "ซีมอล เซ็นทรัล 500 มก. ยาเม็ด 1 กล่อง 50 แผง รวม 500 เม็ด Cemol Central",
+      "variant": "1 กล่อง 50 แผง",
+      "companySku": "630010104",
+      "quantityPerSale": 50,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "44621141331",
+        "variationId": "391695027964",
+        "sellerSku": "630010104",
+        "sellerPackBarcode": "8852978010343",
+        "sellerSourceRow": 626,
+        "descriptionSourceRow": 337,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 626,
+        "priorDescriptionSourceRow": 337,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8852978010343",
+          "level": "medium",
+          "factor": 50
+        },
+        "posPackFactor": 50,
+        "packBasis": "One case of 50 Cemol blisters, 10 tablets per blister; POS uses one blister.",
+        "pos": {
+          "companySku": "630010104",
+          "productName": "สามัญ ซีมอลพาราเซตามอล 500 มก. 10 เม็ด",
+          "smallUnit": "แผง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4727,
+              4735,
+              4768
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด (30 เม็ด / 25 ซอง และ 1000 เม็ด 1 กระปุก) | Vitamin C Tablet",
+      "variant": "สตรอว์เบอร์รี่,25 ซอง",
+      "companySku": "IC-002485",
+      "quantityPerSale": 25,
+      "status": "verified",
+      "scope": "accounting_shadow_only",
+      "evidence": {
+        "listingId": "55662773608",
+        "variationId": "259349169782",
+        "sellerSku": "IC-002485",
+        "sellerPackBarcode": "8857121535858",
+        "sellerSourceRow": 145,
+        "descriptionSourceRow": 75,
+        "sellerSourceSha256": "20c1df048b498cef4fee8a71cce1a18bf859b621d72357e2c8c2dc60367b3574",
+        "descriptionSourceSha256": "c2f041c0e8ad38389e20528f5c8b24253130745f4f57ca6d453d871a234b7759",
+        "priorSellerSourceSha256": "9e66a5bb68481f580fcd5afd6e0ca098c54547e7b9d79f13c0d1daa3d6c3c930",
+        "priorDescriptionSourceSha256": "353b7d6540fd5638702e37f256ee95c001b85763ed3877b4e6384f69cf04a157",
+        "priorSellerSourceRow": 136,
+        "priorDescriptionSourceRow": 75,
+        "posSourceSha256": "5eca5d3c2529c99cbeefbe586c5cfb12e86e54e71e2c4ac05c5dd3c24fef1e22",
+        "posBarcodeSourceSha256": "fdda0e49b3b6f51cc87948b59a20699302054230c95a407f21e5cd9b4384a7a4",
+        "posObservedAt": "2026-11-06T04:31:22.1447393Z",
+        "posBarcode": {
+          "value": "8857121535858",
+          "level": "small",
+          "factor": 1
+        },
+        "posPackFactor": 25,
+        "packBasis": "Selected option explicitly sells 25 strawberry sachets. Seller lists the 30-tablet base sachet GTIN; POS confirms that base GTIN and a 25-piece pack level.",
+        "pos": {
+          "companySku": "IC-002485",
+          "productName": "สามัญ ไวต้าซี วิตามินซีกลิ่นสตอเบอรี่ 25 มก 30 เม็ด",
+          "smallUnit": "ซอง",
+          "smallFactor": 1,
+          "active": 1
+        }
+      },
+      "orderLineReview": {
+        "sources": [
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              4793
+            ]
+          }
+        ]
       }
     }
   ],

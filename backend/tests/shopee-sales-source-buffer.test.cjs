@@ -9,10 +9,10 @@ const {
   readConfirmedSalesSourceBuffer,
 } = require("../src/modules/seamless/services/shopeeConfirmedSalesService");
 
-async function ordersBuffer() {
+async function ordersBuffer(identityHeaders = [], identityValues = []) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("orders");
-  sheet.addRow(Object.values(ORDER_HEADERS));
+  sheet.addRow([...Object.values(ORDER_HEADERS), ...identityHeaders]);
   sheet.addRow([
     "TESTORDER001",
     "สำเร็จแล้ว",
@@ -27,6 +27,7 @@ async function ordersBuffer() {
     10,
     "SVC-1489610191827020",
     "2026-09-09 12:00",
+    ...identityValues,
   ]);
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }
@@ -75,6 +76,27 @@ test("buffer readers preserve caller-supplied original filenames and verify byte
     sourceFilename: "Order.all.20260908_20260908.xlsx",
     sourceSha256: "0".repeat(64),
   })).rejects.toThrow("SHA-256");
+});
+
+test("Order All supplies SC copy references as text and never treats corrupted metadata as proof", async () => {
+  const read = async (headers, values, shopCode = "sc-drug-store") => {
+    const bytes = await ordersBuffer(headers, values);
+    const source = await readSalesSourceBuffer(bytes, { shopCode, observedAt:"2026-09-09T06:00:00.000Z",
+      sourceFilename:"Order.all.20260908_20260908.xlsx" });
+    return source.facts[0].items[0];
+  };
+  const headers = ["เลขอ้างอิง SKU (SKU Reference No.)","Product ID","Model ID"];
+  expect(await read(headers,["000123", 40083721832, "00012345678901234567"])).toMatchObject({
+    copySourceIdentity:{ sourceSku:"000123",listingId:"40083721832",variationId:"00012345678901234567" },
+  });
+  expect(await read(headers,[630020295, null, null])).toMatchObject({ copySourceIdentity:{ sourceSku:"630020295" } });
+  expect(await read(headers,["IC-002039", 1234567890123456, null])).toMatchObject({ copySourceIdentity:{
+    sourceSku:"IC-002039", invalid:true,
+  } });
+  expect(await read([...headers,"Variation ID"],["IC-002039",1,2,3])).toMatchObject({ copySourceIdentity:{ invalid:true } });
+  expect(await read(headers,[{ formula:"1+1", result:2 },1,2])).toMatchObject({ copySourceIdentity:{ invalid:true } });
+  expect(await read(headers,["IC-002039",1,2],"dr-morepen")).not.toHaveProperty("copySourceIdentity");
+  expect(await read([],[])).not.toHaveProperty("copySourceIdentity");
 });
 
 module.exports = { confirmedBuffer, ordersBuffer };
