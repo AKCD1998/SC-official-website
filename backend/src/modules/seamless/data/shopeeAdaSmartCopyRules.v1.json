@@ -6763,7 +6763,28 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-04",
+          "sellerAliasUnique": true,
+          "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
+          "prior": {
+            "listingId": "40083721832",
+            "variationId": "396391334428",
+            "sellerSku": "630020295",
+            "sellerPackBarcode": "8854060615344",
+            "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+            "variant": "1000 มล. ดัมเบล",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 688,
+            "descriptionSourceRow": 375,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6825,7 +6846,28 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-04",
+          "sellerAliasUnique": true,
+          "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
+          "prior": {
+            "listingId": "40083721832",
+            "variationId": "396391334426",
+            "sellerSku": "630020296",
+            "sellerPackBarcode": "8854060615023",
+            "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+            "variant": "500 มล. ฝาแหลม",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 686,
+            "descriptionSourceRow": 375,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6918,7 +6960,28 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-04",
+          "sellerAliasUnique": true,
+          "packBasis": "Same selected Klean&Kare size and bottle shape before and after the rename. New Seller description says one bottle, and the prior exact rule and POS base confirm one bottle.",
+          "prior": {
+            "listingId": "40083721832",
+            "variationId": "396391334427",
+            "sellerSku": "630020297",
+            "sellerPackBarcode": "8854060615030",
+            "productName": "Klean&Kare น้ำเกลือล้างจมูก ล้างแผล NSS 0.9% หลายขนาด 100-1000 มล. ฝาแหลม/ดัมเบล",
+            "variant": "1000 มล. ฝาแหลม",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 687,
+            "descriptionSourceRow": 375,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6949,7 +7012,28 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-04",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "351510475163",
+            "sellerSku": "630010105",
+            "sellerPackBarcode": "8850007850229",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "ไทลินอล 500",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 42,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -6980,7 +7064,28 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-04",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "366558915835",
+            "sellerSku": "IC-002039",
+            "sellerPackBarcode": "8855451003306",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "บาคามอล 500",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 44,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -7167,7 +7272,28 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-04",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "366558915834",
+            "sellerSku": "630010140",
+            "sellerPackBarcode": "8851473006233",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "ซาร่า เม็ดยาว",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 43,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
@@ -7353,7 +7479,28 @@
           "smallFactor": 1,
           "active": 1
         }
-      }
+      },
+      "variationReusePeriods": [
+        {
+          "validFrom": "2026-11-01",
+          "validThrough": "2026-11-04",
+          "sellerAliasUnique": true,
+          "packBasis": "Seller descriptions before and after the rename both specify one selected blister. The SKU, GTIN and POS blister agree with the prior exact rule.",
+          "prior": {
+            "listingId": "57567808462",
+            "variationId": "366558915836",
+            "sellerSku": "IC-004238",
+            "sellerPackBarcode": "8856513009908",
+            "productName": "พาราเซตามอล 500 มก. ชนิดเม็ด ไทลินอล TYLENOL ซาร่า SARA บาคามอล BAKAMOL พาราแมน PARAMAN แบบแผง",
+            "variant": "พาราแมน",
+            "sellerAliasUnique": true,
+            "sellerSourceRow": 45,
+            "descriptionSourceRow": 24,
+            "sellerSourceSha256": "f41ba0fdf994f8ab71409829aef31c46d46f3f533b8500affa48eb80b87fc5e4",
+            "descriptionSourceSha256": "018a06e0886a86c3d6ef9c16239d45fa8e8ce80cf52b114e433b359d78cc40a9"
+          }
+        }
+      ]
     },
     {
       "shopCode": "sc-drug-store",
