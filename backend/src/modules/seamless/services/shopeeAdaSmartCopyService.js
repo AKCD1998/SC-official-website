@@ -8,6 +8,7 @@ const { resolveCopySellerVoucher } = require('./shopeeCopySellerVoucher');
 const { VERIFIED_COPY_MATCH_VERSION, resolveVerifiedCopyMatch, sourceIdentifierConflict } = require('./shopeeVerifiedCopyMatcher');
 const { datesInRange, summarizeConfirmedSales } = require('./shopeeConfirmedSalesService');
 const {copyIdentityKey,readCopyIdentityEvidence,resolveCopyIdentityEvidence,resolveSupplementalCopyIdentity,copyIdentityHold}=require('./shopeeCopyIdentityEvidence');
+const { resolveLiveCopyVariationProduct } = require('./shopeeCopyVariationMatcher');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
@@ -225,10 +226,8 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
       if (!Number.isSafeInteger(item.quantity) || item.quantity < 1) {
         addIssue('จำนวนสินค้าในไฟล์ไม่ถูกต้อง', order, item, index); return;
       }
-      const legacyProduct = resolveCopyProduct(shopCode, item,copyIdentities.get(copyIdentityKey(shopCode,item)));
-      // Only an explicit read-only replay supplies a shadow resolver. The
-      // endpoint continues using the existing accounting copy matcher.
-      const product = context.shadowProductResolver?.(shopCode, item, order, index, legacyProduct) || legacyProduct;
+      const product = context.copyVariationResolver?.(shopCode, item, order, index)
+        || resolveCopyProduct(shopCode, item,copyIdentities.get(copyIdentityKey(shopCode,item)));
       const bundle = product.components && bundleAllocation(allocationPolicies, shopCode, item, product.components, money.amounts[index]);
       if (product.reason && !bundle) { addIssue(product.reason, order, item, index, product.sku, product.components, product.matchingReview); return; }
       if (bundle) usedPolicies.set(bundle.record.policyKey, policyReference(bundle.record));
@@ -342,7 +341,10 @@ async function getAdaSmartCopyPlan(filters) {
   const { orders, businessDateCorrections, lineFinancialEvidence } = cohort;
   const enriched = orders.map(order => ({ ...order, items: enrichShopeeOrderItems(order.shopCode, order.items) }));
   const copyIdentityEvidence=await readCopyIdentityEvidence(enriched);
-  return buildAdaSmartCopyPlan(enriched, confirmed, filters, businessDateCorrections, lineFinancialEvidence, {...cohort,copyIdentityEvidence});
+  return buildAdaSmartCopyPlan(enriched, confirmed, filters, businessDateCorrections, lineFinancialEvidence, {
+    ...cohort,copyIdentityEvidence,
+    ...(filters.shopCode === 'sc-drug-store' ? { copyVariationResolver:resolveLiveCopyVariationProduct } : {}),
+  });
 }
 
 module.exports = { buildAdaSmartCopyPlan, getAdaSmartCopyPlan, resolveCopyProduct, resolveLineAmounts };

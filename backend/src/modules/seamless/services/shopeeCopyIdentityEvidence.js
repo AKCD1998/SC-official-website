@@ -55,7 +55,7 @@ function resolveCopyIdentityEvidence(shopCode,item,record,masters) {
 // Physical matchers read only rules/masters and never consume this supplement.
 function resolveSupplementalCopyIdentity(shopCode,item,masters,packUnitMismatchSku) {
   const matches=(rules.supplementalCopyIdentities || []).filter(r=>r.shopCode===shopCode
-    && r.scope!=='accounting_shadow_only'
+    && r.scope==='accounting_copy_only'
     && r.productName===item.name && r.variant===(item.variant || ''));
   if(matches.length!==1)return null;
   const r=matches[0],e=r.evidence,p=e?.pos,isBundle=Array.isArray(r.components);

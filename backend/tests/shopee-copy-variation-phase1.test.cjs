@@ -1,6 +1,6 @@
 'use strict';
 
-const { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationShadowResult } =
+const { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationResult, resolveLiveCopyVariationProduct } =
   require('../src/modules/seamless/services/shopeeCopyVariationMatcher');
 const { buildAdaSmartCopyPlan } = require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
 const { enrichShopeeOrderItems } = require('../src/modules/seamless/services/shopeeProductMatcher');
@@ -120,7 +120,7 @@ test('known 10-bottle carton with single-bottle IDs and a wrong SKU both block t
     expect(buildAdaSmartCopyPlan([order],confirmed,filters)).toMatchObject({status:'ready',totalQuantity:legacyQuantity,totalCents:10000});
     const decision = matcher.resolve(SC,order.items[0],order);
     const combined = buildAdaSmartCopyPlan([order],confirmed,filters,[],[],{
-      shadowProductResolver:() => selectCopyVariationShadowResult(decision),
+      copyVariationResolver:() => selectCopyVariationResult(decision),
     });
     expect(combined).toMatchObject({status:'review_required',columns:null,rows:[],targetCents:10000,
       issues:[{matchingReview:{reasonCode:'order_variation_conflict'}}]});
@@ -134,7 +134,7 @@ test('a prior explicit identity hold remains a hold with matching source IDs', (
   expect(matcher.resolve(SC,item,november)).toMatchObject({ status:'review',reasonCode:'existing_copy_identity_hold' });
 });
 
-test.each(reviewed)('reviewed original row $companySku / $variant uses its POS pack and stays in shadow', row => {
+test.each(reviewed)('reviewed original row $companySku / $variant uses its verified POS pack', row => {
   const matcher = buildCopyVariationMatcher();
   const file = row.orderLineReview.sources[0];
   const sourceRow = file.rows[0];
@@ -151,6 +151,43 @@ test.each(reviewed)('reviewed original row $companySku / $variant uses its POS p
   expect(matcher.resolve(SC,item,{...order,sourceSha256:'f'.repeat(64)},sourceRow).status).toBe('review');
   expect(matcher.resolve(SC,item,order,sourceRow+1).status).toBe('review');
   expect(resolveSupplementalCopyIdentity(SC,item,new Map())).toBeNull();
+});
+
+test('live copy accepts archived workbook evidence only for the reviewed SC row', () => {
+  const row = reviewed.find(row => row.companySku !== row.evidence.sellerSku);
+  const file = row.orderLineReview.sources[0];
+  const order = { ...november,sourceSha256:file.sha256,sourceRows:[file.rows[0]] };
+  const item = orderItem(row,{});
+  delete item.copySourceIdentity;
+  expect(resolveLiveCopyVariationProduct(SC,item,order,0)).toMatchObject({
+    sku:row.companySku,unit:row.evidence.pos.smallUnit,factor:row.quantityPerSale,
+    matchingProvenance:{method:'reviewed_order_line',sourceIdentityBasis:'verified_order_all_workbook_row'},
+  });
+  expect(resolveLiveCopyVariationProduct(SC,item,{...order,sourceSha256:'f'.repeat(64)},0)).toBeNull();
+  expect(resolveLiveCopyVariationProduct(SC,item,{...order,sourceRows:[1]},0)).toBeNull();
+  expect(resolveLiveCopyVariationProduct('dr-morepen',item,order,0)).toBeNull();
+  for (const conflict of [
+    { ...item,variant:'different option' },
+    { ...item,copySourceIdentity:{} },
+    { ...item,copySourceIdentity:{sourceSku:row.companySku} },
+    { ...item,copySourceIdentity:{sourceSku:row.evidence.sellerSku,variationId:'999'} },
+  ]) expect(resolveLiveCopyVariationProduct(SC,conflict,order,0)).toMatchObject({
+    matchingReview:{reasonCode:'order_variation_conflict'},
+  });
+});
+
+test('live variation reuse needs workbook metadata and holds a conflicting pack or SKU', () => {
+  const row = seed.find(row=>row.companySku==='630020295');
+  const order = { ...november,sourceRows:[2] };
+  const identity = {sourceSku:row.companySku,listingId:row.evidence.listingId,variationId:row.evidence.variationId};
+  expect(resolveLiveCopyVariationProduct(SC,orderItem(row,null),order,0)).toBeNull();
+  expect(resolveLiveCopyVariationProduct(SC,orderItem(row,identity),order,0)).toMatchObject({
+    sku:row.companySku,factor:1,matchingProvenance:{method:'order_variation_id'},
+  });
+  expect(resolveLiveCopyVariationProduct(SC,orderItem(row,{...identity,sourceSku:'WRONG'}),order,0))
+    .toMatchObject({matchingReview:{reasonCode:'order_variation_conflict'}});
+  expect(resolveLiveCopyVariationProduct(SC,{...orderItem(row,identity),variant:'Unverified carton'},order,0))
+    .toMatchObject({matchingReview:{reasonCode:'unverified_order_pack_label'}});
 });
 
 test('ambiguous seller labels and conflicted POS evidence become grouped reviews', () => {

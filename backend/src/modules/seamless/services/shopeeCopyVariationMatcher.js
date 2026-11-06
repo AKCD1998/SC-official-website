@@ -5,12 +5,13 @@ const { localDate, validDate } = require('./shopeeCopyBusinessDate');
 const { normalizeIdentityUnit } = require('./shopee004IdentityRules');
 
 const SC = 'sc-drug-store';
-const VERSION = 'sc-copy-variation-phase1-v3';
+const VERSION = 'sc-copy-variation-phase1-v4';
 const id = value => typeof value === 'string' && /^\d{1,40}$/u.test(value);
 const hash = value => /^[a-f0-9]{64}$/u.test(value || '');
 const label = value => String(value ?? '').normalize('NFC').replace(/\s+/gu, ' ').trim();
 const aliasKey = (name, variant) => JSON.stringify([label(name), label(variant)]);
 const variantKey = e => JSON.stringify([e.listingId, e.variationId]);
+const workbookLineKey = (sha256, row) => JSON.stringify([sha256, row]);
 const covers = (period, date) => date && date >= period.validFrom && date <= period.validThrough;
 
 function append(index, key, value) {
@@ -19,9 +20,10 @@ function append(index, key, value) {
   index.set(key, values);
 }
 
-function reviewedOrderProduct(row, item, exactRules, sellers, master) {
+function reviewedOrderProduct(row, item, exactRules, sellers, master, live) {
   const e = row.evidence;
-  const source = item.copySourceIdentity;
+  const archived = live && item.copySourceIdentity == null;
+  const source = archived ? { sourceSku:row.orderLineReview.sourceSku } : item.copySourceIdentity;
   const { pos, posBarcode, posPackFactor } = e;
   const previous = row.orderLineReview.previous;
   const priorMatches = previous ? exactRules.length === 1 && !exactRules[0].components
@@ -49,6 +51,7 @@ function reviewedOrderProduct(row, item, exactRules, sellers, master) {
     authority:'verified_copy_order_line_review',originalMatch:item.productMatch,
     matchingProvenance:{ version:VERSION,method:'reviewed_order_line',listingId:e.listingId,variationId:e.variationId,
       sourceSku:e.sellerSku,packBarcode:e.sellerPackBarcode,sellerSourceSha256:e.sellerSourceSha256,
+      ...(archived ? { sourceIdentityBasis:'verified_order_all_workbook_row' } : {}),
       posBarcodeSourceSha256:e.posBarcodeSourceSha256 } };
 }
 
@@ -62,14 +65,16 @@ function buildCopyVariationMatcher(registry = rules) {
   const byVariation = new Map();
   const bySku = new Map();
   const sellerLabels = new Map();
-  const reviewedLabels = new Map();
+  const reviewedLines = new Map();
   const holds = new Set((registry.copyIdentityHolds || []).filter(row => row.shopCode === SC)
     .map(row => aliasKey(row.productName, row.variant)));
   for (const row of registry.supplementalCopyIdentities.filter(row => row.shopCode === SC)) {
     const e = row.evidence;
     if (!id(e?.listingId) || !id(e.variationId)) continue;
-    if (row.status === 'verified' && row.scope === 'accounting_shadow_only' && row.orderLineReview) {
-      append(reviewedLabels,aliasKey(row.productName,row.variant),row);
+    if (row.status === 'verified' && row.scope === 'accounting_copy_reviewed_line') {
+      for (const file of row.orderLineReview.sources) {
+        for (const sourceRow of file.rows) append(reviewedLines, workbookLineKey(file.sha256,sourceRow), row);
+      }
     }
     // SKU matches are only hints, even for other verified exact-name rules.
     if (row.status === 'verified' && row.scope === 'accounting_copy_only') {
@@ -110,11 +115,17 @@ function buildCopyVariationMatcher(registry = rules) {
     }
   }
 
-  function resolve(shopCode, item, order, sourceRow) {
+  function resolve(shopCode, item, order, sourceRow, { live = false } = {}) {
     if (shopCode !== SC) return null;
     const source = item.copySourceIdentity;
     const key = aliasKey(item.name, item.variant);
     const named = aliases.get(key) || [];
+    const identified = source?.variationId ? byVariation.get(source.variationId) || [] : named;
+    const reviewed = Number.isSafeInteger(sourceRow) && hash(order?.sourceSha256) && order.sourceRows?.includes(sourceRow)
+      ? reviewedLines.get(workbookLineKey(order.sourceSha256,sourceRow)) || [] : [];
+    // Keep legacy copy identities outside the approved pilot. Old imports
+    // without identity columns can use only the archived, reviewed rows here.
+    if (live && !reviewed.length && (!source || (!named.length && !identified.length))) return null;
     const hints = [...new Map((bySku.get(source?.sourceSku) || []).map(row => [variantKey(row.evidence), {
       listingId:row.evidence.listingId, variationId:row.evidence.variationId, sku:row.companySku,
       productName:row.productName, variant:row.variant,
@@ -127,20 +138,17 @@ function buildCopyVariationMatcher(registry = rules) {
     const exactRules = exact.get(key) || [];
     const sellers = (sellerLabels.get(key) || []).filter(row =>
       !row.variationReusePeriods?.length || row.variationReusePeriods.some(period => covers(period,date)));
-    const reviewed = (reviewedLabels.get(key) || []).filter(row =>
-      Number.isSafeInteger(sourceRow) && hash(order?.sourceSha256) && order.sourceRows?.includes(sourceRow)
-      && row.orderLineReview.sources?.some(file => file.sha256 === order.sourceSha256 && file.rows?.includes(sourceRow)));
     if (reviewed.length) {
       const row = reviewed[0];
       const reviewedIdentity = variantKey(row.evidence);
       if (reviewed.length !== 1 || named.some(record => covers(record.period,date))) {
         return review('ambiguous_variation_or_pack_period',reviewedIdentity);
       }
-      const product = reviewedOrderProduct(row,item,exactRules,sellers,masters.get(row.companySku));
+      const product = key === aliasKey(row.productName,row.variant)
+        && reviewedOrderProduct(row,item,exactRules,sellers,masters.get(row.companySku),live);
       return product ? { status:'matched',product } : review('order_variation_conflict',reviewedIdentity);
     }
     const known = [...exactRules, ...sellers];
-    const identified = source?.variationId ? byVariation.get(source.variationId) || [] : named;
     const stableKeys = new Set(identified.map(r => variantKey(r.row.evidence)));
     const identity = stableKeys.size === 1 ? [...stableKeys][0] : null;
     if (source?.invalid) return review('missing_or_invalid_order_identity', identity);
@@ -201,7 +209,7 @@ function buildCopyVariationMatcher(registry = rules) {
   return { resolve };
 }
 
-function selectCopyVariationShadowResult(decision) {
+function selectCopyVariationResult(decision) {
   if (decision?.status === 'matched') return decision.product;
   if (decision?.status === 'review' && decision.inScope) {
     return { reason:decision.reasonCode, matchingReview:decision };
@@ -228,4 +236,11 @@ function groupCopyVariationReviews(entries) {
   }));
 }
 
-module.exports = { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationShadowResult, VERSION };
+const liveMatcher = buildCopyVariationMatcher();
+
+function resolveLiveCopyVariationProduct(shopCode, item, order, index) {
+  return selectCopyVariationResult(liveMatcher.resolve(shopCode,item,order,order.sourceRows?.[index],{ live:true }));
+}
+
+module.exports = { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationResult,
+  resolveLiveCopyVariationProduct, VERSION };

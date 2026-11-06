@@ -8068,7 +8068,7 @@
       "companySku": "IC-003652",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "40483166601",
         "variationId": "441302625673",
@@ -8116,6 +8116,11 @@
           {
             "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
             "rows": [
+              2147,
+              2467,
+              2491,
+              2726,
+              2863,
               4370,
               4867
             ]
@@ -8125,7 +8130,8 @@
           "companySku": "IC-004806",
           "factor": 1,
           "authority": "user_confirmed_pack_and_stockday_exact_identity_20260930"
-        }
+        },
+        "sourceSku": "IC-003652"
       }
     },
     {
@@ -8135,7 +8141,7 @@
       "companySku": "IC-000105",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "43684501657",
         "variationId": "386519945394",
@@ -8176,13 +8182,22 @@
               3909,
               4207
             ]
+          },
+          {
+            "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
+            "rows": [
+              2153,
+              3580,
+              3878
+            ]
           }
         ],
         "previous": {
           "companySku": "IC-000105",
           "factor": 1,
           "authority": "stockday_verified_exact_identity_20260928"
-        }
+        },
+        "sourceSku": "IC-003712"
       }
     },
     {
@@ -8192,7 +8207,7 @@
       "companySku": "IC-003712",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "43684501657",
         "variationId": "386519945393",
@@ -8243,6 +8258,15 @@
           {
             "sha256": "aa3d792bddd42d951e5092661bdbbf03d67c6f91d989449e91d06547084ffabe",
             "rows": [
+              2197,
+              2210,
+              2274,
+              2667,
+              2856,
+              3070,
+              3206,
+              3814,
+              3826,
               4492,
               4748
             ]
@@ -8252,7 +8276,8 @@
           "companySku": "IC-003712",
           "factor": 1,
           "authority": "stockday_verified_exact_identity_20260928"
-        }
+        },
+        "sourceSku": "IC-000105"
       }
     },
     {
@@ -8262,7 +8287,7 @@
       "companySku": "630010159",
       "quantityPerSale": 12,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "45071162477",
         "variationId": "421694051458",
@@ -8304,7 +8329,8 @@
               4571
             ]
           }
-        ]
+        ],
+        "sourceSku": "630010159"
       }
     },
     {
@@ -8314,7 +8340,7 @@
       "companySku": "630010137",
       "quantityPerSale": 60,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "53421043081",
         "variationId": "366694185109",
@@ -8357,7 +8383,8 @@
               4474
             ]
           }
-        ]
+        ],
+        "sourceSku": "630010137"
       }
     },
     {
@@ -8367,7 +8394,7 @@
       "companySku": "IC-003000",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "42886503329",
         "variationId": "381693868891",
@@ -8407,7 +8434,8 @@
               4390
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-003000"
       }
     },
     {
@@ -8417,7 +8445,7 @@
       "companySku": "IC-004321",
       "quantityPerSale": 20,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "40085294524",
         "variationId": "263031796524",
@@ -8457,7 +8485,8 @@
               4423
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-004321"
       }
     },
     {
@@ -8467,7 +8496,7 @@
       "companySku": "IC-004322",
       "quantityPerSale": 20,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "40085294524",
         "variationId": "263031796525",
@@ -8507,7 +8536,8 @@
               4424
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-004322"
       }
     },
     {
@@ -8517,7 +8547,7 @@
       "companySku": "IC-005366",
       "quantityPerSale": 20,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "40085294524",
         "variationId": "263031796528",
@@ -8557,7 +8587,8 @@
               4425
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-005366"
       }
     },
     {
@@ -8567,7 +8598,7 @@
       "companySku": "IC-005715",
       "quantityPerSale": 20,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "40085294524",
         "variationId": "263031796529",
@@ -8607,7 +8638,8 @@
               4426
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-005715"
       }
     },
     {
@@ -8617,7 +8649,7 @@
       "companySku": "IC-006128",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "42886503329",
         "variationId": "381693868897",
@@ -8657,7 +8689,8 @@
               4503
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-006128"
       }
     },
     {
@@ -8667,7 +8700,7 @@
       "companySku": "630010138",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "42886503329",
         "variationId": "381693868898",
@@ -8707,7 +8740,8 @@
               4504
             ]
           }
-        ]
+        ],
+        "sourceSku": "630010138"
       }
     },
     {
@@ -8717,7 +8751,7 @@
       "companySku": "IC-004429",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "52564345285",
         "variationId": "401660707860",
@@ -8757,7 +8791,8 @@
               4524
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-004429"
       }
     },
     {
@@ -8767,7 +8802,7 @@
       "companySku": "630010067",
       "quantityPerSale": 24,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "53871117210",
         "variationId": "436695311243",
@@ -8808,7 +8843,8 @@
               4547
             ]
           }
-        ]
+        ],
+        "sourceSku": "630010067"
       }
     },
     {
@@ -8818,7 +8854,7 @@
       "companySku": "630010134",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "42886503329",
         "variationId": "381693868893",
@@ -8858,7 +8894,8 @@
               4562
             ]
           }
-        ]
+        ],
+        "sourceSku": "630010134"
       }
     },
     {
@@ -8868,7 +8905,7 @@
       "companySku": "IC-004545",
       "quantityPerSale": 1,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "57567808462",
         "variationId": "278065346141",
@@ -8908,7 +8945,8 @@
               4617
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-004545"
       }
     },
     {
@@ -8918,7 +8956,7 @@
       "companySku": "630010157",
       "quantityPerSale": 12,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "45071162477",
         "variationId": "421694051459",
@@ -8958,7 +8996,8 @@
               4627
             ]
           }
-        ]
+        ],
+        "sourceSku": "630010157"
       }
     },
     {
@@ -8968,7 +9007,7 @@
       "companySku": "630010104",
       "quantityPerSale": 50,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "44621141331",
         "variationId": "391695027964",
@@ -9010,7 +9049,8 @@
               4768
             ]
           }
-        ]
+        ],
+        "sourceSku": "630010104"
       }
     },
     {
@@ -9020,7 +9060,7 @@
       "companySku": "IC-002485",
       "quantityPerSale": 25,
       "status": "verified",
-      "scope": "accounting_shadow_only",
+      "scope": "accounting_copy_reviewed_line",
       "evidence": {
         "listingId": "55662773608",
         "variationId": "259349169782",
@@ -9060,7 +9100,8 @@
               4793
             ]
           }
-        ]
+        ],
+        "sourceSku": "IC-002485"
       }
     }
   ],

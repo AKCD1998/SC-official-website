@@ -8,7 +8,7 @@ const { isDeepStrictEqual } = require('node:util');
 const { readSalesSourceBuffer } = require('../src/modules/seamless/services/shopeeSalesSourceService');
 const { enrichShopeeOrderItems } = require('../src/modules/seamless/services/shopeeProductMatcher');
 const { buildAdaSmartCopyPlan } = require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
-const { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationShadowResult } =
+const { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariationResult } =
   require('../src/modules/seamless/services/shopeeCopyVariationMatcher');
 
 const lineKey = (orderNumber, sourceRow) => JSON.stringify([orderNumber, sourceRow]);
@@ -72,7 +72,7 @@ function checkIndependentEvidence(lines, decisions, historical) {
   for (const [key, actual] of decisions) {
     const line = expected.get(key);
     const { decision } = actual;
-    if (!line && (historical ? !reviewedLine(decision) : !selectCopyVariationShadowResult(decision))) continue;
+    if (!line && (historical ? !reviewedLine(decision) : !selectCopyVariationResult(decision))) continue;
     assert.ok(line, 'Independent evidence is missing for a proposed match or hold');
     const outcome = decision.status === 'matched' ? 'matched' : decision.inScope ? 'held' : 'fallback';
     assert.equal(outcome,line.outcome,'Verified line outcome');
@@ -100,8 +100,8 @@ async function runReplay({ capture, proofs, baseline, sources, before, verifiedL
   const orders = await withWorkbookIdentities(capture,sources);
   const matcher = buildCopyVariationMatcher();
   const context = { ...cohort,copyIdentityEvidence:{ status:baseline.copyIdentityReadStatus,records:proofs } };
-  const run = shadowProductResolver => buildAdaSmartCopyPlan(orders,confirmed,filters,
-    cohort.businessDateCorrections,cohort.lineFinancialEvidence,{ ...context,shadowProductResolver });
+  const run = copyVariationResolver => buildAdaSmartCopyPlan(orders,confirmed,filters,
+    cohort.businessDateCorrections,cohort.lineFinancialEvidence,{ ...context,copyVariationResolver });
   const legacy = run();
   for (const field of ['rows','issues','dailyReconciliation','columns','status','targetCents','sourceLineCount']) {
     assert.deepEqual(legacy[field],baseline[field],`Captured baseline ${field}`);
@@ -131,10 +131,10 @@ async function runReplay({ capture, proofs, baseline, sources, before, verifiedL
   assert.equal(decisions.size,baseline.sourceLineCount,'Shadow comparison must account for every source line');
   assert.equal(incorrect,0,'Historical matches diverged from PR #121');
   const shadow = (order,index) => decisions.get(lineKey(order.orderNumber,order.sourceRows[index]))?.decision;
-  const combined = run((_shop,_item,order,index) => selectCopyVariationShadowResult(shadow(order,index)));
+  const combined = run((_shop,_item,order,index) => selectCopyVariationResult(shadow(order,index)));
   const combinedAllocations = allocations(combined);
   for (const [key,value] of baselineAllocations) {
-    if (selectCopyVariationShadowResult(decisions.get(key)?.decision)) continue;
+    if (selectCopyVariationResult(decisions.get(key)?.decision)) continue;
     assert.deepEqual(combinedAllocations.get(key),value,'Legacy fallback allocation changed');
   }
   for (const [key,{ decision }] of decisions) {
@@ -155,7 +155,7 @@ async function runReplay({ capture, proofs, baseline, sources, before, verifiedL
   }
   const isolated = before && run((_shop,_item,order,index) => {
     const decision = shadow(order,index);
-    return selectCopyVariationShadowResult(decision)
+    return selectCopyVariationResult(decision)
       || (decision && failed.has(lineKey(order.orderNumber,order.sourceRows[index])) ? { reason:decision.reasonCode } : null);
   });
   const reviewed = [...decisions].filter(([key]) => !before || failed.has(key));
