@@ -1,10 +1,12 @@
 # SC Drug Store copy variation Phase 1
 
-The existing copy endpoint keeps its resolver. Phase 1 runs through a read-only replay on this branch.
+Phase 1 is enabled in the SC Drug Store AdaSmart copy endpoint. The seven verified variations can reuse a rule only within their evidenced pack period and with Order All identity metadata. Other shops and products outside the pilot continue through the existing resolver.
 
 ## Evidence follow-up for 45 source lines
 
-The 21 SKU conflicts and 24 previously unresolved lines are verified for the exact reviewed Order All rows. Each new registry entry binds the SHA-256 and row number, exact product/option and expected Shopee SKU. Native IDs must agree when present. These entries run in shadow only. The regular exact-name resolver continues to use the same records it used before the follow-up.
+The 21 SKU conflicts and 24 previously unresolved lines are verified for the exact reviewed Order All rows. Each registry entry binds the SHA-256 and row number, exact product/option and observed Order All SKU. Native IDs must agree when present. For pre-Phase 1 imports, the copy endpoint can read the archived SKU only for the matching reviewed row. If metadata is present, a conflict blocks copying. Reviewed rows cannot be reused by the regular exact-name resolver.
+
+The 5 November workbook supersedes the earlier workbook in the live 1–5 November cohort. The 17 previously reviewed lines from 1–4 November were revalidated against that workbook by the same order number, timestamps, product, option, quantity, price and source identity. Both verified workbook line references are retained. Historical imports remain immutable.
 
 For I-Herb 8-count, November Order All, the three Seller snapshots and POS agree on the standard sachet. Seller Centre links the [standard 8-lozenge sachet image](https://down-th.img.susercontent.com/th-11134207-81ztk-mrbfi63jlgxwf4) to option `441302625673`. The former explicit zip-sachet approval `IC-004806` / `8858923910096` stays in the historical exact rule. The audited November rows use `IC-003652` / `8858923900264`.
 
