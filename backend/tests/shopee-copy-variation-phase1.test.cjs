@@ -4,10 +4,12 @@ const { buildCopyVariationMatcher, groupCopyVariationReviews, selectCopyVariatio
   require('../src/modules/seamless/services/shopeeCopyVariationMatcher');
 const { buildAdaSmartCopyPlan } = require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
 const { enrichShopeeOrderItems } = require('../src/modules/seamless/services/shopeeProductMatcher');
+const { resolveSupplementalCopyIdentity } = require('../src/modules/seamless/services/shopeeCopyIdentityEvidence');
 const registry = require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
 const SC = 'sc-drug-store';
 const november = { orderedAt:'2026-11-03T00:00:00Z' };
 const seed = registry.supplementalCopyIdentities.filter(row => row.variationReusePeriods?.length);
+const reviewed = registry.supplementalCopyIdentities.filter(row => row.orderLineReview);
 const orderItem = (row, identity = { sourceSku:row.companySku }) => ({
   name:row.productName, variant:row.variant, copySourceIdentity:identity,
 });
@@ -130,6 +132,25 @@ test('a prior explicit identity hold remains a hold with matching source IDs', (
   const matcher = buildCopyVariationMatcher({ ...registry, copyIdentityHolds:[row] });
   const item = orderItem(row,{ sourceSku:row.companySku,listingId:row.evidence.listingId,variationId:row.evidence.variationId });
   expect(matcher.resolve(SC,item,november)).toMatchObject({ status:'review',reasonCode:'existing_copy_identity_hold' });
+});
+
+test.each(reviewed)('reviewed original row $companySku / $variant uses its POS pack and stays in shadow', row => {
+  const matcher = buildCopyVariationMatcher();
+  const file = row.orderLineReview.sources[0];
+  const sourceRow = file.rows[0];
+  const item = orderItem(row,{ sourceSku:row.evidence.sellerSku });
+  const order = { ...november,sourceSha256:file.sha256,sourceRows:[sourceRow] };
+  expect(matcher.resolve(SC,item,order,sourceRow)).toMatchObject({
+    status:'matched',product:{sku:row.companySku,unit:row.evidence.pos.smallUnit,factor:row.quantityPerSale,
+      matchingProvenance:{method:'reviewed_order_line'}},
+  });
+  expect(matcher.resolve(SC,orderItem(row,{sourceSku:'WRONG'}),order,sourceRow))
+    .toMatchObject({status:'review',inScope:true,reasonCode:'order_variation_conflict'});
+  expect(matcher.resolve(SC,orderItem(row,{sourceSku:row.evidence.sellerSku,variationId:'999'}),order,sourceRow))
+    .toMatchObject({status:'review',inScope:true,reasonCode:'order_variation_conflict'});
+  expect(matcher.resolve(SC,item,{...order,sourceSha256:'f'.repeat(64)},sourceRow).status).toBe('review');
+  expect(matcher.resolve(SC,item,order,sourceRow+1).status).toBe('review');
+  expect(resolveSupplementalCopyIdentity(SC,item,new Map())).toBeNull();
 });
 
 test('ambiguous seller labels and conflicted POS evidence become grouped reviews', () => {

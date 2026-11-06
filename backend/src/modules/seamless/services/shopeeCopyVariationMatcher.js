@@ -5,7 +5,7 @@ const { localDate, validDate } = require('./shopeeCopyBusinessDate');
 const { normalizeIdentityUnit } = require('./shopee004IdentityRules');
 
 const SC = 'sc-drug-store';
-const VERSION = 'sc-copy-variation-phase1-v2';
+const VERSION = 'sc-copy-variation-phase1-v3';
 const id = value => typeof value === 'string' && /^\d{1,40}$/u.test(value);
 const hash = value => /^[a-f0-9]{64}$/u.test(value || '');
 const label = value => String(value ?? '').normalize('NFC').replace(/\s+/gu, ' ').trim();
@@ -19,6 +19,39 @@ function append(index, key, value) {
   index.set(key, values);
 }
 
+function reviewedOrderProduct(row, item, exactRules, sellers, master) {
+  const e = row.evidence;
+  const source = item.copySourceIdentity;
+  const { pos, posBarcode, posPackFactor } = e;
+  const previous = row.orderLineReview.previous;
+  const priorMatches = previous ? exactRules.length === 1 && !exactRules[0].components
+    && exactRules[0].companySku === previous.companySku
+    && exactRules[0].quantityPerSale === previous.factor
+    && exactRules[0].authority === previous.authority : exactRules.length === 0;
+  const unit = pos?.smallUnit;
+  const factor = row.quantityPerSale;
+  if (!source?.sourceSku || source.invalid || source.sourceSku !== e.sellerSku
+    || (source.listingId && source.listingId !== e.listingId)
+    || (source.variationId && source.variationId !== e.variationId)
+    || !priorMatches || sellers.some(other => variantKey(other.evidence) !== variantKey(e)
+      || other.companySku !== row.companySku || other.quantityPerSale !== factor)
+    || !/^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/u.test(row.companySku || '')
+    || !pos?.productName || pos.companySku !== row.companySku || pos.active !== 1 || pos.smallFactor !== 1
+    || !unit || (master && normalizeIdentityUnit(master.unit) !== normalizeIdentityUnit(unit))
+    || !Number.isSafeInteger(factor) || factor < 1 || factor > 1000 || posPackFactor !== factor
+    || !/^\d{8,14}$/u.test(e.sellerPackBarcode || '') || posBarcode?.value !== e.sellerPackBarcode
+    || (posBarcode.factor !== factor && posBarcode.factor !== 1)
+    || (row.companySku !== e.sellerSku && (posBarcode.factor !== factor || previous?.companySku !== row.companySku))
+    || ![e.sellerSourceSha256,e.descriptionSourceSha256,e.posSourceSha256,e.posBarcodeSourceSha256,
+      e.priorSellerSourceSha256,e.priorDescriptionSourceSha256].every(hash)
+    || !e.packBasis) return null;
+  return { sku:row.companySku,factor,unit,name:master?.name || pos.productName,
+    authority:'verified_copy_order_line_review',originalMatch:item.productMatch,
+    matchingProvenance:{ version:VERSION,method:'reviewed_order_line',listingId:e.listingId,variationId:e.variationId,
+      sourceSku:e.sellerSku,packBarcode:e.sellerPackBarcode,sellerSourceSha256:e.sellerSourceSha256,
+      posBarcodeSourceSha256:e.posBarcodeSourceSha256 } };
+}
+
 function buildCopyVariationMatcher(registry = rules) {
   const masters = new Map(registry.masters.map(row => [row.companySku, row]));
   const exact = new Map();
@@ -29,11 +62,15 @@ function buildCopyVariationMatcher(registry = rules) {
   const byVariation = new Map();
   const bySku = new Map();
   const sellerLabels = new Map();
+  const reviewedLabels = new Map();
   const holds = new Set((registry.copyIdentityHolds || []).filter(row => row.shopCode === SC)
     .map(row => aliasKey(row.productName, row.variant)));
   for (const row of registry.supplementalCopyIdentities.filter(row => row.shopCode === SC)) {
     const e = row.evidence;
     if (!id(e?.listingId) || !id(e.variationId)) continue;
+    if (row.status === 'verified' && row.scope === 'accounting_shadow_only' && row.orderLineReview) {
+      append(reviewedLabels,aliasKey(row.productName,row.variant),row);
+    }
     // SKU matches are only hints, even for other verified exact-name rules.
     if (row.status === 'verified' && row.scope === 'accounting_copy_only') {
       append(sellerLabels, aliasKey(row.productName, row.variant), row);
@@ -73,7 +110,7 @@ function buildCopyVariationMatcher(registry = rules) {
     }
   }
 
-  function resolve(shopCode, item, order) {
+  function resolve(shopCode, item, order, sourceRow) {
     if (shopCode !== SC) return null;
     const source = item.copySourceIdentity;
     const key = aliasKey(item.name, item.variant);
@@ -90,6 +127,18 @@ function buildCopyVariationMatcher(registry = rules) {
     const exactRules = exact.get(key) || [];
     const sellers = (sellerLabels.get(key) || []).filter(row =>
       !row.variationReusePeriods?.length || row.variationReusePeriods.some(period => covers(period,date)));
+    const reviewed = (reviewedLabels.get(key) || []).filter(row =>
+      Number.isSafeInteger(sourceRow) && hash(order?.sourceSha256) && order.sourceRows?.includes(sourceRow)
+      && row.orderLineReview.sources?.some(file => file.sha256 === order.sourceSha256 && file.rows?.includes(sourceRow)));
+    if (reviewed.length) {
+      const row = reviewed[0];
+      const reviewedIdentity = variantKey(row.evidence);
+      if (reviewed.length !== 1 || named.some(record => covers(record.period,date))) {
+        return review('ambiguous_variation_or_pack_period',reviewedIdentity);
+      }
+      const product = reviewedOrderProduct(row,item,exactRules,sellers,masters.get(row.companySku));
+      return product ? { status:'matched',product } : review('order_variation_conflict',reviewedIdentity);
+    }
     const known = [...exactRules, ...sellers];
     const identified = source?.variationId ? byVariation.get(source.variationId) || [] : named;
     const stableKeys = new Set(identified.map(r => variantKey(r.row.evidence)));
