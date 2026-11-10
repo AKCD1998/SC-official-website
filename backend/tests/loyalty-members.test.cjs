@@ -318,6 +318,19 @@ afterAll(() => {
 });
 
 describe("loyalty member demographics", () => {
+  test.each(['081234567', '08123456789', '021234567', '0712345678', '0111111111', '081letters2345678', '+19990000001'])('rejects a new member with invalid mobile %s before creating data', async phone => {
+    const response = await request(createApp()).post('/api/members').set('Authorization', 'Bearer test-staff-token')
+      .send({ fullName: 'Synthetic registration', phone });
+    expect(response.status).toBe(400);
+    expect(response.body).toMatchObject({ field: 'phone' });
+    expect(state.members).toHaveLength(1);
+  });
+  test.each(['099 000 0001', '+66 99 000 0001', '๐๙๙๐๐๐๐๐๐๑'])('saves a formatted Thai mobile %s in local form', async phone => {
+    const response = await request(createApp()).post('/api/members').set('Authorization', 'Bearer test-staff-token')
+      .send({ fullName: 'Synthetic registration', phone });
+    expect(response.status).toBe(201);
+    expect(state.members[1].phone).toBe('0990000001');
+  });
   test("history accepts revocable staff sessions and rejects invalid bearer tokens even with a valid legacy key", async () => {
     const route = '/api/members/11111111-1111-1111-1111-111111111111/purchase-history';
     expect((await request(createApp()).get(route).set('Authorization','Bearer test-staff-token')).status).toBe(200);

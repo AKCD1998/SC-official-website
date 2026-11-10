@@ -50,7 +50,10 @@ describe("public QR member registration", () => {
   test.each([
     ["099 000 0001", "0990000001"], ["099-000-0001", "0990000001"],
     ["+66 99 000 0001", "0990000001"], ["0066990000001", "0990000001"],
-    ["๐๙๙๐๐๐๐๐๐๑", "0990000001"], ["02 123 4567", "021234567"],
+    ["๐๙๙๐๐๐๐๐๐๑", "0990000001"], ["02 123 4567", ""],
+    ["0612345678", "0612345678"], ["0812345678", "0812345678"],
+    ["081234567", ""], ["08123456789", ""], ["0712345678", ""],
+    ["0111111111", ""], ["+1 9990000001", ""],
     ["099letters0000001", ""], ["+66990000001+", ""], ["9990000001", ""],
     ["099", ""], [12345, ""], [null, ""],
   ])("normalizes phone %p", (raw, expected) => expect(normalizeThaiPhone(raw)).toBe(expected));
@@ -59,6 +62,8 @@ describe("public QR member registration", () => {
     [{ firstName: "" }, "firstName"], [{ firstName: ["name"] }, "firstName"],
     [{ firstName: "<script>" }, "firstName"], [{ firstName: "x".repeat(101) }, "firstName"],
     [{ lastName: " " }, "lastName"], [{ phone: "invalid" }, "phone"],
+    [{ phone: "081234567" }, "phone"], [{ phone: "08123456789" }, "phone"],
+    [{ phone: "021234567" }, "phone"], [{ phone: "0712345678" }, "phone"],
     [{ consent: false }, "consent"], [{ consent: "true" }, "consent"],
   ])("rejects invalid input %p before connecting to the database", async (fields, field) => {
     const { app, pool } = createApp();

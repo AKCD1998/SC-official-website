@@ -1,10 +1,10 @@
 const express = require('express');
 const pool = require('../db');
 const { recordMemberRegistration } = require('../lib/memberRegistrations');
+const { normalizeThaiPhone } = require('../lib/publicMemberRegistration');
 const {
   createId,
   generateMemberCode,
-  normalizePhone,
   hashOpaqueToken,
 } = require('../lib/sccrm');
 
@@ -77,10 +77,10 @@ router.post('/members', requireStaff, async (req, res) => {
       consent_version = 'v1.0',
     } = req.body || {};
 
-    const phone    = normalizePhone(rawPhone);
+    const phone    = normalizeThaiPhone(rawPhone);
     const fullName = String(name || '').trim();
 
-    if (!phone)    return jsonError(res, 400, 'phone is required.');
+    if (!phone)    return jsonError(res, 400, 'กรุณากรอกมือถือไทย 10 หลัก ขึ้นต้น 06, 08 หรือ 09');
     if (!fullName) return jsonError(res, 400, 'name is required.');
     if (!dob)      return jsonError(res, 400, 'dob (date of birth) is required.');
     if (!consents.pdpa_general) {

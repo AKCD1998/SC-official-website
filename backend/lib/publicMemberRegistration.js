@@ -8,7 +8,7 @@ function normalizeThaiPhone(value) {
   let phone = ascii.replace(/[\s()-]/g, "");
   if (phone.startsWith("+66")) phone = `0${phone.slice(3)}`;
   else if (phone.startsWith("0066")) phone = `0${phone.slice(4)}`;
-  return /^0\d{8,9}$/.test(phone) ? phone : "";
+  return /^0[689][0-9]{8}$/.test(phone) ? phone : "";
 }
 
 function normalizeName(value) {
@@ -26,7 +26,7 @@ function validatePublicRegistration(body) {
   const phone = normalizeThaiPhone(body.phone);
   if (!firstName) return { error: "กรุณากรอกชื่อให้ถูกต้อง (ไม่เกิน 100 ตัวอักษร)", field: "firstName" };
   if (!lastName) return { error: "กรุณากรอกนามสกุลให้ถูกต้อง (ไม่เกิน 100 ตัวอักษร)", field: "lastName" };
-  if (!phone) return { error: "กรุณากรอกเบอร์โทรศัพท์ไทย 9–10 หลักให้ถูกต้อง", field: "phone" };
+  if (!phone) return { error: "กรุณากรอกมือถือไทย 10 หลัก ขึ้นต้น 06, 08 หรือ 09", field: "phone" };
   if (body.consent !== true) return { error: "กรุณายินยอมให้เก็บข้อมูลเพื่อสมัครสมาชิก", field: "consent" };
   if (Object.hasOwn(body, 'referralCode')) {
     const referral = registrationReferral(body.referralCode);

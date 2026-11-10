@@ -20,6 +20,7 @@ const multer = require("multer");
 const sgMail = require("@sendgrid/mail");
 const pool = require("../db");
 const memberCodeAliases = require("../lib/memberCodeAliases");
+const { normalizeThaiPhone } = require('../lib/publicMemberRegistration');
 const adaPoints = require('../lib/adaPointAuthority');
 const adaPointWorkflow = require('../lib/adaPointWorkflow');
 const { recordNativeTransaction } = require('../lib/adaPointHistoryWriter');
@@ -1106,7 +1107,8 @@ router.get("/customers/:id", requireStaffOrSameCustomer, async (req, res) => {
 // Staff creates a customer manually (no password — customer sets one later via app)
 router.post("/customers", requireStaff, async (req, res) => {
   try {
-    const phone    = normalizePhone(req.body?.phone);
+    const phone    = normalizeThaiPhone(req.body?.phone);
+    if (!phone) return jsonError(res, 400, "กรุณากรอกมือถือไทย 10 หลัก ขึ้นต้น 06, 08 หรือ 09");
     const fullName = String(req.body?.fullName || "").trim();
     const email    = req.body?.email ? String(req.body.email).trim().toLowerCase() : null;
     if (!phone || !fullName) return jsonError(res, 400, "phone and fullName are required.");
