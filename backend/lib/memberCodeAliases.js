@@ -28,6 +28,8 @@ async function findMemberIdByCode(db, rawCode) {
       SELECT a.member_id FROM sccrm_member_codes.aliases a
       JOIN public.member_profiles m ON m.user_id = a.member_id
       WHERE a.code = $1
+      ${process.env.SC_OFFICIAL_MEMBER_REGISTRATION_CONFIRMATION_ENABLED === 'true' ? `UNION
+      SELECT r.member_id FROM sccrm_registration.confirmations r WHERE r.previous_code = $1` : ''}
     ) SELECT c.member_id FROM candidates c
       JOIN public.users u ON u.id = c.member_id LIMIT 2`, [code]));
   } catch {

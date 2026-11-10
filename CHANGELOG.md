@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased — Cashier confirms existing members and shared contact phones
+
+- Show all exact-phone candidates only to an authenticated staff device. A signed,
+  short-lived review binds the draft, device and candidates before the cashier
+  chooses the existing person or explicitly creates a different person.
+- Store shared contact phones separately from unique account phones. Preserve
+  existing customer profiles and bill ownership; keep confirmation requests
+  idempotent after concurrent retries or a lost response.
+- Add private confirmation audit and a contact-phone column through the scoped
+  migration. Keep the existing account-phone uniqueness rule. Gate the new API
+  until its schema and HQ/branch native protocol are provisioned and verified.
+- Verify real PostgreSQL signup, selection, contact search/edit, stale reviews,
+  duplicate requests, history ownership and rollback without production writes.
+
+## 2026-11-10 — Thai mobile numbers for new member registrations
+
+- Validate new POS, counter and QR registrations as Thai mobile numbers with
+  10 digits beginning 06, 08 or 09 before creating member data. Normalize Thai
+  digits, spacing and Thai country prefixes into the local 0-prefixed form.
+- Validate the QR input before submission and return a specific correction
+  message to older desktop clients. Existing contact editing retains its API.
+
 ## 2026-11-03 — Record paid Ada sales containing item-removal Void lines
 
 - Accept installed POS payloads containing an exact original/negative Void pair.

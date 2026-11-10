@@ -9,6 +9,8 @@ const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
 const adaMirror = require('../lib/adaMemberMirror');
 const memberCodeAliases = require('../lib/memberCodeAliases');
 const { recordMemberRegistration } = require('../lib/memberRegistrations');
+const { normalizeThaiPhone } = require('../lib/publicMemberRegistration');
+const registrationIdentity = require('../lib/memberRegistrationIdentity');
 const adaPoints = require('../lib/adaPointAuthority');
 const adaPointWorkflow = require('../lib/adaPointWorkflow');
 const { memberResponse } = require('../lib/memberResponse');
@@ -81,10 +83,13 @@ async function queryOne(sql, params, db = pool) {
 async function memberStorageCapabilities() {
     const row = await queryOne(`SELECT
         to_regclass('public.point_ledger') IS NOT NULL AS points_available,
-        to_regclass('public.member_pharmacy_med_records') IS NOT NULL AS pharmacy_available`);
+        to_regclass('public.member_pharmacy_med_records') IS NOT NULL AS pharmacy_available,
+        EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public'
+          AND table_name='member_profiles' AND column_name='contact_phone') AS contact_phone_available`);
     return {
         pointsAvailable: Boolean(row?.points_available),
         pharmacyMedRecordAvailable: Boolean(row?.pharmacy_available),
+        contactPhoneAvailable: Boolean(row?.contact_phone_available),
     };
 }
 
@@ -117,7 +122,7 @@ function memberFailureStatus(error) {
 }
 
 async function getMemberProfile(memberId, capabilities, db = pool) {
-    const row = await queryOne(`SELECT u.id, u.full_name, u.phone_number AS phone,
+    const row = await queryOne(`SELECT u.id, u.full_name, ${capabilities.contactPhoneAvailable ? 'COALESCE(u.phone_number,m.contact_phone)' : 'u.phone_number'} AS phone,
         u.email, u.sex, u.dob::text AS dob, u.remark, u.created_at,
         m.member_code, m.tier, m.is_active, m.updated_at,
         ${memberPointsSql(capabilities)} AS current_points
@@ -623,6 +628,49 @@ function buildMemberResponse(row, pharmacyMedRecordRow, capabilities = {}) {
     });
 }
 
+async function insertNewMember(client, value, capabilities, medical, staff, phoneMode = {}) {
+    const userId = createId();
+    const memberCode = generateMemberCode(userId);
+    const primaryPhone = Object.hasOwn(phoneMode, 'primaryPhone') ? phoneMode.primaryPhone : value.phone;
+    await client.query(`INSERT INTO users (id, phone_number, full_name, email, sex, dob, remark, password_hash, is_verified, verified_at, created_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, '', TRUE, NOW(), NOW())`,
+      [userId, primaryPhone, value.fullName, value.email, value.sex, value.dob, value.remark]);
+    await client.query(`INSERT INTO member_profiles (id, user_id, member_code, tier, is_active, created_at, updated_at)
+        VALUES ($1, $2, $3, 'bronze', TRUE, NOW(), NOW())`, [createId(), userId, memberCode]);
+    if (phoneMode.contactPhone) await client.query('UPDATE public.member_profiles SET contact_phone=$2 WHERE user_id=$1', [userId, phoneMode.contactPhone]);
+    await recordMemberRegistration(client, { memberId: userId, source: 'pos', branchCode: staff.branch_code, deviceId: staff.device_id });
+    if (capabilities.pharmacyMedRecordAvailable) await upsertPharmacyMedRecord(client, userId, medical);
+    return { userId, memberCode };
+}
+
+router.post('/registration-options', requireStaff, async (req, res) => {
+    try {
+        const capabilities = await memberStorageCapabilities();
+        if (process.env.SC_OFFICIAL_MEMBER_REGISTRATION_CONFIRMATION_ENABLED !== 'true' || !capabilities.contactPhoneAvailable || !adaMirror.enabled()) return res.status(503).json({ error: 'ขณะนี้ยังตรวจสมาชิกเดิมไม่ได้ กรุณาลองอีกครั้ง' });
+        return res.json(await registrationIdentity.options(pool, req.body, req.staffDevice));
+    } catch (error) { return res.status(error.status || 500).json({ error: error.status ? error.message : 'ขณะนี้ยังตรวจสมาชิกเดิมไม่ได้', code: error.code }); }
+});
+
+router.post('/registrations/confirm', requireStaff, async (req, res) => {
+    try {
+        const capabilities = await memberStorageCapabilities();
+        if (process.env.SC_OFFICIAL_MEMBER_REGISTRATION_CONFIRMATION_ENABLED !== 'true' || !capabilities.contactPhoneAvailable || !adaMirror.enabled()) return res.status(503).json({ error: 'ขณะนี้ยังบันทึกการเลือกสมาชิกไม่ได้ กรุณาลองอีกครั้ง' });
+        const input = registrationIdentity.profile(req.body);
+        const value = { fullName: input.name, phone: input.phone, email: input.email || null,
+            sex: normalizeMemberSex(input.sex), dob: normalizeMemberDob(input.dob), remark: input.remark };
+        requireAvailablePharmacyStorage(capabilities, req.body?.pharmacy_med_record);
+        const medical = normalizePharmacyMedRecord(req.body?.pharmacy_med_record);
+        const result = await registrationIdentity.confirm(pool, req.body, req.staffDevice, async (client, phoneMode) =>
+            (await insertNewMember(client, value, capabilities, medical, req.staffDevice, phoneMode)).userId);
+        const member = await getMemberProfile(result.memberId, capabilities);
+        return res.status(result.outcome === 'new' && !result.replayed ? 201 : 200)
+            .json({ ok: true, ...buildMemberResponse(member, undefined, capabilities), registrationOutcome: result.outcome });
+    } catch (error) { return res.status(error.status || (error.code === '23505' ? 409 : 500)).json({
+        error: error.status ? error.message : error.code === '23505' ? 'ข้อมูลสมาชิกเปลี่ยนแล้ว กรุณาตรวจรายชื่ออีกครั้ง' : 'ขณะนี้ยังบันทึกสมาชิกไม่ได้ กรุณาลองอีกครั้ง',
+        ...(error.code && error.status ? { code: error.code } : {}),
+    }); }
+});
+
 // ── GET /api/members/search?q=... ─────────────────────────────────────────────
 // Cashier types a phone number, name, email, or member code.
 // Returns up to 20 matching active members with their current point balance.
@@ -633,18 +681,19 @@ router.get("/search", requireStaff, async (req, res) => {
         if (!raw) return res.json([]);
         const q = /^[+\d\s().-]+$/.test(raw) ? normalizeMemberPhone(raw) : raw;
         const capabilities = await memberStorageCapabilities();
-        const { rows } = await pool.query(`SELECT u.id, u.phone_number AS phone,
+        const displayPhone = capabilities.contactPhoneAvailable ? 'COALESCE(u.phone_number,m.contact_phone)' : 'u.phone_number';
+        const { rows } = await pool.query(`SELECT u.id, ${displayPhone} AS phone,
             u.full_name, u.email, m.member_code, m.tier,
             ${memberPointsSql(capabilities)} AS current_points
             FROM users u JOIN member_profiles m ON m.user_id = u.id AND m.is_active = TRUE
-            WHERE LOWER(COALESCE(u.phone_number, '')) LIKE $1
+            WHERE LOWER(COALESCE(${displayPhone}, '')) LIKE $1
                OR LOWER(COALESCE(u.full_name, '')) LIKE $1
                OR LOWER(COALESCE(u.email, '')) LIKE $1
                OR LOWER(COALESCE(m.member_code, '')) LIKE $1
             ORDER BY CASE
-                WHEN LOWER(COALESCE(u.phone_number, '')) = $2 THEN 0
+                WHEN LOWER(COALESCE(${displayPhone}, '')) = $2 THEN 0
                 WHEN LOWER(COALESCE(m.member_code, '')) = $2 THEN 1
-                WHEN LOWER(COALESCE(u.phone_number, '')) LIKE $3 THEN 2
+                WHEN LOWER(COALESCE(${displayPhone}, '')) LIKE $3 THEN 2
                 ELSE 3 END, u.full_name ASC
             LIMIT 20`, [`%${q.toLowerCase()}%`, q.toLowerCase(), `${q.toLowerCase()}%`]);
         const aliasMemberId = await memberCodeAliases.findMemberIdByCode(pool, raw);
@@ -730,6 +779,16 @@ router.put("/:id", requireMemberAccess, async (req, res) => {
         try {
             await client.query("BEGIN");
             await adaMirror.ensureLegacyMember(client,memberId);
+            if (capabilities.contactPhoneAvailable && values.phone_number !== undefined) {
+                const contact = await queryOne(`SELECT u.phone_number,m.contact_phone FROM users u
+                    JOIN member_profiles m ON m.user_id=u.id WHERE u.id=$1 FOR UPDATE OF u,m`, [memberId], client);
+                if (contact && contact.phone_number === null && contact.contact_phone) {
+                    const phone = normalizeThaiPhone(values.phone_number);
+                    if (!phone) throw Object.assign(new Error('กรุณากรอกมือถือไทย 10 หลักให้ถูกต้อง'), { status: 400 });
+                    await client.query('UPDATE public.member_profiles SET contact_phone=$2,updated_at=now() WHERE user_id=$1', [memberId, phone]);
+                    delete values.phone_number;
+                }
+            }
             if (adaMirror.enabled() && values.phone_number !== undefined) {
                 const current = await getMemberProfile(memberId, capabilities, client);
                 // Separate Ada contacts may intentionally share a contact number.
@@ -972,7 +1031,8 @@ router.post("/claims", requireStaff, async (req, res) => {
 router.post("/", requireStaff, async (req, res) => {
   try {
     const fullName   = String(req.body?.fullName ?? req.body?.name ?? "").trim();
-    const phone      = normalizeMemberPhone(req.body?.phone || "");
+    const phone      = normalizeThaiPhone(req.body?.phone);
+    if (!phone) return res.status(400).json({ message: "กรุณากรอกมือถือไทย 10 หลัก ขึ้นต้น 06, 08 หรือ 09", field: "phone" });
     const email      = String(req.body?.email     || "").trim() || null;
     const sex        = normalizeMemberSex(req.body?.sex);
     const dob        = normalizeMemberDob(req.body?.dob);
@@ -982,7 +1042,6 @@ router.post("/", requireStaff, async (req, res) => {
     const pharmacyMedRecord = normalizePharmacyMedRecord(req.body?.pharmacy_med_record);
 
     if (!fullName) return res.status(400).json({ message: "fullName is required." });
-    if (!phone)    return res.status(400).json({ message: "phone is required." });
 
     const existing = await queryOne(`SELECT id FROM users WHERE phone_number = $1`, [phone]);
     if (existing) return res.status(409).json({ message: "เบอร์โทรนี้มีในระบบแล้ว" });
@@ -991,23 +1050,8 @@ router.post("/", requireStaff, async (req, res) => {
     try {
       await client.query("BEGIN");
 
-      const userId = createId();
-      await client.query(
-        `INSERT INTO users (id, phone_number, full_name, email, sex, dob, remark, password_hash, is_verified, verified_at, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, '', TRUE, NOW(), NOW())`,
-        [userId, phone, fullName, email, sex, dob, remark],
-      );
-
-      const memberCode = generateMemberCode(userId);
-      await client.query(
-        `INSERT INTO member_profiles (id, user_id, member_code, tier, is_active, created_at, updated_at)
-         VALUES ($1, $2, $3, 'bronze', TRUE, NOW(), NOW())`,
-        [createId(), userId, memberCode],
-      );
-
-      await recordMemberRegistration(client, { memberId: userId, source: 'pos',
-        branchCode: req.staffDevice.branch_code, deviceId: req.staffDevice.device_id });
-      if (capabilities.pharmacyMedRecordAvailable) await upsertPharmacyMedRecord(client, userId, pharmacyMedRecord);
+      const { userId, memberCode } = await insertNewMember(client,
+          { fullName, phone, email, sex, dob, remark }, capabilities, pharmacyMedRecord, req.staffDevice);
 
       await client.query("COMMIT");
 
