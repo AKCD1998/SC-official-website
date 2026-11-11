@@ -170,6 +170,7 @@ async function confirm(pool, body, staff, create) {
       (request_id,staff_device_id,member_id,action,contact_phone,request_hash,draft_hash,profile_hash,allow_shared_contact,previous_code)
       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`, [decision.requestId, staff.id, memberId, decision.action,
       value.phone, requestHash, hash(value), nativeHash, decision.action === 'new' && rows.length > 0, previousCode]);
+    await require('./sccrmHistoryFirst').enqueueRegistration(client, { memberId, branchCode: staff.branch_code });
     await client.query('COMMIT');
     return { memberId, outcome: decision.action, replayed: false };
   } catch (error) {

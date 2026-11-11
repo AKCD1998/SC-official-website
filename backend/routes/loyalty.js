@@ -13,6 +13,7 @@ const { normalizeThaiPhone } = require('../lib/publicMemberRegistration');
 const registrationIdentity = require('../lib/memberRegistrationIdentity');
 const adaPoints = require('../lib/adaPointAuthority');
 const adaPointWorkflow = require('../lib/adaPointWorkflow');
+const historyFirst = require('../lib/sccrmHistoryFirst');
 const { memberResponse } = require('../lib/memberResponse');
 
 const router = express.Router();
@@ -675,6 +676,29 @@ router.post('/registrations/confirm', requireStaff, async (req, res) => {
 // Cashier types a phone number, name, email, or member code.
 // Returns up to 20 matching active members with their current point balance.
 
+router.get('/sync-jobs', requireStaff, async (req, res) => {
+    res.set('Cache-Control', 'private, no-store');
+    try {
+        if (!await historyFirst.available(pool)) return res.status(503).json({ error: 'ขณะนี้ยังตรวจสถานะการส่งข้อมูลไม่ได้' });
+        return res.json(await historyFirst.list(pool, req.staffDevice, req.query));
+    } catch (error) { return res.status(error.status || 503).json({ error: error.status ? error.message : 'ขณะนี้ยังตรวจสถานะการส่งข้อมูลไม่ได้' }); }
+});
+router.get('/sync-jobs/:jobId', requireStaff, async (req, res) => {
+    res.set('Cache-Control', 'private, no-store');
+    try {
+        if (!await historyFirst.available(pool)) return res.status(503).json({ error: 'ขณะนี้ยังตรวจสถานะการส่งข้อมูลไม่ได้' });
+        return res.json(await historyFirst.detail(pool, req.staffDevice, req.params.jobId));
+    } catch (error) { return res.status(error.status || 503).json({ error: error.status ? error.message : 'ขณะนี้ยังตรวจสถานะการส่งข้อมูลไม่ได้' }); }
+});
+router.post('/sync-jobs/:jobId/retry', requireStaff, async (req, res) => {
+    res.set('Cache-Control', 'private, no-store');
+    try {
+        if (Object.keys(req.body || {}).length) return res.status(400).json({ error: 'คำขอลองใหม่ต้องไม่แก้ข้อมูลสมาชิกหรือบิล' });
+        if (!await historyFirst.available(pool)) return res.status(503).json({ error: 'ขณะนี้ยังลองส่งข้อมูลใหม่ไม่ได้' });
+        return res.json(await historyFirst.retry(pool, req.staffDevice, req.params.jobId));
+    } catch (error) { return res.status(error.status || 503).json({ error: error.status ? error.message : 'ขณะนี้ยังลองส่งข้อมูลใหม่ไม่ได้' }); }
+});
+
 router.get("/search", requireStaff, async (req, res) => {
     try {
         const raw = String(req.query.q || "").trim();
@@ -857,6 +881,7 @@ router.get("/claims/status", requireStaff, async (req, res) => {
     const claim = rows[0];
     return res.json({
       ok: true, branchCode, receiptNo, claimed: Boolean(claim),
+      ...(historyFirst.enabled() ? { historyFirstEnabled: await historyFirst.available(pool) } : {}),
       ...(claim ? {
         claimId: claim.id, claimedAt: claim.created_at,
         member: { id: claim.user_id, displayName: claim.full_name || "", memberCode: claim.member_code || "" },
@@ -900,14 +925,17 @@ router.post("/claims", requireStaff, async (req, res) => {
 
       try {
               await client.query("BEGIN");
+              const saveHistoryFirst = adaMode && await historyFirst.available(client);
+              if (adaMode && historyFirst.enabled() && !saveHistoryFirst) throw Object.assign(new Error('ขณะนี้ยังบันทึกคิวส่งข้อมูลไม่ได้ กรุณาลองใหม่'), { status:503, code:'HISTORY_FIRST_PAUSED' });
               if (adaMode) {
                 await adaPointWorkflow.guardReceipt(client,branchCode,receiptNo,memberId);
-                await adaPointWorkflow.nativeReceipt(client,branchCode,receiptNo,memberId,false);
+                if (saveHistoryFirst) await historyFirst.checkKnownOwner(client,{branchCode,receiptNo,memberId});
+                else await adaPointWorkflow.nativeReceipt(client,branchCode,receiptNo,memberId,false);
               }
               // Serialize awards for this member, including concurrent devices.
               await client.query('SELECT user_id FROM member_profiles WHERE user_id=$1::uuid FOR UPDATE', [memberId]);
               const promotions = adaMode ? [] : await getActivePromotions(client, branchCode);
-              const quote = adaMode ? await adaPoints.readReceiptPoints(client,{branchCode,receiptNo,memberId}) : quotePoints(eligible, promotions);
+              const quote = saveHistoryFirst ? historyFirst.pendingPoints() : adaMode ? await adaPoints.readReceiptPoints(client,{branchCode,receiptNo,memberId}) : quotePoints(eligible, promotions);
               const awardedPoints = quote.awardedPoints;
 
             // Duplicate receipt check
@@ -992,7 +1020,12 @@ router.post("/claims", requireStaff, async (req, res) => {
             });
             if (!adaMode) await mirrorPosAward(client, saleEventId, memberId, awardedPoints, ledgerEntryId, quote.appliedPromotions);
 
+            const syncJobId = saveHistoryFirst ? await historyFirst.enqueue(client, {
+                memberId, branchCode, claimId, posCode: /^\d{3}$/.test(snapshot.posCode || '') ? snapshot.posCode : null,
+            }) : null;
+
             await client.query("COMMIT");
+            if (saveHistoryFirst) historyFirst.notify();
 
             return res.status(201).json({
                       ok: true,
@@ -1010,6 +1043,7 @@ router.post("/claims", requireStaff, async (req, res) => {
                       eligibleAmount: eligible,
                       appliedPromotions: quote.appliedPromotions || [],
                       ...(adaMode ? {...quote,historyRecorded:true,pointsCredited:false} : {}),
+                      ...(saveHistoryFirst ? { historyFirst:true, sccrmStored:true, syncJobId, syncState:'pending' } : {}),
             });
       } catch (error) {
               await client.query("ROLLBACK");

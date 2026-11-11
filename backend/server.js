@@ -210,6 +210,8 @@ startServerAfterMigrations({
   port,
   runMigrations: runSeamlessMigrations,
 }).then(() => {
+  const stopSccrmReceiptSync = require('./lib/sccrmHistoryFirst').start(require('./db'));
+  process.once('SIGTERM', stopSccrmReceiptSync);
   require("./src/modules/seamless/services/accountingPrintMaintenance").startAccountingPrintMaintenance();
   require("./src/modules/seamless/services/shopee004StockRuntime").startShopee004StockMaintenance();
 }).catch((error) => {
