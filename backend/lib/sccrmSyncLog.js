@@ -60,7 +60,7 @@ async function detail(db,id){
    JOIN public.users u ON u.id=j.member_id JOIN public.member_profiles m ON m.user_id=u.id
    LEFT JOIN public.loyalty_claims c ON c.id=j.claim_id WHERE j.member_id=$1 ORDER BY j.created_at DESC LIMIT 100`,[id])).rows;
  return {ok:true,member:{id,name:person.full_name,memberCode:person.member_code},summary,jobs:receipts.map(r=>({
-  id:r.id,kind:r.kind,receiptNo:r.receipt_no||null,branchCode:r.origin_branch,state:r.state,label:outbox.label(r.last_code||'SCCRM_STORED'),attempts:r.attempt_count,nextAttemptAt:r.next_attempt_at,
+  id:r.id,kind:r.kind,receiptNo:r.receipt_no||null,branchCode:r.origin_branch,state:r.state,label:outbox.label(r.last_code||'SCCRM_STORED')+outbox.timeNote(r.evidence),receiptTime:r.evidence?.receiptTime||null,attempts:r.attempt_count,nextAttemptAt:r.next_attempt_at,
   deliveries:(r.evidence?.nativeReceipts||[]).map(d=>({...d,label:outbox.label(d.code||'WAITING_FOR_ADA_RECEIPT_DELIVERY')})),
  })),events:events.map(e=>({...e,label:e.code==='SCCRM_REGISTRATION_STORED'?'SCCRM บันทึกสมาชิกแล้ว':e.code==='HQ_MEMBER_CREATED'?'Ada HQ สร้างสมาชิกและออกเลข AR แล้ว':
   e.code==='BRANCH_SUCCEEDED'?'ส่งสมาชิกถึงสาขา '+e.branch_code+' แล้ว':e.code.startsWith('BRANCH_')?'การส่งสาขา '+e.branch_code+': '+({running:'กำลังส่ง',pending:'รอส่ง',retry:'รอลองใหม่',review:'ต้องตรวจสอบ'}[e.state]||e.state):outbox.label(e.code)}))};
