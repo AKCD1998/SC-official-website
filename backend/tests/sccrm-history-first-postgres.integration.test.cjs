@@ -9,7 +9,7 @@ const {hashOpaqueToken}=require('../lib/sccrm');
 const {provisionMemberRegistrationReporting}=require('../scripts/provision-member-registration-reporting.cjs');
 const run=process.env.SCCRM_HISTORY_FIRST_TEST_DATABASE_URL;
 const describeDb=run?describe:describe.skip;
-const migration='../supabase/migrations/20261111054740_sccrm_history_first_outbox.sql';
+const migration='../supabase/migrations/20261111073157_sccrm_history_first_outbox.sql';
 const read=file=>fs.readFileSync(path.join(__dirname,file),'utf8');
 const token='synthetic-history-first-device',otherToken='synthetic-history-first-other-branch';
 const source='hq000/AdaAcc';
@@ -57,7 +57,7 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
    INSERT INTO sccrm_member_codes.targets SELECT v,v,true FROM unnest(ARRAY['001','003','004','005']) v;`);
   const client=await mockPool.connect();try{await provisionMemberRegistrationReporting(client,{apply:true,activate:true});}finally{client.release();}
   await mockPool.query(read(migration));await mockPool.query(read(migration));
-  await mockPool.query(read('../supabase/migrations/20261111062307_sccrm_native_receipt_delivery.sql'));
+  await mockPool.query(read('../supabase/migrations/20261111073159_sccrm_native_receipt_delivery.sql'));
   await mockPool.query('UPDATE sccrm_receipt_sync.meta SET enabled=true');
   for(const [code,staffToken] of [['005',token],['003',otherToken]]){
    const branch=crypto.randomUUID();await mockPool.query('INSERT INTO branches(id,name,code) VALUES($1,$2,$3)',[branch,'Synthetic '+code,code]);
