@@ -19,12 +19,14 @@ async function recordMemberRegistration(db, { memberId, source, branchCode, devi
       (member_id, source, branch_code, device_id, referral_code, pos_code)
       VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (member_id) DO NOTHING`,
     [memberId, source, branchCode, deviceId, referralCode, posCode]);
+    await require('./sccrmHistoryFirst').enqueueRegistration(db, { memberId, branchCode, posCode });
     return;
   }
   await db.query(`INSERT INTO crm_reporting.member_registrations
     (member_id, source, branch_code, device_id)
     VALUES ($1, $2, $3, $4) ON CONFLICT (member_id) DO NOTHING`,
   [memberId, source, registrationBranch(branchCode), deviceId]);
+  await require('./sccrmHistoryFirst').enqueueRegistration(db, { memberId, branchCode: registrationBranch(branchCode), posCode });
 }
 
 function parseMonth(value) {

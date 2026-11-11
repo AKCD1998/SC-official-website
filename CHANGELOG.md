@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-11-11 — SCCRM-first history and durable Ada delivery
+
+- Commit receipt history and an immutable private outbox atomically before
+  waiting for Ada membership/points. Preserve receipt ownership and replay guards.
+- Add branch-scoped staff logs/retry and central admin member sync histories.
+- Run a separate bounded receipt-delivery capability for the headless HQ worker;
+  lease recovery, native proof identity and per-target failures remain durable.
+- Keep Ada as point authority. The receiver only links existing paid bills and
+  never creates sales, changes amounts or awards points.
+
 ## Unreleased — Cashier confirms existing members and shared contact phones
 
 - Show all exact-phone candidates only to an authenticated staff device. A signed,

@@ -15,6 +15,14 @@ const {
 } = require("../lib/sccrmCrm");
 
 const router = express.Router();
+const receiptDelivery = require('../lib/sccrmReceiptDelivery');
+for (const [action, handler] of [['lease', receiptDelivery.lease], ['acknowledge', receiptDelivery.acknowledge]]) {
+  router.post('/sccrm-receipt-sync/' + action, receiptDelivery.authorize, async (req, res) => {
+    res.set('Cache-Control', 'no-store');
+    try { return res.json(await handler(pool, req.body)); }
+    catch (error) { return res.status(error.status || 503).json({ ok:false, error:error.status === 400 ? 'Invalid worker packet' : 'Receipt queue unavailable' }); }
+  });
+}
 
 function jsonError(res, status, message) {
   return res.status(status).json({ error: message });
@@ -558,6 +566,16 @@ router.get('/crm/member-directory', requireInternalToken, async (req, res) => {
   res.set('Cache-Control', 'private, no-store');
   try { return res.json(await listMembers(req.query)); }
   catch (error) { return res.status(error.status || 500).json({ error: error.status ? error.message : 'Unable to load members.' }); }
+});
+router.get('/crm/member-directory/:id/sync-status', requireInternalToken, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { return res.json(await require('../lib/sccrmSyncLog').detail(pool, req.params.id)); }
+  catch (error) { return res.status(error.status || 503).json({ error: error.status ? error.message : 'ยังตรวจประวัติการส่งข้อมูลไม่ได้' }); }
+});
+router.post('/crm/member-directory/:id/sync-status/retry', requireInternalToken, adaLinking.requireLinkAdmin, async (req, res) => {
+  res.set('Cache-Control', 'private, no-store');
+  try { return res.json(await require('../lib/sccrmSyncLog').retry(pool, req.params.id, req.body)); }
+  catch (error) { return res.status(error.status || 503).json({ error: error.status ? error.message : 'ยังรับคำขอลองใหม่ไม่ได้' }); }
 });
 router.get('/crm/member-directory/:id/purchase-history', requireInternalToken, async (req, res) => {
   res.set('Cache-Control', 'private, no-store');

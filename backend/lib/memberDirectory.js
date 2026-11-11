@@ -38,11 +38,15 @@ async function listMembers(query) {
     COALESCE((SELECT json_agg(p ORDER BY p.created_at DESC, p.id DESC) FROM paged p), '[]'::json) AS members`,
     [search, pattern, limit, (page - 1) * limit,...(ada.enabled()?[contacts.digitPattern(search)]:[])]);
   const result = rows[0];
+  // Status lookup failures must not make the member directory itself disappear.
+  const sync = await require('./sccrmSyncLog').summaries(pool, result.members.map(row => row.id)).catch(() =>
+    new Map(result.members.map(row => [row.id, {state:'unknown',label:'ยังตรวจสถานะการส่งไม่ได้'}])));
   return { ok: true, page, limit, total: Number(result.total), members: result.members.map(row => ({
     id: row.id, memberCode: row.member_code, name: row.full_name, phone: row.phone_number,
     registeredAt: row.created_at, isActive: row.is_active,
     ...(row.source ? { source: row.source } : {}),
     ...contacts.contactFields(row.phone_number,row.contact_phones),
+    ...(sync.has(row.id) ? { memberSync: sync.get(row.id) } : {}),
   })) };
 }
 module.exports = { listMembers, directoryQuery, historyQuery };
