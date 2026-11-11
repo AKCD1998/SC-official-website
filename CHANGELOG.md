@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-11-11 — Adopt finalized Ada receipt times without duplicating history
+
+- Accept versioned native time proof only after the existing receipt, member,
+  final paid state, total and source item rows pass the native receiver guards.
+- Adopt only the selling branch's final timestamp on its existing SCCRM claim
+  and explicitly linked mirror. Preserve immutable submitted payload/time and
+  both timestamps in the audit and staff/member sync log. No points are awarded.
+- Automatically recheck legacy time holds once for upgraded workers; unfinished
+  bills retry and true amount/item/owner conflicts remain held for review.
+- Verify real PostgreSQL transactions, expired leases, lost acknowledgements,
+  immutable identity, unchanged items/points and rolling worker compatibility.
+
 ## 2026-11-11 — SCCRM-first history and durable Ada delivery
 
 - Commit receipt history and an immutable private outbox atomically before

@@ -181,6 +181,13 @@ async function runOnce(db, { inspect = observe, limit = 10 } = {}) {
 }
 
 const LABELS = {
+  ADA_FINAL_TIME_POLICY_RECHECK:'ระบบกำลังตรวจบิลที่เคยพักเพราะเวลาอีกครั้ง',
+  ADA_FINAL_TIME_ADOPTED:'ตรวจรายการตรงแล้ว ใช้เวลาปิดบิลจาก Ada และเก็บเวลาเดิมไว้ใน log',
+  ADA_FINAL_TIME_VERIFIED:'ยืนยันเวลาปิดบิลจาก Ada แล้ว',
+  RECEIPT_NOT_FINAL:'บิลใน Ada ยังไม่ชำระเสร็จ ระบบจะลองใหม่เอง',
+  RECEIPT_FINANCIAL_HEADER_CHANGED:'ยอดเงินบิลต่างกัน ต้องให้ผู้ดูแลตรวจสอบ',
+  RECEIPT_DOCUMENT_KIND_CHANGED:'ประเภทเอกสารใน Ada ไม่ตรงกับบิลขาย',
+  RECEIPT_CANONICAL_TIME_CHANGED:'เวลาบิล Ada เปลี่ยนหลังยืนยันแล้ว ต้องตรวจสอบ',
   SCCRM_STORED: 'บันทึกใน SCCRM แล้ว รอส่งข้อมูล', VERIFYING_ADA: 'กำลังตรวจข้อมูลใน Ada',
   SENDING_ADA_RECEIPT: 'กำลังส่งชื่อสมาชิกลงบิล Ada เดิม', NATIVE_LEASE_RECOVERED: 'นำการส่งบิลที่ขาดการตอบรับกลับมาตรวจใหม่',
   WAITING_FOR_ADA_RECEIPT_DELIVERY: 'ประวัติอยู่ใน SCCRM แล้ว รอเติมสมาชิกลงบิล Ada',
@@ -206,10 +213,16 @@ const LABELS = {
   MANUAL_RETRY: 'รับคำขอลองใหม่แล้ว', EXPIRED_LEASE_RECOVERED: 'นำงานที่ขาดการตอบรับกลับมาตรวจใหม่',
 };
 function label(code) { return LABELS[code] || 'รอตรวจข้อมูลกับ Ada'; }
+function timeNote(evidence) {
+  const t=evidence?.receiptTime;
+  if(t?.policy!=='ada-final-time-v1'||!t.adjusted||!Number.isFinite(Date.parse(t.originalSccrmTime))||!Number.isFinite(Date.parse(t.adaFinalTime)))return '';
+  const format=value=>new Date(value).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  return ' — ใช้เวลาปิดบิล Ada '+format(t.adaFinalTime)+' (SCCRM อ่านไว้ '+format(t.originalSccrmTime)+')';
+}
 function publicJob(row) {
   return { id: row.id, kind: row.kind, memberId: row.member_id, memberName: row.full_name || '', memberCode: row.member_code || '',
     receiptNo: row.receipt_no || null, branchCode: row.origin_branch, state: row.state, code: row.last_code || 'SCCRM_STORED',
-    label: label(row.last_code || 'SCCRM_STORED'), attempts: row.attempt_count, createdAt: row.created_at, updatedAt: row.updated_at,
+    label: label(row.last_code || 'SCCRM_STORED')+timeNote(row.evidence), attempts: row.attempt_count, createdAt: row.created_at, updatedAt: row.updated_at,
     nextAttemptAt: row.state === 'retry' || row.state === 'pending' ? row.next_attempt_at : null,
     evidence: row.evidence || {}, sccrmStored: true };
 }
@@ -262,4 +275,4 @@ function start(db) {
   return () => { stopped = true; clearInterval(timer); wake = () => {}; };
 }
 module.exports = { enabled, available, enqueue, enqueueRegistration, checkKnownOwner, pendingPoints, observeMember, observe,
-  lease, finish, runOnce, list, detail, retry, start, notify, label, MARKER, SCOPE };
+  lease, finish, runOnce, list, detail, retry, start, notify, label, timeNote, MARKER, SCOPE };
