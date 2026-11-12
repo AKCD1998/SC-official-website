@@ -198,6 +198,19 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   expect(detail.events.some(e=>e.code==='SCCRM_STORED')).toBe(true);
   await expect(logs.retry(mockPool,crypto.randomUUID(),{jobId:job.id,actor:{id:'synthetic-admin',role:'admin'}})).rejects.toMatchObject({status:404});
  });
+ test('central web and terminal logs show the same pending/review completeness after native delivery succeeds',async()=>{
+  const logs=require('../lib/sccrmSyncLog'),id=await member();await link(id,'AR000-900008');
+  const response=await send(body(id)),job=await jobFor(response.body.claimId);
+  await mockPool.query("UPDATE sccrm_receipt_sync.jobs SET state='succeeded',last_code='ADA_RECEIPT_VERIFIED' WHERE id=$1",[job.id]);
+  for(const [state,code,expected] of [['pending','RECON_PENDING','retry'],['review','RECON_EXISTING_LINE_CHANGED','review'],['verified','RECON_VERIFIED','succeeded']]){
+   await mockPool.query("UPDATE sccrm_receipt_sync.completeness SET state=$2,code=$3,verified_at=now(),next_check_at=now()+interval '10 minutes' WHERE job_id=$1",[job.id,state,code]);
+   const web=(await logs.detail(mockPool,id)).jobs.find(j=>j.id===job.id);
+   const terminal=(await outbox.detail(mockPool,{branch_code:'005'},job.id)).job;
+   expect(web.state).toBe(expected);expect(web.label).toBe(terminal.label);expect(web.completeness).toEqual(terminal.completeness);
+   expect(web.completeness).toMatchObject({state,code,verifiedAt:expect.any(Date),nextCheckAt:expect.any(Date)});
+   expect(web).not.toHaveProperty('lease_token');expect(web).not.toHaveProperty('payload');
+  }
+ });
  test('final Ada time replaces only the existing origin claim time; immutable input, owner, lines and points survive replay and lost ACK',async()=>{
   const delivery=require('../lib/sccrmReceiptDelivery');
   await mockPool.query("UPDATE sccrm_receipt_sync.native_deliveries SET next_attempt_at=now()+interval '1 hour',lease_until=CASE WHEN state='running' THEN now()+interval '1 hour' ELSE NULL END");
