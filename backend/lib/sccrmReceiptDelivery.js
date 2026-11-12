@@ -17,6 +17,7 @@ async function schedule(db,job,claim,member){
    ||snapshot.totalAmountSource!=='pos_header'||!claim.sold_at||!Array.isArray(snapshot.items)||!snapshot.items.length){
   return {state:'review',code:'RECEIPT_SNAPSHOT_INCOMPLETE',evidence:member.evidence};
  }
+ const revision=Number((await db.query('SELECT COALESCE(MAX(revision),1)::int revision FROM sccrm_receipt_sync.final_revisions WHERE claim_id=$1',[claim.id || job.claim_id])).rows[0].revision);
  const profile=(await db.query(`SELECT name,phone FROM ada_history.customers WHERE source_id='hq000/AdaAcc' AND ada_code=$1`,[member.evidence.adaCode])).rows[0];
  if(!profile)return {state:'retry',code:'WAITING_FOR_HQ',evidence:member.evidence};
  for(const target of [job.origin_branch,'000']){
@@ -27,10 +28,10 @@ async function schedule(db,job,claim,member){
    items:snapshot.items,lineAdjustments:snapshot.lineAdjustments||null,
    expectedName:profile.name,expectedPhone:profile.phone||null};
   const hash=createHash('sha256').update(JSON.stringify(payload)).digest('hex');
-  await db.query(`INSERT INTO sccrm_receipt_sync.native_deliveries(id,parent_id,target_branch,payload,payload_hash)
-   VALUES($1,$2,$3,$4,$5) ON CONFLICT(parent_id,target_branch) DO NOTHING`,[id,job.id,target,payload,hash]);
+  await db.query(`INSERT INTO sccrm_receipt_sync.native_deliveries(id,parent_id,target_branch,payload,payload_hash,revision)
+   VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(parent_id,target_branch,revision) DO NOTHING`,[id,job.id,target,payload,hash,revision]);
  }
- const rows=(await db.query(`SELECT target_branch,state,last_code,proof,payload FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=$1 ORDER BY target_branch`,[job.id])).rows;
+ const rows=(await db.query(`SELECT target_branch,state,last_code,proof,payload FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=$1 AND revision=$2 ORDER BY target_branch`,[job.id,revision])).rows;
  const evidence={...member.evidence,nativeReceipts:rows.map(r=>({branchCode:r.target_branch,state:r.state,code:r.last_code||null,verifiedAt:r.proof?.verifiedAt||null}))};
  const origin=rows.find(r=>r.target_branch===job.origin_branch);
  if(origin?.proof?.timePolicy===TIME_POLICY)evidence.receiptTime={policy:TIME_POLICY,
@@ -54,6 +55,7 @@ async function lease(db,body){
   if(body.timePolicy===TIME_POLICY)await recoverLegacyTimeReviews(c,body.targetBranch);
   const row=(await c.query(`SELECT d.* FROM sccrm_receipt_sync.native_deliveries d
    WHERE target_branch=$1 AND ((state IN('pending','retry') AND next_attempt_at<=now()) OR(state='running' AND lease_until<now()))
+   AND NOT EXISTS(SELECT 1 FROM sccrm_receipt_sync.native_deliveries newer WHERE newer.parent_id=d.parent_id AND newer.target_branch=d.target_branch AND newer.revision>d.revision)
    AND EXISTS(SELECT 1 FROM sccrm_receipt_sync.jobs j WHERE j.id=d.parent_id AND j.state<>'review')
    ORDER BY next_attempt_at,id FOR UPDATE SKIP LOCKED LIMIT 1`,[body.targetBranch])).rows[0];
   if(!row){await c.query('COMMIT');return {ok:true,job:null};}
@@ -117,6 +119,7 @@ async function acknowledge(db,body){
   await c.query('BEGIN');
   const row=(await c.query(`SELECT * FROM sccrm_receipt_sync.native_deliveries WHERE id=$1 AND target_branch=$2 FOR UPDATE`,[body.id,body.targetBranch])).rows[0];
   if(!row||row.payload_hash!==body.payloadHash)throw invalid();
+  if((await c.query('SELECT 1 FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=$1 AND target_branch=$2 AND revision>$3',[row.parent_id,row.target_branch,row.revision])).rows.length){await c.query('COMMIT');return {ok:true,accepted:false};}
   const p=body.proof;
   if(body.state==='succeeded'&&(!p||Object.keys(p).some(k=>!['operationId','payloadHash','adaCode','receiptNo','branchCode','posCode','targetBranch','tables','outcome','verifiedAt','timePolicy','submittedSoldAt','nativeSoldAt','timeAdjusted','nativeTimeTable'].includes(k))
    ||p.operationId!==row.id||p.payloadHash!==row.payload_hash||p.adaCode!==row.payload.adaCode
@@ -137,6 +140,6 @@ async function acknowledge(db,body){
 }
 async function retry(db,parentId){
  await db.query(`UPDATE sccrm_receipt_sync.native_deliveries SET state='pending',next_attempt_at=now(),updated_at=now(),
-  lease_token=NULL,lease_until=NULL WHERE parent_id=$1 AND state IN('retry','review')`,[parentId]);
+  lease_token=NULL,lease_until=NULL WHERE parent_id=$1 AND state IN('retry','review') AND NOT EXISTS(SELECT 1 FROM sccrm_receipt_sync.native_deliveries newer WHERE newer.parent_id=native_deliveries.parent_id AND newer.target_branch=native_deliveries.target_branch AND newer.revision>native_deliveries.revision)`,[parentId]);
 }
 module.exports={authorize,schedule,lease,acknowledge,retry};

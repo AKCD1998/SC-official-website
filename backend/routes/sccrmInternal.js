@@ -72,6 +72,15 @@ async function withTransaction(work) {
 }
 
 async function upsertSaleEvent(client, sale) {
+  // The legacy feed is observational. It may contain an earlier/zero-valued
+  // projection; never replace a cashier-confirmed claim's history with it.
+  await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [`ada-points-receipt:${sale.branch_code}:${sale.doc_no}`]);
+  const savedClaim = await client.query('SELECT id FROM loyalty_claims WHERE branch_code=$1 AND receipt_no=$2', [sale.branch_code,sale.doc_no]);
+  if(savedClaim.rows.length) {
+    const savedMirror = await client.query('SELECT id FROM crm_pos_sale_events WHERE branch_code=$1 AND doc_no=$2', [sale.branch_code,sale.doc_no]);
+    if(savedMirror.rows.length===1)return savedMirror.rows[0].id;
+    throw new Error('CLAIM_MIRROR_REQUIRES_REVIEW');
+  }
   const existing = await client.query(
     `SELECT id, claim_status FROM crm_pos_sale_events WHERE source_event_key = $1`,
     [sale.source_event_key]
