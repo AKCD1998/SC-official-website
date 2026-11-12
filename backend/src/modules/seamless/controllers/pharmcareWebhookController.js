@@ -1,7 +1,6 @@
 const crypto = require("node:crypto");
 const { createGmailAdapter, isGmailConfigured } = require("../services/pharmcare/gmailAdapter");
 const { runPharmcareGmailSync } = require("../services/pharmcareSyncService");
-const { sendTextAlert } = require("../services/lineNotifyService");
 const { readPharmcareGmailConfig } = require("../config");
 const { unauthorized } = require("../errors");
 
@@ -47,21 +46,13 @@ async function handleGmailWebhook(req, res) {
     // now and documented, with a paid Render Cron Job fallback planned once usage grows.
     if (outcome.status === "failed") {
       const failedCount = outcome.results.filter((r) => r.status === "failed").length;
-      await sendTextAlert(
-        `⚠️ PharmCare Gmail sync (webhook-triggered) completed with ${failedCount} failed message(s). Check pharmcare_sync_runs (runId: ${outcome.runId}) or run: node scripts/pharmcare-gmail.cjs status`,
-      ).catch((alertError) => {
-        console.error("[pharmcare-gmail-webhook] LINE alert failed:", alertError.message);
-      });
+      console.error(`[pharmcare-gmail-webhook] sync completed with ${failedCount} failed message(s), runId: ${outcome.runId}`);
     }
   } catch (error) {
     // Response is already sent — nothing left to do but log + alert. The next webhook call or a
     // manual sync will pick up anything missed here.
     console.error("[pharmcare-gmail-webhook] incremental sync failed:", error.message);
-    await sendTextAlert(`⚠️ PharmCare Gmail sync (webhook-triggered) crashed: ${error.message}`).catch(
-      (alertError) => {
-        console.error("[pharmcare-gmail-webhook] LINE alert failed:", alertError.message);
-      },
-    );
+    // LINE alert temporarily muted; retain server-side error logging.
   }
 }
 
