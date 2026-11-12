@@ -16,6 +16,10 @@ async function run(){
   for(const b of before.cases){
    await seedUser(b.claim.user_id);
    await db.query('INSERT INTO member_profiles(user_id,member_code)VALUES($1,$2)',[b.claim.user_id,b.member_code]);
+   const profile=b.deliveries.find(d=>d.target_branch==='000').payload;
+   await db.query(`INSERT INTO ada_history.customers(source_id,ada_code,name,phone,active,source_payload,payload_hash,source_snapshot)
+    VALUES('hq000/AdaAcc',$1,$2,$3,'1',$4,$5,$6)`,[b.member_code,profile.expectedName,profile.expectedPhone,{FTCstCode:b.member_code},'a'.repeat(64),require('node:crypto').randomUUID()]);
+   await db.query("INSERT INTO ada_history.member_links VALUES($1,'hq000/AdaAcc',$2,'isolated copy of approved mapping')",[b.claim.user_id,b.member_code]);
    await insert('loyalty_claims',[b.claim]);await insert('loyalty_claim_items',b.items);
    await insert('sccrm_receipt_sync.jobs',[b.job]);await insert('sccrm_receipt_sync.native_deliveries',b.deliveries.map(d=>({...d,revision:1})));
    for(const m of b.mirrors){await insert('crm_pos_sale_events',[m.header]);await insert('crm_pos_sale_line_events',m.items);}

@@ -32,6 +32,11 @@ BEGIN
   OR lc.user_id::text<>p->>'memberId' OR j.member_id::text<>p->>'memberId' OR lc.receipt_no<>p->>'receiptNo'
   OR lc.branch_code<>p->>'branchCode' OR j.origin_pos<>p->>'posCode' OR j.state<>'review' OR j.last_code<>'ADA_RECEIPT_REQUIRES_REVIEW'
  THEN RAISE EXCEPTION 'RECEIPT_RECOVERY_STALE_IDENTITY';END IF;
+ PERFORM 1 FROM public.member_profiles WHERE user_id=lc.user_id::uuid FOR UPDATE;
+ IF NOT EXISTS(SELECT 1 FROM public.member_profiles m JOIN ada_history.member_links ml ON ml.member_id=m.user_id
+  WHERE m.user_id=lc.user_id::uuid AND ml.source_id='hq000/AdaAcc' AND ml.ada_code=p->>'adaCode'
+  AND CASE WHEN left(m.member_code,4)='ADA-' THEN substring(m.member_code from 5) ELSE m.member_code END=p->>'adaCode')
+ THEN RAISE EXCEPTION 'RECEIPT_RECOVERY_MEMBER_LINK';END IF;
  PERFORM 1 FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=j.id ORDER BY target_branch FOR UPDATE;
  SELECT jsonb_agg(to_jsonb(x) ORDER BY target_branch) INTO old_deliveries FROM sccrm_receipt_sync.native_deliveries x WHERE parent_id=j.id;
  IF old_deliveries IS DISTINCT FROM ${literal(deliveries)} OR EXISTS(SELECT 1 FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=j.id
