@@ -183,6 +183,7 @@ async function runOnce(db, { inspect = observe, limit = 10 } = {}) {
 
 const LABELS = {
   RECON_PENDING:'บันทึกแล้ว รอตรวจความครบของข้อมูลบิล',RECON_READING:'กำลังตรวจสินค้าและหน่วยกับ Ada',
+  RECON_IDENTITY_CONFLICT:'สาขา เครื่องขาย หรือเลขบิลไม่ตรง ต้องตรวจสอบ',RECON_DOCUMENT_KIND_CHANGED:'เอกสารใน Ada ไม่ใช่บิลขายเดิม ต้องตรวจสอบ',
   RECON_WAITING_INITIAL_AUDIT:'ประวัติเดิมอยู่ใน SCCRM แล้ว รอตรวจข้อมูลก่อนส่ง Ada',
   RECON_WAITING_MEMBER:'ประวัติอยู่ใน SCCRM แล้ว รอรหัสสมาชิก Ada เพื่อเติมข้อมูล',
   RECON_FILLED:'เติมข้อมูลที่ขาดจาก Ada แล้ว และตั้งตรวจซ้ำอัตโนมัติ',RECON_VERIFIED:'ตรวจข้อมูลบิลครบและตรงกับ Ada แล้ว',

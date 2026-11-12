@@ -347,6 +347,14 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   expect((await mockPool.query('SELECT count(*)::int n FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].n).toBe(1);
   expect((await mockPool.query('SELECT user_id FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].user_id).toBe(id);
  });
+ test('an older producer deployment gap is enrolled without duplicating the existing receipt or its job',async()=>{
+  const r=require('../lib/sccrmReceiptCompleteness'),policy=require('../lib/receiptCompletenessPolicy').POLICY,id=await member(),saved=await send(body(id)),claimId=saved.body.claimId;
+  await link(id,'AR005-998003');await mockPool.query('DELETE FROM sccrm_receipt_sync.completeness WHERE claim_id=$1',[claimId]);
+  await mockPool.query('UPDATE sccrm_receipt_sync.completeness_control SET pilot_claims=$1',[[claimId]]);
+  expect((await r.lease(mockPool,{originBranch:'005',policy})).job.id).toBe(claimId);
+  expect((await mockPool.query('SELECT count(*)::int n FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].n).toBe(1);
+  expect((await mockPool.query('SELECT count(*)::int n FROM sccrm_receipt_sync.jobs WHERE claim_id=$1',[claimId])).rows[0].n).toBe(1);
+ });
  test('receipt worker uses a separate narrow machine credential and never accepts altered lease scope',async()=>{
   const url='/internal/sccrm-receipt-sync/lease';
   expect((await request(app).post(url).send({targetBranch:'005'})).status).toBe(401);

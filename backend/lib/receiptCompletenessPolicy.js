@@ -17,8 +17,9 @@ function canonical(observation,identity){
   ||observation.items.length>1000||observation.payments.length>100||observation.journals.length>1)fail('RECON_PACKET_REFUSED');
  const h=observation.header;
  if(!['TPSTSalHD','TSHD'+identity.posCode].includes(observation.table)||identity.targetBranch==='000'&&observation.table!=='TPSTSalHD')fail('RECON_PACKET_REFUSED');
- if(h.branchCode!==identity.branchCode||h.posCode!==identity.posCode||h.receiptNo!==identity.receiptNo
-  ||h.docType!=='1'||h.paidStatus!=='3'||h.documentStatus!=='1')fail('RECON_SOURCE_NOT_FINAL');
+ if(h.branchCode!==identity.branchCode||h.posCode!==identity.posCode||h.receiptNo!==identity.receiptNo)fail('RECON_IDENTITY_CONFLICT');
+ if(h.docType!=='1')fail('RECON_DOCUMENT_KIND_CHANGED');
+ if(h.paidStatus!=='3'||h.documentStatus!=='1')fail('RECON_SOURCE_NOT_FINAL');
  if(!num(h.totalAmount)||h.totalAmount<=0||!num(h.receiptDiscount)||h.receiptDiscount<0||!num(h.rounding)
   ||!observation.payments.length||observation.payments.some(p=>!num(p.net)||!num(p.amount)||!num(p.change)||!text(p.code))
   ||Math.abs(observation.payments.reduce((v,p)=>v+p.net,0)-h.totalAmount)>0.004)fail('RECON_PAYMENT_INCOMPLETE');
@@ -26,6 +27,7 @@ function canonical(observation,identity){
  const owner=text(h.adaCode);
  if(owner&&owner!==identity.adaCode&&!(owner==='0'&&observation.walkInVerified===true))fail('RECON_OTHER_OWNER');
  if(observation.journals.some(j=>j.adaCode!==identity.adaCode||j.branchCode!==identity.branchCode||j.posCode!==identity.posCode||j.receiptNo!==identity.receiptNo))fail('RECON_OTHER_OWNER');
+ if(observation.journals.length&&owner!==identity.adaCode)fail('RECON_NATIVE_OWNER_INCONSISTENT');
  if(!observation.items.length||new Set(observation.items.map(i=>i.seq)).size!==observation.items.length
   ||observation.items.some(i=>!Number.isSafeInteger(i.seq)||i.seq<1||!text(i.productCode)||!text(i.productName)||!text(i.barcode)
    ||!text(i.unitCode)||!text(i.unitName)||!num(i.qty)||i.qty===0||!num(i.unitPrice)||i.unitPrice<0||!num(i.lineTotal)||!num(i.lineDiscount)))fail('RECON_SOURCE_FIELDS_INCOMPLETE');

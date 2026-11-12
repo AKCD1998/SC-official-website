@@ -53,6 +53,7 @@ async function repairQueue(c,row,lc,snapshot,identity,p,proof){
  }
  const current=Math.max(...ds.map(d=>d.revision)),latest=ds.filter(d=>d.revision===current);
  if(latest.length!==2||latest.some(d=>d.payload.memberId!==identity.memberId||d.payload.adaCode!==identity.adaCode||d.payload.receiptNo!==identity.receiptNo))throw Object.assign(Error('RECON_DELIVERY_IDENTITY_REVIEW'),{code:'RECON_DELIVERY_IDENTITY_REVIEW'});
+ if(latest.some(d=>d.state==='succeeded'&&!(d.target_branch==='000'?p.hqOwned:p.sourceOwned)))throw Object.assign(Error('RECON_NATIVE_OWNER_INCONSISTENT'),{code:'RECON_NATIVE_OWNER_INCONSISTENT'});
  if(!p.changed&&!latest.some(d=>d.state==='review')&&latest.every(d=>equal(d.payload.items,snapshot.items)&&d.payload.totalAmount===snapshot.totalAmount))return;
  for(const d of latest){
   const id=randomUUID(),payload={...d.payload,operationId:id,items:snapshot.items,totalAmount:snapshot.totalAmount,lineAdjustments:snapshot.lineAdjustments||null},owned=d.target_branch==='000'?p.hqOwned:p.sourceOwned;
