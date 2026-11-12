@@ -358,6 +358,7 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
  test('receipt worker uses a separate narrow machine credential and never accepts altered lease scope',async()=>{
   const url='/internal/sccrm-receipt-sync/lease';
   expect((await request(app).post(url).send({targetBranch:'005'})).status).toBe(401);
+  for(const action of ['completeness-lease','completeness-acknowledge'])expect((await request(app).post('/internal/sccrm-receipt-sync/'+action).set('Authorization','Bearer '+token).send({})).status).toBe(401);
   expect((await request(app).post(url).set('Authorization','Bearer '+token).send({targetBranch:'005'})).status).toBe(401);
   const secret=process.env.SC_OFFICIAL_RECEIPT_WORKER_TOKEN;
   expect((await request(app).post(url).set('x-sccrm-receipt-worker',secret).send({targetBranch:'005',memberId:crypto.randomUUID()})).status).toBe(400);

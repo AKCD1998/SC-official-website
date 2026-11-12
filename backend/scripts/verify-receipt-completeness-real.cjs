@@ -10,7 +10,7 @@ async function run(){
   {receive}=require(path.join(native,'sync-agent/receipts/native-adapter.cjs')),{readAdmin}=require(path.join(native,'sync-agent/fanout/admin-source.cjs')),
   copy=require(path.join(native,'sync-agent/receipts/time-copy.cjs')),r=require('../lib/sccrmReceiptCompleteness'),delivery=require('../lib/sccrmReceiptDelivery'),outbox=require('../lib/sccrmHistoryFirst');
  process.env.SC_OFFICIAL_ADA_POINTS_MODE='ada-primary';process.env.SC_OFFICIAL_SCCRM_HISTORY_FIRST_ENABLED='true';
- const db=new Pool({connectionString:url.toString(),max:3});const admin=readAdmin('000');let counter=0;
+ const db=new Pool({connectionString:url.toString(),max:3});const admin=readAdmin('000');let counter=0;const nativeApplied=[];
  try{
   assert.equal(Number((await db.query('SELECT count(*) n FROM loyalty_claims')).rows[0].n),0);
   await db.query("INSERT INTO sccrm_receipt_sync.meta(singleton,marker,scope,schema_version,enabled)VALUES(true,'9bde36f3-a235-4228-9e6f-190126a213f5','SCCRM-HISTORY-FIRST-V1',1,true)");
@@ -39,19 +39,32 @@ async function run(){
    assert.equal(ds.length,4);for(const old of b.deliveries){const current=ds.find(d=>d.id===old.id);assert.deepEqual(current.payload,old.payload);assert.equal(current.payload_hash,old.payload_hash);}
    results.push({doc:b.claim.receipt_no,adaCode:b.member_code,total:actual.receipt_snapshot.totalAmount,units:actual.receipt_snapshot.items.map(i=>i.unitName),ownerAndOriginalLineIdsPreserved:true});
   }
-  // Native copy receiver validates the corrected queue at both destinations.
+  // Commit and replay native operations in the guarded copies, so the later
+  // periodic audit observes the same committed owner as a real deployment.
   for(const targetBranch of ['005','000'])for(let n=0;n<2;n++){
-   const job=(await delivery.lease(db,{targetBranch})).job;assert(job);const proof=await receive(targets.find(t=>t.branch===targetBranch),admin,job,{mode:'Copy',rollbackCopy:true});
+   const job=(await delivery.lease(db,{targetBranch})).job;assert(job);const target=targets.find(t=>t.branch===targetBranch),owners=[];
+   for(const table of ['TPSTSalHD','TSHD'+job.payload.posCode]){const found=copy.sql(target,"SELECT OBJECT_ID(@table) id",{table:'dbo.'+table},{copy:true}).results[0][0].id;if(found){const rows=copy.sql(target,`SELECT FTCstCode FROM dbo.${table} WHERE FTBchCode=@branch AND FTShdDocNo=@doc`,{branch:job.payload.branchCode,doc:job.payload.receiptNo},{copy:true}).results[0];if(rows.length)owners.push({table,code:rows[0].FTCstCode});}}
+   nativeApplied.push({target,job,owners});const proof=await receive(target,admin,job,{mode:'Copy'});const replay=await receive(target,admin,job,{mode:'Copy'});assert.equal(replay.outcome,'replayed');
+   assert.equal(copy.sql(target,'SELECT COUNT(*) n FROM dbo.SCCRM_ReceiptSyncJournal WHERE operation_id=@id',{id:job.id},{copy:true}).results[0][0].n,1);
    const packet={id:job.id,targetBranch,leaseToken:job.leaseToken,payloadHash:job.payloadHash,state:'succeeded',code:'ADA_RECEIPT_VERIFIED',proof};assert((await delivery.acknowledge(db,packet)).accepted);
   }
   // Re-run a later audit through the same worker, not a special recovery SQL.
   await db.query('UPDATE sccrm_receipt_sync.completeness SET next_check_at=now()');await worker.cycle('005');await worker.cycle('005');
+  assert.equal(Number((await db.query("SELECT count(*) n FROM sccrm_receipt_sync.completeness WHERE state='verified'")).rows[0].n),2);
   assert.equal(Number((await db.query('SELECT count(*) n FROM sccrm_receipt_sync.completeness_audit')).rows[0].n),2);
   assert.equal(Number((await db.query('SELECT count(*) n FROM loyalty_claims')).rows[0].n),2);assert.deepEqual(await points(),oldPoints);
   for(const b of before.cases)assert.equal((await outbox.observe(db,b.job)).state,'succeeded');
   const proof={ok:true,results,pointRowsUnchanged:oldPoints.length,noDuplicateClaims:true,repeatedWorkerAudits:true,nativeCopyTargets:4,productionWrites:0};
   fs.writeFileSync(path.join(root,'real-two-end-to-end.json'),JSON.stringify(proof,null,2));return proof;
- }finally{admin.password='';await db.end();}
+ }finally{
+  // Remove only operations created by this test and restore those copied
+  // owner fields; never delete a pre-existing native customer, sale or point.
+  for(const {target,job,owners} of nativeApplied){
+   copy.sql(target,'DELETE dbo.SCCRM_ReceiptTimeAudit WHERE operation_id=@id;DELETE dbo.SCCRM_ReceiptSyncJournal WHERE operation_id=@id',{id:job.id},{copy:true,transaction:true});
+   for(const old of owners)copy.sql(target,`UPDATE dbo.${old.table} SET FTCstCode=@code WHERE FTBchCode=@branch AND FTShdDocNo=@doc AND FTCstCode=@expected`,{code:old.code,branch:job.payload.branchCode,doc:job.payload.receiptNo,expected:job.payload.adaCode},{copy:true});
+  }
+  admin.password='';await db.end();
+ }
 }
 if(require.main===module)run().then(r=>console.log(JSON.stringify(r))).catch(e=>{console.log(JSON.stringify({ok:false,code:e.code||e.message,copyDetail:e.copySqlMessage}));process.exitCode=1;});
 module.exports={run};
