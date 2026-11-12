@@ -58,6 +58,7 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   const client=await mockPool.connect();try{await provisionMemberRegistrationReporting(client,{apply:true,activate:true});}finally{client.release();}
   await mockPool.query(read(migration));await mockPool.query(read(migration));
   await mockPool.query(read('../supabase/migrations/20261111073159_sccrm_native_receipt_delivery.sql'));
+  await mockPool.query(read('../supabase/migrations/20261112021505_sccrm_receipt_final_revisions.sql'));
   await mockPool.query('UPDATE sccrm_receipt_sync.meta SET enabled=true');
   for(const [code,staffToken] of [['005',token],['003',otherToken]]){
    const branch=crypto.randomUUID();await mockPool.query('INSERT INTO branches(id,name,code) VALUES($1,$2,$3)',[branch,'Synthetic '+code,code]);
@@ -247,6 +248,58 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   expect((await delivery.lease(mockPool,{targetBranch:'005',timePolicy:'ada-final-time-v1'})).job).toBeNull();
   expect((await mockPool.query("SELECT count(*)::int n FROM sccrm_receipt_sync.events WHERE job_id=$1 AND code='ADA_FINAL_TIME_POLICY_RECHECK'",[job.id])).rows[0].n).toBe(1);
   expect((await mockPool.query('SELECT state,last_code FROM sccrm_receipt_sync.native_deliveries WHERE id=$1',[leased.id])).rows[0]).toEqual({state:'review',last_code:'RECEIPT_FINANCIAL_HEADER_CHANGED'});
+ });
+ test('final suffix recovery appends lines once, preserves the original audit and fences old deliveries without awarding points',async()=>{
+  const repair=require('../lib/sccrmReceiptFinalRevision'),delivery=require('../lib/sccrmReceiptDelivery');
+  const id=await member(),code='AR000-900007';await link(id,code);
+  const value=body(id,'S2611005002-9999001'),saved=await send(value),claimId=saved.body.claimId,job=await jobFor(claimId);
+  await outbox.observe(mockPool,job);
+  await mockPool.query("UPDATE sccrm_receipt_sync.native_deliveries SET state='review',last_code='RECEIPT_FINANCIAL_HEADER_CHANGED' WHERE parent_id=$1",[job.id]);
+  await mockPool.query("UPDATE sccrm_receipt_sync.jobs SET state='review',last_code='ADA_RECEIPT_REQUIRES_REVIEW' WHERE id=$1",[job.id]);
+  const original=(await mockPool.query('SELECT * FROM loyalty_claims WHERE id=$1',[claimId])).rows[0];
+  const oldLines=(await mockPool.query('SELECT * FROM loyalty_claim_items WHERE claim_id=$1 ORDER BY id',[claimId])).rows;
+  const oldDeliveries=(await mockPool.query('SELECT id,payload,payload_hash FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=$1 ORDER BY id',[job.id])).rows;
+  const final={...original.receipt_snapshot,totalAmount:125,receiptDiscount:5,items:[...original.receipt_snapshot.items,
+   {...original.receipt_snapshot.items[0],seq:2,productCode:'SECOND-SKU',qty:1,unitPrice:30,lineTotal:30}]};
+  const packet={policy:'ada-final-missing-suffix-v1',claimId,memberId:id,adaCode:code,branchCode:'005',posCode:'002',receiptNo:value.receiptNo,
+   originalSnapshot:original.receipt_snapshot,finalSnapshot:final,nativeProof:{originBranch:'005',pos:'002',doc:value.receiptNo,paid:'3',documentStatus:'1',
+    sourceAndHqMatch:true,stableReadCount:2,nativeJournalCount:0,paymentRows:1,paymentNet:125,rounding:0,snapshotHash:repair.hash(final)}};
+  await expect(repair.recover(mockPool,{...packet,memberId:crypto.randomUUID()})).rejects.toThrow('RECEIPT_RECOVERY_OWNER');
+  await expect(repair.recover(mockPool,{...packet,nativeProof:{...packet.nativeProof,paymentNet:100}})).rejects.toThrow('RECEIPT_RECOVERY_FINAL_PROOF');
+  await expect(repair.recover(mockPool,{...packet,finalSnapshot:{...final,items:[{...final.items[0],qty:20},final.items[1]]}})).rejects.toThrow('RECEIPT_RECOVERY_NOT_EXACT_PREFIX');
+  expect(await repair.recover(mockPool,packet)).toMatchObject({revision:2,appendedLines:1,replayed:false});
+  expect(await repair.recover(mockPool,packet)).toMatchObject({revision:2,replayed:true});
+  expect((await mockPool.query('SELECT * FROM loyalty_claim_items WHERE id=$1',[oldLines[0].id])).rows).toEqual(oldLines);
+  expect((await mockPool.query('SELECT count(*)::int n FROM loyalty_claim_items WHERE claim_id=$1',[claimId])).rows[0].n).toBe(2);
+  expect((await mockPool.query('SELECT id,payload,payload_hash FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=$1 AND revision=1 ORDER BY id',[job.id])).rows).toEqual(oldDeliveries);
+  const revision=(await mockPool.query('SELECT * FROM sccrm_receipt_sync.final_revisions WHERE claim_id=$1',[claimId])).rows[0];
+  expect(revision.original_claim.receipt_snapshot).toEqual(original.receipt_snapshot);expect(revision.final_snapshot).toEqual(final);
+  await expect(mockPool.query('UPDATE sccrm_receipt_sync.final_revisions SET packet_hash=$2 WHERE claim_id=$1',[claimId,'a'.repeat(64)])).rejects.toThrow('SYNC_AUDIT_IMMUTABLE');
+  await mockPool.query("UPDATE sccrm_receipt_sync.native_deliveries SET state='pending',next_attempt_at=now() WHERE parent_id=$1 AND revision=1",[job.id]);
+  // Suppress unrelated fixtures; only this receipt is eligible for this check.
+  await mockPool.query("UPDATE sccrm_receipt_sync.native_deliveries SET next_attempt_at=now()+interval '1 hour' WHERE parent_id<>$1",[job.id]);
+  for(const target of ['005','000']){
+   const leased=(await delivery.lease(mockPool,{targetBranch:target})).job;
+   expect(leased.payload.totalAmount).toBe(125);expect(leased.payload.items).toHaveLength(2);expect(oldDeliveries.some(d=>d.id===leased.id)).toBe(false);
+   const proof={operationId:leased.id,payloadHash:leased.payloadHash,adaCode:code,receiptNo:value.receiptNo,branchCode:'005',posCode:'002',targetBranch:target,
+    tables:['TPSTSalHD'],outcome:'replayed',verifiedAt:new Date().toISOString()};
+   expect((await delivery.acknowledge(mockPool,{id:leased.id,targetBranch:target,leaseToken:leased.leaseToken,payloadHash:leased.payloadHash,state:'succeeded',code:'ADA_RECEIPT_VERIFIED',proof})).accepted).toBe(true);
+  }
+  expect((await outbox.observe(mockPool,job)).state).toBe('succeeded');
+  expect((await mockPool.query('SELECT count(*)::int n FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].n).toBe(1);
+  expect((await mockPool.query('SELECT count(*)::int n FROM point_ledger')).rows[0].n).toBe(0);
+ });
+ test('a late legacy zero-price import cannot overwrite a cashier-confirmed receipt or its member/history',async()=>{
+  const id=await member(),value=body(id),saved=await send(value),claimId=saved.body.claimId;
+  const mirror=async()=>(await mockPool.query("SELECT * FROM crm_pos_sale_events WHERE raw_payload->>'loyalty_claim_id'=$1",[claimId])).rows[0];
+  const original=await mirror(),lines=(await mockPool.query('SELECT * FROM crm_pos_sale_line_events WHERE sale_event_id=$1 ORDER BY line_no',[original.id])).rows;
+  process.env.SCCRM_INTERNAL_API_TOKEN='synthetic-late-import-token';
+  const result=await request(app).post('/internal/crm/pos/sales').set('x-internal-token',process.env.SCCRM_INTERNAL_API_TOKEN).send({records:[{
+   branch_code:value.branchCode,doc_no:value.receiptNo,pos_code:null,net_total:0,paid_total:0,source_system:'AdaAcc',source_event_key:original.source_event_key,
+   line_rows:[{line_no:1,product_code:'WRONG-LEGACY-PROJECTION',qty:50,net_amount:0}]}]});
+  expect(result.status).toBe(200);expect(await mirror()).toEqual(original);
+  expect((await mockPool.query('SELECT * FROM crm_pos_sale_line_events WHERE sale_event_id=$1 ORDER BY line_no',[original.id])).rows).toEqual(lines);
+  expect((await mockPool.query('SELECT user_id FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].user_id).toBe(id);
  });
  test('receipt worker uses a separate narrow machine credential and never accepts altered lease scope',async()=>{
   const url='/internal/sccrm-receipt-sync/lease';

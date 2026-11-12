@@ -182,7 +182,8 @@ async function runOnce(db, { inspect = observe, limit = 10 } = {}) {
 
 const LABELS = {
   ADA_FINAL_TIME_POLICY_RECHECK:'ระบบกำลังตรวจบิลที่เคยพักเพราะเวลาอีกครั้ง',
-  ADA_FINAL_TIME_ADOPTED:'ตรวจรายการตรงแล้ว ใช้เวลาปิดบิลจาก Ada และเก็บเวลาเดิมไว้ใน log',
+  ADA_FINAL_SNAPSHOT_RECOVERED: 'เติมรายการสินค้าครบตามบิลสุดท้ายของ Ada แล้ว รอตรวจการผูกสมาชิก',
+    ADA_FINAL_TIME_ADOPTED:'ตรวจรายการตรงแล้ว ใช้เวลาปิดบิลจาก Ada และเก็บเวลาเดิมไว้ใน log',
   ADA_FINAL_TIME_VERIFIED:'ยืนยันเวลาปิดบิลจาก Ada แล้ว',
   RECEIPT_NOT_FINAL:'บิลใน Ada ยังไม่ชำระเสร็จ ระบบจะลองใหม่เอง',
   RECEIPT_FINANCIAL_HEADER_CHANGED:'ยอดเงินบิลต่างกัน ต้องให้ผู้ดูแลตรวจสอบ',
@@ -217,7 +218,7 @@ function timeNote(evidence) {
   const t=evidence?.receiptTime;
   if(t?.policy!=='ada-final-time-v1'||!t.adjusted||!Number.isFinite(Date.parse(t.originalSccrmTime))||!Number.isFinite(Date.parse(t.adaFinalTime)))return '';
   const format=value=>new Date(value).toLocaleString('th-TH',{timeZone:'Asia/Bangkok',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-  return ' — ใช้เวลาปิดบิล Ada '+format(t.adaFinalTime)+' (SCCRM อ่านไว้ '+format(t.originalSccrmTime)+')';
+  return ' — ใช้วันเวลาบิลตาม Ada '+format(t.adaFinalTime)+' (เวลาเดิมใน SCCRM '+format(t.originalSccrmTime)+')';
 }
 function publicJob(row) {
   return { id: row.id, kind: row.kind, memberId: row.member_id, memberName: row.full_name || '', memberCode: row.member_code || '',
