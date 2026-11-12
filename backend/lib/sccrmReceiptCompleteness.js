@@ -2,6 +2,7 @@
 const {randomUUID}=require('node:crypto');
 const {isDeepStrictEqual:equal}=require('node:util');
 const {POLICY,hash,plan}=require('./receiptCompletenessPolicy');
+const {mirrorPlan}=require('./receiptMirrorCompleteness');
 const branches=['001','003','004','005'],uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
 const invalid=()=>Object.assign(Error('RECON_PACKET_REFUSED'),{status:400});
 const transient=new Set(['RECON_SOURCE_NOT_FINAL','RECON_PAYMENT_INCOMPLETE','RECON_SOURCE_FIELDS_INCOMPLETE','RECON_SOURCE_TIME_INCOMPLETE','RECON_SOURCE_HQ_DIFFERENT','RECON_SOURCE_UNAVAILABLE','RECON_SOURCE_RETRY','RECON_SOURCE_NOT_ARRIVED','RECON_MEMBER_REQUIRES_REVIEW']);
@@ -72,25 +73,31 @@ async function apply(c,row,lc,p,identity,proof){
  const stored=items.map(i=>signature({productCode:i.product_code,productName:i.product_name,qty:i.qty,unitPrice:i.unit_price,lineTotal:i.line_total})).sort();
  if(!equal(stored,old.items.map(signature).sort()))throw Object.assign(Error('RECON_STORED_LINES_REVIEW'),{code:'RECON_STORED_LINES_REVIEW'});
  const mirrors=(await c.query('SELECT * FROM public.crm_pos_sale_events WHERE branch_code=$1 AND doc_no=$2 FOR UPDATE',[identity.branchCode,identity.receiptNo])).rows;
- if(mirrors.length!==1||mirrors[0].raw_payload?.loyalty_claim_id!==lc.id||mirrors[0].raw_payload?.member_id&&mirrors[0].raw_payload.member_id!==identity.memberId)throw Object.assign(Error('RECON_MIRROR_IDENTITY_REVIEW'),{code:'RECON_MIRROR_IDENTITY_REVIEW'});
+ if(mirrors.length!==1)throw Object.assign(Error('RECON_MIRROR_IDENTITY_REVIEW'),{code:'RECON_MIRROR_IDENTITY_REVIEW'});
  const mirror=mirrors[0],lines=(await c.query('SELECT * FROM public.crm_pos_sale_line_events WHERE sale_event_id=$1 ORDER BY line_no FOR UPDATE',[mirror.id])).rows;
- if(lines.some(l=>{const i=p.snapshot.items.find(i=>i.seq===l.line_no);return !i||l.product_code!==i.productCode||Number(l.qty)!==i.qty||Number(l.net_amount)!==i.lineTotal
-  ||l.barcode&&l.barcode!==i.barcode
-  ||l.unit_code&&l.unit_code!==i.unitCode||l.unit_name&&l.unit_name!==i.unitName;}))throw Object.assign(Error('RECON_MIRROR_LINES_REVIEW'),{code:'RECON_MIRROR_LINES_REVIEW'});
- const mirrorChanged=lines.length!==p.snapshot.items.length||lines.some(l=>!l.unit_code||!l.unit_name||!l.barcode)
+ const {legacyZero,resequence,aligned}=mirrorPlan(mirror,lines,lc,p,identity);
+ const mirrorChanged=legacyZero||resequence||lines.length!==p.snapshot.items.length||lines.some(l=>!l.unit_code||!l.unit_name||!l.barcode)
   ||Number(mirror.net_total)!==p.snapshot.totalAmount||!equal(mirror.raw_payload.receipt_snapshot,p.snapshot);
  if(!p.changed&&!mirrorChanged)return false;
+ // Avoid immediate unique-key collisions while preserving every line ID.
+ if(resequence)await c.query('UPDATE public.crm_pos_sale_line_events SET line_no=-line_no WHERE sale_event_id=$1',[mirror.id]);
  for(const i of p.snapshot.items){
   if(!old.items.some(o=>o.seq===i.seq))await c.query(`INSERT INTO public.loyalty_claim_items(id,claim_id,product_code,product_name,qty,unit_price,line_total)VALUES($1,$2,$3,$4,$5,$6,$7)`,[randomUUID(),lc.id,i.productCode,i.productName,i.qty,i.unitPrice,i.lineTotal]);
-  const l=lines.find(l=>l.line_no===i.seq);
+  const l=aligned.find(pair=>pair.item.seq===i.seq)?.line;
   if(l)await c.query(`UPDATE public.crm_pos_sale_line_events SET unit_code=COALESCE(NULLIF(btrim(unit_code),''),$2),unit_name=COALESCE(NULLIF(btrim(unit_name),''),$3),
-   barcode=COALESCE(NULLIF(btrim(barcode),''),$4),raw_payload=raw_payload||$5::jsonb WHERE id=$1`,[l.id,i.unitCode,i.unitName,i.barcode,i]);
+   barcode=COALESCE(NULLIF(btrim(barcode),''),$4),raw_payload=raw_payload||$5::jsonb,line_no=$6,
+   net_amount=CASE WHEN $7 THEN $8 ELSE net_amount END,discount_amount=CASE WHEN $7 THEN $9 ELSE discount_amount END
+   WHERE id=$1`,[l.id,i.unitCode,i.unitName,i.barcode,i,i.seq,legacyZero,i.lineTotal,i.lineDiscount]);
   else await c.query(`INSERT INTO public.crm_pos_sale_line_events(id,sale_event_id,line_no,product_code,barcode,qty,unit_code,unit_name,net_amount,discount_amount,raw_payload)VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,[randomUUID(),mirror.id,i.seq,i.productCode,i.barcode,i.qty,i.unitCode,i.unitName,i.lineTotal,i.lineDiscount,i]);
  }
  await c.query(`INSERT INTO sccrm_receipt_sync.completeness_audit(claim_id,code,before_hash,after_hash,original_snapshot,final_snapshot,proof)
-  VALUES($1,'RECON_FILLED',$2,$3,$4,$5,$6)`,[lc.id,hash(old),hash(p.snapshot),old,p.snapshot,{...proof,originalMirror:mirror,originalMirrorLines:lines}]);
+  VALUES($1,'RECON_FILLED',$2,$3,$4,$5,$6)`,[lc.id,hash(old),hash(p.snapshot),old,p.snapshot,{...proof,originalMirror:mirror,originalMirrorLines:lines,mirrorRepair:{legacyZero,resequence}}]);
  await c.query('UPDATE public.loyalty_claims SET receipt_snapshot=$2,receipt_total_amount=$3 WHERE id=$1',[lc.id,p.snapshot,p.snapshot.totalAmount]);
- await c.query(`UPDATE public.crm_pos_sale_events SET net_total=$2,paid_total=$2,gross_total=$2::numeric+$3::numeric,raw_payload=raw_payload||jsonb_build_object('receipt_snapshot',$4::jsonb),updated_at=now() WHERE id=$1`,[mirror.id,p.snapshot.totalAmount,p.snapshot.receiptDiscount,p.snapshot]);
+ await c.query(`UPDATE public.crm_pos_sale_events SET net_total=$2,paid_total=$2,gross_total=$2::numeric+$3::numeric,
+  pos_code=CASE WHEN $5 THEN $6 ELSE pos_code END,sale_at=CASE WHEN $5 THEN $7::timestamptz ELSE sale_at END,
+  ada_customer_code=CASE WHEN $5 THEN $8 ELSE ada_customer_code END,
+  raw_payload=raw_payload||jsonb_build_object('receipt_snapshot',$4::jsonb)||CASE WHEN $5 THEN jsonb_build_object('loyalty_claim_id',$9::text) ELSE '{}'::jsonb END,
+  updated_at=now() WHERE id=$1`,[mirror.id,p.snapshot.totalAmount,p.snapshot.receiptDiscount,p.snapshot,legacyZero,identity.posCode,p.soldAt,identity.adaCode,lc.id]);
  return true;
 }
 async function acknowledge(db,body){

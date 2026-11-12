@@ -568,7 +568,7 @@ async function mirrorPosSaleClaim(client, payload) {
             [
                 createId(),
                 saleEventId,
-                index + 1,
+                item.seq,
                 String(item.productCode || "").trim() || null,
                 Number(item.qty || 0),
                 Number(item.lineTotal || 0),
