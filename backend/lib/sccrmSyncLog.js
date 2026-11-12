@@ -56,13 +56,15 @@ async function detail(db,id){
    FROM sccrm_member_codes.events e JOIN sccrm_member_codes.jobs j ON j.id=e.job_id
    JOIN sccrm_member_codes.targets t ON t.target_id=j.target_id WHERE j.member_id=$1
  )history ORDER BY at DESC,code LIMIT 150`,[id]);
- const receipts=(await db.query(`SELECT j.*,u.full_name,m.member_code,c.receipt_no FROM sccrm_receipt_sync.jobs j
+ const receipts=(await db.query(`SELECT j.*,u.full_name,m.member_code,c.receipt_no,r.state completeness_state,r.code completeness_code,
+   r.verified_at completeness_verified_at,r.next_check_at completeness_next_check_at FROM sccrm_receipt_sync.jobs j
    JOIN public.users u ON u.id=j.member_id JOIN public.member_profiles m ON m.user_id=u.id
-   LEFT JOIN public.loyalty_claims c ON c.id=j.claim_id WHERE j.member_id=$1 ORDER BY j.created_at DESC LIMIT 100`,[id])).rows;
- return {ok:true,member:{id,name:person.full_name,memberCode:person.member_code},summary,jobs:receipts.map(r=>({
-  id:r.id,kind:r.kind,receiptNo:r.receipt_no||null,branchCode:r.origin_branch,state:r.state,label:outbox.label(r.last_code||'SCCRM_STORED')+outbox.timeNote(r.evidence),receiptTime:r.evidence?.receiptTime||null,attempts:r.attempt_count,nextAttemptAt:r.next_attempt_at,
+   LEFT JOIN public.loyalty_claims c ON c.id=j.claim_id
+   LEFT JOIN sccrm_receipt_sync.completeness r ON r.job_id=j.id WHERE j.member_id=$1 ORDER BY j.created_at DESC LIMIT 100`,[id])).rows;
+ return {ok:true,member:{id,name:person.full_name,memberCode:person.member_code},summary,jobs:receipts.map(r=>{const view=outbox.publicJob(r);return {
+  id:r.id,kind:r.kind,receiptNo:r.receipt_no||null,branchCode:r.origin_branch,state:view.state,label:view.label,completeness:view.completeness,receiptTime:r.evidence?.receiptTime||null,attempts:r.attempt_count,nextAttemptAt:r.next_attempt_at,
   deliveries:(r.evidence?.nativeReceipts||[]).map(d=>({...d,label:outbox.label(d.code||'WAITING_FOR_ADA_RECEIPT_DELIVERY')})),
- })),events:events.map(e=>({...e,label:e.code==='SCCRM_REGISTRATION_STORED'?'SCCRM บันทึกสมาชิกแล้ว':e.code==='HQ_MEMBER_CREATED'?'Ada HQ สร้างสมาชิกและออกเลข AR แล้ว':
+ };}),events:events.map(e=>({...e,label:e.code==='SCCRM_REGISTRATION_STORED'?'SCCRM บันทึกสมาชิกแล้ว':e.code==='HQ_MEMBER_CREATED'?'Ada HQ สร้างสมาชิกและออกเลข AR แล้ว':
   e.code==='BRANCH_SUCCEEDED'?'ส่งสมาชิกถึงสาขา '+e.branch_code+' แล้ว':e.code.startsWith('BRANCH_')?'การส่งสาขา '+e.branch_code+': '+({running:'กำลังส่ง',pending:'รอส่ง',retry:'รอลองใหม่',review:'ต้องตรวจสอบ'}[e.state]||e.state):outbox.label(e.code)}))};
 }
 async function retry(db,id,body){

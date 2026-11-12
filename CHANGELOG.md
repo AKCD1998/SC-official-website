@@ -10,6 +10,8 @@
   expose conflict/retry states, and preserve claim/item/member/point identities.
 - Add a disabled-by-default pilot control, narrowly authenticated endpoints,
   PostgreSQL integration tests and two actual-receipt end-to-end copy tests.
+- Reuse the terminal's completeness status in the central member sync log, so
+  successful native delivery cannot hide a pending audit or a later conflict.
 
 ## 2026-11-11 — Adopt finalized Ada receipt times without duplicating history
 

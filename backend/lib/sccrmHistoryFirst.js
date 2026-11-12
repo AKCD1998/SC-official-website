@@ -297,4 +297,4 @@ function start(db) {
   return () => { stopped = true; clearInterval(timer); wake = () => {}; };
 }
 module.exports = { enabled, available, enqueue, enqueueRegistration, checkKnownOwner, pendingPoints, observeMember, observe,
-  lease, finish, runOnce, list, detail, retry, start, notify, label, timeNote, MARKER, SCOPE };
+  lease, finish, runOnce, list, detail, retry, start, notify, label, timeNote, publicJob, MARKER, SCOPE };
