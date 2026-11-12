@@ -100,6 +100,13 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   const claim=answers.find(a=>a.status===201).body.claimId;
   expect((await mockPool.query('SELECT count(*)::int n FROM sccrm_receipt_sync.jobs WHERE claim_id=$1',[claim])).rows[0].n).toBe(1);
  });
+ test('saving an exact Void pair preserves the remaining native sequence in the history mirror',async()=>{
+  const id=await member(),value=body(id),item=value.items[0];
+  value.items=[{...item,seq:1,qty:1,lineTotal:50},{...item,seq:2,qty:-1,lineTotal:-50,productName:'Void - '+item.productName},{...item,seq:3}];
+  const saved=await send(value);expect(saved.status).toBe(201);
+  expect((await mockPool.query("SELECT receipt_snapshot#>>'{items,0,seq}' seq FROM loyalty_claims WHERE id=$1",[saved.body.claimId])).rows[0].seq).toBe('3');
+  expect((await mockPool.query("SELECT l.line_no FROM crm_pos_sale_line_events l JOIN crm_pos_sale_events s ON s.id=l.sale_event_id WHERE s.raw_payload->>'loyalty_claim_id'=$1",[saved.body.claimId])).rows).toEqual([{line_no:3}]);
+ });
  test('line/queue failures roll back the receipt and mirror rather than falsely reporting success',async()=>{
   const id=await member(),value=body(id);
   await mockPool.query(`ALTER TABLE loyalty_claim_items ADD CONSTRAINT refuse_fixture_sku CHECK(product_code<>'FORCE-FAIL') NOT VALID`);

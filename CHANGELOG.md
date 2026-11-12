@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-11-12 — Recover guarded legacy receipt projections
+
+- Reconcile zero-valued legacy Ada history projections only when their SKU,
+  quantity, units and barcode agree and both native databases already confirm
+  the same member. Keep original projections and timestamps in the audit.
+- Preserve native line sequences after exact Void-pair removal; repair the
+  older positional mirror only when its full line payload proves the match.
+- Retain bill, line and member identities and keep other-owner conflicts held.
+
 ## 2026-11-12 — Reconcile complete SCCRM receipt history automatically
 
 - Commit a private completeness job with each receipt and enroll eligible older
