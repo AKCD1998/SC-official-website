@@ -41,6 +41,7 @@ async function enqueue(db, { memberId, branchCode, posCode = null, claimId = nul
     VALUES($1,$2,$3,$4,$5,$6,$7) ON CONFLICT(kind,reference_id) DO NOTHING RETURNING *`,
   [randomUUID(), kind, reference, memberId, claimId, branchCode, posCode]);
   if (rows[0]) {
+    if (claimId) await require('./sccrmReceiptCompleteness').enqueue(db,rows[0].id);
     await db.query(`INSERT INTO sccrm_receipt_sync.events(job_id,state,code) VALUES($1,'pending','SCCRM_STORED')`, [rows[0].id]);
     return rows[0].id;
   }
@@ -181,6 +182,23 @@ async function runOnce(db, { inspect = observe, limit = 10 } = {}) {
 }
 
 const LABELS = {
+  RECON_PENDING:'บันทึกแล้ว รอตรวจความครบของข้อมูลบิล',RECON_READING:'กำลังตรวจสินค้าและหน่วยกับ Ada',
+  RECON_IDENTITY_CONFLICT:'สาขา เครื่องขาย หรือเลขบิลไม่ตรง ต้องตรวจสอบ',RECON_DOCUMENT_KIND_CHANGED:'เอกสารใน Ada ไม่ใช่บิลขายเดิม ต้องตรวจสอบ',
+  RECON_WAITING_INITIAL_AUDIT:'ประวัติเดิมอยู่ใน SCCRM แล้ว รอตรวจข้อมูลก่อนส่ง Ada',
+  RECON_WAITING_MEMBER:'ประวัติอยู่ใน SCCRM แล้ว รอรหัสสมาชิก Ada เพื่อเติมข้อมูล',
+  RECON_FILLED:'เติมข้อมูลที่ขาดจาก Ada แล้ว และตั้งตรวจซ้ำอัตโนมัติ',RECON_VERIFIED:'ตรวจข้อมูลบิลครบและตรงกับ Ada แล้ว',
+  RECON_SOURCE_UNAVAILABLE:'ยังติดต่อ Ada ไม่ได้ ระบบจะตรวจและเติมข้อมูลใหม่เอง',RECON_SOURCE_RETRY:'Ada ยังไม่พร้อม ระบบจะตรวจซ้ำเอง',
+  RECON_SOURCE_NOT_ARRIVED:'ยังไม่พบบิลใน Ada ปลายทาง ระบบจะตรวจซ้ำเอง',RECON_SOURCE_NOT_FINAL:'Ada ยังสรุปข้อมูลบิลไม่ครบ ระบบจะตรวจซ้ำ',
+  RECON_SOURCE_FIELDS_INCOMPLETE:'ข้อมูลสินค้าหรือหน่วยใน Ada ยังไม่ครบ ระบบจะตรวจซ้ำ',RECON_SOURCE_HQ_DIFFERENT:'ข้อมูลบิลสาขากับ HQ ยังไม่ตรง ระบบจะตรวจซ้ำ',
+  RECON_PAYMENT_INCOMPLETE:'ข้อมูลรับชำระของ Ada ยังไม่ตรงยอดสุทธิ ระบบจะตรวจซ้ำ',RECON_OTHER_OWNER:'บิล Ada เป็นชื่อคนอื่น ต้องตรวจสอบเจ้าของ',
+  RECON_EXISTING_LINE_CHANGED:'ข้อมูลสินค้าที่บันทึกแล้วต่างจาก Ada ต้องตรวจสอบ',RECON_EXISTING_FINANCIALS_CHANGED:'ยอดบิลที่บันทึกแล้วต่างจาก Ada ต้องตรวจสอบ',
+  RECON_APPLY_RETRY:'ยังเติมข้อมูลไม่สำเร็จ ระบบจะลองใหม่เอง',RECON_BASELINE_CHANGED:'ข้อมูลบิลเปลี่ยนระหว่างตรวจ ระบบจะอ่านใหม่',
+  RECON_MIRROR_IDENTITY_REVIEW:'ประวัติบิลใน SCCRM ผูกข้อมูลไม่ตรง ต้องตรวจสอบก่อนเติม',RECON_MIRROR_LINES_REVIEW:'รายการประวัติใน SCCRM ขัดแย้งกัน ต้องตรวจสอบ',
+  RECON_STORED_LINES_REVIEW:'รายการที่เก็บไว้ใน SCCRM ไม่ตรงกับสำเนาบิล ต้องตรวจสอบ',RECON_MEMBER_MAPPING_CHANGED:'รหัสสมาชิกเปลี่ยนระหว่างตรวจ ต้องตรวจสอบการผูก',
+  RECON_DELIVERY_IDENTITY_REVIEW:'คิวส่งบิลผูกกับสมาชิกไม่ตรงกัน ต้องตรวจสอบ',RECON_NATIVE_OWNER_INCONSISTENT:'ชื่อเจ้าของบิลใน Ada เปลี่ยนจาก log เดิม ต้องตรวจสอบ',
+  RECON_PACKET_REFUSED:'ข้อมูลตรวจบิลไม่ครบตามรูปแบบ ต้องตรวจสอบ',RECON_SOURCE_VOID_REVIEW:'ข้อมูลรายการยกเลิกใน Ada ต้องตรวจสอบ',
+  RECON_SNAPSHOT_REQUIRES_REVIEW:'สำเนาบิลใน SCCRM ยังเทียบกับ Ada ไม่ได้ ต้องตรวจสอบ',RECON_VOID_AUDIT_CHANGED:'รายการยกเลิกเปลี่ยนจากเดิม ต้องตรวจสอบ',
+  RECON_MEMBER_REQUIRES_REVIEW:'ข้อมูลสมาชิกสาขายังไม่ตรงกับ HQ ระบบจะรอแล้วตรวจใหม่',RECON_SOURCE_TIME_INCOMPLETE:'วันเวลาบิลใน Ada ยังไม่ครบ ระบบจะตรวจซ้ำ',
   ADA_FINAL_TIME_POLICY_RECHECK:'ระบบกำลังตรวจบิลที่เคยพักเพราะเวลาอีกครั้ง',
   ADA_FINAL_SNAPSHOT_RECOVERED: 'เติมรายการสินค้าครบตามบิลสุดท้ายของ Ada แล้ว รอตรวจการผูกสมาชิก',
     ADA_FINAL_TIME_ADOPTED:'ตรวจรายการตรงแล้ว ใช้เวลาปิดบิลจาก Ada และเก็บเวลาเดิมไว้ใน log',
@@ -221,26 +239,28 @@ function timeNote(evidence) {
   return ' — ใช้วันเวลาบิลตาม Ada '+format(t.adaFinalTime)+' (เวลาเดิมใน SCCRM '+format(t.originalSccrmTime)+')';
 }
 function publicJob(row) {
+  const completeness=row.completeness_state?{state:row.completeness_state,code:row.completeness_code,label:label(row.completeness_state==='running'?'RECON_READING':row.completeness_code),verifiedAt:row.completeness_verified_at,nextCheckAt:row.completeness_next_check_at}:null;
   return { id: row.id, kind: row.kind, memberId: row.member_id, memberName: row.full_name || '', memberCode: row.member_code || '',
-    receiptNo: row.receipt_no || null, branchCode: row.origin_branch, state: row.state, code: row.last_code || 'SCCRM_STORED',
-    label: label(row.last_code || 'SCCRM_STORED')+timeNote(row.evidence), attempts: row.attempt_count, createdAt: row.created_at, updatedAt: row.updated_at,
+    receiptNo: row.receipt_no || null, branchCode: row.origin_branch, state: completeness?.state==='review'?'review':row.state==='succeeded'&&completeness&&completeness.state!=='verified'?'retry':row.state, code: row.last_code || 'SCCRM_STORED',
+    label: completeness?.state==='review'?completeness.label+' · ประวัติเดิมใน SCCRM ยังอยู่':label(row.last_code || 'SCCRM_STORED')+timeNote(row.evidence)+(completeness?' · '+completeness.label:''), completeness,attempts: row.attempt_count, createdAt: row.created_at, updatedAt: row.updated_at,
     nextAttemptAt: row.state === 'retry' || row.state === 'pending' ? row.next_attempt_at : null,
     evidence: row.evidence || {}, sccrmStored: true };
 }
 async function list(db, staff, query = {}) {
   const code = branch(staff);
   if (Object.keys(query).some(k => !['memberId'].includes(k)) || (query.memberId && !UUID.test(query.memberId))) throw failure('INVALID_SYNC_QUERY', 'ข้อมูลค้นหาไม่ถูกต้อง', 400);
-  const { rows } = await db.query(`SELECT j.*,u.full_name,m.member_code,c.receipt_no FROM sccrm_receipt_sync.jobs j
+  const { rows } = await db.query(`SELECT j.*,u.full_name,m.member_code,c.receipt_no,r.state completeness_state,r.code completeness_code,r.verified_at completeness_verified_at,r.next_check_at completeness_next_check_at FROM sccrm_receipt_sync.jobs j
     JOIN public.users u ON u.id=j.member_id JOIN public.member_profiles m ON m.user_id=u.id
     LEFT JOIN public.loyalty_claims c ON c.id=j.claim_id
+    LEFT JOIN sccrm_receipt_sync.completeness r ON r.job_id=j.id
     WHERE j.origin_branch=$1 AND ($2::uuid IS NULL OR j.member_id=$2::uuid) ORDER BY j.created_at DESC,j.id DESC LIMIT 100`, [code, query.memberId || null]);
   return { ok: true, jobs: rows.map(publicJob) };
 }
 async function detail(db, staff, id) {
   const code = branch(staff); if (!UUID.test(id)) throw failure('INVALID_SYNC_JOB', 'รายการไม่ถูกต้อง', 400);
-  const row = (await db.query(`SELECT j.*,u.full_name,m.member_code,c.receipt_no FROM sccrm_receipt_sync.jobs j
+  const row = (await db.query(`SELECT j.*,u.full_name,m.member_code,c.receipt_no,r.state completeness_state,r.code completeness_code,r.verified_at completeness_verified_at,r.next_check_at completeness_next_check_at FROM sccrm_receipt_sync.jobs j
     JOIN public.users u ON u.id=j.member_id JOIN public.member_profiles m ON m.user_id=u.id
-    LEFT JOIN public.loyalty_claims c ON c.id=j.claim_id WHERE j.id=$1 AND j.origin_branch=$2`, [id, code])).rows[0];
+    LEFT JOIN public.loyalty_claims c ON c.id=j.claim_id LEFT JOIN sccrm_receipt_sync.completeness r ON r.job_id=j.id WHERE j.id=$1 AND j.origin_branch=$2`, [id, code])).rows[0];
   if (!row) throw failure('SYNC_JOB_NOT_FOUND', 'ไม่พบรายการของสาขานี้', 404);
   const events = (await db.query(`SELECT state,code,occurred_at,target_branch FROM sccrm_receipt_sync.events WHERE job_id=$1 ORDER BY id DESC LIMIT 100`, [id])).rows;
   return { ok: true, job: publicJob(row), events: events.map(e => ({ state: e.state, code: e.code, at: e.occurred_at, label: (e.target_branch ? 'Ada '+e.target_branch+': ' : '') + label(e.code) })) };
@@ -252,6 +272,7 @@ async function retry(db, staff, id) {
     await client.query('BEGIN');
     const row = (await client.query('SELECT * FROM sccrm_receipt_sync.jobs WHERE id=$1 AND origin_branch=$2 FOR UPDATE', [id, code])).rows[0];
     if (!row) throw failure('SYNC_JOB_NOT_FOUND', 'ไม่พบรายการของสาขานี้', 404);
+    await client.query(`UPDATE sccrm_receipt_sync.completeness SET state='pending',code='RECON_PENDING',next_check_at=now(),updated_at=now(),lease_token=NULL,lease_until=NULL WHERE job_id=$1 AND state<>'running'`,[id]);
     if (row.state === 'running' || row.state === 'succeeded') { await client.query('COMMIT'); return { ok: true, alreadyHandled: true }; }
     if (row.manual_retry_at && Date.now() - new Date(row.manual_retry_at).getTime() < 10000) throw failure('SYNC_RETRY_TOO_SOON', 'รับคำขอแล้ว กรุณารอสักครู่');
     await client.query(`UPDATE sccrm_receipt_sync.jobs SET state='pending',next_attempt_at=now(),updated_at=now(),

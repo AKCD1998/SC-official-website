@@ -59,6 +59,7 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   await mockPool.query(read(migration));await mockPool.query(read(migration));
   await mockPool.query(read('../supabase/migrations/20261111073159_sccrm_native_receipt_delivery.sql'));
   await mockPool.query(read('../supabase/migrations/20261112021505_sccrm_receipt_final_revisions.sql'));
+  await mockPool.query(read('../supabase/migrations/20261112044140_sccrm_receipt_completeness.sql'));
   await mockPool.query('UPDATE sccrm_receipt_sync.meta SET enabled=true');
   for(const [code,staffToken] of [['005',token],['003',otherToken]]){
    const branch=crypto.randomUUID();await mockPool.query('INSERT INTO branches(id,name,code) VALUES($1,$2,$3)',[branch,'Synthetic '+code,code]);
@@ -301,9 +302,63 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   expect((await mockPool.query('SELECT * FROM crm_pos_sale_line_events WHERE sale_event_id=$1 ORDER BY line_no',[original.id])).rows).toEqual(lines);
   expect((await mockPool.query('SELECT user_id FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].user_id).toBe(id);
  });
+ test('completeness repairs a stored bill without units, preserves identity and points, and committed replay is idempotent',async()=>{
+  const r=require('../lib/sccrmReceiptCompleteness'),policy=require('../lib/receiptCompletenessPolicy').POLICY;
+  const id=await member(),value=body(id);value.items[0].unitCode=null;value.items[0].unitName=null;
+  const saved=await send(value),claimId=saved.body.claimId;expect(saved.status).toBe(201);
+  expect((await mockPool.query('SELECT state FROM sccrm_receipt_sync.completeness WHERE claim_id=$1',[claimId])).rows[0].state).toBe('pending');
+  await link(id,'AR005-998001');await mockPool.query('UPDATE sccrm_receipt_sync.completeness_control SET enabled=true');
+  await mockPool.query("UPDATE sccrm_receipt_sync.completeness SET next_check_at=now()+interval '1 day' WHERE claim_id<>$1",[claimId]);
+  const job=(await r.lease(mockPool,{originBranch:'005',policy})).job;expect(job.id).toBe(claimId);
+  const observed=target=>({policy,targetBranch:target,stableReadCount:2,table:'TPSTSalHD',memberMatches:true,walkInVerified:false,journals:[],
+   header:{branchCode:'005',posCode:'002',receiptNo:value.receiptNo,adaCode:'',docType:'1',paidStatus:'3',documentStatus:'1',totalAmount:100,receiptDiscount:0,rounding:0,docDate:'2026-11-11',docTime:'09:10:11'},
+   items:[{...value.items[0],unitCode:'BOX',unitName:'กล่อง',lineDiscount:0,promotionCode:null}],payments:[{seq:1,code:'cash',amount:100,net:100,change:0}]});
+  const packet={id:job.id,leaseToken:job.leaseToken,baselineHash:job.baselineHash,policy,source:observed('005'),hq:observed('000')};
+  const before=(await mockPool.query('SELECT * FROM loyalty_claim_items WHERE claim_id=$1',[claimId])).rows;
+  const replies=await Promise.all([r.acknowledge(mockPool,packet),r.acknowledge(mockPool,packet)]);
+  expect(replies.every(x=>x.accepted)).toBe(true);expect(replies.some(x=>x.replayed)).toBe(true);
+  expect((await mockPool.query('SELECT * FROM loyalty_claim_items WHERE claim_id=$1',[claimId])).rows).toEqual(before);
+  expect((await mockPool.query('SELECT receipt_snapshot,user_id FROM loyalty_claims WHERE id=$1',[claimId])).rows[0]).toMatchObject({user_id:id,receipt_snapshot:{items:[{unitCode:'BOX',unitName:'กล่อง'}]}});
+  expect((await mockPool.query('SELECT count(*)::int n FROM sccrm_receipt_sync.completeness_audit WHERE claim_id=$1',[claimId])).rows[0].n).toBe(1);
+  expect((await mockPool.query('SELECT count(*)::int n FROM point_ledger')).rows[0].n).toBe(0);
+  // The history view's mirror is also reconciled, even if the claim snapshot is already complete.
+  const mirrorId=(await mockPool.query("SELECT id FROM crm_pos_sale_events WHERE raw_payload->>'loyalty_claim_id'=$1",[claimId])).rows[0].id;
+  await mockPool.query('UPDATE crm_pos_sale_line_events SET unit_name=NULL WHERE sale_event_id=$1',[mirrorId]);
+  await mockPool.query('UPDATE sccrm_receipt_sync.completeness SET next_check_at=now() WHERE claim_id=$1',[claimId]);
+  const mirrorLease=(await r.lease(mockPool,{originBranch:'005',policy})).job;
+  expect((await r.acknowledge(mockPool,{...packet,leaseToken:mirrorLease.leaseToken,baselineHash:mirrorLease.baselineHash})).code).toBe('RECON_FILLED');
+  expect((await mockPool.query('SELECT unit_name FROM crm_pos_sale_line_events WHERE sale_event_id=$1',[mirrorId])).rows[0].unit_name).toBe('กล่อง');
+  // A later native mutation is found by a newly leased periodic audit and never overwrites the saved unit.
+  await mockPool.query('UPDATE sccrm_receipt_sync.completeness SET next_check_at=now() WHERE claim_id=$1',[claimId]);
+  const next=(await r.lease(mockPool,{originBranch:'005',policy})).job;expect(next.leaseToken).not.toBe(job.leaseToken);
+  const changed={...packet,leaseToken:next.leaseToken,baselineHash:next.baselineHash,source:observed('005'),hq:observed('000')};changed.source.items[0].unitCode=changed.hq.items[0].unitCode='BOTTLE';
+  expect((await r.acknowledge(mockPool,changed)).state).toBe('review');
+  expect((await mockPool.query("SELECT receipt_snapshot#>>'{items,0,unitCode}' unit FROM loyalty_claims WHERE id=$1",[claimId])).rows[0].unit).toBe('BOX');
+ });
+ test('completeness expired leases, stale snapshots and an offline source cannot duplicate or switch a claim',async()=>{
+  const r=require('../lib/sccrmReceiptCompleteness'),policy=require('../lib/receiptCompletenessPolicy').POLICY,id=await member(),saved=await send(body(id)),claimId=saved.body.claimId;
+  await link(id,'AR005-998002');await mockPool.query("UPDATE sccrm_receipt_sync.completeness SET next_check_at=now()+interval '1 day' WHERE claim_id<>$1",[claimId]);
+  const old=(await r.lease(mockPool,{originBranch:'005',policy})).job;
+  await mockPool.query("UPDATE sccrm_receipt_sync.completeness SET lease_until=now()-interval '1 second' WHERE claim_id=$1",[claimId]);
+  const fresh=(await r.lease(mockPool,{originBranch:'005',policy})).job;
+  const failure=j=>({id:j.id,leaseToken:j.leaseToken,baselineHash:j.baselineHash,policy,errorCode:'RECON_SOURCE_UNAVAILABLE'});
+  expect((await r.acknowledge(mockPool,failure(old))).accepted).toBe(false);
+  expect((await r.acknowledge(mockPool,failure(fresh))).state).toBe('retry');
+  expect((await mockPool.query('SELECT count(*)::int n FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].n).toBe(1);
+  expect((await mockPool.query('SELECT user_id FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].user_id).toBe(id);
+ });
+ test('an older producer deployment gap is enrolled without duplicating the existing receipt or its job',async()=>{
+  const r=require('../lib/sccrmReceiptCompleteness'),policy=require('../lib/receiptCompletenessPolicy').POLICY,id=await member(),saved=await send(body(id)),claimId=saved.body.claimId;
+  await link(id,'AR005-998003');await mockPool.query('DELETE FROM sccrm_receipt_sync.completeness WHERE claim_id=$1',[claimId]);
+  await mockPool.query('UPDATE sccrm_receipt_sync.completeness_control SET pilot_claims=$1',[[claimId]]);
+  expect((await r.lease(mockPool,{originBranch:'005',policy})).job.id).toBe(claimId);
+  expect((await mockPool.query('SELECT count(*)::int n FROM loyalty_claims WHERE id=$1',[claimId])).rows[0].n).toBe(1);
+  expect((await mockPool.query('SELECT count(*)::int n FROM sccrm_receipt_sync.jobs WHERE claim_id=$1',[claimId])).rows[0].n).toBe(1);
+ });
  test('receipt worker uses a separate narrow machine credential and never accepts altered lease scope',async()=>{
   const url='/internal/sccrm-receipt-sync/lease';
   expect((await request(app).post(url).send({targetBranch:'005'})).status).toBe(401);
+  for(const action of ['completeness-lease','completeness-acknowledge'])expect((await request(app).post('/internal/sccrm-receipt-sync/'+action).set('Authorization','Bearer '+token).send({})).status).toBe(401);
   expect((await request(app).post(url).set('Authorization','Bearer '+token).send({targetBranch:'005'})).status).toBe(401);
   const secret=process.env.SC_OFFICIAL_RECEIPT_WORKER_TOKEN;
   expect((await request(app).post(url).set('x-sccrm-receipt-worker',secret).send({targetBranch:'005',memberId:crypto.randomUUID()})).status).toBe(400);

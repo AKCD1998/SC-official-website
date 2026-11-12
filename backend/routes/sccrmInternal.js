@@ -16,6 +16,13 @@ const {
 
 const router = express.Router();
 const receiptDelivery = require('../lib/sccrmReceiptDelivery');
+const completeness = require('../lib/sccrmReceiptCompleteness');
+for(const [action,handler] of [['completeness-lease',completeness.lease],['completeness-acknowledge',completeness.acknowledge]]) {
+ router.post('/sccrm-receipt-sync/'+action,receiptDelivery.authorize,async(req,res)=>{
+  res.set('Cache-Control','no-store');try{return res.json(await handler(pool,req.body));}
+  catch(error){return res.status(error.status||503).json({ok:false,error:error.status===400?'Invalid worker packet':'Receipt completeness unavailable'});}
+ });
+}
 for (const [action, handler] of [['lease', receiptDelivery.lease], ['acknowledge', receiptDelivery.acknowledge]]) {
   router.post('/sccrm-receipt-sync/' + action, receiptDelivery.authorize, async (req, res) => {
     res.set('Cache-Control', 'no-store');

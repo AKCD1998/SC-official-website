@@ -17,7 +17,7 @@ async function schedule(db,job,claim,member){
    ||snapshot.totalAmountSource!=='pos_header'||!claim.sold_at||!Array.isArray(snapshot.items)||!snapshot.items.length){
   return {state:'review',code:'RECEIPT_SNAPSHOT_INCOMPLETE',evidence:member.evidence};
  }
- const revision=Number((await db.query('SELECT COALESCE(MAX(revision),1)::int revision FROM sccrm_receipt_sync.final_revisions WHERE claim_id=$1',[claim.id || job.claim_id])).rows[0].revision);
+ const revision=Number((await db.query(`SELECT greatest(COALESCE((SELECT MAX(revision) FROM sccrm_receipt_sync.final_revisions WHERE claim_id=$1),1),COALESCE((SELECT MAX(revision) FROM sccrm_receipt_sync.native_deliveries WHERE parent_id=$2),1))::int revision`,[claim.id || job.claim_id,job.id])).rows[0].revision);
  const profile=(await db.query(`SELECT name,phone FROM ada_history.customers WHERE source_id='hq000/AdaAcc' AND ada_code=$1`,[member.evidence.adaCode])).rows[0];
  if(!profile)return {state:'retry',code:'WAITING_FOR_HQ',evidence:member.evidence};
  for(const target of [job.origin_branch,'000']){

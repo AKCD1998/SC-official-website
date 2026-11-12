@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-11-12 — Reconcile complete SCCRM receipt history automatically
+
+- Commit a private completeness job with each receipt and enroll eligible older
+  claims under an initial native-read barrier. Keep history available first.
+- Lease independent headless branch/HQ verification, fill only guarded missing
+  fields/exact suffix rows, and retain original/final snapshot and mirror evidence.
+- Recheck successful receipts, fence expired/stale leases and native revisions,
+  expose conflict/retry states, and preserve claim/item/member/point identities.
+- Add a disabled-by-default pilot control, narrowly authenticated endpoints,
+  PostgreSQL integration tests and two actual-receipt end-to-end copy tests.
+
 ## 2026-11-11 — Adopt finalized Ada receipt times without duplicating history
 
 - Accept versioned native time proof only after the existing receipt, member,
