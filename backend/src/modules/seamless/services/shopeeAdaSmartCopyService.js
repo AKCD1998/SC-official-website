@@ -9,6 +9,7 @@ const { VERIFIED_COPY_MATCH_VERSION, resolveVerifiedCopyMatch, sourceIdentifierC
 const { datesInRange, summarizeConfirmedSales } = require('./shopeeConfirmedSalesService');
 const {copyIdentityKey,readCopyIdentityEvidence,resolveCopyIdentityEvidence,resolveSupplementalCopyIdentity,copyIdentityHold}=require('./shopeeCopyIdentityEvidence');
 const { resolveLiveCopyVariationProduct } = require('./shopeeCopyVariationMatcher');
+const { resolveReviewedCopyLine } = require('./shopeeReviewedCopyLines');
 
 const masters = new Map(rules.masters.map(row => [row.companySku, row]));
 const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่อง', can: 'กระป๋อง', jar: 'กระปุก',
@@ -226,7 +227,8 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
       if (!Number.isSafeInteger(item.quantity) || item.quantity < 1) {
         addIssue('จำนวนสินค้าในไฟล์ไม่ถูกต้อง', order, item, index); return;
       }
-      const product = context.copyVariationResolver?.(shopCode, item, order, index)
+      const product = resolveReviewedCopyLine(shopCode, item, order, index)
+        || context.copyVariationResolver?.(shopCode, item, order, index)
         || resolveCopyProduct(shopCode, item,copyIdentities.get(copyIdentityKey(shopCode,item)));
       const bundle = product.components && bundleAllocation(allocationPolicies, shopCode, item, product.components, money.amounts[index]);
       if (product.reason && !bundle) { addIssue(product.reason, order, item, index, product.sku, product.components, product.matchingReview); return; }

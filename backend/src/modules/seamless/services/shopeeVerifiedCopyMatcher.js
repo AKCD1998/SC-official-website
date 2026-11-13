@@ -552,7 +552,8 @@ function getVerifiedCopyMatcherDigest() {
     masters: rules.masters, rules: rules.rules, unitReviews: rules.unitReviews,
     supplementalCopyIdentityVersion:rules.supplementalCopyIdentityVersion,
     supplementalCopyIdentities:rules.supplementalCopyIdentities,
-    copyIdentityHolds:rules.copyIdentityHolds })).digest('hex');
+    copyIdentityHolds:rules.copyIdentityHolds,
+    reviewedCopySourceContracts:rules.reviewedCopySourceContracts })).digest('hex');
 }
 module.exports = { VERIFIED_COPY_MATCH_VERSION, buildVerifiedCopyIndex, formattingKey,
   getVerifiedCopyMatcherDigest, normalizeStructuralText, resolveVerifiedCopyMatch, sourceIdentifierConflict };

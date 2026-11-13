@@ -9127,5 +9127,3577 @@
         "ownerResponseSha256": "1a1bf70f326c3f77e8db021de090f914dad3bd58a6a9d7e810e7d2aad05ccf8a"
       }
     }
+  ],
+  "reviewedCopySourceContracts": [
+    {
+      "contractId": "sc-copy-review-20261113-01",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พิมเสนน้ำตราโป๊ยเซียน ยกโหล 12 ขวด ขวดแก้ว 3 มล. สำลี 8 มล. ลูกกลิ้ง 5 มล.",
+      "variant": "ขวดแก้ว 12 ขวด",
+      "sourceSku": "630010159",
+      "components": [
+        {
+          "companySku": "630010159",
+          "quantityPerSale": 12,
+          "unit": "ขวด",
+          "productName": "สามัญ พิมเสนน้ำโป๊ยเซียน ขวดแบน 3 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851447430088"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "a16d7a61a2090dbd776dd0e43700885589d646a18c37adefe391e64058f10827",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2091
+        },
+        {
+          "fingerprint": "55d2b7a5692be0c3999800a20dbdff30ef5f156dedceff18129e33187e8210bd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2272
+        },
+        {
+          "fingerprint": "89df1f3db294732fc63ad18e8ca541a0b16d6da6eb4ccfd6aead81ee45494d4b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2306
+        },
+        {
+          "fingerprint": "aea4ff5f694e8507e273d7736229a8adf110f70dd2833b657d148d60bd89200e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2650
+        },
+        {
+          "fingerprint": "2354a68875f5e20485cd225934037a8c3ef12def090a4c8115d536020151b73b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5249
+        },
+        {
+          "fingerprint": "494f02a020fad249081b60dc9f35c8098177e2f6b12b988e48decc9f9237e7ea",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5973
+        },
+        {
+          "fingerprint": "2511dbee517d37ab066db5b2ba56b7e0ee67a52f58290d23201523156b19c5bf",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6123
+        },
+        {
+          "fingerprint": "7342a6fc6036ad6e4a85b5cd787368d625a6f1c5beae7cafabfac3c880d67923",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6157
+        },
+        {
+          "fingerprint": "21069614849d38e5652f51ffb17cfaa58a33e034ebad6a8fd49554d9b9ab30e1",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6333
+        },
+        {
+          "fingerprint": "80df45f2e5aa0db7a21dff1fef482d59b4c787c860987d2bc9b7a60e3519baeb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6654
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-02",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "ตราเสือ",
+      "sourceSku": "IC-003000",
+      "components": [
+        {
+          "companySku": "IC-003000",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาดมตราเสือ 1 หลอด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8888650438013"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "5b2136f19aa16518dc0046508083a25814d9f1dab0b13b497ad96cbeb604bd37",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2125
+        },
+        {
+          "fingerprint": "248b54001b8b9f17c4be0787c9b50c9a3781cae24968a7264857ec7b3651e32b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2794
+        },
+        {
+          "fingerprint": "508480cce1775ca69444d9ed3af2da77cf3957aa2741b9394c831626a7913018",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4209
+        },
+        {
+          "fingerprint": "d749ef31be5a0fc6daa95de6c26528da9efb67c688c2375e8713bdcfdd36569a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4597
+        },
+        {
+          "fingerprint": "4497a206e4b74f4e86c212f07893bfc74603f044dd111b1a3beb4d2261bf3dd6",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6014
+        },
+        {
+          "fingerprint": "9172d01b75664ff50b87ce74fdc01ea84661b0b216d56133db126f85933667c7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6396
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-03",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "แบล็คเคอร์ฯ 20 ซอง",
+      "sourceSku": "IC-004321",
+      "components": [
+        {
+          "companySku": "IC-004321",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ เกร๊ทเตอร์ มายเซพติค มายบาซินเม็ดอมซิงค์ พลัสลูทีนและบิลเบอร์รี่ กลิ่นแบล็คเคอร์แรนท์ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294032043"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "a7d7cc92833ad60350c91c34544e536e27d25ea373891885b0cac53b081bf5c8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2158
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-04",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "องุ่นมะนาว 20 ซอง",
+      "sourceSku": "IC-004322",
+      "components": [
+        {
+          "companySku": "IC-004322",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ เม็ดอมซิงค์ พลัสวิตามินซีและโคคิวเทน กลิ่นองุ่น มะนาว 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294033040"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "bc7adfaf53040b634e5ba5f07ffca30f16d8074ad7a055c91f5df23563ff53ef",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2159
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-05",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "สตรอว์เบอร์ฯ 20 ซอง",
+      "sourceSku": "IC-005366",
+      "components": [
+        {
+          "companySku": "IC-005366",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ มายเซพติค มายบาซิน ซิงค์พลัสเบต้า กลูแคน กลิ่นสตรอว์เบอร์รี่ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294034016"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "6fc6455983fbb6f9fa8b0ee29fd29bcbb1088df08146dcc1fce59d4ac8e0004d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2160
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-06",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "ลิ้นจี่ 20 ซอง",
+      "sourceSku": "IC-005715",
+      "components": [
+        {
+          "companySku": "IC-005715",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ เม็ดอมซิงค์ พลัส วิตามินซี กลิ่นลิ้นจี่ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294037017"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "1657843ba2e4b995f07460e625059edd829655f9e970ab44b49af2de8048e366",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2161
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-07",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมตราโป๊ยเซียน มาร์คทู 1.7 มล. 1 กล่อง 5 โหล 60 หลอด POY-SIAN Mark II",
+      "variant": "1 กล่อง 60 หลอด",
+      "sourceSku": "630010137",
+      "components": [
+        {
+          "companySku": "630010137",
+          "quantityPerSale": 60,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาดมโป๊ยเซียน 1.7 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851447010006"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "e4e781b73db58e56a152d90c07d1d50637e1d723cb9b3a74b6fb36ba93f6f2eb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2121
+        },
+        {
+          "fingerprint": "25d5943c057a4489afaa17589992ef5346caa303062110fd6bd2fdbc2d1207f2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2165
+        },
+        {
+          "fingerprint": "eda3054a1c7876cb928e6f0a937a495f932295a21616ad489c395306ae497621",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2209
+        },
+        {
+          "fingerprint": "05d1f286aeebd255f1d1bc8f39e7f924dc4cb2ba0aea835dd869b8382ed848ba",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2100
+        },
+        {
+          "fingerprint": "e6b9731fa16409684d5044160676d9318b772b11389b67b01c7ffa263304f868",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3295
+        },
+        {
+          "fingerprint": "dbceb56c57c58f55a59dbad6e7a15b17fd05ced87c5bdc53b5a5a6f62fb9a0e8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3631
+        },
+        {
+          "fingerprint": "80be1a1767f607db2a960a47ed2ede5adbc26737ecc43158d76135821039feac",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3660
+        },
+        {
+          "fingerprint": "2a7fc2f244e89f2f37aac7baa68698e2a41c52156608cac9afc9fcb269dbdb47",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3593
+        },
+        {
+          "fingerprint": "24e53d68c33323231e9164118951952d98d9346b83fe3e9446267ad70b4eaf86",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4229
+        },
+        {
+          "fingerprint": "4d74795706b3826f70afae8013fa776a3482eb4c4e637a483b2609ba48d2ad79",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4553
+        },
+        {
+          "fingerprint": "b65f71125425ddbd6aa938b7a425421db0a5d9fea3617977b886db301db00ea5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4589
+        },
+        {
+          "fingerprint": "e9e91024ee01ca867c08702362a5a4f3b9e56893e95904b803cad50292ecb629",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4692
+        },
+        {
+          "fingerprint": "69aeda17af636e983f8727339fefb6b3828ec6c20bcfad12efe2cff070862fb4",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4729
+        },
+        {
+          "fingerprint": "033e4a1d328c6b62a96297c7d8ab50203e16bdd6adefc53cb613b92efd0a60f3",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4773
+        },
+        {
+          "fingerprint": "fe18c060efdcf49aee8129184d32497e4146e40abada3aec8c0496c0ffd4f991",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4808
+        },
+        {
+          "fingerprint": "cfc2f0d0d408b7969aefaecb38d1e74e181c7b4fb681f7a1625467e8a0bf9d27",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4875
+        },
+        {
+          "fingerprint": "5f472598ec2021ea25338f23dd8121b556cf0d18c722e47d5208bc9369f30ad3",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4865
+        },
+        {
+          "fingerprint": "ed7fcf9c8a9182da2625ff92d21a8790337958568e304b74f32f38d64f4908d4",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4881
+        },
+        {
+          "fingerprint": "81d10fdad334921e065ce4e70362dde76838ce6622cefca306bf6e27d41ff678",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4927
+        },
+        {
+          "fingerprint": "7a7a0057d98e86a12d9623d930313cfefa9940e718f6b7b47dbd292d12e8c633",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4968
+        },
+        {
+          "fingerprint": "f58099d7406408093eed18569b6087fc6d3e90cb714d04d04a2c6ab0c34d332a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4972
+        },
+        {
+          "fingerprint": "fc4c47e0cfc057e157e4c06278116132572af2dba5f551d9d235eead56eba9d0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5068
+        },
+        {
+          "fingerprint": "d19feb6ef0c57c736cc1147899b968c8f7438a9cf418eea69df140ecaaaa353e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5138
+        },
+        {
+          "fingerprint": "6a62126dc5d417c5d336d7d508e811e151ad83f2a73756158717f3a96c1c2feb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5294
+        },
+        {
+          "fingerprint": "f776d9cd2708e9747055be7e5145eba8b84a9cf7fa544bfa7004d2b58b329543",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5329
+        },
+        {
+          "fingerprint": "986fa5c0ac5ee4b836a5febb8c76a6109b0c145ccae10285e2fad52e049f01e2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5332
+        },
+        {
+          "fingerprint": "39e707d2a90f03fe7032590560609606e3f97200f8979e93c34bfeaea7af3e21",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5471
+        },
+        {
+          "fingerprint": "1490621b0c938e46f82379c27a9b76bc9a5b0dad2b5f3a9cd4f8f2531a66101e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5440
+        },
+        {
+          "fingerprint": "ced2445c0ef1928781c683d8f2d2c449641352b72df46b59d563d7cc5e5fb9a5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5449
+        },
+        {
+          "fingerprint": "65f3b2a29cd8a8846047684aa0a15ed3785a225b564ec1d4968ad8beaaad3ef5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5454
+        },
+        {
+          "fingerprint": "b3c021ad866053940b999da072f5a3d64a1e8f6af11fbe04fece1939cc480e0a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5644
+        },
+        {
+          "fingerprint": "242c09dc547aa15bce21feac040f1f332de5bb61a944b80512dec4ff59c20fdf",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5662
+        },
+        {
+          "fingerprint": "3deff2bc9a3dd7868341980811861f04e91cca47f0e5ec040de4fd36cb61479b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5701
+        },
+        {
+          "fingerprint": "a1d9cc009020171a0c69494fedbcafc732a2e30b26bf42ee822ac0c3cb9e5880",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5675
+        },
+        {
+          "fingerprint": "4b8f313c1442cce9a82a6438c2c8c1cdb3a4c3cfd5b59c6d21a07dfc18d76db3",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5855
+        },
+        {
+          "fingerprint": "b5b21636fa74614ea40756382f0a046e452d1e3466ce7ed7296d7caf880d14b9",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5813
+        },
+        {
+          "fingerprint": "c99459fad31cb73a8af845347bade673725b7a09d5c52b3240f8b2e23ac7f042",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5885
+        },
+        {
+          "fingerprint": "9199088601bdf5fc3d229ba1f533bec152acc84f210a9615ced7bd7d113766c7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5934
+        },
+        {
+          "fingerprint": "71ded291fb3dfb07630c656f96023537371fd934cc1334488dd39224b741e640",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5386
+        },
+        {
+          "fingerprint": "a169af2a81d756507207b475282473420cb3de93088cb73410f9c3cada75536a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6032
+        },
+        {
+          "fingerprint": "84cb7348c4e0eb2af778e52123a9c3f10f4a75f172e3ad90937483ba4fb39fe8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6033
+        },
+        {
+          "fingerprint": "4608eca7b2468091e893d21d0e72bc216bf7515b7d12695680ce981880eb5fd5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5991
+        },
+        {
+          "fingerprint": "762bc510b4a179196e886a319a837a8f17e117cb7766f9671040ad218214d613",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6095
+        },
+        {
+          "fingerprint": "b6366af073e991bb6aeb151e9196a58c2ada5476d18c824ecba614e8092ade3f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6268
+        },
+        {
+          "fingerprint": "cf9528e3a5f8b0c109dafdbf4662ddc6c2bd00d95e2e6d80f86f8bf65938c5a8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6287
+        },
+        {
+          "fingerprint": "cf4e79ea1154d9dce7bc2e5459297b09995ac3a7129bdf48305e9ac60963312e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6377
+        },
+        {
+          "fingerprint": "03cb79da0c891bf6cf3700e3c413a6a35a97ceb1866f6d9824b62d6170ad7908",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6406
+        },
+        {
+          "fingerprint": "b7ff2306f5b6d1fa3da75a54ecf3c0eacd3213a2b6398a881f33524835be06a2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6538
+        },
+        {
+          "fingerprint": "876b19d29d7c9c982ca3da45ed3b06fa1a965844155f9ed762e33a00ffc65e20",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6564
+        },
+        {
+          "fingerprint": "f1e881b6c95b282b378fe9fe5958dc1ae2a76503851d77244464286d1288883e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6565
+        },
+        {
+          "fingerprint": "4e9eb3662d0474107bcd98eb17d14c2374d0283f375af8bb934e7e96f822c666",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 326
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-08",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "ฟิลด์ กลิ่นส้ม",
+      "sourceSku": "IC-006128",
+      "components": [
+        {
+          "companySku": "IC-006128",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาดมเป๊ปเปอร์มิ้นท์ ฟิลด์ กลิ่นส้ม 2 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850109273117"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "2477c40ecb1699929703bd96484f8c016bd5f480188d280ceb4b75e483a752e6",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2238
+        },
+        {
+          "fingerprint": "c9b4548521437ef0cf54d01f46d23e67c83b43d78c81f92e99e797c86e0d2002",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3469
+        },
+        {
+          "fingerprint": "314d6ae37868ae9bb9cf8a20b7c5e7a00c3813420e4e3d427f25fa3d9279025d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4235
+        },
+        {
+          "fingerprint": "825ed8c2c6c1255cfc8ee3482eb68726adbad35944f2e6bec926d6da05a4a953",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5724
+        },
+        {
+          "fingerprint": "73795270bada991cf609c894e818ef7cd9393303fcae0f31d7fbc8213588fbbe",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6019
+        },
+        {
+          "fingerprint": "6876b0434d53e0ea72fb2cc025896062f968a94f11f147c27fb7c053af204613",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6400
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-09",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "ฟิลด์ ดั้งเดิม",
+      "sourceSku": "630010138",
+      "components": [
+        {
+          "companySku": "630010138",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาดมเป๊ปเปอร์มิ้นท์ฟิลด์ 2 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850109073311"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "cebd4ac86c326560b4de41cc6e0782639e853b697f000ad2082af34d8dc2b7ad",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2239
+        },
+        {
+          "fingerprint": "b9c6d7e0389ace0fe27147a8452d46cad090a8957c11437446884624d136f45c",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2721
+        },
+        {
+          "fingerprint": "b63371daf02db4ac58f20526146687680d78e4de2bdad2bffc8fcdaea5bfd03d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4721
+        },
+        {
+          "fingerprint": "54eb4dd69c55204d42a4afe5beef2a18979056cbd54a1315d2bf9a66097280f1",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5405
+        },
+        {
+          "fingerprint": "16c7baa653d63f854c10982d775385ea61e860e0d6435455b780390db65f6d38",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6020
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-10",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "บีแพนเธน ออยเมนต์ 30/50/100 กรัม และเซนซิเดิร์ม ครีม 20/50 กรัม (Bepanthen)",
+      "variant": "ออยเมนต์ 100 กรัม",
+      "sourceSku": "IC-004429",
+      "components": [
+        {
+          "companySku": "IC-004429",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ บีแพนเธน ออยเมนต์ 100 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4057599007718"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "fb70c8eb5a5b67232e98393fbb9c7711960bbcbd55a9e80391eeb50256cee5fc",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2259
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-11",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "วาเป๊กซ์",
+      "sourceSku": "630010134",
+      "components": [
+        {
+          "companySku": "630010134",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาดมวาเป็กซ์ 2 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850172241419"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "30e22c7510a6d34039aebc80b0a68c97f8e890ca1f9ad897157ec7e197b4a700",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2297
+        },
+        {
+          "fingerprint": "da88b10a17f37c9237a1b3b58e3d86a3a2870d190065d0f004e39216eb701e2e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5920
+        },
+        {
+          "fingerprint": "8e07cd37d4e52983691c264d95296390eff843065908c1e8b0eac571caa162c9",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6016
+        },
+        {
+          "fingerprint": "e3531f736c93fe7c5af801b0810436f43154edfdc9c7137d6ccdddf7e3456093",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6242
+        },
+        {
+          "fingerprint": "e7adfeca54330c41322bb85f37b78a695127fbdaa9017cd6aaef5d1b37d1dabb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6397
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-12",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาหอมเทพจิตร ตราห้าม้า ชนิดเม็ด ยกกล่อง 12 หรือ 24 หลอด Five Horse",
+      "variant": "ฟ้าเล็ก 24 หลอด",
+      "sourceSku": "630010067",
+      "components": [
+        {
+          "companySku": "630010067",
+          "quantityPerSale": 24,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ยาหอมเทพจิตร ตรา ห้าม้า 30 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856570150018"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "57356c997987b5979a09da7e5edbf9618da2a6e5a6e2f4016e5954f2283da630",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2273
+        },
+        {
+          "fingerprint": "7a6dc1d9752ff12435241741740654b249a7d5738de8896ba0d85fdec505a8f2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2282
+        },
+        {
+          "fingerprint": "cd8228d734500689d5ad96ae9ef1a083b5711328da1de895b52c1e27fc009978",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2634
+        },
+        {
+          "fingerprint": "03127f2166f03407efa2de988d876d9284ccbc91757c992ac5dedf250527d896",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2660
+        },
+        {
+          "fingerprint": "6c9a43fc3c637aa339274f2e29f803d870fc393679671a779e2f87b39314bea7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2672
+        },
+        {
+          "fingerprint": "a06bf7d6989ef9635d3f2fb00d5444a235db52a2437bba9bc164955100d8b701",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3166
+        },
+        {
+          "fingerprint": "728cdd0de76ae4ba9dd5b12602e81bfb5ec18862428297c40404a61160c22c95",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6247
+        },
+        {
+          "fingerprint": "3783af8bd466fe7bc476efd155628d72ece8eb8dec7e3234b30d8866b4aea655",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6655
+        },
+        {
+          "fingerprint": "50dfe83d60e006856b6b2c5e432c483c80a33f62f1995702b43a519ad57876b9",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6723
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-13",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. แบบแผง ไทลินอล ซาร่า บาคามอล พาราแมน ซีมอล เบลล่า พารา พาราแคพ",
+      "variant": "เบลล่า พารา",
+      "sourceSku": "IC-004545",
+      "components": [
+        {
+          "companySku": "IC-004545",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ เบลลา พารา 500 มก 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859564200805"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "4de8259a0edc878febc55eeff076489af0c4b6d9b1ecda8344d3a53c2955c554",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2352
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-14",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พิมเสนน้ำตราโป๊ยเซียน ยกโหล 12 ขวด ขวดแก้ว 3 มล. สำลี 8 มล. ลูกกลิ้ง 5 มล.",
+      "variant": "สำลี 12 ขวด",
+      "sourceSku": "630010157",
+      "components": [
+        {
+          "companySku": "630010157",
+          "quantityPerSale": 12,
+          "unit": "ขวด",
+          "productName": "สามัญ พิมเสนน้ำโป๊ยเซียน สำลี 8 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851447430002"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "576970b30bce4b983d4df75fc4da5fe97a2685bafb7e314b94919bbbf5088356",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2362
+        },
+        {
+          "fingerprint": "dd6c9bf2776a90e940e30caae38fbeb255bf3fa90d570e3d4bb432bb25a7b478",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3732
+        },
+        {
+          "fingerprint": "5b396357cb378895a4eb863f406991f2b4617d2efcb5861273ccaf2c1be47781",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3798
+        },
+        {
+          "fingerprint": "90db748b08c1589a436a98c2d03fb1739f1e6909ef98b2c3467721eb71aa553e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3901
+        },
+        {
+          "fingerprint": "b44a6e93135a9c1aeba6b8539ebe9cd82b86485d3a1e624418b1919b85dfed6c",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4861
+        },
+        {
+          "fingerprint": "5131a93630ad3cb08c76b1a53d3cbbad75ee187094c28b079e1a8c1898804d07",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5004
+        },
+        {
+          "fingerprint": "2a3d5d64412f89f4bf720850cd65155b93dcb5bfbdbe64f8009b0a237ad8fd2d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5535
+        },
+        {
+          "fingerprint": "18665806c517d4dd6f7b20e3c4effd797c4fa71a4af9445751851c97a2f48e3b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5619
+        },
+        {
+          "fingerprint": "93d007c4b0313e06bbd3c1c4b012c66e26dd5d7c6ed30176bee29d182de48212",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5838
+        },
+        {
+          "fingerprint": "5b79b2f0d87d935741f6e771c3d723d67ba1cc0d6bd08da72a7719957f8e654b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5882
+        },
+        {
+          "fingerprint": "f0d62d6a666a1eebc794fd045991edda5b5d32d07c81f78279f4a6faf5108b91",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5893
+        },
+        {
+          "fingerprint": "cb4d4d328c0e57fdd29a8638a72e7b1d1685b823c08ac174fbfedd47f4876fcb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5876
+        },
+        {
+          "fingerprint": "82f079a10c2b607295f63056086ee63eb4ca41a994ede654c2ab7d4c7a6fec87",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6062
+        },
+        {
+          "fingerprint": "1bf978b88175b9d44896852bbbd36891356b9bf58f1046d89290277b3f8ea26b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6563
+        },
+        {
+          "fingerprint": "3b7bb21256a8a960b692695db158542daca834eaca1bc0b2f66966726093ec8f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6651
+        },
+        {
+          "fingerprint": "843bd5c7fac1b80a78248903bfcc691440054d3930257a13f409b36039fca558",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6695
+        },
+        {
+          "fingerprint": "f663fcb8a39eec6bef06e3a41ed5781ad0dd675c1a199b2e7954c28c759afb57",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 135
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-15",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ซีมอล เซ็นทรัล 500 มก. ยาเม็ด 1 กล่อง 50 แผง รวม 500 เม็ด Cemol Central",
+      "variant": "1 กล่อง 50 แผง",
+      "sourceSku": "630010104",
+      "components": [
+        {
+          "companySku": "630010104",
+          "quantityPerSale": 50,
+          "unit": "แผง",
+          "productName": "สามัญ ซีมอลพาราเซตามอล 500 มก. 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852978007459"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "3744ab50c0cba908facb24dd22ed72ab841cb7177a94fcbd992f164dbc9b39aa",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2462
+        },
+        {
+          "fingerprint": "7610dcca6ff273c0761146fb80536388384619d3147c10644e1ecc316da17683",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2470
+        },
+        {
+          "fingerprint": "77c1abe00bbbaac4249550dbd42bc98fe216999e68a6e21de8989f76b3efeaf7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2503
+        },
+        {
+          "fingerprint": "5567a2113de964656b246d45280be90c6e093d0ebd04b756262778967d438915",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2485
+        },
+        {
+          "fingerprint": "c903d84de23ebe29962de1a59e1849a3bd9d2a023a7a229215a4d34868f5512d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3423
+        },
+        {
+          "fingerprint": "562079c1a9d9a55346d428e4e3f0a16522adcc235f2bf6bcfb1f992691f2aa79",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4982
+        },
+        {
+          "fingerprint": "8dcb734457e35e4d76dab8c12a4ac51cadaa3242dfa10cc78907015dc8fc533b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5019
+        },
+        {
+          "fingerprint": "9fd895d376dfe69db08be741ea861c5c030f0aa60b95f44204570f23c8d76218",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5180
+        },
+        {
+          "fingerprint": "ba27c140dc1de71c82a98160ecc306779162b073ce29cbdbc4ba79c06c204818",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5618
+        },
+        {
+          "fingerprint": "2e996527fdffe6df2b34ef103b74db5c0138a0050f81e5e380cfd2cb1e93342f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6109
+        },
+        {
+          "fingerprint": "d7e137e100f438a351186d57df675e4d9bb80fdf4d17e914ae345a9e3806c2dd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6595
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-16",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C วิตามินซี 25 มก. วิตามินซีอัดเม็ด (30 เม็ด / 25 ซอง และ 1000 เม็ด 1 กระปุก) | Vitamin C Tablet",
+      "variant": "สตรอว์เบอร์รี่,25 ซอง",
+      "sourceSku": "IC-002485",
+      "components": [
+        {
+          "companySku": "IC-002485",
+          "quantityPerSale": 25,
+          "unit": "ซอง",
+          "productName": "สามัญ ไวต้าซี วิตามินซีกลิ่นสตอเบอรี่ 25 มก 30 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8857121535858"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "cad69692ced28943092af09b3322bd37ebbbed308b304e8c63468fda3252e339",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2528
+        },
+        {
+          "fingerprint": "82b7ca40da73960315965f0d7c4c8f8dc4ec93d64491b1a70a1d5dfbacb0eb32",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2735
+        },
+        {
+          "fingerprint": "058a734419640723f306c2eec4daf5ebc440790f80f30e56190d6a18726a26ce",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4386
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-17",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พิมเสนน้ำตราโป๊ยเซียน ยกโหล 12 ขวด ขวดแก้ว 3 มล. สำลี 8 มล. ลูกกลิ้ง 5 มล.",
+      "variant": "ลูกกลิ้ง 12 ขวด",
+      "sourceSku": "630010158",
+      "components": [
+        {
+          "companySku": "630010158",
+          "quantityPerSale": 12,
+          "unit": "ขวด",
+          "productName": "สามัญ พิมเสนน้ำโป๊ยเซียน ลูกกลิ้ง 5 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851447430040"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "5220f283e349e97082bc53517b1401ff966751b5278d0ec33ed793325c3d34a1",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2618
+        },
+        {
+          "fingerprint": "3440f29c918927d1f8a954faae8ab7980c2fc9f0ad78c1cd7d6f903a69b36e55",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2619
+        },
+        {
+          "fingerprint": "1afa2bc678ca658e805934629af12bd7e46912b136c9ac9a9daa23939f86f998",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3981
+        },
+        {
+          "fingerprint": "ea3de907ea67160c686fc2214183f5bb592ca1fd99be1f93518bcbf60f30c93c",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4911
+        },
+        {
+          "fingerprint": "067cf3fcfccf4b73f3c07d7cd309f8c1e4f874adeb12008c78a31adc0cb8df60",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5089
+        },
+        {
+          "fingerprint": "7f418e8ff1113ac650d61498f50083778622045f1de4855085ceda6d9198d3ac",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5391
+        },
+        {
+          "fingerprint": "253e910ed79f0528f92cf24a46a7601a2052298aa8fb14340c59551794924818",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5534
+        },
+        {
+          "fingerprint": "4137f00a006d72edf797115cffda9b000a9c241e87a2f8f7f13c1bdc82f436dd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5896
+        },
+        {
+          "fingerprint": "c89cb532f7dcdaf3257b1df564721e422aca2c506ed2662a8d2bf09745098b4d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6267
+        },
+        {
+          "fingerprint": "dc9b528ab77c12667938960e9a7131d3065dfb7d3d5edbf23a6114b0a563d5f1",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6376
+        },
+        {
+          "fingerprint": "582728b48a06e3cda67867eae6636b2948139e3323d36a3183b7b13ee25a76b5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6446
+        },
+        {
+          "fingerprint": "d7782c2fd89ab5aa39ff6f0dd198bda757d74328c8fb0b1a19c5266f71e356fd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6562
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-18",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. แบบแผง ไทลินอล ซาร่า บาคามอล พาราแมน ซีมอล เบลล่า พารา พาราแคพ",
+      "variant": "ไทลินอล 500",
+      "sourceSku": "630010105",
+      "components": [
+        {
+          "companySku": "630010105",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ ไทลินอล 500 มก 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850007850229"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "7e9dd68e157f300c4bef35b97bdb1e603f3b92c39bcfd6e7ebf692898f9f6639",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2614
+        },
+        {
+          "fingerprint": "d4c87d9ef4d1a1b5ed6989936725c0c8d44f224b32046b4251a3f5e9e848c519",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2669
+        },
+        {
+          "fingerprint": "d8bf9ebfada4c0b38376bd9714df232abe7fb531df103227e16d7c160da73ca5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2694
+        },
+        {
+          "fingerprint": "b50c7bc52375958bfd67475667e2abac5c1a5e734671823bb1061dcd673bfbdc",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2914
+        },
+        {
+          "fingerprint": "b77c42f162615855168a5776827d9df132b7a281965f2b593ed486a70a797c0a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3235
+        },
+        {
+          "fingerprint": "e0c8c4739463dbecb9de43ead90e125861258f5718cd5eba42b2631b9b1ede39",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3452
+        },
+        {
+          "fingerprint": "56fb104a894649d5ebdd9aa772933251ea30e2559a059a9261d41b0d4b23946b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3856
+        },
+        {
+          "fingerprint": "ae629c78151d85e082efbe1bbb0f15a64bf6d5c2bc2b22d714115feb144c94db",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4087
+        },
+        {
+          "fingerprint": "7aa5c32b060cd179fa4e675764ce2e61b296859441d1475c9dc60592c18b019d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4237
+        },
+        {
+          "fingerprint": "064b674ae07e49b5072f4760f3ec4ac3345e2580e728c7e447ecd4f9d48e147a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4335
+        },
+        {
+          "fingerprint": "74a57c92c47f2642eca44b1de47894857917ff12212ddd08baa8521f2d80ce68",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4920
+        },
+        {
+          "fingerprint": "b8f357d5da4f64481e274cc99d36361729daa9f54cdf3a3e7236c72cccc3e76b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5010
+        },
+        {
+          "fingerprint": "53ed8eed025911f5c8909de8dd67d4aefe37952cf4aa2642fb90aa9b10ddc0d2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5115
+        },
+        {
+          "fingerprint": "1908f7d3f687ddd7129589b03012429094cee433a3794e4c8343a716380d2772",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5468
+        },
+        {
+          "fingerprint": "b0c8b5ddb3fbd8acdb532ecc12efd497fa1960e2c64fbe4915a4112e879c8f74",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4833
+        },
+        {
+          "fingerprint": "611e1199c1918d94a9c28f8b61b15e8c8116383ef6f2eb2ad3ab8abb19d9eea0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5691
+        },
+        {
+          "fingerprint": "7fa439f011af733038bcf44b9e203a803b9785178fd058391e54a929d38635d2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5806
+        },
+        {
+          "fingerprint": "855deda8ce22ec7b74a0f3b56c360eca36673d9dc88f7c19c7d74dbf2124f2d0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6037
+        },
+        {
+          "fingerprint": "945aef6d2d706ef01839b4fa38f89cda87678dc934d9636a4dfa63ea0c856b1f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6159
+        },
+        {
+          "fingerprint": "a02830db0e1bdc060820084f9cea1836897b1400da4f35df7aa479af5739d80b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6352
+        },
+        {
+          "fingerprint": "6946dd880118cf9ceb29664783e4481acd108f685aa80041c194d1dc8e327d9b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6413
+        },
+        {
+          "fingerprint": "3889c2b05bcebd51a5478a1efccf1a53b2b829880bfb4aafb6040790622730cd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6585
+        },
+        {
+          "fingerprint": "e25ec40eec0071bd2ae9fc96e161efe832e8d40cc02bad8aadb997017338a243",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 5
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-19",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "น้ำเกลือ 0.9% NSS Klean&Kare GHP SOS Plus ขนาด 100-1000 มล. เลือกยี่ห้อและขนาด",
+      "variant": "K&K 1000มล. ฝาแหลม",
+      "sourceSku": "630020297",
+      "components": [
+        {
+          "companySku": "630020297",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "ปกติ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 1000 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8854060615030"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "1593952abd2b2027d67e4672246d335ec7a98aa2f5183418735781e8f3e2f0df",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2631
+        },
+        {
+          "fingerprint": "f7853a6af35623031fb15f0a3ff6ada9638e334346bd21bd22132de045c553eb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2792
+        },
+        {
+          "fingerprint": "b5c3d280f3e36c1568798915a9a876b67c7f7b7b96cd38b2553bc61c2a83a61a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3504
+        },
+        {
+          "fingerprint": "2c004977712db9d39274b069cddf6a0dd31debba364fd14523539e780d8decf8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3643
+        },
+        {
+          "fingerprint": "5999b95b7a385ef0f8ecaaa0c339cdc04989839c5024067d4ed2f2db307b5fb4",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3821
+        },
+        {
+          "fingerprint": "830f0b230febb8dd3224f651f76390b6d805de5b90c41f11ddd2f21d3c53079a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3987
+        },
+        {
+          "fingerprint": "d432e741bca0355199191ed8a8638e0300c5538c805bf4a40f7fad6f96acafd1",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4699
+        },
+        {
+          "fingerprint": "03b626f3381c2eb5daab09044cced0f92073973597b5c45dba91af7f6458b835",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5062
+        },
+        {
+          "fingerprint": "95da8b930a9430a12d8e4fb0c890ef61428ff93b541e09430d1403709a9d626a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5341
+        },
+        {
+          "fingerprint": "a424c2bd8b76f69f8c3ef5eeae4ffbb628fab0c7cc8b9cc7122afdd5c2171d53",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5567
+        },
+        {
+          "fingerprint": "5bab485be841a3082e39de01b85d880a874ab7b880d347970e069424d5073c62",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6310
+        },
+        {
+          "fingerprint": "5721c5c16949292b3dfb0c6ca95ca6d6c0ed6e30f2e75dfa19aca4b8738f1eaa",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6474
+        },
+        {
+          "fingerprint": "0ffcdb3d3d4752c05d11e52c67a650971f4c270490567e7e6dd565323f44c5ff",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6660
+        },
+        {
+          "fingerprint": "b2505a469aac53ba396dc6f2ec9466aaeed2984d0cf81891b2a9bc100da7a609",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6642
+        },
+        {
+          "fingerprint": "d3a3e9bcd43c982554ccf1c9f85c6b1f0855a5d863a367cbcd8c6575408593b9",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6809
+        },
+        {
+          "fingerprint": "4f54c7851e7ee5684d76759f8dd5fe8a1c650f3c09f961f9ea46fe30ae5e80aa",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6828
+        },
+        {
+          "fingerprint": "20ebd5822e8afbb0e9d4b0fa3821a05ae921954ffca087ed372b392b593fa7dc",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 163
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-20",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. แบบแผง ไทลินอล ซาร่า บาคามอล พาราแมน ซีมอล เบลล่า พารา พาราแคพ",
+      "variant": "บาคามอล 500",
+      "sourceSku": "IC-002039",
+      "components": [
+        {
+          "companySku": "IC-002039",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ บาคามอล พาราเซตามอล 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8855451003306"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "07b7a583a0efba41234dbc910567461c23174143d0c3b41b06936de968b2a9e5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2638
+        },
+        {
+          "fingerprint": "616dce68a809ff87934fbff9c5c0228535ec3bfbe209c8acd3f5395ec7db3f5a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4344
+        },
+        {
+          "fingerprint": "4e76f508749a9dbadd70d7ffcc23f1c022746592c3a2551a4e56c3c6f4fbd746",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4558
+        },
+        {
+          "fingerprint": "7b6f70ee78b4368fc14490de5625089441c76c8f600987cf3dfb0d9cdf43d72a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5519
+        },
+        {
+          "fingerprint": "e5d11b77f3383805ab06081e2d3aa494c6c4e2aa44268d0fd865b39fb8657c13",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5786
+        },
+        {
+          "fingerprint": "9bb6ac141fe3ffbf5e8cc86320b8c7e4907addcea9a165c56ee2b115b865cf61",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5903
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-21",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาหอมเทพจิตร ตราห้าม้า ชนิดเม็ด ยกกล่อง 12 หรือ 24 หลอด Five Horse",
+      "variant": "เขียวใหญ่ 12 หลอด",
+      "sourceSku": "IC-004149",
+      "components": [
+        {
+          "companySku": "IC-004149",
+          "quantityPerSale": 12,
+          "unit": "ขวด",
+          "productName": "สามัญ ยาหอมเทพจิตร ตรา ห้าม้า 100 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856570150025"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "291ea5efcf971e83a88fcc7a846d59f09130152a5901c72f720c2558f0518cea",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2714
+        },
+        {
+          "fingerprint": "48d5994b81f6bb6c7d31f9fd9869ad33220755c38c536aba69851b5d63f088fb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3165
+        },
+        {
+          "fingerprint": "279f132870bf11e73a03201a7fb76f4e0d7e812d980ba578e007d7c7d9473df2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4966
+        },
+        {
+          "fingerprint": "139020426ab7524d70db1809fd72fd3308ddbd4211d59c18e4cb349d3b48a316",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5244
+        },
+        {
+          "fingerprint": "0ddd4ef04e5f655f9b838120018bd2ed9e1a924a9d7f7823bf56b779f2580319",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5564
+        },
+        {
+          "fingerprint": "3df085f67b129954b97efb23b542c766703c758369c2a4646aa229fd7a6aa107",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6353
+        },
+        {
+          "fingerprint": "a48710e02b86b5dbbba740a32de17faca38851d6712a7861bf35ddeb9f20dbdf",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6380
+        },
+        {
+          "fingerprint": "63c34414e69e26f661b9b3ae1a6b688a00e9c1cbf2f86b22449c11ee6127cf6f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6470
+        },
+        {
+          "fingerprint": "1c9f9cdf6b134fc8cdc68ee81cc60480ea7834692cc8c45dada66fc2f4c380a8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6551
+        },
+        {
+          "fingerprint": "7d3aad42ff7d25d274f05e5011b4288f4381d8a8fce3fc3ca4da25cb0a92fb46",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 260
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-22",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "ฟิลด์ แบล็ค",
+      "sourceSku": "IC-003606",
+      "components": [
+        {
+          "companySku": "IC-003606",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาดมแบล็คอินเฮเลอร์ 2 ซีซี",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850109075315"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "c2dfc7be2fc12d179cc8062118e0e5b8fdbb03a8092041b2388df2e2f6a1a7fd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2720
+        },
+        {
+          "fingerprint": "bc430e752ac131cc04f34c0efa54ad1089210b34672776fd1903dedc42e10484",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4068
+        },
+        {
+          "fingerprint": "ea7068e7871a56632c20d1980b87d18a91d0cf5db5e26c3e94b43c5544f7c634",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5506
+        },
+        {
+          "fingerprint": "24bd80dbafb22167c12723e55c83cb7d934833d1861fe8f8339458651ed02ef4",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6018
+        },
+        {
+          "fingerprint": "097e6685624043092a1dd80e254035ff312ef52696bb4fa5c6a7f87250b0f168",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6399
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-23",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พิมเสนน้ำ โป๊ยเซียน มีเฮิร์บ และไอซ์ เจลลิบาล์ม แบบขวด สำลี ลูกกลิ้ง และเจล เลือกแบบ 1 ชิ้น",
+      "variant": "โป๊ยเซียนขวดแก้ว3มล.",
+      "sourceSku": "630010159",
+      "components": [
+        {
+          "companySku": "630010159",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ พิมเสนน้ำโป๊ยเซียน ขวดแบน 3 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851447430088"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "d9972a796e5651812c7addd650b0dc69552a32079dc5d36e6ca3bace3a6b677b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2722
+        },
+        {
+          "fingerprint": "266e65052b8a17b6d988ec01baf45a3440d834cf52e025822d4d811d1bb015d4",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2881
+        },
+        {
+          "fingerprint": "9d6a9346e77c59c7403a361df4ce9393a98c6b0e9cf61ac3c84d7a329c99d978",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3147
+        },
+        {
+          "fingerprint": "f7c5698507af20e1ba30f831c5680951f5ee884494bb6316286aca9bafa84a7b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3530
+        },
+        {
+          "fingerprint": "9ceceb43ece8810e8c68f11879b4ba73c1dfb2d2ccefee9ff29360782ce22066",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3570
+        },
+        {
+          "fingerprint": "6e607dab17249f48f99465c33633c87198bb2c64f746b33f0954f222a2ac471a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4410
+        },
+        {
+          "fingerprint": "3d615129d690223d2d2f45adee34030f0c4b9cd8eea5d667b391a8f3d4b31816",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4851
+        },
+        {
+          "fingerprint": "a87fc9cf1a0662bbdadd53ff96b8f253aec14bd3a65b27eb969ad697c94d8609",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6047
+        },
+        {
+          "fingerprint": "b1a5da6c31170cb49a29cf1c974d799ef6158bf0abf83fffe918405b096aa2d7",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 281
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-24",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "น้ำเกลือ 0.9% NSS Klean&Kare GHP SOS Plus ขนาด 100-1000 มล. เลือกยี่ห้อและขนาด",
+      "variant": "K&K 500มล. ฝาแหลม",
+      "sourceSku": "630020296",
+      "components": [
+        {
+          "companySku": "630020296",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "ปกติ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 500 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8854060615023"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "28f706beb53da2961428a56c961909b545939970c19532f2dc696c4737ceb24f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2772
+        },
+        {
+          "fingerprint": "b6732d7e130b5a3f847c4d94822b018bb78d8358bfff5716d7d820a877f88d99",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2776
+        },
+        {
+          "fingerprint": "433c45adc08bd788128aac55e470943b83f2fd53d33bdff6f53c9fb1136a2863",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2814
+        },
+        {
+          "fingerprint": "6efd453f7fa994d2bfb32da3be2f4f59394f5193ea50dd50cbf91f63dcd5c6ae",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2860
+        },
+        {
+          "fingerprint": "33f54779b5fed4d7d13ec673e3123953fd9f20aad3ac0efeedfdcdc8b76883dc",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2907
+        },
+        {
+          "fingerprint": "6e4adf464a9eac9d5c8f11a8d6865a63a08c3e996149850cd721ebd586c1b3f9",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2963
+        },
+        {
+          "fingerprint": "927deb54705a3e9dfac2c6630c6898e5ca94e7c13e3268458515c5dec78de733",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3053
+        },
+        {
+          "fingerprint": "3d0e55cfd9aa7367c950d62e1be16c1c51652754171da300ca0e779dc782cfc6",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3338
+        },
+        {
+          "fingerprint": "6e456c035116cdb08022c0213c7f12a0b9df358481687b2557f69ccf40f8ddd3",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3403
+        },
+        {
+          "fingerprint": "aac3ff5a6550e603d6e3b9ed0e50180d2b638bbfc0f67fabe28eee5fff8d5f1f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3477
+        },
+        {
+          "fingerprint": "e5c776171ff198c49bbb95ff9aef06af1ef66993ebf68fc334f5484169dec080",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3865
+        },
+        {
+          "fingerprint": "be0e3b26f84ab9f6ff45bb2a3ea0de233edb55ef11866e3bf9f3a6b96800100a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3920
+        },
+        {
+          "fingerprint": "df8896fa8f55cf21ae110e88d7ada136fd8fc95233ef780468ad5c8cd3a4e1a2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3970
+        },
+        {
+          "fingerprint": "ff7393bc6bee96674bd9f0c4e9b9a6b28782fa7c24ab0580b4df9328e9ec5dfb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3963
+        },
+        {
+          "fingerprint": "e68b4f99dcdbbaf6b32fc8f9cc9c042593e338c3e140a04a64a1441721a51fba",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4096
+        },
+        {
+          "fingerprint": "788c1893b7b9d6f7c2937d9e132d4d2259a14af41699eba1198272376648962f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4228
+        },
+        {
+          "fingerprint": "cf5dcf7dab00d667bf3e31bcd74fc97ac917a796d69d6d97fe08102c8e56ff1f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4309
+        },
+        {
+          "fingerprint": "449fe1a4218c204451416f07eb09f571a393022aaec678c07a34ba0453175b58",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4493
+        },
+        {
+          "fingerprint": "43176267fa31c278db151bfb84448e4eb89894dd21267c6e692a002beacd3825",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4698
+        },
+        {
+          "fingerprint": "5a010d6ca2625c62b7acee0317a7191863a2e6608abd1d5f402cb31650ed92da",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4768
+        },
+        {
+          "fingerprint": "4c40d3607813cd33b3b12dde5796c94bbd96086ecb234ea4b1f1a4eb92a50c38",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5090
+        },
+        {
+          "fingerprint": "6a73baaad179a40c2f5f363caa7ed3858750fd8af43e3da3c7e5d3437b5b8224",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5118
+        },
+        {
+          "fingerprint": "4ed494d5341b7bf7848f1a1c86240528f37c0901bfa592129c3a8604b31d0ef6",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5805
+        },
+        {
+          "fingerprint": "04e57ae3774f05057514735082fba9f98af8e8a53056937fbf5f15f393928f21",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5918
+        },
+        {
+          "fingerprint": "20973c9893c91835950f5d7a432f5a9e89ae02146f57f6bf3cdd73887759dea5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6081
+        },
+        {
+          "fingerprint": "4ee456446b3ab9e882e924167b9efa3e850c0a9bd6e14a9ee73bbabb4b01b673",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6163
+        },
+        {
+          "fingerprint": "dc3f26c3a4093a0d24b2f91d2fc9f1d252ed8c85dbf7a1f84ebe004b46cb81cd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6412
+        },
+        {
+          "fingerprint": "daca91089eaa2e738d450bf0d5f209ac2c40cdfd83a1ba32c44924b0461712d0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6678
+        },
+        {
+          "fingerprint": "bdeab1aff100bb9ea83d32db27fb81b54df30bb406455097cda7b7b8c5c6c5a5",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 119
+        },
+        {
+          "fingerprint": "099fa9212d207f05a596d87774e0144826881a1a4af8e95fc781b8e8d1755b80",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 202
+        },
+        {
+          "fingerprint": "feff5535e5ffc063ce6df5f0789c1d41568b0fce1289ff823a7b7db5a4e045d4",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 329
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-25",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C ไวต้า-ซี Multi-Fruit กัมมี่สีเหลือง / กัมมี่พลัสสีชมพู / ชิววี่ กลิ่นผลไม้รวม 6 / 12 ซอง",
+      "variant": "ชมพู,1 ซอง",
+      "sourceSku": "IC-001510",
+      "components": [
+        {
+          "companySku": "IC-001510",
+          "quantityPerSale": 1,
+          "unit": "ซอง",
+          "productName": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่พลัส ชมพู 20 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513008963"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "0afc293faae6edf3ba72a9c67ef1bffc71b7f436ab9883a247ec23fcebcdb8d5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2831
+        },
+        {
+          "fingerprint": "e3ce2b59a8f520b30bee52cb9c537cf4b54ad2ac1d516b57f344f79e659d1588",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4508
+        },
+        {
+          "fingerprint": "25f7f25fd0560b874ecfbf97c2f8d217a22ca6d236469b7e2b40131cff8200ae",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4913
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-26",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แถบตรวจน้ำตาลในเลือด แอคคิว-เช็ค 25/50 ชิ้น เลือกรุ่น Accu-Chek Instant Guide Active",
+      "variant": "Active 25 ชิ้น",
+      "sourceSku": "IC-000409",
+      "components": [
+        {
+          "companySku": "IC-000409",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "ปกติ แอคคูเชค แอคทีฟ 25 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4015630064151"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "20a7d6a6d1691d34f507b784b1ffd4cd4b6f581c8914644c894a6aa42690dc44",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2894
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-27",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "เอส โอ เอส พลัส น้ำเกลือ 0.9% แบบขวด 1000 มล. ยกลัง 10 ขวด SOS Plus Normal Saline",
+      "variant": "SOS 10 ขวด/กล่อง",
+      "sourceSku": "IC-005939",
+      "components": [
+        {
+          "companySku": "IC-005939",
+          "quantityPerSale": 10,
+          "unit": "ขวด",
+          "productName": "สามัญ เอสโอเอสพลัส น้ำเกลือ 1000 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859243308792"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "ec62bcd8fd8f8ff65430fdd72372c1be9133fd32df8601516557bc7533655888",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2905
+        },
+        {
+          "fingerprint": "ac7013c3ae249adb267a3abbabd446da1b282304ec8fa53b5d2e6772987eae47",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3407
+        },
+        {
+          "fingerprint": "fc48267e7873edcdda5050faeae3c08196e35506d0b50b5b83e456d6781de3bb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3567
+        },
+        {
+          "fingerprint": "a218a421b5c7db021fefd72eac72d66eb840620373a835a6b65335399081dc30",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3833
+        },
+        {
+          "fingerprint": "5f5a182aa2761514599cbc704a0f7373095f4fe24402969d4735d88b1a9e675e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4473
+        },
+        {
+          "fingerprint": "48d8f79cdbb2fffb34adc1cf9c0abd67469834dd590a62219eb4576642d46c12",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4478
+        },
+        {
+          "fingerprint": "030e73f1f1688639793b17fd363502bdc8fc2feefbfd66d3bfefb57db0a86498",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4707
+        },
+        {
+          "fingerprint": "fdc67a77caa28ab5bf5086d8109ec529af7e56b69f159de6427c3deb49d7e346",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4758
+        },
+        {
+          "fingerprint": "7dd8b42482ec201c2122eed529474b696ff4791177103a2d7c329e73dde56b7e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4740
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-28",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. แบบแผง ไทลินอล ซาร่า บาคามอล พาราแมน ซีมอล เบลล่า พารา พาราแคพ",
+      "variant": "ซาร่า เม็ดยาว",
+      "sourceSku": "630010140",
+      "components": [
+        {
+          "companySku": "630010140",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ ซาร่า 500 มก เม็ดยาว 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851473006233"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "a77b64f271a9887a95be67538384bd023e8248a98fd19a734234073764e03e5e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2915
+        },
+        {
+          "fingerprint": "621ee0fdbed7cc6224910ba8759cb9b6ba421147d16d632373d09afa062c2428",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3153
+        },
+        {
+          "fingerprint": "7daa1dada0791ee9f0457bbeecad74b5237e34ab0a5fdde86847287dc4720abb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3248
+        },
+        {
+          "fingerprint": "452682f53481d7a94b6a6c55cba3724027e77e166aa342181ae18ecf6e24a931",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5011
+        },
+        {
+          "fingerprint": "de37daaac3ecccc85887b57053e6ad1cb92417e56b5ab03f945fe5e5cc083fab",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5725
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-29",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ เฟรช มินท์ ครีมติดฟันปลอม 20 และ 60 กรัม Polident Fresh Mint",
+      "variant": "20 กรัม",
+      "sourceSku": "630010211",
+      "components": [
+        {
+          "companySku": "630010211",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ กาวติดฟันปลอมโพลิเดนท์ 20 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851007143106"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "cd0bb352ba8e227bf943329fdcd46ed2c586560c8bf109defb362c815d769eee",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 2948
+        },
+        {
+          "fingerprint": "c83228207a5f0f4ec7738e1f08c3a4722fd2b417c304d918334e96d25d3b86d9",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3242
+        },
+        {
+          "fingerprint": "23d2119802d4029d2a31c49af66fef24354e90dc6e9d6ca553dd2d0639b39817",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3281
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-30",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาทารักษาแผลในปาก ขาวละออ ชนิดเจล 5 กรัม 1 หลอดพร้อมกล่อง Khaolaor Mouth Gel",
+      "variant": "5 กรัม 1 หลอด",
+      "sourceSku": "IC-003417",
+      "components": [
+        {
+          "companySku": "IC-003417",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาทารักษาแผลในปาก ขาวละออ 5 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850138010394"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "eed9847e236c3b1c379c0dce8e2369d71f38005da17affe3ab4b63a9af599ff0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3034
+        },
+        {
+          "fingerprint": "2363e776d9395684f42c766ceefbae76dfcbcb0a53f97abbab144fe011dce297",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3065
+        },
+        {
+          "fingerprint": "9f8c8ad0f3c8cb719476d080e89871c1d0af7b054b3f099fcbe13e93cef45474",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3105
+        },
+        {
+          "fingerprint": "90fd6b094880f0b8a2c5a86678d822f644767238e8c3e01c74b52801ee4c1a8e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3270
+        },
+        {
+          "fingerprint": "33b916575a39df3ebac9f0fe3a63df4c1471ecb467ef410b97e9f622357798f3",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3409
+        },
+        {
+          "fingerprint": "1745c5541dabc6b176c8ff023cbf35dbea647013826e03b1a1acaf855ab2ecb7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3502
+        },
+        {
+          "fingerprint": "0a34892c080e71b5990213acb81cb0a9342a1bf89875147bf73a287e64d8f418",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3583
+        },
+        {
+          "fingerprint": "33a14043484b291d0de3b84f86e619cd5c1178c751d165a2c044b7f78264d6e0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3758
+        },
+        {
+          "fingerprint": "c176a79e9ac112a434e28e67fa2fa57edb35e18f7e4b755c8adcd97ca52a776e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3872
+        },
+        {
+          "fingerprint": "8d340fa609ee1f80064d89db309c9391c5436e66d1958423b2ef7c6ac1558a9d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3893
+        },
+        {
+          "fingerprint": "b585991624863e57bb81898be74fd3e246a91a54b5590c730b7c4911eb5e9106",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3997
+        },
+        {
+          "fingerprint": "44531228a604faacd424184b551323bc076f8003f18292b1c9ec0095e2211486",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4031
+        },
+        {
+          "fingerprint": "14de75c1fdb2dee4a650f060bea350941e98fae316a09be0b4db8c997bbb7acd",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4078
+        },
+        {
+          "fingerprint": "98a37e1f157415245640950594528f4e0a28f477463273a74bd082c1bfee60ca",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4312
+        },
+        {
+          "fingerprint": "30c27254cd4547494b9d7392f71e41d4c9583bb0c8b362ede4b831320b7865d6",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4460
+        },
+        {
+          "fingerprint": "16558e103b1bd7081f12d66071063b197c6d6234e96305015034a499f07bf6e0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4539
+        },
+        {
+          "fingerprint": "55b69dc98ea5f4ff06004fa76263871477930f3eb36d40c72c2b7d5ef67ec014",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4564
+        },
+        {
+          "fingerprint": "c09f36c7a670c86691d7205c5612595bda3a32d45179a27baeee786404d0a54e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4761
+        },
+        {
+          "fingerprint": "8efea061177a4e6515564ca9af167db458ea6e4dc3593e3a384a0480ddc4995d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4793
+        },
+        {
+          "fingerprint": "7a2bcd508e0b1124d4b0da25e05e7b255441345ead79cd4c0bdb548a607c44b4",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5344
+        },
+        {
+          "fingerprint": "3b1e1d1313f123f6d8884b304d0877e8632e0712586509b0d0d2e6745a89d22f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5663
+        },
+        {
+          "fingerprint": "928e6f10ab10f58f7fdb8cdc27d287350423e145f29f812deaead36f77f0e413",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5909
+        },
+        {
+          "fingerprint": "4b30169a84fc7a8b0bcf752223927a1f2eee1f0fcde95a59026d5c4fa2982847",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 76
+        },
+        {
+          "fingerprint": "9b3cfa7333da76f3914a523ece59605eb904858b13650723a9b5fa5177a2d2b5",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 87
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-31",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พาราเซตามอล 500 มก. แบบแผง ไทลินอล ซาร่า บาคามอล พาราแมน ซีมอล เบลล่า พารา พาราแคพ",
+      "variant": "พาราแมน",
+      "sourceSku": "IC-004238",
+      "components": [
+        {
+          "companySku": "IC-004238",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ พาราแมน เม็ด 500 มก 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513009908"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "33994e0c8c79c9c7b0a3cac88876f2e412236648266419fc973a8c0d0b80fa72",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3069
+        },
+        {
+          "fingerprint": "2eff9a617e80005f097d7a21d3df6da1ce88c1864bf6c59e77cac4fdd6789967",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3678
+        },
+        {
+          "fingerprint": "f02f91ba26176e695a3bbfdc5315ba2e1cadfc679ca6da0e500116d440103d13",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4893
+        },
+        {
+          "fingerprint": "3e41917e661b406f85855c8899fb8c40b16e17a2c1185e5e159e2594cab335c1",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 63
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-32",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "น้ำเกลือ 0.9% NSS Klean&Kare GHP SOS Plus ขนาด 100-1000 มล. เลือกยี่ห้อและขนาด",
+      "variant": "K&K 1000มล. ดัมเบล",
+      "sourceSku": "630020295",
+      "components": [
+        {
+          "companySku": "630020295",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ น้ำเกลือเอเอ็นบีขวดดัมเบล 1000 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8854060615344"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "eb7e66db872b01b084cc443609463416df7c6ce81fb4c730f8fbf59fc610598d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3141
+        },
+        {
+          "fingerprint": "ecca86ea537e871b7370dabbe5c0b92649462aa364182b28740d3bf327b91463",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3298
+        },
+        {
+          "fingerprint": "f0ed83efe45d50087387ec8a4209f575dba2a09b5281402765e8f9d367b3688f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3468
+        },
+        {
+          "fingerprint": "86669ead6e11d477bd6ea8d96044f9e5bcd67c04ca9749f8380c3b52f88904dc",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3577
+        },
+        {
+          "fingerprint": "695687d3ac873e92d97348a0fb93c2a2c7abf59cbaee039b72a8a296a9ceefae",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3620
+        },
+        {
+          "fingerprint": "f3e53a49fa4e848ab506bea4fc9eb5492ed08b53f9299e2952c5524f5011252f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3638
+        },
+        {
+          "fingerprint": "2680ea6ae6be58d0b88ceeac71a099d9adafb1bf4e22fd37b5e792c86aec9911",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3757
+        },
+        {
+          "fingerprint": "363d54cd2e8442416adfc60fbf1b9ecc99ed73dfc52f5fe98ba1468028b918bb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4585
+        },
+        {
+          "fingerprint": "991f9135b8e673f95fce953cdd13936fb4227216f42914e6e33603b3c86ef57b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4954
+        },
+        {
+          "fingerprint": "7332cda1a43330d768ee6f24cee0f5023a5d9ea63e2897557f27c570b768097c",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4950
+        },
+        {
+          "fingerprint": "1577a9c4e281941fa19e66fc2523b752639bd7abc3b55e415e3698a6cf046c92",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4983
+        },
+        {
+          "fingerprint": "32bdcf99e8f43fc81a5e9f6ef52bd1dac767c17b684bfb7f9705fc0f57950c86",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5279
+        },
+        {
+          "fingerprint": "33946caf06bb0274d9580ddb83942874390efb89b7aff943b92b45a37fb945f1",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6023
+        },
+        {
+          "fingerprint": "01db3ad08f333dc2b691f356b46a39ea617b74443ac1a1ab4f9e9c9cd6379bb6",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6067
+        },
+        {
+          "fingerprint": "f8c9eacc8ea98b99c5f56edfdfb6162e50ff7e782d3776200ef643635d2cecf9",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6082
+        },
+        {
+          "fingerprint": "de29935ae2ac739c46885a0260a9d8e50a678c8fa486e3395f8917778378bfbc",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6147
+        },
+        {
+          "fingerprint": "dacae806b94f7432ad45b58d780b0a55674472cee600c095f768bf6658262001",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6138
+        },
+        {
+          "fingerprint": "fa2cd90719e46ed2f6fb6527e1a95e7ea80886510c9ea634c24fb8d42e52a433",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6810
+        },
+        {
+          "fingerprint": "f548b7fa878bb03cab0c96a7030dc39518ade6bfb8760f06e86c25e75404e501",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 39
+        },
+        {
+          "fingerprint": "e8c49a579860bf9cd655cdf22352c5511e85d177f4c6281039e9f7a3397b46fa",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 293
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-33",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ซิการ์แคร์ แผ่นซิลิโคนเจล 12x3 และ 12x15 ซม. 1 แผ่น CICA-CARE Smith+Nephew",
+      "variant": "12x3 ซม.",
+      "sourceSku": "IC-000825",
+      "components": [
+        {
+          "companySku": "IC-000825",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ซิกาเเคร์ ซิลิโคนเจลชีท ขนาด 12x3 ซม 1 แผ่น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "5000223490881"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "97125941cef61ca4ea82c7da0f1a581ea4c4c2c92f230004185ee77725c3ece7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3325
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-34",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ออยลาตุ้ม สบู่ก้อน / คลีนซิ่งมิลค์ทำความสะอาดผิวหน้า 100 กรัม เลือกแบบ Oilatum",
+      "variant": "คลีนซิ่งมิลค์ 1 หลอด",
+      "sourceSku": "IC-005880",
+      "components": [
+        {
+          "companySku": "IC-005880",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ออยลาตุ้ม เจนเทิล เฟเชียล คลียนซิ่ง มิลค์ 100 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8854424015292"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "f2206e59b0bbc558fdfb1f06ad1ca2b881ed431f9e22cd005218128aeb253deb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3462
+        },
+        {
+          "fingerprint": "92cc1972619236a372771f9175a6fa27f201c078f9f5cc5a96bf0f33030ed104",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4028
+        },
+        {
+          "fingerprint": "720fefe8da4aefe32982165674b6dad478f207fbcfa7a197150eccdbc61c7c4e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4133
+        },
+        {
+          "fingerprint": "a8d1919a14c083dc067c49c565f6fcea408a1cff0cb22b4a8c8b817bcc2e7a8a",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4684
+        },
+        {
+          "fingerprint": "340f9d70d92cc485f69c92dc75a1766d3d537fbcb095f71c1af19954378ea1ff",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5869
+        },
+        {
+          "fingerprint": "17df11e1bf5374048eca0db0502d5a8dc9262be9163bf6cbf3a9362e7ace3ca0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6107
+        },
+        {
+          "fingerprint": "290460639c385a924386cc34ea85902c843ff190340a91aeeee3fc61ff7d788c",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6219
+        },
+        {
+          "fingerprint": "fdd437427c35da19bf0e4a39097e912036c30af15e12c74926736b16434032ff",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 270
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-35",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ไพลวาน่า ครีม 35 กรัม 100 กรัม และสเปรย์ 100 มล. Plaivana Cream Spray",
+      "variant": "ครีม 100 กรัม",
+      "sourceSku": "IC-004844",
+      "components": [
+        {
+          "companySku": "IC-004844",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ไพลวาน่า ครีม 100 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858992503755"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "358f2d92d157c3e05b016d33c08eb84477912f0eb81ee0a7902899fdfe9c5f5b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3519
+        },
+        {
+          "fingerprint": "aef94d083ba173b40119aff72a188de0da463bf5c07411fd2bbdaefde109b5b4",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4023
+        },
+        {
+          "fingerprint": "e4aadfd83656705577f0ce82d9b29724972228b88b447d3d2f5995075de83f6f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4608
+        },
+        {
+          "fingerprint": "1041faea78379e94a06fdbeb32520f00a7a9bee8283f0dd4a8f0d2e028cac527",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5631
+        },
+        {
+          "fingerprint": "33b3cd4520859c68b4a8250ecb97f5e7fc29800c180d2d2b3b667141b821be51",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6473
+        },
+        {
+          "fingerprint": "2ceeb9b5cf70bf9a3c6910128f9a0f6dd3ff2c629ab161696eb5f78bbff04e59",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6472
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-36",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือยางลาเท็กซ์มีแป้ง สีขาว S M L 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove E Series",
+      "variant": "L กล่องม่วง",
+      "sourceSku": "IC-006011",
+      "components": [
+        {
+          "companySku": "IC-006011",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมดมีแป้ง ไซส์ L 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095902032"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "7cb08d19728f8b64f9ee5814061cbec499c93a11cca368b3523ed0d1688de270",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3707
+        },
+        {
+          "fingerprint": "a56dea7d363dad76c38d957a1a52d3f07157ca210d37507d8d9536a83008531d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3822
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-37",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C ไวต้า-ซี Multi-Fruit กัมมี่สีเหลือง / กัมมี่พลัสสีชมพู / ชิววี่ กลิ่นผลไม้รวม 6 / 12 ซอง",
+      "variant": "ขาว ชิววี่,1 ซอง",
+      "sourceSku": "IC-002786",
+      "components": [
+        {
+          "companySku": "IC-002786",
+          "quantityPerSale": 1,
+          "unit": "ซอง",
+          "productName": "สามัญ ไวต้าซี ชิววี่ มัลติฟรุต 17.5 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513011963"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "2d37ca109f93f6cdb93ac6ef519930c7a6438c1a8e2ec08707ec7ed28fd29c12",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3934
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-38",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ซินโนวาร์ ผลิตภัณฑ์เสริมอาหาร สูตร 20 ชนิดเม็ด 60 เม็ด / สูตร 40 แคปซูล 30 แคปซูล Synovar",
+      "variant": "40 สีชมพู",
+      "sourceSku": "IC-004807",
+      "components": [
+        {
+          "companySku": "IC-004807",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ซินโนวาร์ 40 30 แคปซูล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858992503588"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "bb39878ddf322155fec7565686218eb904f7b4a2d8c7a699d5f3bb07e28bc835",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 3947
+        },
+        {
+          "fingerprint": "7d50229f65038fb9ad8af85b5296053e8b804dee71f4fbcab9872e4339ba58e0",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4470
+        },
+        {
+          "fingerprint": "9c208a165c94c69d9d7196ed634174cbf844d026d5c376fe5bb161cf00ede97b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5864
+        },
+        {
+          "fingerprint": "2fb11afd756ffd833e9f8d9014141a655aeec759b2487a870b1869a967c88598",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6275
+        },
+        {
+          "fingerprint": "bebdbee7a650d06af45e72adaf11907b826636188faea950321dc99afccdb5f9",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 266
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-39",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Durex ดูเร็กซ์ ถุงยางอนามัย 3 ชิ้น/กล่อง",
+      "variant": "เฟเธอไลท์ 1 กล่อง",
+      "sourceSku": "IC-000068",
+      "components": [
+        {
+          "companySku": "IC-000068",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ถุงยางดูเร็กซ์ เฟเทอร์ไลท์ 3 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850163000100"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "3febe7eab06c2f9c1279ce20d7ab7ed84abd9d3a0be0af79eabb2331abf4999f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4090
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-40",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "K-Y เควาย เจลหล่อลื่นสูตรน้ำ Jelly 15 และ 50 กรัม รุ่นกล่องน้ำเงิน 42 และ 82 กรัม",
+      "variant": "กล่องน้ำเงิน 42 กรัม",
+      "sourceSku": "IC-000213",
+      "components": [
+        {
+          "companySku": "IC-000213",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ เควายเจลภายใน 42 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "5052197053739"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "973fbda2b1b102c0a62e6002b21a3ae989c2aa9a963ea33c89ed4acff83b24f2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4375
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-41",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ เฟรช มินท์ ครีมติดฟันปลอม 20 และ 60 กรัม Polident Fresh Mint",
+      "variant": "60 กรัม",
+      "sourceSku": "IC-000219",
+      "components": [
+        {
+          "companySku": "IC-000219",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ กาวติดฟันปลอมโพลิเดนท์ 60 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850090132035"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "0f241284ec22a163a35f51e42297138474c1ba601ffa11ba3795f0bb7c82f74b",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4477
+        },
+        {
+          "fingerprint": "d1c8f0a8a05a45b3a746d7007f1dd360f9395a78bd4deb9c61267a29c94ef38d",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4670
+        },
+        {
+          "fingerprint": "243ac442dde49f66673e1806f29e4b3bd7c895a9009dfab6375c20f184cb602c",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5878
+        },
+        {
+          "fingerprint": "7ed01744adc48764647b910cfc9884461ebaa6de8c41e7d21f593dad5f5ef739",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6148
+        },
+        {
+          "fingerprint": "9bc2861031bb76d5520bad4dcdc519f5396e21ee23a255faedf7e0013bec628e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6154
+        },
+        {
+          "fingerprint": "c21bc7d035259f8ca145caf1928e7993f13edcde70269c8444c6a664172a2bc1",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 189
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-42",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาดมแบบหลอด โป๊ยเซียน พีเป๊กซ์ เป๊ปเปอร์มิ้นท์ ฟิลด์ ตราเสือ วาเป๊กซ์ เซียงเพียว เลือกแบบ 1 หลอด",
+      "variant": "เซียงเพียว สูตร2",
+      "sourceSku": "630010139",
+      "components": [
+        {
+          "companySku": "630010139",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ยาดมเซียงเพียวอิ๊ว 2 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850109011412"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "c7044a5915284627e58a7036688e4cd6e09a0da28cc612fe83786191a3810e27",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4598
+        },
+        {
+          "fingerprint": "9ad524729a77ec66271bfb0a190d70cec07147a6ecc5a98e1efbc3ab8ac7cff7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4638
+        },
+        {
+          "fingerprint": "25110ea16eaffe3799115f2469958995bdac0beae8f2df151ea10b0e37624540",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6015
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-43",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร วิตามินน้ำ 120 มล. Omega-3 / Bio C / Jelly Veggies เจลลี่รสองุ่น 10 ซอง",
+      "variant": "รสส้ม สีฟ้า",
+      "sourceSku": "IC-005439",
+      "components": [
+        {
+          "companySku": "IC-005439",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ดีเดย์ มัลติวิตามิน ฟอร์ท และโอเมก้า3 รสส้ม 120 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859612254415"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "bfb73dc687f54466b26d4ee6c01476f388c5fdf2ae715c8f36909ef10ed47872",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4776
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-44",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "CU Phar Biotin Zinc / Biotin Zinc Plus ไบโอติน ซิงค์ / ไบโอติน ซิงค์ พลัส ผลิตภัณฑ์เสริมอาหาร เลือกสูตรและขนาด",
+      "variant": "ซิงค์ พลัส 30 เม็ด",
+      "sourceSku": "IC-005992",
+      "components": [
+        {
+          "companySku": "IC-005992",
+          "quantityPerSale": 1,
+          "unit": "กระปุก",
+          "productName": "สามัญ ซิงก์ ไบโอติน พลัส 350 มก 30 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856351009054"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "8187560c4f8cdbd23ee8ec8d23345ecbd5e643b5719cb6376e28a0ef5012176e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5024
+        },
+        {
+          "fingerprint": "53d08336af9d7fd52577ff9cf07e218b994a90010e83b13c4c30d37507eabdc8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6135
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-45",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ซีเบล สกาเจล คิดส์ เจลดูแลแผลเป็นสำหรับเด็ก (CYBELE Scagel Kids) 4 / 9 / 19 กรัม",
+      "variant": "Kids 19 กรัม",
+      "sourceSku": "IC-006122",
+      "components": [
+        {
+          "companySku": "IC-006122",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ซีเบล สกาเจล คิดส์ 19 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858663804181"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "e23c81f5178d629dc34da8f1b28e92a0537bcb8331b2f386923ddc87b2937bf7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5144
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-46",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แถบตรวจน้ำตาลในเลือด แอคคิว-เช็ค 25/50 ชิ้น เลือกรุ่น Accu-Chek Instant Guide Active",
+      "variant": "Guide 50 ชิ้น",
+      "sourceSku": "IC-005667",
+      "components": [
+        {
+          "companySku": "IC-005667",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "ปกติ แอคคิวเช็ค ไกด์ 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4015630066520"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "0e8286a569114af64941e303f5c76266cb13479985c8b41db64b5094d0043600",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5287
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-47",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Sinocare Safe AQ Smart เครื่องตรวจน้ำตาลในเลือด ชุดเครื่องพร้อมแผ่นตรวจและเข็ม / เครื่อง / แผ่นตรวจ 50 ชิ้น",
+      "variant": "เครื่องแผ่น50เข็ม100",
+      "sourceSku": null,
+      "components": [
+        {
+          "companySku": "IC-006010",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ เครื่องวัดน้ำตาลเซฟเอคิว สมาทร์ 1 เครื่อง+แผ่นตรวจ 10 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "6934175025398"
+        },
+        {
+          "companySku": "IC-003101",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ แผ่นตรวจวัดน้ำตาลซิโนเเคร์ เซฟเอคิว 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "6934175025411"
+        },
+        {
+          "companySku": "IC-001230",
+          "quantityPerSale": 2,
+          "unit": "กล่อง",
+          "productName": "สามัญ ซิโนแคร์ ซอฟทวิสเข็ม 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "6945630124150"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "direct_owner_confirmed_contents_and_existing_pos_units",
+        "ownerContentsResponseSha256": "0e649119795098eea8098f7db89cee3a1950f07597afa990dfd6fdcc63d49c52"
+      },
+      "bindings": [
+        {
+          "fingerprint": "3e81fbdc33697c5627c5b75da815f84b2e0672b1d1901957df4e9028b34056fb",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5365
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-48",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Yuwell Anytime 5 Pro เครื่องตรวจวัดน้ำตาลกลูโคสต่อเนื่อง CGM สูงสุด 16 วัน 1 กล่อง",
+      "variant": "Anytime 5 Pro",
+      "sourceSku": "IC-006177",
+      "components": [
+        {
+          "companySku": "IC-006177",
+          "quantityPerSale": 1,
+          "unit": "เครื่อง",
+          "productName": "สามัญ เครื่องตรวจน้ำตาลต่อเนื่อง เอนนี่ไทม์ รุ่น5 PRO 1 เครื่อง",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "6975124205218"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "15e746b73013283ea1d3dda7149fad17b24d914f244c4e84237c51f25a47b4e8",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5269
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-49",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แถบตรวจน้ำตาลในเลือด แอคคิว-เช็ค 25/50 ชิ้น เลือกรุ่น Accu-Chek Instant Guide Active",
+      "variant": "Instant 50 ชิ้น",
+      "sourceSku": "IC-005668",
+      "components": [
+        {
+          "companySku": "IC-005668",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "ปกติ แอคคิวเช็ค อินสแตนท์ 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4015630067022"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "f1c99682f5dee0c1ffede1443b2e8c110c11af79a6cbde613af46cc085577588",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5573
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-50",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ดำ,S",
+      "sourceSku": "IC-002956",
+      "components": [
+        {
+          "companySku": "IC-002956",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีดำ ไซส์ S 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095902995"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "30215ee244db209a50227530360f1d4d4f5420efdbe302be676ce063762fbdc2",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5625
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-51",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ดำ,M",
+      "sourceSku": "IC-002957",
+      "components": [
+        {
+          "companySku": "IC-002957",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีดำ ไซส์ M 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903015"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "a6055e0cff7ef73b83799d4e5a2642a3fba8e71ea4c1526acb26135a60ce8db1",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5626
+        },
+        {
+          "fingerprint": "58beb66ad3377d98060c1df8cc3efd6ffa32e67529e92263191134a0971f710d",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 110
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-52",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "VICKS VapoDrops วิคส์ วาโปดรอป 8 เม็ด รสน้ำผึ้งมะนาว / รสส้ม",
+      "variant": "น้ำผึ้งมะนาว 8 เม็ด",
+      "sourceSku": "IC-004754",
+      "components": [
+        {
+          "companySku": "IC-004754",
+          "quantityPerSale": 1,
+          "unit": "ซอง",
+          "productName": "สามัญ วิคส์ วาโปดรอป รสน้ำผึ้งมะนาว 8 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4987176019950"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "4e2be17eadd7df7d1199474685864e35bcd471897fa5fc194f7c943434dcc2b6",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 4963
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-53",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แอนตาซิล เยล เฮช เฮช / เบลสิด ฟอร์ท 240 มล. 1 ขวด Antacil Gel HH / Belcid Forte",
+      "variant": "Antacil Gel HH",
+      "sourceSku": "IC-005590",
+      "components": [
+        {
+          "companySku": "IC-005590",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ แอนตาซิล เยล เฮช เฮช 240 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851473009159"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "00fad6110a1427e2bd1ae847c4ddcc6a12b714f07a9e4a1d556085aff8fb2ea7",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5616
+        },
+        {
+          "fingerprint": "649a94c9fb892f23a28d1be900946ad198e9a23d8813e7bd59a32c61a4074a8f",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6786
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-54",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF Absolute Food Grade แอลซอฟฟ์ แอลกอฮอล์ทำความสะอาดมือ 70% 5 ลิตร / ยกลัง 4 แกลลอน",
+      "variant": "1 ลัง 4 แกลลอน",
+      "sourceSku": "IC-005953",
+      "components": [
+        {
+          "companySku": "IC-005953",
+          "quantityPerSale": 4,
+          "unit": "แกลลอน",
+          "productName": "สามัญ แอลซอฟฟ์ แฮนด์ ซานิไทซิง แอบโซลูท 70% 5 ลิตร",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853287002319"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "4e1830367d85396f290121501a8ce1e0fa6b6256ea6aa580631a3d1c8d0b7857",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 5955
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-55",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "อีโน รสส้ม รสมะนาว อาโมจิน เอฟเฟ รสส้ม ยาผงฟู่ 4.3 กรัม ENO AMOGIN EFFE",
+      "variant": "เอฟเฟส้ม 1ซอง",
+      "sourceSku": "IC-005328",
+      "components": [
+        {
+          "companySku": "IC-005328",
+          "quantityPerSale": 1,
+          "unit": "ซอง",
+          "productName": "สามัญ อาโมจิน เอฟเฟ รสส้ม 4.3 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859446300753"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "b72c1f7fdce10b9252bf31ad0dda1567e366f7a8f2c344d962ecc5016d273389",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6111
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-56",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แถบตรวจน้ำตาลในเลือด แอคคิว-เช็ค 25/50 ชิ้น เลือกรุ่น Accu-Chek Instant Guide Active",
+      "variant": "Instant 25 ชิ้น",
+      "sourceSku": "IC-000502",
+      "components": [
+        {
+          "companySku": "IC-000502",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "ปกติ แอคคูอินสแตน 25 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4015630067015"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "14b71e34cae53753df6d2f1e009d8830eb38da6c65c50ba63d458e99165c06f3",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6294
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-57",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ซีเบล สกาเจล คิดส์ เจลดูแลแผลเป็นสำหรับเด็ก (CYBELE Scagel Kids) 4 / 9 / 19 กรัม",
+      "variant": "Kids 4 กรัม",
+      "sourceSku": "IC-006121",
+      "components": [
+        {
+          "companySku": "IC-006121",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ซีเบล สกาเจล คิดส์ 4 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858663808509"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "a342a77f49f339e446c2e610ccadc0dfa541913373d2f42c5735a7f2f60a2358",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6383
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-58",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ไพลวาน่า ครีม 35 กรัม 100 กรัม และสเปรย์ 100 มล. Plaivana Cream Spray",
+      "variant": "สเปรย์ 100 มล.",
+      "sourceSku": "IC-005517",
+      "components": [
+        {
+          "companySku": "IC-005517",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ไพลวาน่า สเปรย์ 100 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859612212439"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "cba1da9018d30e57163a5855b26baa0f3157b07f19e7c8c2feb78eac524334d5",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6386
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-59",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ฟ้า,XL",
+      "sourceSku": "IC-004186",
+      "components": [
+        {
+          "companySku": "IC-004186",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีฟ้า ไซส์ XL 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903770"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "d5c9d141ba476f52d906e287d3b78d1124d9ec6b3bfb26d7f342968fde1faf6e",
+          "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
+          "sourceRow": 6768
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-60",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ฟ้า,L",
+      "sourceSku": "IC-003482",
+      "components": [
+        {
+          "companySku": "IC-003482",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีฟ้า ไซส์ L 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903756"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "3989e7046eb3521eeddb77c78fed4e46c9844c626f75e1adc3a29335e14df384",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 109
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-61",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด ชุดตรวจตั้งครรภ์ แบบจุ่ม แบบหยด แบบปากกา",
+      "variant": "ครรภ์ จุ่ม",
+      "sourceSku": "630010205",
+      "components": [
+        {
+          "companySku": "630010205",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ชุดตรวจตั้งครรภ์ลองเมดจุ่ม 1 ชุด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900014"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "5a6a931da7932e9062ed0de7c4dee35c39887b874ae381cd132d4880c070c307",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 131
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-62",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "เอส โอ เอส พลัส น้ำเกลือ 0.9% แบบขวด 1000 มล. ยกลัง 12 ขวด SOS Plus Normal Saline",
+      "variant": "SOS 12 ขวด/กล่อง",
+      "sourceSku": "IC-005939",
+      "components": [
+        {
+          "companySku": "IC-005939",
+          "quantityPerSale": 12,
+          "unit": "ขวด",
+          "productName": "สามัญ เอสโอเอสพลัส น้ำเกลือ 1000 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859243308792"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "d28abf0f5876ec6f1ef20157eae6f21370fe6f3717100bddfcc1ca26a236e14a",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 190
+        }
+      ]
+    },
+    {
+      "contractId": "sc-copy-review-20261113-63",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แอนตาซิล เยล เฮช เฮช / เบลสิด ฟอร์ท 240 มล. 1 ขวด Antacil Gel HH / Belcid Forte",
+      "variant": "Belcid Forte",
+      "sourceSku": "IC-000513",
+      "components": [
+        {
+          "companySku": "IC-000513",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ เบลสิด ฟอร์ท 240 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852662200364"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-13T10:42:17+07:00",
+        "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
+        "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
+        "basis": "exact_order_all_sku_selected_pack_and_existing_pos_unit"
+      },
+      "bindings": [
+        {
+          "fingerprint": "2a8e6118ae8615195ec867319932b41b3f75784bf7fc2ea9f0e87606804bd1b4",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 258
+        },
+        {
+          "fingerprint": "763ebf8237531e16c5bcb677aad77af17a6b77c040ee71b3c847bc0de5619455",
+          "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
+          "sourceRow": 259
+        }
+      ]
+    }
   ]
 }
