@@ -6,7 +6,9 @@ async function summaries(db,ids){
  if(!outbox.enabled()||!ids.length)return new Map();
  if(ids.length>100||ids.some(id=>!UUID.test(id)))throw invalid();
  const {rows}=await db.query(`WITH wanted AS(SELECT unnest($1::uuid[]) id)
-  SELECT w.id,m.member_code,l.ada_code,a.ada_code AS assigned_code,a.deliver_to_branches,c.ada_code AS imported_code,
+  SELECT w.id,m.member_code,l.ada_code,a.ada_code AS assigned_code,a.deliver_to_branches,
+   COALESCE(c.ada_code,substring(d.member_code from 5)) AS imported_code,
+   (c.ada_code IS NULL AND d.source='ada') AS branch_profile,
    o.state AS outbound_state,o.last_code AS outbound_code,
    q.id AS job_id,q.state AS job_state,q.last_code,q.updated_at,q.created_at,
    COALESCE(b.branches,'[]'::json) branches
@@ -15,6 +17,7 @@ async function summaries(db,ids){
    AND l.ada_code=CASE WHEN left(m.member_code,4)='ADA-' THEN substring(m.member_code from 5) ELSE m.member_code END
   LEFT JOIN sccrm_member_codes.assignments a ON a.member_id=w.id
   LEFT JOIN ada_history.customers c ON c.directory_id=w.id AND m.user_id IS NULL AND c.source_id='hq000/AdaAcc'
+  LEFT JOIN ada_history.directory d ON d.id=w.id AND d.source='ada' AND m.user_id IS NULL
   LEFT JOIN ada_history.outbound_state o ON o.member_id=w.id
   LEFT JOIN LATERAL(SELECT id,state,last_code,updated_at,created_at FROM sccrm_receipt_sync.jobs
    WHERE member_id=w.id AND kind='member' ORDER BY created_at DESC LIMIT 1)q ON true
@@ -27,14 +30,14 @@ async function summaries(db,ids){
  return new Map(rows.map(r=>{
   let state='pending',code='WAITING_FOR_HQ',label='SCCRM บันทึกแล้ว รอส่งเข้า Ada HQ';
   if(r.assigned_code && r.ada_code && r.assigned_code!==r.ada_code){state='review';code='MEMBER_MAPPING_CONFLICT';label=outbox.label(code);}
-  else if(r.imported_code){state='existing';code='ADA_EXISTING';label='สมาชิกเดิมจาก Ada';}
+  else if(r.imported_code){state='existing';code=r.branch_profile?'ADA_BRANCH_PROFILE_VERIFIED':'ADA_EXISTING';label=r.branch_profile?'สมาชิกเดิมจาก Ada สาขา · ประวัติพร้อมแสดง':'สมาชิกเดิมจาก Ada';}
   else if(r.ada_code){
    if(r.deliver_to_branches!==true){state='succeeded';code='EXISTING_MEMBER_LINK_VERIFIED';label='ผูกกับสมาชิก Ada เดิมแล้ว';}
    else if(['001','003','004','005'].every(branch=>r.branches.filter(b=>b.branchCode===branch&&b.ready).length===1)){
     state='succeeded';code='MEMBER_ALL_BRANCHES_VERIFIED';label='ตรวจพบสมาชิกใน Ada ครบทุกสาขาแล้ว';
    }else{state=r.branches.some(b=>b.state==='review')?'review':'pending';code=state==='review'?'BRANCH_REQUIRES_REVIEW':'WAITING_FOR_BRANCHES';label=outbox.label(code);}
   }else if(r.outbound_state==='review'||r.job_state==='review'){state='review';code='MEMBER_REQUIRES_REVIEW';label=outbox.label(code);}
-  return [r.id,{state,code,label,hqReady:Boolean(r.ada_code||r.imported_code),adaCode:r.ada_code||r.imported_code||null,
+  return [r.id,{state,code,label,hqReady:Boolean(r.ada_code||(r.imported_code&&!r.branch_profile)),adaCode:r.ada_code||r.imported_code||null,
    branches:r.branches,jobId:r.job_id||null,updatedAt:r.updated_at||null,tracked:Boolean(r.job_id)}];
  }));
 }
