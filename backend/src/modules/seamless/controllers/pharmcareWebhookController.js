@@ -1,6 +1,6 @@
 const crypto = require("node:crypto");
-const { createGmailAdapter, isGmailConfigured } = require("../services/pharmcare/gmailAdapter");
-const { runPharmcareGmailSync } = require("../services/pharmcareSyncService");
+const { isGmailConfigured } = require("../services/pharmcare/gmailAdapter");
+const { schedulePharmcareGmailPushSync } = require("../services/pharmcareGmailPushSyncScheduler");
 const { readPharmcareGmailConfig } = require("../config");
 const { unauthorized } = require("../errors");
 
@@ -28,8 +28,8 @@ async function handleGmailWebhook(req, res) {
   }
 
   // Acknowledge Pub/Sub immediately. Push subscriptions retry (with backoff) if the endpoint is
-  // slow or errors, and a retry landing here again is harmless — runPharmcareGmailSync's
-  // advisory lock makes a concurrent sync a no-op 'lock_busy' run, never a duplicate ingest.
+  // slow or errors. The scheduler coalesces duplicates before requesting a DB connection;
+  // the sync's advisory lock also protects against other processes and manual runs.
   res.status(204).end();
 
   if (!isGmailConfigured(config)) {
@@ -37,22 +37,11 @@ async function handleGmailWebhook(req, res) {
   }
 
   try {
-    const adapter = createGmailAdapter(config);
-    const outcome = await runPharmcareGmailSync(adapter, config.mailboxAccount, { runKind: "incremental" });
-
-    // There is no periodic health check on this (see docs/18) — the only alert path today is
-    // "a real sync attempt happened and it had errors". A dead/expired watch() subscription
-    // produces no webhook calls at all and so cannot be caught here; that gap is accepted for
-    // now and documented, with a paid Render Cron Job fallback planned once usage grows.
-    if (outcome.status === "failed") {
-      const failedCount = outcome.results.filter((r) => r.status === "failed").length;
-      console.error(`[pharmcare-gmail-webhook] sync completed with ${failedCount} failed message(s), runId: ${outcome.runId}`);
-    }
+    await schedulePharmcareGmailPushSync(config);
   } catch (error) {
-    // Response is already sent — nothing left to do but log + alert. The next webhook call or a
-    // manual sync will pick up anything missed here.
+    // The scheduler logs sync failures once per run, not once per waiting webhook.
+    // This path catches an unexpected scheduler error after the response was sent.
     console.error("[pharmcare-gmail-webhook] incremental sync failed:", error.message);
-    // LINE alert temporarily muted; retain server-side error logging.
   }
 }
 

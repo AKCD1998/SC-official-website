@@ -6,21 +6,13 @@ const request = require("supertest");
 let lastSyncCall = null;
 let nextSyncOutcome = { checkpoint: {}, results: [], runId: "run-1", status: "completed" };
 let nextSyncError = null;
-jest.mock("../src/modules/seamless/services/pharmcareSyncService", () => ({
-  runPharmcareGmailSync: jest.fn(async (adapter, mailboxAccount, options) => {
-    lastSyncCall = { mailboxAccount, options };
+jest.mock("../src/modules/seamless/services/pharmcareGmailPushSyncScheduler", () => ({
+  schedulePharmcareGmailPushSync: jest.fn(async (config) => {
+    lastSyncCall = { mailboxAccount: config.mailboxAccount };
     if (nextSyncError) {
       throw nextSyncError;
     }
     return nextSyncOutcome;
-  }),
-}));
-
-let lineAlerts = [];
-jest.mock("../src/modules/seamless/services/lineNotifyService", () => ({
-  sendTextAlert: jest.fn(async (text) => {
-    lineAlerts.push(text);
-    return { skipped: false };
   }),
 }));
 
@@ -57,7 +49,6 @@ beforeEach(() => {
   lastSyncCall = null;
   nextSyncOutcome = { checkpoint: {}, results: [], runId: "run-1", status: "completed" };
   nextSyncError = null;
-  lineAlerts = [];
   delete process.env.SEAMLESS_PHARMCARE_GMAIL_WEBHOOK_SECRET;
   delete process.env.SEAMLESS_PHARMCARE_GMAIL_AUTH_MODE;
 });
@@ -118,7 +109,6 @@ describe("POST /pharmcare-webhooks/gmail", () => {
     await new Promise((resolve) => setImmediate(resolve));
     expect(lastSyncCall).not.toBeNull();
     expect(lastSyncCall.mailboxAccount).toBe("admin@scgroup1989.com");
-    expect(lastSyncCall.options.runKind).toBe("incremental");
 
     delete process.env.SEAMLESS_PHARMCARE_GMAIL_CLIENT_ID;
     delete process.env.SEAMLESS_PHARMCARE_GMAIL_CLIENT_SECRET;
@@ -152,7 +142,7 @@ describe("POST /pharmcare-webhooks/gmail", () => {
     delete process.env.SEAMLESS_PHARMCARE_GMAIL_REFRESH_TOKEN;
   });
 
-  test("sends a LINE alert when the sync completes with a failed message", async () => {
+  test("still acknowledges when the scheduled sync reports failed messages", async () => {
     configureGmail();
     nextSyncOutcome = {
       checkpoint: {},
@@ -168,12 +158,11 @@ describe("POST /pharmcare-webhooks/gmail", () => {
 
     expect(response.status).toBe(204);
     await new Promise((resolve) => setImmediate(resolve));
-    expect(lineAlerts).toHaveLength(1);
-    expect(lineAlerts[0]).toContain("run-failed-1");
-    expect(lineAlerts[0]).toContain("1 failed message");
+    expect(lastSyncCall.mailboxAccount).toBe("admin@scgroup1989.com");
   });
 
-  test("sends a LINE alert when the sync call itself throws", async () => {
+  test("still acknowledges and logs an unexpected scheduler exception", async () => {
+    const log = jest.spyOn(console, "error").mockImplementation(() => {});
     configureGmail();
     nextSyncError = new Error("Gmail API is down");
     const app = buildApp();
@@ -184,17 +173,7 @@ describe("POST /pharmcare-webhooks/gmail", () => {
 
     expect(response.status).toBe(204);
     await new Promise((resolve) => setImmediate(resolve));
-    expect(lineAlerts).toHaveLength(1);
-    expect(lineAlerts[0]).toContain("Gmail API is down");
-  });
-
-  test("does not alert when the sync completes successfully", async () => {
-    configureGmail();
-    const app = buildApp();
-
-    await request(app).post("/api/pharmcare-webhooks/gmail?token=correct-secret").send(pubsubEnvelope());
-
-    await new Promise((resolve) => setImmediate(resolve));
-    expect(lineAlerts).toHaveLength(0);
+    expect(log).toHaveBeenCalledWith("[pharmcare-gmail-webhook] incremental sync failed:", "Gmail API is down");
+    log.mockRestore();
   });
 });

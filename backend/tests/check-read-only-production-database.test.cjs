@@ -32,7 +32,7 @@ function createDatabaseDouble({ readOnly = "on", queryFailure } = {}) {
 }
 
 test("workflow is manual-only, bounded, and grants read-only repository permission", () => {
-  const workflow = fs.readFileSync(workflowPath, "utf8");
+  const workflow = fs.readFileSync(workflowPath, "utf8").replace(/\r\n/g, "\n");
   const triggerBlock = workflow.match(/^on:\r?\n([\s\S]*?)^permissions:/m)?.[1];
 
   expect(triggerBlock?.trim()).toBe("workflow_dispatch: {}");
