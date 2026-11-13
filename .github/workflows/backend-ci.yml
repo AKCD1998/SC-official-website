@@ -146,4 +146,4 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci --ignore-scripts
-      - run: npm test -- --runTestsByPath tests/approved-member-merge.test.cjs tests/approved-member-merge-postgres.integration.test.cjs
+      - run: npm test -- --runTestsByPath tests/approved-member-merge.test.cjs tests/approved-member-merge-postgres.integration.test.cjs tests/approved-existing-ar-merge-postgres.integration.test.cjs

@@ -25,3 +25,27 @@ Verify both phones in the directory and authenticated staff search, check the
 canonical receipt/point result and native acknowledgement replay, then monitor
 sync queues. Rollback must be separately reviewed against fresh evidence; never
 overwrite later receipts, consents, customer edits or Ada point activity.
+
+Existing AR families
+--------------------
+
+`lib/approvedExistingArMerge.js` supports explicitly confirmed existing Ada
+families. Keep the family manifest private. It verifies each native snapshot
+hash, current owner, phone and ready Ada balance before changing links. It keeps
+the existing canonical account and its bills; only approved empty duplicate
+profiles are retired into the private merge audit. A source with financial,
+medical, assignment or session dependencies is refused. Imported alternate
+owners must additionally have no login, email or verified identity.
+
+For an unowned native code, the operator prepares an approved link and leaves
+the normal HQ worker to publish its existing AR assignment. It does not insert
+assignments or change native customer codes. Existing imported canonical
+profiles may have their virtual `ADA-` display prefix removed and receive a
+staff contact phone; original login fields are unchanged. The point projector
+unions events for explicitly linked codes and retains its opening-balance and
+duplicate-event guards. The operator never adds cached balances or writes point
+rows. Verify the projector remains ready after combining a family.
+
+Exact code lookups and the member directory recognize approved old native codes
+on the active canonical account, including an alternate code whose former
+profile was retired. They still reject two active owners for the same code.

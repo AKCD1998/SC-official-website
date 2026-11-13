@@ -27,7 +27,7 @@ async function listMembers(query) {
   const where = `FROM users u JOIN member_profiles m ON m.user_id = u.id
     WHERE ($1 = '' OR u.full_name ILIKE $2 OR u.phone_number ILIKE $2 OR m.member_code ILIKE $2)`;
   const matching = ada.enabled()
-    ? `SELECT d.id,d.full_name,d.phone_number,d.member_code,d.is_active,d.created_at,d.source,${contacts.linkedPhonesSql('d.id')} contact_phones FROM ada_history.directory d WHERE ($1='' OR d.full_name ILIKE $2 OR d.phone_number ILIKE $2 OR d.member_code ILIKE $2 OR ${contacts.phoneMatchSql('d.id','d.phone_number','$2','$5')})`
+    ? `SELECT d.id,d.full_name,d.phone_number,d.member_code,d.is_active,d.created_at,d.source,${contacts.linkedPhonesSql('d.id')} contact_phones FROM ada_history.directory d WHERE ($1='' OR d.full_name ILIKE $2 OR d.phone_number ILIKE $2 OR d.member_code ILIKE $2 OR ${contacts.phoneMatchSql('d.id','d.phone_number','$2','$5')} OR ${contacts.linkedCodesMatchSql('d.id','$2')})`
     : `SELECT u.id, u.full_name, u.phone_number, m.member_code, m.is_active, m.created_at ${where}`;
   // One statement keeps the count and page in the same database snapshot.
   const { rows } = await pool.query(`WITH matching AS (
