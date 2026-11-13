@@ -19,6 +19,11 @@ function digitPattern(search) {
   if (/^66\d{8,9}$/.test(digits)) digits='0'+digits.slice(2);
   return digits.length>=3?'%'+digits+'%':null;
 }
+function linkedCodesMatchSql(member,pattern) {
+  return `EXISTS(SELECT 1 FROM ada_history.member_links l WHERE l.member_id=${member}
+    AND l.source_id='hq000/AdaAcc' AND BTRIM(l.approval_reference)<>''
+    AND (l.ada_code ILIKE ${pattern} OR 'ADA-'||l.ada_code ILIKE ${pattern}))`;
+}
 function contactFields(primary, linked=[]) {
   const values=[...new Set([primary,...linked].filter(Boolean).flatMap(raw=>String(raw).split(/[,;|/&\n]/)).map(value=>{
     const raw=value.trim();let digits=raw.replace(/\D/g,'');
@@ -27,4 +32,4 @@ function contactFields(primary, linked=[]) {
   }).filter(Boolean))];
   return values.length>1?{phoneNumbers:values}:{};
 }
-module.exports={linkedPhonesSql,phoneMatchSql,digitPattern,contactFields};
+module.exports={linkedPhonesSql,phoneMatchSql,digitPattern,contactFields,linkedCodesMatchSql};

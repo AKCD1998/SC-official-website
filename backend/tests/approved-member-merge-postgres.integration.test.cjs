@@ -2,6 +2,7 @@ const fs=require('fs'),path=require('path'),crypto=require('crypto'),{Client}=re
 const {buildMergeSql}=require('../lib/approvedMemberMerge'),contacts=require('../lib/memberContactPhones');
 const url=process.env.SCCRM_CONTACT_MERGE_TEST_DATABASE_URL;
 const run=url?describe:describe.skip;
+jest.setTimeout(30000);
 run('approved contact merge on isolated PostgreSQL',()=>{
  let db,admin,name;
  const a='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222';

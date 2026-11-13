@@ -28,10 +28,16 @@ async function findMemberIdByCode(db, rawCode) {
       SELECT a.member_id FROM sccrm_member_codes.aliases a
       JOIN public.member_profiles m ON m.user_id = a.member_id
       WHERE a.code = $1
+      ${process.env.SC_OFFICIAL_ADA_SYNC_ENABLED === 'true' ? `UNION
+      SELECT l.member_id FROM ada_history.member_links l
+      WHERE l.source_id='hq000/AdaAcc' AND (l.ada_code=$1 OR 'ADA-'||l.ada_code=$1)
+        AND BTRIM(l.approval_reference)<>''` : ''}
       ${process.env.SC_OFFICIAL_MEMBER_REGISTRATION_CONFIRMATION_ENABLED === 'true' ? `UNION
       SELECT r.member_id FROM sccrm_registration.confirmations r WHERE r.previous_code = $1` : ''}
     ) SELECT c.member_id FROM candidates c
-      JOIN public.users u ON u.id = c.member_id LIMIT 2`, [code]));
+      JOIN public.users u ON u.id = c.member_id
+      JOIN public.member_profiles active_profile ON active_profile.user_id=c.member_id
+        AND active_profile.is_active=true LIMIT 2`, [code]));
   } catch {
     throw Object.assign(new Error("Member code lookup is temporarily unavailable."), {
       status: 503, code: "MEMBER_CODE_ALIASES_UNAVAILABLE",
