@@ -9,7 +9,7 @@
  * supply the reconciled Ada balance, not just TCNMCst.FCCstRetPoint. An unavailable
  * source is never substituted with zero, a stale value, or the SCCRM point ledger.
  *
- * A materialized SCCRM member resolves ONLY through its current AR member_code
+ * A materialized SCCRM member resolves ONLY through its current native member_code
  * and the matching approved HQ link. Other linked aliases are not summed. For an
  * unmaterialized Ada contact the caller can use readCodeBalance with its raw code.
  * Native receipt contract: ada_points.native_events(event_key char(64) PRIMARY
@@ -20,7 +20,6 @@
  * These readers return balances, not an authorization decision or profile data.
  */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const AR_CODE = /^AR[0-9]{3}-[0-9]{6}$/;
 const NATIVE_CODE = /^[A-Za-z0-9][A-Za-z0-9._-]{0,19}$/;
 const DEFAULT_MAX_AGE_SECONDS = 120;
 const MAX_CLOCK_LEAD_MS = 5000;
@@ -144,7 +143,7 @@ async function readMemberBalances(db, values) {
       LEFT JOIN public.member_profiles m ON m.user_id = r.member_id
       LEFT JOIN ada_history.member_links l ON l.member_id = r.member_id
         AND l.source_id = 'hq000/AdaAcc' AND l.ada_code = m.member_code
-        AND m.member_code ~ '^AR[0-9]{3}-[0-9]{6}$'
+        AND m.member_code ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,19}$'
       LEFT JOIN ada_points.balance_cache b ON b.ada_code = l.ada_code`, [ids]));
   } catch {
     return new Map(ids.map(id => [id, unavailable('source_unavailable')]));
@@ -157,7 +156,7 @@ async function readMemberBalances(db, values) {
     if (!results.has(id)) continue;
     if (seen.has(id)) { results.set(id, unavailable('source_unavailable')); continue; }
     seen.add(id);
-    if (!AR_CODE.test(row.canonical_code || '') || row.mapped_code !== row.canonical_code || row.cache_code !== row.mapped_code) continue;
+    if (!NATIVE_CODE.test(row.canonical_code || '') || row.mapped_code !== row.canonical_code || row.cache_code !== row.mapped_code) continue;
     results.set(id, balanceResult(row, now, maximumAgeSeconds));
   }
   return results;
@@ -183,8 +182,8 @@ async function readProfileBalances(db, values) {
       FROM requested r LEFT JOIN public.member_profiles m ON m.user_id = r.member_id
       LEFT JOIN ada_history.member_links l ON l.member_id = r.member_id
         AND l.source_id = 'hq000/AdaAcc' AND l.ada_code = CASE
-          WHEN m.member_code ~ '^AR[0-9]{3}-[0-9]{6}$' THEN m.member_code
-          WHEN left(m.member_code,4) = 'ADA-' THEN substring(m.member_code from 5) END
+          WHEN left(m.member_code,4) = 'ADA-' THEN substring(m.member_code from 5)
+          WHEN m.member_code ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,19}$' THEN m.member_code END
       LEFT JOIN ada_history.customers c ON m.user_id IS NULL AND c.directory_id = r.member_id
         AND c.source_id = 'hq000/AdaAcc' AND c.ada_code <> '0'
         AND NOT EXISTS (SELECT 1 FROM ada_history.member_links existing

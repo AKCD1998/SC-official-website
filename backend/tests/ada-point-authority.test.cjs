@@ -139,8 +139,16 @@ test('the member query binds the current canonical code to the exact HQ mapping 
   const sql = db.query.mock.calls[0][0];
   expect(sql).toContain("l.source_id = 'hq000/AdaAcc'");
   expect(sql).toContain('l.ada_code = m.member_code');
-  expect(sql).toContain("m.member_code ~ '^AR[0-9]{3}-[0-9]{6}$'");
+  expect(sql).toContain("m.member_code ~ '^[A-Za-z0-9][A-Za-z0-9._-]{0,19}$'");
   expect(sql).not.toMatch(/\bSUM\s*\(|point_ledger|full_name|phone|token|password|\bINSERT\b|\bUPDATE\b|\bDELETE\b/i);
+});
+
+test.each(['0.0000','8.0000','-9.0000'])('an approved native legacy canonical code preserves Ada balance %s',async exact=>{
+  const legacy='S2203001002-0010843';
+  const db=database([ready({canonical_code:legacy,mapped_code:legacy,cache_code:legacy,balance_exact:exact})]);
+  expect(await authority.readMemberBalance(db,id)).toMatchObject({available:true,balanceExact:exact,balance:Number(exact)});
+  expect(await authority.readProfileBalance(database([profile({resolved_code:legacy,cache_code:legacy,balance_exact:exact})]),id))
+    .toMatchObject({available:true,balanceExact:exact,balance:Number(exact)});
 });
 
 test('conflicting duplicate cache results are unavailable rather than summed or last-row-wins', async () => {

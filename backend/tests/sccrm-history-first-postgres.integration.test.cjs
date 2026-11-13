@@ -80,6 +80,21 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   }finally{await mockPool.end();}
   for(const key of Object.keys(process.env))if(!(key in oldEnv))delete process.env[key];Object.assign(process.env,oldEnv);
  });
+ test('approved native legacy canonical codes read original Ada points without borrowing another linked alias',async()=>{
+  const authority=require('../lib/adaPointAuthority');
+  for(const [suffix,balance] of [['91',8],['92',-9],['93',0]]){
+   const id=await member('Synthetic native legacy point owner'),native='S2600001001-90000'+suffix,alias='AR001-9000'+suffix;
+   await link(id,alias);await link(id,native);
+   await mockPool.query("INSERT INTO ada_points.balance_cache(ada_code,balance,observed_at,state)VALUES($1,$2,now(),'ready'),($3,9999,now(),'ready')",[native,balance,alias]);
+   expect(await authority.readMemberBalance(mockPool,id)).toMatchObject({available:true,balance});
+   expect(await authority.readProfileBalance(mockPool,id)).toMatchObject({available:true,balance});
+   await mockPool.query('UPDATE public.member_profiles SET member_code=$2 WHERE user_id=$1',[id,'ADA-'+native]);
+   expect(await authority.readProfileBalance(mockPool,id)).toMatchObject({available:true,balance});
+   expect((await authority.readMemberBalance(mockPool,id)).available).toBe(false);
+   await mockPool.query('UPDATE public.member_profiles SET member_code=$2 WHERE user_id=$1',[id,'SCM-UNMAPPED-'+suffix]);
+   expect((await authority.readProfileBalance(mockPool,id)).available).toBe(false);
+  }
+ });
  test('paid receipt is stored with a pending SCM member and no Ada balance, and history is immediately readable',async()=>{
   const id=await member(),value=body(id),response=await send(value);
   expect(response.status).toBe(201);expect(response.body).toMatchObject({historyFirst:true,sccrmStored:true,historyRecorded:true,pointsCredited:false,newPointsBalance:null,pointsAvailable:false,syncState:'pending'});

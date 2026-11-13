@@ -46,6 +46,7 @@ migrations and the operator reader are maintained in SCCRMonPOS `sync-agent/live
   do not become personal history. Returns carry `documentType: return` and a
   negative header total. Existing SCCRM bill ownership wins over imported
   duplicates for the same branch/document.
+- Materialized contacts may retain an original native code such as `S2203001002-0010843`. Point readers resolve that exact stored code through its approved HQ link and the fresh native balance cache. Zero and negative native balances remain distinct from unavailable data; linked aliases are not summed again.
 - Historical Ada points remain in the source mirror. Import does not award
   points again or overwrite the live SCCRM point ledger.
 - Outbound v1 creates new Ada members only through an owned, idempotent
