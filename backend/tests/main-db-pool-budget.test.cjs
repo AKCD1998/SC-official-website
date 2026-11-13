@@ -10,7 +10,7 @@ afterEach(() => {
   jest.restoreAllMocks();
 });
 
-test.each([[undefined, 4], ["2", 2], ["6", 6], ["0", 4], ["100", 4], ["bad", 4]])(
+test.each([[undefined, 10], ["2", 2], ["6", 6], ["0", 10], ["100", 10], ["bad", 10]])(
   "bounds the main website connection budget for %s", (value, expected) => {
     if (value !== undefined) process.env.SC_OFFICIAL_DB_POOL_MAX = value;
     require("../db");
