@@ -22,8 +22,18 @@ const isRemoteDb = connectionString &&
   !connectionString.includes("localhost") &&
   !connectionString.includes("127.0.0.1");
 
+// This pool shares Supavisor's session budget with other apps and sync workers.
+// Keep room for their connections and for a second instance during a deploy.
+const requestedPoolMax = Number(process.env.SC_OFFICIAL_DB_POOL_MAX || 4);
+const poolMax = Number.isInteger(requestedPoolMax) && requestedPoolMax >= 2 && requestedPoolMax <= 10
+  ? requestedPoolMax
+  : 4;
+
 const pool = new Pool({
+  application_name: "sc-official-website",
   connectionString,
+  connectionTimeoutMillis: 10_000,
+  max: poolMax,
   ssl: isRemoteDb ? { rejectUnauthorized: false } : false,
 });
 
