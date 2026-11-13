@@ -205,6 +205,28 @@ describeDb('SCCRM-first history with durable real PostgreSQL copies',()=>{
   expect(detail.events.some(e=>e.code==='SCCRM_STORED')).toBe(true);
   await expect(logs.retry(mockPool,crypto.randomUUID(),{jobId:job.id,actor:{id:'synthetic-admin',role:'admin'}})).rejects.toMatchObject({status:404});
  });
+ test('a branch-only Ada directory identity is readable and never labelled as a pending SCCRM registration',async()=>{
+  const logs=require('../lib/sccrmSyncLog'),mirror=require('../lib/adaMemberMirror');
+  const original=(await mockPool.query("SELECT pg_get_viewdef('ada_history.directory'::regclass,true) definition")).rows[0].definition.replace(/;\s*$/,'');
+  const enabled=process.env.SC_OFFICIAL_ADA_SYNC_ENABLED;
+  const id=(await mockPool.query("SELECT md5('hq000/AdaAcc'||chr(31)||'AR003-900099')::uuid id")).rows[0].id;
+  const before=(await mockPool.query('SELECT count(*)::int n FROM public.users')).rows[0].n;
+  try{
+   await mockPool.query(`CREATE OR REPLACE VIEW ada_history.directory AS ${original}
+    UNION ALL SELECT md5('hq000/AdaAcc'||chr(31)||'AR003-900099')::uuid,'Synthetic branch-only customer'::text,
+     '0990000099'::text,'ADA-AR003-900099'::text,true,now(),'ada'::text`);
+   process.env.SC_OFFICIAL_ADA_SYNC_ENABLED='true';
+   const summary=(await logs.summaries(mockPool,[id])).get(id);
+   expect(summary).toMatchObject({state:'existing',code:'ADA_BRANCH_PROFILE_VERIFIED',hqReady:false,adaCode:'AR003-900099'});
+   expect(await mirror.legacyProfile(mockPool,id)).toMatchObject({id,full_name:'Synthetic branch-only customer',member_code:'ADA-AR003-900099'});
+   await expect(mirror.ensureLegacyMember(mockPool,id)).rejects.toMatchObject({status:409,code:'ADA_HQ_PROFILE_PENDING'});
+   expect((await mockPool.query('SELECT count(*)::int n FROM public.users')).rows[0].n).toBe(before);
+   expect((await mockPool.query('SELECT count(*)::int n FROM ada_history.member_links WHERE member_id=$1',[id])).rows[0].n).toBe(0);
+  }finally{
+   await mockPool.query('CREATE OR REPLACE VIEW ada_history.directory AS '+original);
+   process.env.SC_OFFICIAL_ADA_SYNC_ENABLED=enabled;
+  }
+ });
  test('central web and terminal logs show the same pending/review completeness after native delivery succeeds',async()=>{
   const logs=require('../lib/sccrmSyncLog'),id=await member();await link(id,'AR000-900008');
   const response=await send(body(id)),job=await jobFor(response.body.claimId);

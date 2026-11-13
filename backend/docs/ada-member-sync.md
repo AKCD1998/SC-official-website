@@ -7,10 +7,23 @@ default is disabled. It does not run a migration or start a background worker.
 
 The Session 0 Windows service `SCCRMHQMemberSync` on HQ000 (`SERVER`) owns the
 continuous bridge. It runs independently of any browser, AdaSmart window, or
-Shopee task. Source reads page 100 records with one SQL query worker and a
-one-second lock wait; full refresh runs every five minutes. New SCCRM members
-are checked every 30 seconds. The service uses its own restricted SQL login
+Shopee task. Separate serial lanes check new members every two seconds, recent
+paid receipts every ten seconds, and full history every five minutes. Each lane
+has its own SQL/PostgreSQL connection. The service uses its own restricted SQL login
 and Supabase role, verified TLS, and machine-encrypted credentials.
+
+The recent lane replays a bounded three-calendar-day window with 100-row date/
+document pages and the existing native date index. Late branch arrivals are not
+skipped by a permanent sale cursor. Headers and item snapshots commit together.
+The ten-second pause follows each completed scan; the existing branch-to-HQ
+importer's 90-second settlement delay still contributes to end-to-end latency.
+
+A receipt-verified branch-only profile is stored separately with its physical
+source, never inserted into the native HQ mirror or automatically linked to an
+SCCRM account. Its original code's history can be read using the stable directory
+ID; a later exact HQ profile takes precedence without duplicating the history.
+New account/link materialization waits for the real HQ profile. Ordered source
+migrations and the operator reader are maintained in SCCRMonPOS `sync-agent/live`.
 
 ## Identity and data behavior
 

@@ -19,6 +19,23 @@ test('only literal true enables the feature', () => {
   expect(ada.enabled()).toBe(true);
 });
 
+test('receipt-verified branch directory profiles remain readable without materializing an account',async()=>{
+  process.env.SC_OFFICIAL_ADA_SYNC_ENABLED='true';
+  const profile={id,full_name:'Synthetic branch customer',member_code:'ADA-AR001-000001',phone:'0990000001'};
+  const db={query:jest.fn(async sql=>({rows:sql.includes('FROM ada_history.directory d')?[profile]:[]}))};
+  expect(await ada.legacyProfile(db,id)).toEqual(profile);
+  expect(db.query.mock.calls[1][0]).toContain("d.source='ada'");
+  expect(db.query.mock.calls[1][0]).toContain("md5('hq000/AdaAcc'");
+  expect(db.query.mock.calls.every(([sql])=>/^SELECT/.test(sql))).toBe(true);
+});
+
+test('a branch-only history profile cannot create an account or an approved HQ link',async()=>{
+  process.env.SC_OFFICIAL_ADA_SYNC_ENABLED='true';
+  const db={query:jest.fn(async sql=>({rows:sql.includes("FROM ada_history.directory WHERE")?[{id}]:[]}))};
+  await expect(ada.ensureLegacyMember(db,id)).rejects.toMatchObject({status:409,code:'ADA_HQ_PROFILE_PENDING'});
+  expect(db.query.mock.calls.some(([sql])=>/^INSERT/.test(sql))).toBe(false);
+});
+
 test('explicit staff selection does not turn an unverified Ada email into a login', async () => {
   process.env.SC_OFFICIAL_ADA_SYNC_ENABLED='true';
   const db={query:jest.fn(async sql=>({rows:sql.includes('SELECT * FROM ada_history.customers')?[contact]:[]}))};
