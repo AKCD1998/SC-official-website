@@ -110,6 +110,62 @@ test('DR approved 350-baht bundle allocates 175 to each item, scoped to that sou
   expect(build([{ ...o, itemSubtotal: 800 }], 800, { allocationPolicies: [drPolicy] }, f).columns).toBeNull();
 });
 
+const drActualPolicy = structuredClone(drPolicy);
+drActualPolicy.policyKey = 'synthetic-dr-actual-half';
+drActualPolicy.policy.method = 'equal_components_actual_source_amount';
+delete drActualPolicy.policy.sourcePriceCentsPerSale;
+const drFilters = { ...filters, shopCode: 'dr-morepen' };
+const drActualOrder = (total, quantity = 1, support = 0) => order({ shopCode: drFilters.shopCode,
+  items: [{ name: drRule.productName, variant: drRule.variant, quantity,
+    unitPrice: 350, productMatch: { status: 'unmapped' } }], sourceRows: [2],
+  itemSubtotal: total - support, shopeeProductDiscount: support, sellerVoucher: 0,
+  lineFinancials: [{ netSale: total - support, shopeeProductDiscount: support }] });
+
+test.each([343, 344, 350, 400])('a new approved half split follows actual %s source baht without substituting 350', total => {
+  const o = drActualOrder(total); const before = JSON.stringify(o);
+  const plan = build([o], total, { allocationPolicies: [drActualPolicy] }, drFilters);
+  expect(plan).toMatchObject({ status: 'ready', issues: [], totalCents: total * 100, varianceCents: 0 });
+  expect(plan.rows.map(r => [r.sku, r.quantity, r.unitPrice]))
+    .toEqual([['IC-003230', 1, (total / 2).toFixed(2)], ['IC-003478', 1, (total / 2).toFixed(2)]]);
+  expect(JSON.stringify(o)).toBe(before);
+});
+
+test('actual half split scales quantity, includes evidenced support once, and preserves odd satang', () => {
+  const multiple = build([drActualOrder(688, 2, 8)], 688, { allocationPolicies: [drActualPolicy] }, drFilters);
+  expect(multiple.status).toBe('ready');
+  expect(multiple.rows.map(r => [r.quantity, r.unitPrice, r.amountCents]))
+    .toEqual([[2, '172.00', 34400], [2, '172.00', 34400]]);
+  const odd = build([drActualOrder(343.01)], 343.01, { allocationPolicies: [drActualPolicy] }, drFilters);
+  expect(odd.status).toBe('ready');
+  expect(odd.rows.map(r => r.unitPrice)).toEqual(['171.51', '171.50']);
+  expect(odd.rows.reduce((sum, r) => sum + r.quantity * Math.round(Number(r.unitPrice) * 100), 0)).toBe(34301);
+});
+
+test.each([
+  ['disabled', p => { p.enabled = false; }],
+  ['another shop', p => { p.shopCode = 'sc-drug-store'; }],
+  ['another variant', p => { p.policy.variant += ' other'; }],
+  ['another SKU', p => { p.policy.components[0].sku = 'OTHER'; }],
+  ['another pack factor', p => { p.policy.components[0].factor = 2; }],
+  ['unequal weights', p => { p.policy.components[0].weight = 2; }],
+  ['gift instead of half', p => { p.policy.components[1].freeGift = true; }],
+  ['nominal amount instead of half', p => { p.policy.components[1].nominalLineCentsPerSale = 10; }],
+  ['price-locked definition', p => { p.policy.sourcePriceCentsPerSale = 35000; }],
+  ['absent approval', p => { p.approval = {}; }],
+])('actual half split cannot borrow %s policy', (_, change) => {
+  const p = structuredClone(drActualPolicy); change(p);
+  expect(build([drActualOrder(344)], 344, { allocationPolicies: [p] }, drFilters).columns).toBeNull();
+});
+
+test('actual half split needs one unambiguous approval, positive units, and independently reconciled money', () => {
+  const context = { allocationPolicies: [drActualPolicy] };
+  expect(build([drActualOrder(344)], 344, { allocationPolicies: [drPolicy, drActualPolicy] }, drFilters).columns).toBeNull();
+  expect(build([drActualOrder(0.01)], 0.01, context, drFilters).columns).toBeNull();
+  expect(build([drActualOrder(344)], 350, context, drFilters).columns).toBeNull();
+  const changed = drActualOrder(344); changed.lineFinancials[0].netSale = 343;
+  expect(build([changed], 344, context, drFilters).columns).toBeNull();
+});
+
 const campaign = { shopCode: filters.shopCode, voucherId: 'SYNTHETIC-SELLER', voucherName: 'synthetic',
   validFrom: '2019-12-31T17:00:00Z', validTo: '2020-01-01T16:59:59.999Z', discountRate: 0.05,
   maxDiscount: 10, minSpend: 110, appliesToAllProducts: true, sourceUrl: 'https://example.invalid/voucher',

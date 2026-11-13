@@ -47,6 +47,7 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
     && policy.productName === identity.productName && policy.variant === identity.variant);
   const policy = record?.policy;
   if (!policy || !['paid_component_and_free_gift', 'paid_component_with_nominal_gift_price', 'equal_components',
+    'equal_components_actual_source_amount',
     'primary_component_with_nominal_secondary_lines'].includes(policy.method)
     || !Array.isArray(policy.components) || policy.components.length !== components.length) return null;
   const parts = components.map(component => ({ ...component,
@@ -60,6 +61,13 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
   if (policy.method === 'equal_components' && (parts.some(row => row.allocation.weight !== 1 || row.allocation.freeGift)
     || !Number.isSafeInteger(policy.sourcePriceCentsPerSale)
     || totalCents !== policy.sourcePriceCentsPerSale * item.quantity)) return null;
+  if (policy.method === 'equal_components_actual_source_amount' && (parts.length !== 2
+    || policy.sourcePriceCentsPerSale !== undefined || policy.primarySku !== undefined
+    || !Number.isSafeInteger(totalCents) || totalCents < 1
+    || !Number.isSafeInteger(item.quantity) || item.quantity < 1
+    || parts.some(row => row.allocation.weight !== 1 || row.allocation.freeGift
+      || row.allocation.nominalLineCentsPerSale !== undefined || row.allocation.giftUnitPriceCents !== undefined
+      || !Number.isSafeInteger(row.factor) || row.factor < 1))) return null;
   let amounts;
   if (policy.method === 'primary_component_with_nominal_secondary_lines') {
     // The owner chooses the main SKU explicitly: canonical component order may
@@ -103,6 +111,11 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
     if (amounts.some(amount => !Number.isSafeInteger(amount))) return null;
   } else amounts = allocateCents(totalCents, parts.map(row => row.allocation.weight));
   if (!amounts) return null;
+  // A separately approved half split follows the actual financial line, not a
+  // reference selling price. Existing largest-remainder arithmetic preserves
+  // an odd satang in the first verified component; every ERP unit stays positive.
+  if (policy.method === 'equal_components_actual_source_amount' && amounts.some((amount, index) =>
+    BigInt(amount) < BigInt(parts[index].factor) * BigInt(item.quantity))) return null;
   return { record, components: parts.map((row, index) => ({ sku: row.sku, factor: row.factor,
     name: row.name, unit: row.unit, amountCents: amounts[index], freeGift: row.allocation.freeGift === true,
     ...(policy.method === 'primary_component_with_nominal_secondary_lines'
