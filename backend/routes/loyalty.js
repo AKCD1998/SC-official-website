@@ -8,6 +8,7 @@ const { normalizeReceiptItems } = require('../lib/receiptLines');
 const { getMemberPurchaseHistory } = require('../lib/memberPurchaseHistory');
 const adaMirror = require('../lib/adaMemberMirror');
 const memberCodeAliases = require('../lib/memberCodeAliases');
+const memberContacts = require('../lib/memberContactPhones');
 const { recordMemberRegistration } = require('../lib/memberRegistrations');
 const { normalizeThaiPhone } = require('../lib/publicMemberRegistration');
 const registrationIdentity = require('../lib/memberRegistrationIdentity');
@@ -708,18 +709,21 @@ router.get("/search", requireStaff, async (req, res) => {
         const displayPhone = capabilities.contactPhoneAvailable ? 'COALESCE(u.phone_number,m.contact_phone)' : 'u.phone_number';
         const { rows } = await pool.query(`SELECT u.id, ${displayPhone} AS phone,
             u.full_name, u.email, m.member_code, m.tier,
+            ${adaMirror.enabled() ? memberContacts.linkedPhonesSql('u.id') : 'ARRAY[]::text[]'} AS contact_phones,
             ${memberPointsSql(capabilities)} AS current_points
             FROM users u JOIN member_profiles m ON m.user_id = u.id AND m.is_active = TRUE
             WHERE LOWER(COALESCE(${displayPhone}, '')) LIKE $1
                OR LOWER(COALESCE(u.full_name, '')) LIKE $1
                OR LOWER(COALESCE(u.email, '')) LIKE $1
                OR LOWER(COALESCE(m.member_code, '')) LIKE $1
+               ${adaMirror.enabled() ? `OR ${memberContacts.phoneMatchSql('u.id',displayPhone,'$1','$4')}` : ''}
             ORDER BY CASE
                 WHEN LOWER(COALESCE(${displayPhone}, '')) = $2 THEN 0
                 WHEN LOWER(COALESCE(m.member_code, '')) = $2 THEN 1
                 WHEN LOWER(COALESCE(${displayPhone}, '')) LIKE $3 THEN 2
                 ELSE 3 END, u.full_name ASC
-            LIMIT 20`, [`%${q.toLowerCase()}%`, q.toLowerCase(), `${q.toLowerCase()}%`]);
+            LIMIT 20`, [`%${q.toLowerCase()}%`, q.toLowerCase(), `${q.toLowerCase()}%`,
+                ...(adaMirror.enabled() ? [memberContacts.digitPattern(raw)] : [])]);
         const aliasMemberId = await memberCodeAliases.findMemberIdByCode(pool, raw);
         if (aliasMemberId && !rows.some(row => row.id === aliasMemberId)) {
             const aliasMember = await getMemberProfile(aliasMemberId, capabilities);
@@ -730,6 +734,7 @@ router.get("/search", requireStaff, async (req, res) => {
             id: row.id, displayName: row.full_name || "", phone: row.phone || null,
             email: row.email || null, memberCode: row.member_code || null,
             currentPoints: balances ? balances.get(row.id)?.balance ?? null : Number(row.current_points || 0), ...capabilities,
+            ...memberContacts.contactFields(row.phone,row.contact_phones),
             ...(balances ? adaPoints.publicFields(balances.get(row.id)) : {}),
         }));
         const legacy = await adaMirror.searchLegacy(pool, q, capabilities);

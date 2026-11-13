@@ -119,3 +119,31 @@ jobs:
           (async()=>{try{await db.connect();await db.query('CREATE DATABASE sccrm_ada_link_test_ci');}finally{await db.end();}})().catch(error=>{console.error(error.message);process.exit(1);});
           NODE
           node scripts/check-ada-member-linking-copy.cjs
+
+  contact-merge:
+    name: Approved contact merge copy
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SCCRM_CONTACT_MERGE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/sccrm_contact_merge_test_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm test -- --runTestsByPath tests/approved-member-merge.test.cjs tests/approved-member-merge-postgres.integration.test.cjs
