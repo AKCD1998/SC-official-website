@@ -32,9 +32,12 @@ All human times below are Bangkok time (UTC+7).
    a failed run waits at least 60 seconds. The existing database advisory lock
    still protects cross-process/manual syncs. Sync failures are logged once per
    run, rather than once for each waiting webhook.
-3. The main website pool defaults to four connections (previously pg's default
-   ten) and a ten-second acquisition timeout. `SC_OFFICIAL_DB_POOL_MAX` accepts
-   integers 2–10. This is one application's budget, not the whole database limit.
+3. The main website pool preserves its existing ten-connection capacity and adds
+   a ten-second acquisition timeout. `SC_OFFICIAL_DB_POOL_MAX` accepts integers
+   2–10. A four-connection rollout caused queueing and stock-worker errors under
+   the combined HTTP/worker load; production was explicitly restored to ten via
+   the service environment. The source default also preserves ten. Lower limits
+   require validation against the whole shared backend, not only Gmail.
 4. The operator's LINE mute remains the default. Setting
    `SEAMLESS_PHARMCARE_GMAIL_LINE_ALERTS_ENABLED=true` enables failure alerts with
    a 30-minute per-process cooldown, including failed delivery attempts. Print
@@ -49,6 +52,11 @@ All human times below are Bangkok time (UTC+7).
 - Targeted regression tests cover push bursts, rescan preservation, failure
   backoff, the default mute, alert throttling, webhook authorization and immediate
   acknowledgement, connection bounds, sync ingestion, and the existing LINE service.
+- The local CI-equivalent suite passed 150 suites / 1,959 tests, with 182 tests
+  skipped because their opt-in database fixtures were not configured. Existing
+  backend-integration tests need a local isolated database and are excluded by
+  the repository's CI command. GitHub Backend CI run 43349036596 passed with its
+  isolated PostgreSQL service, migration checks and member-linking verification.
 - No print jobs were created during the preceding 24 hours, so live print
   delivery cannot be established from this window alone.
 - MSI can access GitHub, Render, and Supabase. `scproductdev` is offline; changes

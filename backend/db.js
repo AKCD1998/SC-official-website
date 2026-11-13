@@ -23,11 +23,12 @@ const isRemoteDb = connectionString &&
   !connectionString.includes("127.0.0.1");
 
 // This pool shares Supavisor's session budget with other apps and sync workers.
-// Keep room for their connections and for a second instance during a deploy.
-const requestedPoolMax = Number(process.env.SC_OFFICIAL_DB_POOL_MAX || 4);
+// Preserve its existing capacity: lower limits need validation against all the
+// worker and HTTP routes sharing this pool, not just the Gmail sync path.
+const requestedPoolMax = Number(process.env.SC_OFFICIAL_DB_POOL_MAX || 10);
 const poolMax = Number.isInteger(requestedPoolMax) && requestedPoolMax >= 2 && requestedPoolMax <= 10
   ? requestedPoolMax
-  : 4;
+  : 10;
 
 const pool = new Pool({
   application_name: "sc-official-website",
