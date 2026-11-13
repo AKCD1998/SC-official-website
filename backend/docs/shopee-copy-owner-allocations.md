@@ -10,6 +10,25 @@ and the hash of the approval response. The ledger holds accounting allocation
 methods separately from immutable Shopee facts and verified source line prices.
 No production approval or order-specific financial data is seeded in Git.
 
+## Dr.Morepen actual-amount half split, 13 November 2026
+
+The owner explicitly replaced the 350-baht-only restriction for the verified
+Dr.Morepen meter plus 25-strip set. The separately approved method
+`equal_components_actual_source_amount` divides the actual source financial
+line equally between IC-003230 and IC-003478, one ERP box of each per set.
+It supports both already verified exact listing titles and the exact selected
+variant. Source SKU, component factors and financial reconciliation still apply.
+At 344.00 THB each component receives 172.00; at 343.00 each receives 171.50.
+No reference price replaces the source amount. The existing integer-satang
+largest-remainder rule assigns any odd satang to the first verified component
+and preserves the complete source amount; every ERP unit must remain positive.
+
+The private ledger retains the old price-locked policies disabled and records
+the new owner approval on two replacement policy versions. No approval receipt
+is seeded in Git. Old `equal_components` records still enforce their exact
+source-price restriction unless explicitly superseded. No Shopee source facts,
+BI amounts, ERP master data or AdaSmart documents are changed.
+
 Supported methods:
 
 - Allocate a seller voucher in proportion to each original merchandise line's
