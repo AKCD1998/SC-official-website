@@ -98,6 +98,7 @@ app.use('/api/sccrm', sccrmRoutes);
 app.use('/api/sccrm-fleet', require('./routes/sccrmFleet').createFleetRouter());
 app.use('/internal', sccrmInternalRoutes);
 app.use('/api/members', loyaltyRoutes);
+app.use('/api/members', require('./routes/memberPreorders').createMemberPreorderRouter());
 app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/crm', crmMembersRoutes);
 app.use('/api/processing-records', seamlessProcessingRecordRoutes);

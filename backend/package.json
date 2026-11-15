@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js --runInBand",
+    "test:member-preorders": "node tests/member-preorders.node.cjs",
     "migrate": "knex migrate:latest",
     "digitalpjk:migrate": "node ./src/modules/digitalpjk/db/migrate.js",
     "digitalpjk:seed": "node ./src/modules/digitalpjk/db/seed.js",

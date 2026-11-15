@@ -3,8 +3,8 @@ const { parseHistoryCursor, makeHistoryCursor, mapPurchase } = require('./purcha
 const ada = require('./adaMemberMirror');
 const adaPoints = require('./adaPointAuthority');
 function normalizeDocRef(value) { return String(value || '').trim().toUpperCase(); }
-async function queryOne(sql, params) { return (await pool.query(sql, params)).rows[0] || null; }
-async function getMemberPurchaseHistory(memberId, query = {}) {
+async function queryOne(sql, params, db = pool) { return (await db.query(sql, params)).rows[0] || null; }
+async function getMemberPurchaseHistory(memberId, query = {}, db = pool, { includePoints = true } = {}) {
 
   const limit = Math.min(Math.max(parseInt(query.limit, 10) || 100, 1), 500);
   const cursor=parseHistoryCursor(query.cursor);
@@ -13,11 +13,11 @@ async function getMemberPurchaseHistory(memberId, query = {}) {
   const member = await queryOne(
       ada.enabled()?`SELECT id FROM ada_history.directory WHERE id=$1::uuid`:
       `SELECT u.id FROM users u JOIN member_profiles m ON m.user_id = u.id WHERE u.id = $1::uuid`,
-      [memberId],
+      [memberId], db,
     );
   if (!member) throw Object.assign(new Error("Member not found."), { status: 404 });
 
-  const claimsResult = await pool.query(
+  const claimsResult = await db.query(
       `SELECT id, receipt_no, branch_code, sold_at, total_amount, awarded_points, created_at,
     cashier_staff_code,receipt_total_amount,receipt_snapshot,
     COALESCE(sold_at,created_at)::text AS sort_sold_at,created_at::text AS sort_created_at
@@ -37,7 +37,7 @@ async function getMemberPurchaseHistory(memberId, query = {}) {
 
   // Line items for all claims in one query.
   const claimIds = claims.map((c) => c.id);
-  const itemsResult = await pool.query(
+  const itemsResult = await db.query(
       `SELECT claim_id, product_code, product_name, qty, unit_price, line_total
        FROM loyalty_claim_items
         WHERE claim_id = ANY($1)
@@ -58,7 +58,7 @@ async function getMemberPurchaseHistory(memberId, query = {}) {
 
   // Returns: refund events matched by branch_code + original_doc_no = receipt_no.
   const receiptKeys = claims.map((c) => normalizeDocRef(c.receipt_no));
-  const refundsResult = await pool.query(
+  const refundsResult = await db.query(
       `SELECT r.id, r.branch_code, r.original_doc_no, r.refund_doc_no, r.refund_at, r.refund_total,
   COALESCE((SELECT SUM(rl.qty) FROM crm_pos_refund_line_events rl WHERE rl.refund_event_id = r.id), 0) AS returned_qty,
   COALESCE((SELECT SUM(rev.points_reversed) FROM crm_loyalty_reversals rev WHERE rev.refund_event_id = r.id), 0) AS points_reversed
@@ -80,7 +80,7 @@ async function getMemberPurchaseHistory(memberId, query = {}) {
       });
   }
 
-  const nativePoints=adaPoints.enabled()?await adaPoints.readReceiptPointSummaries(pool,memberId,
+  const nativePoints=includePoints&&adaPoints.enabled()?await adaPoints.readReceiptPointSummaries(db,memberId,
     claims.filter(c=>/^[0-9]{3}$/.test(normalizeDocRef(c.branch_code))&&/^[A-Z0-9][A-Z0-9._\/-]{0,99}$/.test(normalizeDocRef(c.receipt_no)))
       .map(c=>({branchCode:normalizeDocRef(c.branch_code),receiptNo:normalizeDocRef(c.receipt_no)}))):null;
   const purchases = claims.map((c) => {
