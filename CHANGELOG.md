@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Member preorder history
+
+- Add staff-only structured member preorder notes, source/version audit, exact
+  SKU receipt proposals and explicit confirmed/revoked preorder-bill metadata.
+- Persist idempotent request responses, prevent concurrent edit overwrites and
+  retain unknown dates, source uncertainties and native bill units/returns.
+- Add a disabled private schema and resumable operator paper import, without
+  changing original member notes, receipts, bill owners or loyalty points.
+- Verify replay, offline receipt reads, conflicts and preservation on an empty
+  PostgreSQL copy; keep the native client and deployment as separate checks.
+
 ## 2026-11-12 — Recover guarded legacy receipt projections
 
 - Reconcile zero-valued legacy Ada history projections only when their SKU,
