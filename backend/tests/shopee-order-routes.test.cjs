@@ -2,6 +2,12 @@ const express = require("express");
 const ExcelJS = require("exceljs");
 const request = require("supertest");
 
+const fixtureAdmin = { username: "admin001", password: "admin-password" };
+
+function requestAsAdmin(app) {
+  return request.agent(app).auth(fixtureAdmin.username, fixtureAdmin.password);
+}
+
 function parseBinaryResponse(response, callback) {
   const chunks = [];
   response.on("data", (chunk) => chunks.push(chunk));
@@ -139,10 +145,10 @@ function buildApp() {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  delete process.env.SEAMLESS_APP_BASIC_USER;
-  delete process.env.SEAMLESS_APP_BASIC_PASSWORD;
-  delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
-  delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
+  process.env.SEAMLESS_APP_BASIC_USER = "fixture-staff";
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "fixture-staff-password";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = fixtureAdmin.username;
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = fixtureAdmin.password;
   delete process.env.SHOPEE004_STOCK_LEDGER_ENABLED;
 });
 
@@ -151,7 +157,7 @@ test('list and detail expose canonical stock units while respecting financial vi
   try {
     const app = buildApp();
     for (const url of ['/api/app/shopee/orders?shopCode=sc-drug-store', '/api/app/shopee/orders/26082471YK8C02?shopCode=sc-drug-store']) {
-      const response = await request(app).get(url);
+      const response = await requestAsAdmin(app).get(url);
       expect(response.status).toBe(200);
       const item = (response.body.orders?.[0] || response.body.order).items[0];
       expect(item.stockProductMatch).toMatchObject({ status: 'verified', components: [{ companySku: 'SYNTH-STOCK', quantityPerSale: 24, quantityUnit: 'ซอง' }] });
@@ -166,12 +172,12 @@ test('exact stock SKU search forwards only verified aliases and does not cross i
   process.env.SHOPEE004_STOCK_LEDGER_ENABLED = 'true';
   try {
     const app = buildApp();
-    const sc = await request(app).get('/api/app/shopee/orders?shopCode=sc-drug-store&search=IC-001510&page=1');
+    const sc = await requestAsAdmin(app).get('/api/app/shopee/orders?shopCode=sc-drug-store&search=IC-001510&page=1');
     expect(sc.status).toBe(200);
     expect(stockSearchAliasesMock).toHaveBeenCalledWith('IC-001510');
     expect(listOrdersMock.mock.calls[0][0].stockSearchAliases).toEqual([{ productName: 'Synthetic exact package', variantName: '24 sachets' }]);
     stockSearchAliasesMock.mockClear();
-    const dr = await request(app).get('/api/app/shopee/orders?shopCode=dr-morepen&search=IC-001510&page=1');
+    const dr = await requestAsAdmin(app).get('/api/app/shopee/orders?shopCode=dr-morepen&search=IC-001510&page=1');
     expect(dr.status).toBe(200);
     expect(stockSearchAliasesMock).not.toHaveBeenCalled();
     expect(listOrdersMock.mock.calls[1][0]).not.toHaveProperty('stockSearchAliases');
@@ -179,7 +185,7 @@ test('exact stock SKU search forwards only verified aliases and does not cross i
 });
 
 test("lists persisted Shopee orders with an opaque cursor", async () => {
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/orders?shopCode=sc-drug-store&status=shipment_due&limit=10",
   );
 
@@ -213,7 +219,7 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
     status: "shipment_due",
   });
 
-  const replay = await request(buildApp()).get(
+  const replay = await requestAsAdmin(buildApp()).get(
     `/api/app/shopee/orders?shopCode=dr-morepen&cursor=${response.body.nextCursor}`,
   );
   expect(replay.status).toBe(400);
@@ -221,7 +227,7 @@ test("lists persisted Shopee orders with an opaque cursor", async () => {
 });
 
 test("returns a shop-scoped Shopee inbox operations overview for a Bangkok date", async () => {
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/inbox/overview?shopCode=all&date=2026-09-03",
   );
 
@@ -244,7 +250,7 @@ test("returns a shop-scoped Shopee inbox operations overview for a Bangkok date"
 });
 
 test("rejects an invalid Shopee inbox overview date", async () => {
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/inbox/overview?shopCode=all&date=2026-02-30",
   );
 
@@ -254,7 +260,7 @@ test("rejects an invalid Shopee inbox overview date", async () => {
 });
 
 test("lists both supported shops without allowing an all-shops cursor to cross scopes", async () => {
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/orders?shopCode=all&limit=10",
   );
 
@@ -278,7 +284,7 @@ test("lists both supported shops without allowing an all-shops cursor to cross s
     status: null,
   });
 
-  const replay = await request(buildApp()).get(
+  const replay = await requestAsAdmin(buildApp()).get(
     `/api/app/shopee/orders?shopCode=all&cursor=${response.body.nextCursor}`,
   );
   expect(replay.status).toBe(200);
@@ -291,7 +297,7 @@ test("lists both supported shops without allowing an all-shops cursor to cross s
     shopCode: "all",
   }));
 
-  const crossScopeReplay = await request(buildApp()).get(
+  const crossScopeReplay = await requestAsAdmin(buildApp()).get(
     `/api/app/shopee/orders?shopCode=sc-drug-store&cursor=${response.body.nextCursor}`,
   );
   expect(crossScopeReplay.status).toBe(400);
@@ -299,7 +305,7 @@ test("lists both supported shops without allowing an all-shops cursor to cross s
 });
 
 test("lists a numbered page with bounded database sorting and total metadata", async () => {
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/orders?shopCode=all&page=2&limit=25&sortBy=orderNumber&sortOrder=asc",
   );
 
@@ -333,7 +339,7 @@ test("lists a numbered page with bounded database sorting and total metadata", a
 });
 
 test("passes one normalized global search term across the full numbered result set", async () => {
-  const response = await request(buildApp())
+  const response = await requestAsAdmin(buildApp())
     .get("/api/app/shopee/orders")
     .query({
       limit: 25,
@@ -363,7 +369,7 @@ test("passes one normalized global search term across the full numbered result s
 });
 
 test("returns the latest completed cycle and configured next accounting cycle", async () => {
-  const response = await request(buildApp()).get("/api/app/shopee/accounting-cycle");
+  const response = await requestAsAdmin(buildApp()).get("/api/app/shopee/accounting-cycle");
 
   expect(response.status).toBe(200);
   expect(response.body.lastCompletedCycle.periodEnd).toBe("2026-08-23");
@@ -374,7 +380,7 @@ test("returns the latest completed cycle and configured next accounting cycle", 
 });
 
 test("returns one order with the shared default financial visibility", async () => {
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/orders/26082471YK8C02?shopCode=sc-drug-store",
   );
 
@@ -492,7 +498,7 @@ test("financial visibility rejects incomplete or unknown settings", async () => 
 });
 
 test("summarizes sold products by order date and defaults a blank end date to start date", async () => {
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/orders/sales-summary?shopCode=all&startDate=2026-08-24",
   );
 
@@ -529,7 +535,7 @@ test("downloads the selected sales-summary range as an Excel workbook", async ()
     }],
   }]);
 
-  const response = await request(buildApp()).get(
+  const response = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/orders/sales-summary/export?shopCode=sc-drug-store&startDate=2026-08-24&endDate=2026-08-25",
   ).buffer(true).parse(parseBinaryResponse);
 
@@ -615,7 +621,7 @@ test.each([
   ["shopCode=all&startDate=2026-02-30", "startDate"],
   ["shopCode=all&startDate=2026-08-24&endDate=2026-08-23", "endDate"],
 ])("rejects invalid sales-summary dates: %s", async (query, messagePart) => {
-  const response = await request(buildApp()).get(`/api/app/shopee/orders/sales-summary?${query}`);
+  const response = await requestAsAdmin(buildApp()).get(`/api/app/shopee/orders/sales-summary?${query}`);
 
   expect(response.status).toBe(400);
   expect(response.body.error.message).toContain(messagePart);
@@ -668,7 +674,7 @@ test("keeps all-shops scope read-only and rejects it for detail and sync", async
   process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
 
   const [detail, sync] = await Promise.all([
-    request(buildApp()).get(`/api/app/shopee/orders/${orderRow.orderNumber}?shopCode=all`),
+    requestAsAdmin(buildApp()).get(`/api/app/shopee/orders/${orderRow.orderNumber}?shopCode=all`),
     request(buildApp())
       .post("/api/app/shopee/orders/sync")
       .auth("admin001", "admin-password")
@@ -710,7 +716,7 @@ test.each([
   ["/api/app/shopee/orders/SHORT?shopCode=sc-drug-store", "orderNumber"],
   ["/api/app/shopee/orders/not-valid!?shopCode=sc-drug-store", "orderNumber"],
 ])("rejects invalid timeline request %s", async (path, messagePart) => {
-  const response = await request(buildApp()).get(path);
+  const response = await requestAsAdmin(buildApp()).get(path);
   expect(response.status).toBe(400);
   expect(response.body.error.message).toContain(messagePart);
 });
@@ -720,8 +726,8 @@ test("requires an explicit supported shop for list, detail, and admin sync", asy
   process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "admin-password";
 
   const [list, detail, sync] = await Promise.all([
-    request(buildApp()).get("/api/app/shopee/orders"),
-    request(buildApp()).get("/api/app/shopee/orders/26082471YK8C02"),
+    requestAsAdmin(buildApp()).get("/api/app/shopee/orders"),
+    requestAsAdmin(buildApp()).get("/api/app/shopee/orders/26082471YK8C02"),
     request(buildApp())
       .post("/api/app/shopee/orders/sync")
       .auth("admin001", "admin-password")

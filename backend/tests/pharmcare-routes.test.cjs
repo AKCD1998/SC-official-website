@@ -3,6 +3,12 @@ process.env.SEAMLESS_DB_SCHEMA = "clasp_scx_seamless";
 const express = require("express");
 const request = require("supertest");
 
+const fixtureAdmin = { username: "admin001", password: "admin-password" };
+
+function requestAsAdmin(app) {
+  return request.agent(app).auth(fixtureAdmin.username, fixtureAdmin.password);
+}
+
 const state = { attachments: [], documents: [], messages: [] };
 let messageSeq = 0;
 let attachmentSeq = 0;
@@ -230,8 +236,10 @@ async function seedOneDocument() {
 
 beforeEach(() => {
   resetState();
-  delete process.env.SEAMLESS_APP_BASIC_USER;
-  delete process.env.SEAMLESS_APP_BASIC_PASSWORD;
+  process.env.SEAMLESS_APP_BASIC_USER = "fixture-staff";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = fixtureAdmin.username;
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = fixtureAdmin.password;
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "fixture-staff-password";
 });
 
 afterAll(() => {
@@ -243,7 +251,7 @@ describe("PharmCare API routes", () => {
     await seedOneDocument();
     const app = buildApp();
 
-    const response = await request(app).get("/api/app/pharmcare/inbox");
+    const response = await requestAsAdmin(app).get("/api/app/pharmcare/inbox");
 
     expect(response.status).toBe(200);
     expect(response.body.documents).toHaveLength(1);
@@ -258,7 +266,7 @@ describe("PharmCare API routes", () => {
 
   test("GET /inbox rejects an invalid documentType filter", async () => {
     const app = buildApp();
-    const response = await request(app).get("/api/app/pharmcare/inbox?documentType=not_a_real_type");
+    const response = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?documentType=not_a_real_type");
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe("BAD_REQUEST");
@@ -266,7 +274,7 @@ describe("PharmCare API routes", () => {
 
   test("GET /inbox rejects an invalid order value", async () => {
     const app = buildApp();
-    const response = await request(app).get("/api/app/pharmcare/inbox?order=alphabetical");
+    const response = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?order=alphabetical");
 
     expect(response.status).toBe(400);
     expect(response.body.error.message).toContain("order");
@@ -275,14 +283,14 @@ describe("PharmCare API routes", () => {
   test("GET /inbox rejects malformed and impossible date ranges", async () => {
     const app = buildApp();
 
-    const malformed = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-19T10:00:00Z");
+    const malformed = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-19T10:00:00Z");
     expect(malformed.status).toBe(400);
     expect(malformed.body.error.message).toContain("YYYY-MM-DD");
 
-    const impossibleDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-02-31");
+    const impossibleDay = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-02-31");
     expect(impossibleDay.status).toBe(400);
 
-    const inverted = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-20&receivedTo=2026-08-19");
+    const inverted = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-20&receivedTo=2026-08-19");
     expect(inverted.status).toBe(400);
     expect(inverted.body.error.message).toContain("receivedFrom");
   });
@@ -292,7 +300,7 @@ describe("PharmCare API routes", () => {
     const app = buildApp();
 
     // Same day on both ends (Aug 1 in ICT = Jul 31 17:00Z .. Aug 1 17:00Z) must match.
-    const sameDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-01&receivedTo=2026-08-01");
+    const sameDay = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-01&receivedTo=2026-08-01");
     expect(sameDay.status).toBe(200);
     expect(sameDay.body.documents).toHaveLength(1);
 
@@ -318,10 +326,10 @@ describe("PharmCare API routes", () => {
       }),
     );
 
-    const wholeDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-01&receivedTo=2026-08-01");
+    const wholeDay = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-01&receivedTo=2026-08-01");
     expect(wholeDay.body.documents).toHaveLength(2);
 
-    const otherDay = await request(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-02&receivedTo=2026-08-02");
+    const otherDay = await requestAsAdmin(app).get("/api/app/pharmcare/inbox?receivedFrom=2026-08-02&receivedTo=2026-08-02");
     expect(otherDay.body.documents).toHaveLength(0);
   });
 
@@ -329,7 +337,7 @@ describe("PharmCare API routes", () => {
     const { message } = await seedOneDocument();
     const app = buildApp();
 
-    const response = await request(app).get(`/api/app/pharmcare/messages/${message.id}`);
+    const response = await requestAsAdmin(app).get(`/api/app/pharmcare/messages/${message.id}`);
 
     expect(response.status).toBe(200);
     expect(response.body.attachments).toHaveLength(1);
@@ -339,7 +347,7 @@ describe("PharmCare API routes", () => {
 
   test("GET /messages/:id returns 404 for an unknown id", async () => {
     const app = buildApp();
-    const response = await request(app).get("/api/app/pharmcare/messages/does-not-exist");
+    const response = await requestAsAdmin(app).get("/api/app/pharmcare/messages/does-not-exist");
 
     expect(response.status).toBe(404);
   });
@@ -348,7 +356,7 @@ describe("PharmCare API routes", () => {
     const { attachment } = await seedOneDocument();
     const app = buildApp();
 
-    const response = await request(app).get(`/api/app/pharmcare/attachments/${attachment.id}/download`);
+    const response = await requestAsAdmin(app).get(`/api/app/pharmcare/attachments/${attachment.id}/download`);
 
     expect(response.status).toBe(200);
     expect(response.headers["content-type"]).toMatch(/application\/pdf|octet-stream/);
@@ -358,7 +366,7 @@ describe("PharmCare API routes", () => {
 
   test("GET /attachments/:id/download returns 404 for an unknown attachment id", async () => {
     const app = buildApp();
-    const response = await request(app).get("/api/app/pharmcare/attachments/does-not-exist/download");
+    const response = await requestAsAdmin(app).get("/api/app/pharmcare/attachments/does-not-exist/download");
 
     expect(response.status).toBe(404);
   });
@@ -380,7 +388,7 @@ describe("PharmCare API routes", () => {
     });
     const app = buildApp();
 
-    const response = await request(app).get(`/api/app/pharmcare/attachments/${attachment.id}/download`);
+    const response = await requestAsAdmin(app).get(`/api/app/pharmcare/attachments/${attachment.id}/download`);
 
     expect(response.status).toBe(404);
     expect(JSON.stringify(response.body)).not.toContain("/missing/path.pdf");

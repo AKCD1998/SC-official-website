@@ -18,6 +18,7 @@ describe("seamless appAuth middleware", () => {
     const app = express();
     app.use(appAuth);
     app.get("/protected", (req, res) => res.json({ ok: true }));
+    app.use(errorHandler);
     return app;
   }
 
@@ -55,10 +56,24 @@ describe("seamless appAuth middleware", () => {
     delete process.env.INTERNAL_API_TOKEN;
   });
 
-  test("when SEAMLESS_APP_BASIC_USER/PASSWORD are unset, the route stays open (default-off)", async () => {
-    const app = buildApp();
-    const response = await request(app).get("/protected");
-    expect(response.status).toBe(200);
+  test.each([
+    ["both missing", "", ""],
+    ["staff username missing", " , ", "staff-test-password"],
+    ["staff password missing", "staff", "   "],
+  ])("rejects protected requests and session access when configuration is incomplete (%s)", async (_label, user, password) => {
+    process.env.SEAMLESS_APP_BASIC_USER = user;
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = password;
+    process.env.SEAMLESS_APP_ADMIN_BASIC_USER = "operator";
+    process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = "operator-test-password";
+    const app = buildSessionApp();
+
+    await request(app).get("/protected").expect(503);
+    await request(app).get("/api/app/session").expect(503);
+    const login = await request(app)
+      .post("/api/app/session/login")
+      .send({ username: "operator", password: "operator-test-password" })
+      .expect(503);
+    expect(login.headers["set-cookie"]).toBeUndefined();
   });
 
   test("with credentials configured, requests without any auth are rejected with WWW-Authenticate", async () => {

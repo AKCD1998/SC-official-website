@@ -1,3 +1,5 @@
+const { serviceUnavailable } = require("./errors");
+
 const IDENTIFIER_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 function readSchemaName() {
@@ -37,6 +39,14 @@ function readAppBasicCredentials() {
     users,
     password: String(process.env.SEAMLESS_APP_BASIC_PASSWORD || "").trim(),
   };
+}
+
+function requireAppBasicCredentials() {
+  const credentials = readAppBasicCredentials();
+  if (!credentials.users.length || !credentials.password) {
+    throw serviceUnavailable("Seamless login is not configured.");
+  }
+  return credentials;
 }
 
 // A second, separate credential pair for admin-level access (sees classification diagnostics,
@@ -303,7 +313,7 @@ module.exports = {
   SHOPEE_SC_DRUG_STORE_MAILBOX,
   readAdaSmartShopeeConfig,
   readAppAdminBasicCredentials,
-  readAppBasicCredentials,
+  requireAppBasicCredentials,
   readAutoPrintSince,
   readEmailConfig,
   readInternalApiToken,

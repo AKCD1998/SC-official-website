@@ -1,5 +1,5 @@
 const crypto = require("node:crypto");
-const { readAppAdminBasicCredentials, readAppBasicCredentials } = require("../config");
+const { readAppAdminBasicCredentials, requireAppBasicCredentials } = require("../config");
 const { badRequest, unauthorized } = require("../errors");
 const { clearSessionCookie, getSessionRole, setSessionCookie } = require("../middleware/session");
 
@@ -19,20 +19,13 @@ function matchesAnyUsername(candidate, usernames) {
 }
 
 async function login(req, res) {
-  const { users: appBasicUsers, password: appBasicPassword } = readAppBasicCredentials();
+  const { users: appBasicUsers, password: appBasicPassword } = requireAppBasicCredentials();
   const { user: appAdminUser, password: appAdminPassword } = readAppAdminBasicCredentials();
   const username = String((req.body && req.body.username) || "").trim();
   const password = String((req.body && req.body.password) || "");
 
   if (!username || !password) {
     throw badRequest("Username and password are required.");
-  }
-
-  if (!appBasicUsers.length || !appBasicPassword) {
-    // Login is meaningless when the app has no configured credentials at all (dev/local
-    // default-open mode) — treat it as already-authenticated rather than rejecting.
-    res.json({ ok: true, role: "admin" });
-    return;
   }
 
   // Check the admin pair first — if it happens to be configured identically to the regular
@@ -62,13 +55,7 @@ async function logout(req, res) {
 }
 
 async function getSession(req, res) {
-  const { users: appBasicUsers, password: appBasicPassword } = readAppBasicCredentials();
-  const authRequired = Boolean(appBasicUsers.length && appBasicPassword);
-
-  if (!authRequired) {
-    res.json({ authenticated: true, role: "admin" });
-    return;
-  }
+  requireAppBasicCredentials();
 
   const role = getSessionRole(req);
 
