@@ -246,7 +246,7 @@ describe("seamless appAuth middleware", () => {
 
   test("SEAMLESS_APP_BASIC_USER accepts a comma-separated list of usernames sharing one password", async () => {
     process.env.SEAMLESS_APP_BASIC_USER = "staff000,staff001,staff003,staff004,staff005";
-    process.env.SEAMLESS_APP_BASIC_PASSWORD = "123123";
+    process.env.SEAMLESS_APP_BASIC_PASSWORD = "seamless-staff-test-fixture-only";
     delete require.cache[require.resolve("../src/modules/seamless/middleware/appAuth")];
     const { appAuth } = require("../src/modules/seamless/middleware/appAuth");
 
@@ -254,14 +254,14 @@ describe("seamless appAuth middleware", () => {
     app.use(appAuth);
     app.get("/protected", (req, res) => res.json({ role: req.appRole }));
 
-    const staff003Response = await request(app).get("/protected").auth("staff003", "123123");
+    const staff003Response = await request(app).get("/protected").auth("staff003", "seamless-staff-test-fixture-only");
     expect(staff003Response.status).toBe(200);
     expect(staff003Response.body).toEqual({ role: "user" });
 
-    const staff000Response = await request(app).get("/protected").auth("staff000", "123123");
+    const staff000Response = await request(app).get("/protected").auth("staff000", "seamless-staff-test-fixture-only");
     expect(staff000Response.status).toBe(200);
 
-    const unknownStaffResponse = await request(app).get("/protected").auth("staff999", "123123");
+    const unknownStaffResponse = await request(app).get("/protected").auth("staff999", "seamless-staff-test-fixture-only");
     expect(unknownStaffResponse.status).toBe(401);
   });
 
