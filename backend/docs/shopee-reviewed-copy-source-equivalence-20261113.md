@@ -6,6 +6,12 @@ to an older workbook hash/row, and seven renamed variation contracts ended on
 5 November. A later rolling export moved those same orders to different rows.
 The UI correctly kept its copy buttons disabled while these holds remained.
 
+The [18 November product reuse change](shopee-copy-product-reuse-20261118.md)
+adds an explicit product approval to 39 of these existing contracts. It allows
+new orders with the same evidenced title, option, source identity and pack to
+reuse those approvals. The original order fingerprint remains the path for
+order-specific corrections and bundles.
+
 The existing accounting registry now carries 63 reviewed source contracts for
 370 independently checked source lines. They use existing ERP codes and base
 units; one contract has separately owner-confirmed Smart-kit contents. They
