@@ -1,0 +1,50 @@
+name: SCCRM Security
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    name: SCCRM security gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # Checkout's credential cleanup traverses gitlinks. These paths have
+      # no .gitmodules entry, so clean the runner index before removing auth.
+      - name: Prepare checkout for tests and scanning
+        run: |
+          git update-index --force-remove -- \
+            .claude/worktrees/awesome-pare-ca96e3 \
+            .claude/worktrees/modest-johnson-105d4a \
+            .claude/worktrees/pedantic-rosalind-d1ee3a
+          git config --local --unset-all http.https://github.com/.extraheader || test "$?" -eq 5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Run member authorization regression tests
+        working-directory: backend
+        run: |
+          npm ci --ignore-scripts
+          npm test -- --runTestsByPath tests/loyalty-members.test.cjs
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Check the SCCRM stock credential boundary with Semgrep
+        run: |
+          python -m pip install --disable-pip-version-check semgrep==1.186.0
+          semgrep scan --config .github/semgrep/sccrm.yml --error --strict --disable-nosem --no-git-ignore --metrics=off --disable-version-check backend/server.js backend/routes backend/lib backend/middleware
