@@ -1,7 +1,8 @@
 # CRM counter trial setup
 
-The counter web app uses `/api/sccrm/auth/staff-device` and `/api/crm/members`
-on the Official website backend. Its database must contain the shared identity,
+The counter web app uses a staff-device session for `/api/crm/members` on the
+Official website backend. New staff sessions require SCCRM administrator
+enrollment for a known Fleet terminal. Its database must contain the shared identity,
 staff-device, member-profile, consent and health-record tables. The Seamless
 startup migration runner creates none of these tables.
 
@@ -12,7 +13,7 @@ present or unrecognized CRM schema. Reapplying a recorded setup preserves rows.
 
 Before use, confirm the configured database is the intended empty trial CRM
 database, inspect the current live build and migration ledgers, and review the
-exact SQL. Keep the database URL and the existing staff PIN out of output.
+exact SQL. Keep the database URL and staff credentials out of output.
 The six application tables and their ledger have RLS enabled and no privileges
 for PUBLIC, Supabase anon, or authenticated. Only the existing server connection
 owns/uses these tables. No staff PIN, device, branch, or customer is seeded.

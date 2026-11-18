@@ -38,7 +38,7 @@ jobs:
         working-directory: backend
         run: |
           npm ci --ignore-scripts
-          npm test -- --runTestsByPath tests/loyalty-members.test.cjs
+          npm test -- --runTestsByPath tests/loyalty-members.test.cjs tests/sccrm.test.cjs
 
       - uses: actions/setup-python@v6
         with:

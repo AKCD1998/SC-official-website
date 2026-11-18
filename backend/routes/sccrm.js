@@ -19,6 +19,7 @@ const express = require("express");
 const multer = require("multer");
 const sgMail = require("@sendgrid/mail");
 const pool = require("../db");
+const staffDeviceEnrollment = require("../lib/staffDeviceEnrollment");
 const memberCodeAliases = require("../lib/memberCodeAliases");
 const { normalizeThaiPhone } = require('../lib/publicMemberRegistration');
 const adaPoints = require('../lib/adaPointAuthority');
@@ -985,62 +986,17 @@ router.post("/auth/reset-password", async (req, res) => {
 // ─── Routes: staff device ─────────────────────────────────────────────────────
 
 router.post("/auth/staff-device", async (req, res) => {
+  res.set("Cache-Control", "no-store");
   try {
-    const deviceId   = String(req.body?.deviceId   || "").trim();
-    const deviceName = String(req.body?.deviceName || "").trim();
-    const pin        = String(req.body?.pin        || "");
-    const branchId   = req.body?.branchId ? String(req.body.branchId).trim() : null;
-
-    if (!deviceId || !deviceName || !pin) {
-      return jsonError(res, 400, "deviceId, deviceName, and pin are required.");
-    }
-    if (!process.env.SCCRM_STAFF_PIN) return jsonError(res, 500, "SCCRM_STAFF_PIN is not configured.");
-    if (pin !== process.env.SCCRM_STAFF_PIN) return jsonError(res, 401, "Invalid PIN.");
-
-    const allowedNames = String(process.env.SCCRM_ALLOWED_STAFF_DEVICE_NAMES || "")
-      .split(",").map((v) => v.trim()).filter(Boolean);
-    if (allowedNames.length > 0 && !allowedNames.includes(deviceName)) {
-      return jsonError(res, 403, "Device name is not allowed.");
-    }
-
-    // Validate branchId if supplied
-    let branch = null;
-    if (branchId) {
-      branch = await queryOne(
-        `SELECT id, name, code FROM branches WHERE id = $1 AND is_active = TRUE`,
-        [branchId]
-      );
-      if (!branch) return jsonError(res, 400, "Branch not found or inactive.");
-    }
-
-    const staffToken = createOpaqueToken();
-    const tokenHash  = hashOpaqueToken(staffToken);
-    const existing   = await queryOne(`SELECT id FROM staff_devices WHERE device_id = $1`, [deviceId]);
-
-    if (existing) {
-      await pool.query(
-        `UPDATE staff_devices
-         SET    device_name = $2, token_hash = $3, revoked_at = NULL,
-                last_seen_at = NOW(),
-                branch_id = COALESCE($4, branch_id)
-         WHERE  id = $1`,
-        [existing.id, deviceName, tokenHash, branchId]
-      );
-    } else {
-      await pool.query(
-        `INSERT INTO staff_devices (id, device_id, device_name, token_hash, branch_id, last_seen_at, revoked_at, created_at)
-         VALUES ($1, $2, $3, $4, $5, NOW(), NULL, NOW())`,
-        [createId(), deviceId, deviceName, tokenHash, branchId]
-      );
-    }
-
-    return res.json({
-      ok: true,
-      staffToken,
-      branch: branch ? { id: branch.id, name: branch.name, code: branch.code } : null,
-    });
+    return res.json(await staffDeviceEnrollment.redeem(pool, req.body));
   } catch (error) {
-    return jsonError(res, 500, error.message || "Failed to register staff device.");
+    if (error.code === staffDeviceEnrollment.INVALID) {
+      return jsonError(res, 401, "เครื่องนี้ต้องได้รับอนุมัติจากแอดมิน SCCRM");
+    }
+    if (error.status === 409 || error.code === "23505") {
+      return jsonError(res, 409, "กรุณาให้แอดมิน SCCRM ตรวจสอบข้อมูลเครื่องและสาขา");
+    }
+    return jsonError(res, 503, "ไม่สามารถลงทะเบียนเครื่องได้ กรุณาลองใหม่");
   }
 });
 
