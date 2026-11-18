@@ -190,7 +190,7 @@ test('pack versions use creation time, hold gaps or overlaps, and preserve older
 
 test('the 39 promoted SC approvals retain their individually reviewed SKU, ERP unit and pack on new orders',()=>{
   const data=require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
-  const promoted=data.reviewedCopySourceContracts.filter(c=>c.productReuse);
+  const promoted=data.reviewedCopySourceContracts.filter(c=>c.productReuse&&c.contractId.startsWith('sc-copy-review-20261113-'));
   expect(promoted).toHaveLength(39);
   const resolve=buildReviewedCopyLineResolver(data);
   for(const c of promoted) {
@@ -199,5 +199,58 @@ test('the 39 promoted SC approvals retain their individually reviewed SKU, ERP u
     const part=c.components[0];
     expect(resolve(SC,item,order,0)).toMatchObject({sku:part.companySku,unit:part.unit,factor:part.quantityPerSale,
       matchingProvenance:{method:'reviewed_product_option',contractId:c.contractId}});
+  }
+});
+
+function missingSkuFixture() {
+  const f=reusableFixture();
+  delete f.item.copySourceIdentity;
+  f.contract.sourceSku='';
+  f.contract.productReuse.sourceIdentity={};
+  f.contract.evidence.sourceIdentityLink={
+    kind:'unique_seller_option_packaging_barcode_pos',uniqueSellerOption:true,sellerSku:'',
+    listingId:'100',variationId:'200',sellerSourceRow:12,descriptionSourceRow:20,
+    sellerSourceSha256:'1'.repeat(64),descriptionSourceSha256:'2'.repeat(64),
+    packagingPhotoSha256:'3'.repeat(64),posSourceSha256:f.contract.evidence.masterSourceSha256,
+    packagingBarcode:f.contract.components[0].baseUnitBarcode,
+  };
+  f.contract.productReuse.approvalDigest=reviewedCopyProductDigest(f.contract);
+  return f;
+}
+
+test('missing Order All SKU needs a unique Seller option and independent packaging-barcode/POS proof',()=>{
+  const f=missingSkuFixture();
+  expect(buildReviewedCopyLineResolver(f.registry)(SC,f.item,f.order,0)).toMatchObject({
+    sku:'TEST-BASE',factor:12,unit:'ขวด',matchingProvenance:{method:'reviewed_product_option'},
+  });
+  const noApproval=structuredClone(f.registry);
+  delete noApproval.reviewedCopySourceContracts[0].productReuse;
+  expect(buildReviewedCopyLineResolver(noApproval)(SC,f.item,f.order,0)).toBeNull();
+});
+
+test.each([
+  ['photograph',f=>{delete f.contract.evidence.sourceIdentityLink.packagingPhotoSha256;}],
+  ['unique Seller option',f=>{f.contract.evidence.sourceIdentityLink.uniqueSellerOption=false;}],
+  ['POS barcode',f=>{f.contract.evidence.sourceIdentityLink.packagingBarcode='9999999999999';}],
+  ['POS evidence',f=>{f.contract.evidence.sourceIdentityLink.posSourceSha256='a'.repeat(64);}],
+  ['Seller ID',f=>{f.contract.evidence.sourceIdentityLink.variationId='unknown';}],
+  ['source SKU conflict',f=>{f.item.copySourceIdentity={sourceSku:'OTHER'};}],
+  ['unexpected native ID',f=>{f.item.copySourceIdentity={variationId:'999'};}],
+])('missing source SKU cannot borrow incomplete or conflicting %s proof',(_,change)=>{
+  const f=missingSkuFixture();change(f);
+  f.contract.productReuse.approvalDigest=reviewedCopyProductDigest(f.contract);
+  expect(buildReviewedCopyLineResolver(f.registry)(SC,f.item,f.order,0).reason).toBeTruthy();
+});
+
+test('the newly evidenced packs retain five sachets, twenty sachets, one GEN-DM bag and three Kangaroo cans',()=>{
+  const data=require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
+  const resolve=buildReviewedCopyLineResolver(data);
+  for(const [id,sku,unit,factor] of [
+    ['02','IC-005328','ซอง',5],['08','IC-001444','ถุง',1],['12','IC-005480','กล่อง',1],
+    ['18','IC-004647','ซอง',20],['21','630020333','กระป๋อง',3],
+  ]) {
+    const c=data.reviewedCopySourceContracts.find(c=>c.contractId==='sc-copy-review-20261118-'+id);
+    const item={name:c.productName,variant:c.variant,quantity:1,unitPrice:100,copySourceIdentity:{...c.productReuse.sourceIdentity}};
+    expect(resolve(SC,item,{...reusableFixture().order,items:[item]},0)).toMatchObject({sku,unit,factor});
   }
 });

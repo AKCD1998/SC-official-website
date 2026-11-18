@@ -13010,6 +13010,1230 @@
         },
         "approvalDigest": "a1c907c13f8a5387d24a442eae2f718a6441710f06b817ce0df8ff16c27896a6"
       }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-01",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พิมเสนน้ำ โป๊ยเซียน มีเฮิร์บ และไอซ์ เจลลิบาล์ม แบบขวด สำลี ลูกกลิ้ง และเจล เลือกแบบ 1 ชิ้น",
+      "variant": "มีเฮิร์บสำลี 7กรัม",
+      "sourceSku": "IC-005829",
+      "components": [
+        {
+          "companySku": "IC-005829",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ พิมเสนน้ำ มีเฮิร์บ สำลี 7 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856482008100"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.037Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 576,
+        "descriptionSourceRow": 305,
+        "listingId": "46021114703",
+        "variationId": "346693558465",
+        "sellerGtin": "8856482008100",
+        "packBasis": "Selected Mi-Herb 7 g cotton container is one retail unit. Its GTIN is the POS base bottle code.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "2bdb1128df066ea6427d10e6dcbf45b8ca6e9f53a093e5a9450eb65e3dcd7425",
+          "sourceSha256": "2a606768df8d8ce3ea9e8eea1c446a62e06a5acb64813082eaf0752f6e832840",
+          "sourceRow": 6006
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-13",
+        "sourceIdentity": {
+          "sourceSku": "IC-005829"
+        },
+        "approvalDigest": "057937495ea997363ff35df39511355dd123e439cd149b04eeaa2fd522adcd1e"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-02",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "อีโน รสส้ม รสมะนาว อาโมจิน เอฟเฟ รสส้ม ยาผงฟู่ 4.3 กรัม ENO AMOGIN EFFE",
+      "variant": "เอฟเฟส้ม 5ซอง",
+      "sourceSku": "IC-005328",
+      "components": [
+        {
+          "companySku": "IC-005328",
+          "quantityPerSale": 5,
+          "unit": "ซอง",
+          "productName": "สามัญ อาโมจิน เอฟเฟ รสส้ม 4.3 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859446300753"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.038Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 684,
+        "descriptionSourceRow": 362,
+        "listingId": "43486518297",
+        "variationId": "326694761360",
+        "sellerGtin": "8859446301064",
+        "packBasis": "Selected orange AMOGIN EFFE pack contains five 4.3 g sachets. Seller GTIN is POS medium factor 5; POS base is one sachet.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "cfac8db4d10e389d424d9a6e799d3010156fbd3568aca057cf684996d10a282a",
+          "sourceSha256": "2a606768df8d8ce3ea9e8eea1c446a62e06a5acb64813082eaf0752f6e832840",
+          "sourceRow": 6027
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-13",
+        "sourceIdentity": {
+          "sourceSku": "IC-005328"
+        },
+        "approvalDigest": "89c07e7a74340d241d6f9b67f7573594dfc05f95af804fa3c0e56b5c08f39a9b"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-03",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ซีเบล สกาเจล คิดส์ เจลดูแลแผลเป็นสำหรับเด็ก (CYBELE Scagel Kids) 4 / 9 / 19 กรัม",
+      "variant": "Kids 9 กรัม",
+      "sourceSku": "630010024",
+      "components": [
+        {
+          "companySku": "630010024",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ซีเบล สกาเจล คิดส์ 9 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858663804174"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.040Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 436,
+        "descriptionSourceRow": 230,
+        "listingId": "49669911004",
+        "variationId": "351660865989",
+        "sellerGtin": "8858663804174",
+        "packBasis": "Selected Kids 9 g is one tube, independently matched by base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "4425c5b574d45693c8fc33c0c5fa134587cf625bcfc82f09aed20dd47371562f",
+          "sourceSha256": "2a606768df8d8ce3ea9e8eea1c446a62e06a5acb64813082eaf0752f6e832840",
+          "sourceRow": 6360
+        },
+        {
+          "fingerprint": "992925aca15dc76aa6ed76732a384ab3d24ba8db634c0e76d306686078e40ffb",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1294
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-13",
+        "sourceIdentity": {
+          "sourceSku": "630010024"
+        },
+        "approvalDigest": "de795651b5824a228d55d8014f794099ff3732f4f0a28dd6ba652c5945c7f6b2"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-04",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "น้ำเกลือ 0.9% NSS Klean&Kare GHP SOS Plus ขนาด 100-1000 มล. เลือกยี่ห้อและขนาด",
+      "variant": "K&K 100มล. ฝาแหลม",
+      "sourceSku": "630020298",
+      "components": [
+        {
+          "companySku": "630020298",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ น้ำเกลือคลีนแอนด์แคร์ฝาจุก 100 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8854060615016"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.041Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 770,
+        "descriptionSourceRow": 406,
+        "listingId": "40083721832",
+        "variationId": "396391334425",
+        "sellerGtin": "8854060615016",
+        "packBasis": "Selected Klean&Kare 100 mL pointed bottle is sold as one bottle according to the Seller description and base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "0f73577ea1eaebdc06176711d257dbd422d5a8dd0f7ff6c9498701e57a17068b",
+          "sourceSha256": "2a606768df8d8ce3ea9e8eea1c446a62e06a5acb64813082eaf0752f6e832840",
+          "sourceRow": 6520
+        },
+        {
+          "fingerprint": "64f2c230ccde55270ef8f9a93d90f7b9befff7c6353cd74f405caac363451a6b",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 65
+        },
+        {
+          "fingerprint": "bd6890ff49e6883dda034ffba84f28a3a87e9277eaf42658a0e41286dd6de467",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 348
+        },
+        {
+          "fingerprint": "442c8401e40928f7ab24f3e800a803add540708a611332091330b7bbdb6c8501",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1635
+        },
+        {
+          "fingerprint": "fd6dbb140717f87d91f223c3561ba31a22e32e08b38498b2c1ef9abbb9131885",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1680
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-14",
+        "sourceIdentity": {
+          "sourceSku": "630020298"
+        },
+        "approvalDigest": "bdd8670e98fffa8319203c084ad1b742f93d085d4742d9c3ea99b4ecc7ab5352"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-05",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Kangaroo Brand จิงโจ้ สเปรย์ปรับอากาศ น้ำมันยูคาลิปตัส 300 มล. 1 กระป๋อง",
+      "variant": "จิงโจ้ 1 กระป๋อง",
+      "sourceSku": "630020333",
+      "components": [
+        {
+          "companySku": "630020333",
+          "quantityPerSale": 1,
+          "unit": "กระป๋อง",
+          "productName": "สามัญ สเปรย์น้ำมันยูคาลิปตัส ตราจิงโจ้ 300 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850672010058"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.046Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 657,
+        "descriptionSourceRow": 346,
+        "listingId": "44721016534",
+        "variationId": "436685946234",
+        "sellerGtin": "8850672010058",
+        "packBasis": "Selected Kangaroo option explicitly sells one 300 mL can. Description and base GTIN agree.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "e23db05fcafb2e66ccbe0c483392588f65aac971240d43b1afff4b71695c63b7",
+          "sourceSha256": "2a606768df8d8ce3ea9e8eea1c446a62e06a5acb64813082eaf0752f6e832840",
+          "sourceRow": 6617
+        },
+        {
+          "fingerprint": "89d331014accb8e8192ccf8c7646383cce231c13755e7a5b88e685ec998dbec6",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 17
+        },
+        {
+          "fingerprint": "0694f0a22b093845b3a81fe08cd23fe8e199c949d22d34d1eaad5665e99e695a",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 423
+        },
+        {
+          "fingerprint": "a1151944cad0ba5d08fa8d548733ba4b97cb228141179eb343d3b3850c2d9fda",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 481
+        },
+        {
+          "fingerprint": "6715a600e7be636bf4c17d122d677148c5b6f8b42a9701d91cc026819ab575b7",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 532
+        },
+        {
+          "fingerprint": "e31e96ecc135a8d864cbad9464eea249bc46872b5ae89c0d386771f9a1cb251c",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 590
+        },
+        {
+          "fingerprint": "3a51cd484147e58976120206e79066c93df4416a79855095efe217a2366dae9a",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 642
+        },
+        {
+          "fingerprint": "d178ce997f1beae0a8135d24a2f3e7109415c022e2d9f318745503f72ae311b0",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 743
+        },
+        {
+          "fingerprint": "4bf540a764f01e7ea6fb6ca7371426577eb2be89f0505f483ddd242e39929515",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1041
+        },
+        {
+          "fingerprint": "25e1d2134313e56c7f8db4edc02330fa51ab11699759cf6186643decc552e3d6",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1265
+        },
+        {
+          "fingerprint": "c1e1f5b730120465daf2ffad0bb42e56608b5db8a7a34b6cfc308e40d57c6431",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1425
+        },
+        {
+          "fingerprint": "a8966e3a9d44286406ddc09de46a1b8de38c36cc2c129f5acb20a752193bc14c",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1452
+        },
+        {
+          "fingerprint": "6aac1fa6c136fef1c01ec126d3631413395e7edb816340e1006784b125c1eb8f",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1718
+        },
+        {
+          "fingerprint": "34801a0cb59f3c83fc6d5e4ab6a632e88a24651bc474ea0b189fd41a24926212",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1879
+        },
+        {
+          "fingerprint": "8468112911b8acf46ea254d6ff56858aaf41ca7208962dedc3b0d767064c35e3",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1869
+        },
+        {
+          "fingerprint": "5d178f49261d4911bfe58fffbe995dd4190cf8cab75dea6c042c083726fed900",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 2045
+        },
+        {
+          "fingerprint": "349ebedd58142e8bbbd0b7e2b6935ce17f58f4f4851d91af6440fd3361588ed0",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 2086
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-14",
+        "sourceIdentity": {
+          "sourceSku": "630020333"
+        },
+        "approvalDigest": "9ad9275a854d31c55f68ac33626c09b4b56ff584db0b7b46fc544d40eb5f49dc"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-06",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ปรอทวัดไข้ดิจิทัล เครื่องวัดอุณหภูมิ เลือกรุ่น Omron MC-341 / Beurer FT09/1 จำนวน 1 เครื่อง",
+      "variant": "Beurer FT09/1",
+      "sourceSku": "IC-001997",
+      "components": [
+        {
+          "companySku": "IC-001997",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ เทอร์โมมิเตอร์ บอยเออร์ รุ่น FT 09 1 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4211125791155"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.049Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 421,
+        "descriptionSourceRow": 223,
+        "listingId": "50071461627",
+        "variationId": "331718529071",
+        "sellerGtin": "4211125791155",
+        "packBasis": "Selected Beurer FT09/1 is one digital thermometer, matching POS model and base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "645e922846b9a8cd1f599c73c421ec864d5d0b579a3c1a7ae1d6f7dea470d6aa",
+          "sourceSha256": "2a606768df8d8ce3ea9e8eea1c446a62e06a5acb64813082eaf0752f6e832840",
+          "sourceRow": 6639
+        },
+        {
+          "fingerprint": "aba577c85def3bc8e13d29c55fbb5add30de26ef54765cc1f217944bedb96ce5",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1044
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-14",
+        "sourceIdentity": {
+          "sourceSku": "IC-001997"
+        },
+        "approvalDigest": "34be5e20e1f2d0b5471b5b14e98ae8c555334aca3af4fccaf175d6cb312b4b90"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-07",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Saugella ซอลเจลล่า 100 มล. เลือก 1 ขวด Attiva Dermoliquido Girl Poligyn",
+      "variant": "โพลิจิน คาโมมายล์",
+      "sourceSku": "IC-000299",
+      "components": [
+        {
+          "companySku": "IC-000299",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ซอลเจลล่า โพลิจิน นิวทรอลPH ชมพู 100 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8019561171809"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.050Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 276,
+        "descriptionSourceRow": 152,
+        "listingId": "52619226461",
+        "variationId": "371612656561",
+        "sellerGtin": "8019561171809",
+        "packBasis": "Selected Saugella Poligyn is one 100 mL bottle, matching the pink variant base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "3849dcc285a53c862a5eae933c4a1184ca09238fbd7a94ce3fc5800ec3452fb3",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 337
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-15",
+        "sourceIdentity": {
+          "sourceSku": "IC-000299"
+        },
+        "approvalDigest": "8a5f4befc39d7cb12ae2e398e3ba121167de415535487d9c903af039c7419735"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-08",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "GEN-DM MF เจ็น-ดีเอ็ม เอ็มเอฟ กลิ่นวานิลลา 2.5 กก. อาหารทางการแพทย์ 1 ถุง",
+      "variant": "1 ถุง",
+      "sourceSku": "",
+      "components": [
+        {
+          "companySku": "IC-001444",
+          "quantityPerSale": 1,
+          "unit": "ถุง",
+          "productName": "สามัญ เจ็นดีเอ็ม รสวานิลลา 2.5 กก",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852629000204"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.052Z",
+        "masterSourceSha256": "8dc8923252276757df80819afee73d421ed9fbabeffd8dbbbe19d5797af3c29a",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 418,
+        "descriptionSourceRow": 222,
+        "listingId": "50117680810",
+        "variationId": "376498416655",
+        "sellerGtin": "",
+        "packBasis": "Selected option is one vanilla GEN-DM MF 2.5 kg bag. The actual back-label photograph shows barcode 8852629000204, matching IC-001444 base bag in POS 004.",
+        "posBarcodeLevel": 1,
+        "sourceIdentityLink": {
+          "kind": "unique_seller_option_packaging_barcode_pos",
+          "uniqueSellerOption": true,
+          "sellerSku": "",
+          "listingId": "50117680810",
+          "variationId": "376498416655",
+          "sellerSourceRow": 418,
+          "descriptionSourceRow": 222,
+          "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+          "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+          "posSourceSha256": "8dc8923252276757df80819afee73d421ed9fbabeffd8dbbbe19d5797af3c29a",
+          "packagingPhotoSha256": "81174d93460cdb8ed6c66ac118f4a8ad2da4d8b8b23c438a7d95b80120f5c600",
+          "packagingPhotoUrl": "https://down-th.img.susercontent.com/th-11134207-81ztk-msyydgnnoniid1",
+          "packagingBarcode": "8852629000204",
+          "manufacturerUrl": "https://thaiotsukanutrition.club/product/gen-dm-mf/",
+          "foodSerial": "74-1-21431-1-0013"
+        }
+      },
+      "bindings": [
+        {
+          "fingerprint": "a0fe34e670aebff9e34ce563f8fc60b45dbd0b533fb86737068179d2947f0b65",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 434
+        },
+        {
+          "fingerprint": "736def9b60014aff35b897c6b754d2af958f515c1d2a22516cf51a4d9515d845",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 455
+        },
+        {
+          "fingerprint": "7f1e18fd308a04fcb84f791a6b19ead1d82f04a00d1f895c4b106860597ac415",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 664
+        },
+        {
+          "fingerprint": "7a39c46399e8eb5ce18ee267f96e975cf324914d0ed9428623057cfd8243148f",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1252
+        },
+        {
+          "fingerprint": "287ac72bba5774bc2b360022887c6eaa83227d6469039a5334470247c85c839f",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1269
+        },
+        {
+          "fingerprint": "c3cb84459d20960987f5b6ce2defc500da00fff222316a76bdd7f73a759c2a84",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1320
+        },
+        {
+          "fingerprint": "257242673d1c4dc657de6832b36e0c107b39c297d373b1bc7e9dbd237ae6b0d4",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1653
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-15",
+        "sourceIdentity": {},
+        "approvalDigest": "a57e4badc6fec525bc0d02b7b6b2609f6ae4f99fef6d8ab1f96957f5951a1ee4"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-09",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Sinocare iCan i6 เครื่องตรวจวัดน้ำตาลกลูโคสต่อเนื่อง CGM สูงสุด 15 วัน 1 กล่อง",
+      "variant": "iCan i6 CGM",
+      "sourceSku": "IC-005860",
+      "components": [
+        {
+          "companySku": "IC-005860",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ เครื่องตรวจน้ำตาลแบบต่อเนื่อง ไอแคน ไอ6 1 ชุด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "6934175004171"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.056Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 706,
+        "descriptionSourceRow": 373,
+        "listingId": "42286676943",
+        "variationId": "416718739442",
+        "sellerGtin": "6934175004171",
+        "packBasis": "Selected Sinocare iCan i6 is one complete retail CGM box. Seller GTIN matches POS base box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "c676728319fe64c1f98bb54c10706acd101119bcea577048c333c038376c2a2a",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 583
+        },
+        {
+          "fingerprint": "c62e7b60e0fbb4c74179c84168ee5f1e3f96f9871a03a9d2200c240b82d188d4",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 907
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-15",
+        "sourceIdentity": {
+          "sourceSku": "IC-005860"
+        },
+        "approvalDigest": "3cc86c4ef5f42611e1af510a597aef57e37c269fed20a3e29c39aa9f4eaa161e"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-10",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาหม่องตราเสือ เอชอาร์ สูตรขาว 10 19.4 และ 30 กรัม 1 กระปุก Tiger Balm HR Ointment",
+      "variant": "10 กรัม",
+      "sourceSku": "630010095",
+      "components": [
+        {
+          "companySku": "630010095",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ยาหม่องเสือขาว เอชอาร์ 10 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851990201104"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.057Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 133,
+        "descriptionSourceRow": 70,
+        "listingId": "55821605049",
+        "variationId": "298090968686",
+        "sellerGtin": "8851990201104",
+        "packBasis": "Selected Tiger Balm HR white 10 g is one retail jar. POS names its base unit bottle and GTIN identifies that same jar.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "c35b610ef32cafb058cac5941c888248f8e753623a94e719468b04cd51f893e7",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1564
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-16",
+        "sourceIdentity": {
+          "sourceSku": "630010095"
+        },
+        "approvalDigest": "932cf465c348ad47ee44411d44fbf344f2d84fe9c7192e40367ceffd0bacc922"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-11",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Saugella ซอลเจลล่า 100 มล. เลือก 1 ขวด Attiva Dermoliquido Girl Poligyn",
+      "variant": "แอ็ทติว่า ปกป้อง",
+      "sourceSku": "IC-000300",
+      "components": [
+        {
+          "companySku": "IC-000300",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ซอลเจลล่า แอ็ทติว่า เขียว 100 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8019561171700"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.060Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 273,
+        "descriptionSourceRow": 152,
+        "listingId": "52619226461",
+        "variationId": "371612656558",
+        "sellerGtin": "8019561171700",
+        "packBasis": "Selected Saugella Attiva is one 100 mL bottle, matching the green variant base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "c151dec684b791509026bfd462f833d18b473cdcb65fa9afe0da0f92704a28ac",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1727
+        },
+        {
+          "fingerprint": "ee11ef0e872812c412479d9551eee43a0532de7f8dafe9e2c02680c49fcf1f56",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1735
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-000300"
+        },
+        "approvalDigest": "4852119a9179de4c63688d051326786eb5f39bcc6b5462cdf171c2ab6cc9f61c"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-12",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Erbatop เออบาท๊อป ครีมยูเรีย 9% 60 กรัม / โลชั่น 75 มล. / แฮนด์ครีม 50 กรัม เลือกสูตร",
+      "variant": "แถบชมพู มอยส์ 9%",
+      "sourceSku": "IC-005480",
+      "components": [
+        {
+          "companySku": "IC-005480",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ เออบาท๊อป แอดวานซ์ อินเทนซีฟ เอนริช มอยซ์เจอร์ไรซิ่ง 9% ยูเรียครีม 50 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858663809186"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.063Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 738,
+        "descriptionSourceRow": 396,
+        "listingId": "40633333726",
+        "variationId": "436532504990",
+        "sellerGtin": "8858663809186",
+        "packBasis": "Owner confirmed IC-005480 as one POS box on the matching SKU/GTIN. POS and package photo say 50 g while the parent title/description says 60 g; that discrepancy is retained in evidence.",
+        "posBarcodeLevel": 1,
+        "ownerConfirmation": {
+          "kind": "user_confirmed_accounting_identity",
+          "caseId": "sc-copy-erbatop-20261118",
+          "responseSha256": "b013a3f6d7a919085e470691337e804767153a87a31e27e025b5137bb2efceb6"
+        }
+      },
+      "bindings": [
+        {
+          "fingerprint": "8184d3c903c971ffc67cb392af59c30206d6cb8870e42fdf5c9b766e5d4a01d3",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1757
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-005480"
+        },
+        "approvalDigest": "5473253732d01f640ee842b4fabcb6793a087b5ff1adb59feaf763f32cbbc21a"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-13",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ดำ,L",
+      "sourceSku": "IC-002958",
+      "components": [
+        {
+          "companySku": "IC-002958",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีดำ ไซส์ L 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903039"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.065Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 23,
+        "descriptionSourceRow": 12,
+        "listingId": "57920898658",
+        "variationId": "411684695951",
+        "sellerGtin": "8859095903039",
+        "packBasis": "Selected black powder-free L glove option is one 100-piece box. POS base is the entire box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "12929b655eb84ae9d0497821aa39060b0c275c0d0c6043b2ada72b3293f21a81",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1866
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-002958"
+        },
+        "approvalDigest": "1f5d4750e8d8282c48e2962f1a9b5f9207800de352bd17be236f8b0d25568b87"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-14",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ดำ,XL",
+      "sourceSku": "IC-004185",
+      "components": [
+        {
+          "companySku": "IC-004185",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีดำ ไซส์ XL 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903053"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.067Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 24,
+        "descriptionSourceRow": 12,
+        "listingId": "57920898658",
+        "variationId": "411684695952",
+        "sellerGtin": "8859095903053",
+        "packBasis": "Selected black powder-free XL glove option is one 100-piece box. POS base is the entire box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "42e7a7d1f9cec7c39bc3374cb57a85818b1e9f1db78214e9ea1517d300fa5342",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1867
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-004185"
+        },
+        "approvalDigest": "cd61f30ddb0993761df9491aa9db7a0b52ed95d6bc0789dc75117102ab32a859"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-15",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยผู้ใหญ่ 3 ชั้น แบบคล้องหู 50 ชิ้น/กล่อง Klean Mask Longmed",
+      "variant": "ดำ",
+      "sourceSku": "IC-002951",
+      "components": [
+        {
+          "companySku": "IC-002951",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอานามัย ลองเมด สี ดำ 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095901424"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.069Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 503,
+        "descriptionSourceRow": 264,
+        "listingId": "47769366138",
+        "variationId": "316743109436",
+        "sellerGtin": "8859095901424",
+        "packBasis": "Selected black Klean Mask is one 50-piece box. POS base is the entire box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "db3dff338cc821cb6e7194ac3807b85455395fa2de726aab07c975510b4e03b9",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1911
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-002951"
+        },
+        "approvalDigest": "be5da6ad80d71dc17ec83fff315ca7401db884615e87624072541e2f415b097b"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-16",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาหม่องตราเสือ เอชอาร์ สูตรขาว 10 19.4 และ 30 กรัม 1 กระปุก Tiger Balm HR Ointment",
+      "variant": "30 กรัม",
+      "sourceSku": "630010093",
+      "components": [
+        {
+          "companySku": "630010093",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ยาหม่องเสือขาว เอชอาร์ 30 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851990201036"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.070Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 132,
+        "descriptionSourceRow": 70,
+        "listingId": "55821605049",
+        "variationId": "298090968688",
+        "sellerGtin": "8851990201036",
+        "packBasis": "Selected Tiger Balm HR white 30 g is one retail jar. POS names its base unit bottle and GTIN identifies that same jar.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "dfc6b44098ac5bce051e967aae06aeda26f12d4198706c3f7c53c12941318c8b",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1920
+        },
+        {
+          "fingerprint": "c9d852d74f1903d7d4a12626bf7b2b94943a6278e6389834f84d6dd2efb88747",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 2102
+        },
+        {
+          "fingerprint": "bff74e05ddef23b022bc0debd423fd74252819df846d30976b6f8dea1c189ba3",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 2127
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "630010093"
+        },
+        "approvalDigest": "aa3d031a6a2fe4ec23f9c39364c90c859228c77cf8c22f14d7fb7493d707e3a0"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-17",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Saugella ซอลเจลล่า 100 มล. เลือก 1 ขวด Attiva Dermoliquido Girl Poligyn",
+      "variant": "เกิร์ล อ่อละมุน",
+      "sourceSku": "IC-005287",
+      "components": [
+        {
+          "companySku": "IC-005287",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ซอลเจลล่า เกิร์ล อินทิเมท สูตรออ่อนละมุน 100 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8019561173803"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.072Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 275,
+        "descriptionSourceRow": 152,
+        "listingId": "52619226461",
+        "variationId": "371612656560",
+        "sellerGtin": "8019561173803",
+        "packBasis": "Selected Saugella Girl is one 100 mL bottle, matching the variant base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "61f4a4517ce223a7f8f136d67cede250a02e5026fa75466292874823d165833a",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1927
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-005287"
+        },
+        "approvalDigest": "0dedc79cf09e882df7ed34106be81a2081a5c235a09e144c9e8ffd171bbacde4"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-18",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "น้ำผึ้งมะนาว 20 ซอง",
+      "sourceSku": "IC-004647",
+      "components": [
+        {
+          "companySku": "IC-004647",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ มายบาซิน ซิงค์ รสน้ำผึ้งมะนาว 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294035013"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.073Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 762,
+        "descriptionSourceRow": 404,
+        "listingId": "40085294524",
+        "variationId": "263031796523",
+        "sellerGtin": "8852294035037",
+        "packBasis": "Selected Mybacin honey-lemon is one 20-sachet box, ten lozenges per sachet. Seller GTIN matches POS medium factor 20; POS base is one sachet.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "286354eea2c60ecf30c82f44ccf23fce8defa47058d6f61b6d699062c01fb5ba",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1914
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-004647"
+        },
+        "approvalDigest": "409d0132b09186ee453793a2992413555eb8f66f08a44ebf4c038520d89647f0"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-19",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ไพลวาน่า ครีม 35 กรัม 100 กรัม และสเปรย์ 100 มล. Plaivana Cream Spray",
+      "variant": "ครีม 35 กรัม",
+      "sourceSku": "IC-001829",
+      "components": [
+        {
+          "companySku": "IC-001829",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ ไพลวาน่า ครีม 35 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853348010147"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.074Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 325,
+        "descriptionSourceRow": 179,
+        "listingId": "51421105070",
+        "variationId": "421697550051",
+        "sellerGtin": "8853348010147",
+        "packBasis": "Selected Plaivana cream 35 g is one tube with its box. POS base GTIN matches that tube.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "b68eb52e0923c3a64335bab765f122065ca38a98b53a4ffbaec57565c1d85b50",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1983
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-001829"
+        },
+        "approvalDigest": "e96f71edc41085ea0dd5a40ac1e63a7342b3705ae16522b653dcf2365aa78c80"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-20",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Saugella ซอลเจลล่า 100 มล. เลือก 1 ขวด Attiva Dermoliquido Girl Poligyn",
+      "variant": "เดอร์โมลิควิด มั่นใจ",
+      "sourceSku": "IC-000301",
+      "components": [
+        {
+          "companySku": "IC-000301",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ซอลเจลล่า เดอร์โมลิควิด ฟ้า 100 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8019561171601"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.076Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 274,
+        "descriptionSourceRow": 152,
+        "listingId": "52619226461",
+        "variationId": "371612656559",
+        "sellerGtin": "8019561171601",
+        "packBasis": "Selected Saugella Dermoliquido is one 100 mL bottle, matching the blue variant base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "715e6f5cbf0921ad7cb33b2a276b7318b90ba7b0a1e5a66f07ee1f04b1c237bc",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1984
+        },
+        {
+          "fingerprint": "0fb6226bb14bc8534c583ec9cdb0f5243ee364128362209ff37bc0eb9f49ebb8",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 1985
+        },
+        {
+          "fingerprint": "1b60cdd25cbbc66229f547644e276887b592b92096e45ef0c1ffa395eed3eab4",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 2008
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "IC-000301"
+        },
+        "approvalDigest": "6a94a9dc4b239e354388b286fe93f2d0b666b92d3570070dee12980c17039ca6"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261118-21",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Kangaroo Brand จิงโจ้ สเปรย์ปรับอากาศ น้ำมันยูคาลิปตัส 300 มล. 1 กระป๋อง",
+      "variant": "จิงโจ้ 3 กระป๋อง",
+      "sourceSku": "630020333",
+      "components": [
+        {
+          "companySku": "630020333",
+          "quantityPerSale": 3,
+          "unit": "กระป๋อง",
+          "productName": "สามัญ สเปรย์น้ำมันยูคาลิปตัส ตราจิงโจ้ 300 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850672010058"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-18T08:22:40.081Z",
+        "masterSourceSha256": "09c37a6cdbcc5291f693c92f28e1211ba0ffb142e85a7d4516c685f274d83e95",
+        "reviewSourceSha256": "f7d37bec4b6176179c52b885f7c90a53adcb863e2202fa95c577859240ccb68b",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "2d73f2b1ab3856414dfd647d9bfa633716056b808321e6b4d229b373d78cd592",
+        "descriptionSourceSha256": "b878a809678fa3660f5a6d240ebdd2f75d7529248b52a7d7feee99e8f5f8a655",
+        "sellerSourceRow": 656,
+        "descriptionSourceRow": 346,
+        "listingId": "44721016534",
+        "variationId": "351735204600",
+        "sellerGtin": "8850672010058",
+        "packBasis": "Owner confirmed three 300 mL cans per selected three-can offer. POS base is one can with a medium factor of 3; GTIN identifies the base can. Parent title/description describes one base can.",
+        "posBarcodeLevel": 1,
+        "ownerConfirmation": {
+          "kind": "user_confirmed_accounting_identity",
+          "caseId": "sc-copy-kangaroo-three-can-20261118",
+          "responseSha256": "98c5bfa54e570d0a9830688ef98763349d0f547deb0cac1066432d31f506ad0d"
+        }
+      },
+      "bindings": [
+        {
+          "fingerprint": "ef4a14d6a74e20104273a49db9b43d4316dc641a9694985a8ac6f12d08fddc25",
+          "sourceSha256": "39e6449f26053ee4a31632b55d4b155446f4300041b32b3611c371eafaa3465c",
+          "sourceRow": 2100
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-17",
+        "sourceIdentity": {
+          "sourceSku": "630020333"
+        },
+        "approvalDigest": "5e7102a3378712753a17b5f1a8be758bf8de318d628e1adfb064dd3b6385c181"
+      }
     }
   ]
 }

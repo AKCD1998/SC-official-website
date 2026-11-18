@@ -1,5 +1,9 @@
 # Reuse SC product approvals for new orders
 
+Release acceptance and the follow-up evidence for the remaining 55 lines are
+recorded in [the 18 November evidence review](shopee-copy-remaining-evidence-20261118.md).
+The frozen PR #142 proposal and replay below are retained as originally reviewed.
+
 The live 13–17 November 2026 copy plan had 289 alerts. There were 284 product
 lines and five daily reconciliation alerts. The product lines comprised 100
 expired variation periods, 161 unsupported product-family matches and 23
