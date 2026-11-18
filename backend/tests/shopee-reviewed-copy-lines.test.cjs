@@ -1,6 +1,6 @@
 'use strict';
 
-const { buildReviewedCopyLineResolver, reviewedCopyLineFingerprint } =
+const { buildReviewedCopyLineResolver, reviewedCopyLineFingerprint, reviewedCopyProductDigest } =
   require('../src/modules/seamless/services/shopeeReviewedCopyLines');
 const { buildAdaSmartCopyPlan } = require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
 const SC='sc-drug-store';
@@ -100,4 +100,104 @@ test('reviewed kit identity needs its own approved allocation and keeps two need
   expect(plan.rows.reduce((sum,r)=>sum+r.amountCents,0)).toBe(24000);
   const missingOwner=structuredClone(f.registry);delete missingOwner.reviewedCopySourceContracts[0].evidence.ownerContentsResponseSha256;
   expect(buildReviewedCopyLineResolver(missingOwner)(SC,f.item,f.order,0).reason).toBeTruthy();
+});
+
+function reusableFixture() {
+  const f=fixture();
+  f.contract.productReuse={status:'verified',validFrom:'2026-11-05',sourceIdentity:{sourceSku:'TEST-BASE'}};
+  f.contract.productReuse.approvalDigest=reviewedCopyProductDigest(f.contract);
+  f.order={...f.order,orderNumber:'SYNTHETIC-NEW-ORDER',orderedAt:'2026-11-18T00:00:00Z',
+    paidAt:'2026-11-18T01:00:00Z',observedAt:'2026-11-19T01:00:00Z',sourceSha256:'e'.repeat(64),sourceRows:[300]};
+  return f;
+}
+
+test('an explicit product approval survives new orders and prices while keeping the pack and source amount',()=>{
+  const f=reusableFixture();
+  const item={...f.item,quantity:3,unitPrice:99};
+  const order={...f.order,items:[item],itemSubtotal:297,lineFinancials:[{netSale:297,shopeeProductDiscount:0}]};
+  const resolve=buildReviewedCopyLineResolver(f.registry);
+  expect(resolve(SC,item,order,0)).toMatchObject({sku:'TEST-BASE',factor:12,unit:'ขวด',
+    matchingProvenance:{method:'reviewed_product_option',contractId:f.contract.contractId}});
+  const filters={shopCode:SC,startDate:'2026-11-18',endDate:'2026-11-18'};
+  const confirmed={...filters,status:'source_backed',salesTotal:297,orderCount:1,
+    shops:[{shopCode:SC,sources:[{sourceSha256:'a'.repeat(64)}]}]};
+  const plan=buildAdaSmartCopyPlan([order],confirmed,filters,[],[],{copyVariationResolver:resolve});
+  expect(plan).toMatchObject({status:'ready',totalQuantity:36,totalCents:29700,targetCents:29700,issues:[]});
+  expect(plan.columns).not.toBeNull();
+  expect(resolve('dr-morepen',item,{...order,shopCode:'dr-morepen'},0)).toBeNull();
+  const prior=fixture();
+  expect(resolve(SC,prior.item,prior.order,0).matchingProvenance.method).toBe('reviewed_order_source_equivalence');
+});
+
+test.each([
+  ['SKU',f=>{f.item.copySourceIdentity.sourceSku='OTHER';}],
+  ['missing source metadata',f=>{delete f.item.copySourceIdentity;}],
+  ['invalid source metadata',f=>{f.item.copySourceIdentity.invalid=true;}],
+  ['new native ID',f=>{f.item.copySourceIdentity.variationId='999';}],
+  ['direct barcode',f=>{f.item.barcode='1234567890123';}],
+  ['changed approved factor',f=>{f.contract.components[0].quantityPerSale=10;}],
+  ['changed approved unit',f=>{f.contract.components[0].unit='กล่อง';}],
+  ['changed effective date',f=>{f.contract.productReuse.validFrom='2026-11-01';}],
+  ['disabled approval',f=>{f.contract.productReuse.status='revoked';}],
+  ['missing reviewed source',f=>{f.contract.bindings[0].sourceSha256='';}],
+  ['new conflict',f=>{f.registry.copyIdentityHolds=[{shopCode:SC,productName:f.item.name,variant:f.item.variant}];}],
+  ['contradictory pack rule',f=>{f.registry.rules=[{shopCode:SC,productName:f.item.name,variant:f.item.variant,
+    companySku:'TEST-BASE',quantityPerSale:10}];}],
+])('a reusable approval blocks %s for a new order',(_,change)=>{
+  const f=reusableFixture();change(f);
+  const product=buildReviewedCopyLineResolver(f.registry)(SC,f.item,f.order,0);
+  expect(product).toMatchObject({reason:expect.any(String),matchingReview:{status:'review'}});
+  expect(product.sku).toBeUndefined();
+});
+
+test('changed names and options need their own evidence, and SKU-only or swapped-SKU reuse stays blocked',()=>{
+  const f=reusableFixture(),resolve=buildReviewedCopyLineResolver(f.registry);
+  expect(resolve(SC,{...f.item,name:'New unverified title'},f.order,0)).toBeNull();
+  expect(resolve(SC,{...f.item,variant:'10 bottles'},f.order,0)).toBeNull();
+  f.contract.sourceSku='OTHER';
+  f.contract.productReuse.sourceIdentity.sourceSku='OTHER';
+  f.item.copySourceIdentity.sourceSku='OTHER';
+  f.contract.productReuse.approvalDigest=reviewedCopyProductDigest(f.contract);
+  expect(buildReviewedCopyLineResolver(f.registry)(SC,f.item,f.order,0).reason).toBeTruthy();
+});
+
+test('pack versions use creation time, hold gaps or overlaps, and preserve older orders',()=>{
+  const f=reusableFixture();
+  f.contract.productReuse.validThrough='2026-11-18';
+  f.contract.productReuse.approvalDigest=reviewedCopyProductDigest(f.contract);
+  const later=structuredClone(f.contract);
+  later.contractId='synthetic-repack';
+  later.bindings=[];
+  later.components[0].quantityPerSale=10;
+  later.productReuse.validFrom='2026-11-19';
+  later.productReuse.validThrough=null;
+  later.bindings=[{fingerprint:'f'.repeat(64),sourceSha256:'a'.repeat(64),sourceRow:7}];
+  later.productReuse.approvalDigest=reviewedCopyProductDigest(later);
+  const registry={...f.registry,reviewedCopySourceContracts:[f.contract,later]};
+  const resolve=buildReviewedCopyLineResolver(registry);
+  expect(resolve(SC,f.item,{...f.order,orderedAt:'2026-11-18T16:59:59Z'},0).factor).toBe(12);
+  expect(resolve(SC,f.item,{...f.order,orderedAt:'2026-11-18T17:00:00Z'},0).factor).toBe(10);
+  expect(resolve(SC,f.item,{...f.order,orderedAt:'2026-11-04T16:59:59Z'},0)).toBeNull();
+  later.productReuse.validFrom='2026-11-20';
+  later.productReuse.approvalDigest=reviewedCopyProductDigest(later);
+  expect(buildReviewedCopyLineResolver(registry)(SC,f.item,{...f.order,orderedAt:'2026-11-19T00:00:00Z'},0).reason).toBeTruthy();
+  later.productReuse.validFrom='2026-11-18';
+  later.productReuse.approvalDigest=reviewedCopyProductDigest(later);
+  expect(buildReviewedCopyLineResolver(registry)(SC,f.item,f.order,0).reason).toBeTruthy();
+  f.contract.productReuse.validThrough='invalid';
+  expect(buildReviewedCopyLineResolver(registry)(SC,f.item,f.order,0).reason).toBeTruthy();
+});
+
+test('the 39 promoted SC approvals retain their individually reviewed SKU, ERP unit and pack on new orders',()=>{
+  const data=require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
+  const promoted=data.reviewedCopySourceContracts.filter(c=>c.productReuse);
+  expect(promoted).toHaveLength(39);
+  const resolve=buildReviewedCopyLineResolver(data);
+  for(const c of promoted) {
+    const item={name:c.productName,variant:c.variant,quantity:1,unitPrice:100,copySourceIdentity:{...c.productReuse.sourceIdentity}};
+    const order={...reusableFixture().order,items:[item]};
+    const part=c.components[0];
+    expect(resolve(SC,item,order,0)).toMatchObject({sku:part.companySku,unit:part.unit,factor:part.quantityPerSale,
+      matchingProvenance:{method:'reviewed_product_option',contractId:c.contractId}});
+  }
 });

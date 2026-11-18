@@ -9204,7 +9204,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6654
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "630010159"
+        },
+        "approvalDigest": "3ea89afb4f5acbe66e6519c2c18a3259627d1db0517b45098207b8d5e3c26683"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-02",
@@ -9261,7 +9269,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6396
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "IC-003000"
+        },
+        "approvalDigest": "aa1f229173da0e347ee67529202c27615bab57347239356ab337912c2beff822"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-03",
@@ -9671,7 +9687,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 326
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "630010137"
+        },
+        "approvalDigest": "5657ff589e9d0901d1e7c441e092914862e321cd65b247729ce13bebd666b2ec"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-08",
@@ -9728,7 +9752,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6400
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "IC-006128"
+        },
+        "approvalDigest": "5f110f5aecf2253c70d9d1cbadbc3cbd296bc4738e65e47974f5e2f5d23a1280"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-09",
@@ -9780,7 +9812,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6020
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "630010138"
+        },
+        "approvalDigest": "138b7698f57683a3a60adc07a446c015feea9724bda9efa05f43813e67c76e8d"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-10",
@@ -9936,7 +9976,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6723
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "630010067"
+        },
+        "approvalDigest": "292a09ad0c2b0cebe1f1ab478993e4a91d649d37b5adcf84ea815aed26117bb7"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-13",
@@ -9968,7 +10016,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 2352
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "IC-004545"
+        },
+        "approvalDigest": "c2e529183979a26297d1ad151398f5fe702e63a875b5af415c66789d5c527cf1"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-14",
@@ -10080,7 +10136,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 135
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "630010157"
+        },
+        "approvalDigest": "f57bcb406ec1d52e947cb40669cbf2c1beb0d7468a12a758b086a6fd83196690"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-15",
@@ -10162,7 +10226,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6595
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "630010104"
+        },
+        "approvalDigest": "be085c46144ca22297dcce76cc57179b184d3df487cbfcd6949bed293afe3fbe"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-16",
@@ -10204,7 +10276,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 4386
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-05",
+        "sourceIdentity": {
+          "sourceSku": "IC-002485"
+        },
+        "approvalDigest": "6be3c1e19d237ac510595b53816a6c449727c7fabe99438f4a319b2810bca28e"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-17",
@@ -10291,7 +10371,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6562
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "630010158"
+        },
+        "approvalDigest": "427d49885baf37eb5331de74761fdb4cdf8e649d0cd128f7caf82fd131bd30ab"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-18",
@@ -10433,7 +10521,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 5
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "630010105"
+        },
+        "approvalDigest": "692a0bff0d13e025eb5e625248427bba0a85418495e09f34ebb753a49c785a7a"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-19",
@@ -10545,7 +10641,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 163
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "630020297"
+        },
+        "approvalDigest": "0bb038c64fc2a4d2a52fda09cdd2c2f1794cd6664ea69b70ca53249386131cae"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-20",
@@ -10602,7 +10706,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 5903
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "IC-002039"
+        },
+        "approvalDigest": "0b7bea06dbd3b5e3473ae3f5bf8206b5c2cb400a36fbaed9009e150257851743"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-21",
@@ -10679,7 +10791,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 260
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "IC-004149"
+        },
+        "approvalDigest": "5bfcd53f6032f5b885c2ebdccd1dae07c8be5e7cc37131e9aec3ce43021a9a29"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-22",
@@ -10731,7 +10851,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6399
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "IC-003606"
+        },
+        "approvalDigest": "62c0e34483b6b110676375b754aaed9cf2c4f0786891e02e2b0f890c56471aa6"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-23",
@@ -10803,7 +10931,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 281
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "630010159"
+        },
+        "approvalDigest": "a6af14487ee8ce40dce9ee5daae2f710dc7967c437e85cb82b8b45215f18a74a"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-24",
@@ -10985,7 +11121,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 329
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "630020296"
+        },
+        "approvalDigest": "5fd7edce540fd6811dd612e536da3ff70665de27d2338daccd4740b5a3c80d33"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-25",
@@ -11027,7 +11171,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 4913
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "IC-001510"
+        },
+        "approvalDigest": "6338e6487c5f80354411c7c7d95574128ea3fb801ce5d362e96b6d2aee088b97"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-26",
@@ -11183,7 +11335,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 5725
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "630010140"
+        },
+        "approvalDigest": "018df5b9acbd7d9936c70d450cd03077edb0bf1778931dd76a897dbfd4dcd5ef"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-29",
@@ -11225,7 +11385,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 3281
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "630010211"
+        },
+        "approvalDigest": "e973e5388d84ba654ee78bd572e6d2f6d3f5e347b673f013f386afe6adececbb"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-30",
@@ -11372,7 +11540,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 87
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "IC-003417"
+        },
+        "approvalDigest": "e747f2d39a5a7cc676dd274cb2c067e2aad26690dce3ac21532924fca39c1fc6"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-31",
@@ -11419,7 +11595,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 63
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-06",
+        "sourceIdentity": {
+          "sourceSku": "IC-004238"
+        },
+        "approvalDigest": "a09df72899a35c4fa0da8270adfabc783d286ed4f26b5f70963929ec476dbebe"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-32",
@@ -11546,7 +11730,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 293
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-07",
+        "sourceIdentity": {
+          "sourceSku": "630020295"
+        },
+        "approvalDigest": "713fcfaa187ec185ba8415f363ec357530430e4437fc3369a27976b648657340"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-33",
@@ -11645,7 +11837,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 270
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-07",
+        "sourceIdentity": {
+          "sourceSku": "IC-005880"
+        },
+        "approvalDigest": "9c15af5d01ec3d03364b21ae9f94cef51874af1ee6c4d2ff7e0b03df9029ee49"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-35",
@@ -11702,7 +11902,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6472
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-07",
+        "sourceIdentity": {
+          "sourceSku": "IC-004844"
+        },
+        "approvalDigest": "d327acff88b855b982b9c20287692e201d1c8da43125c25bc60de09ac8de7e5b"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-36",
@@ -11739,7 +11947,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 3822
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-08",
+        "sourceIdentity": {
+          "sourceSku": "IC-006011"
+        },
+        "approvalDigest": "22e25950a945d74cbfa9efc06a264ab85bf19b8d9aa26595f1094430d87782a5"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-37",
@@ -11771,7 +11987,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 3934
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-08",
+        "sourceIdentity": {
+          "sourceSku": "IC-002786"
+        },
+        "approvalDigest": "38899622f1b91b9d8faad91e0a91d2d8ac7fc8494e43bd938c074f1677a18f22"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-38",
@@ -11823,7 +12047,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 266
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-08",
+        "sourceIdentity": {
+          "sourceSku": "IC-004807"
+        },
+        "approvalDigest": "98a91209e050331a299d55f5610854239cb03805399b3441ef574acb71a28df3"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-39",
@@ -11944,7 +12176,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 189
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-09",
+        "sourceIdentity": {
+          "sourceSku": "IC-000219"
+        },
+        "approvalDigest": "ffc50260027fd0a663ae166cd6da1a8ff428d113e497ed58bde3850e2a80e65d"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-42",
@@ -11986,7 +12226,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6015
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-10",
+        "sourceIdentity": {
+          "sourceSku": "630010139"
+        },
+        "approvalDigest": "b2ddeb1bf7afe21de155515da7cafbed76d92b32f242e94af66128c5f9979f54"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-43",
@@ -12087,7 +12335,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 5144
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-10",
+        "sourceIdentity": {
+          "sourceSku": "IC-006122"
+        },
+        "approvalDigest": "5005a15029df2d7a210966cd50ea152c38596c0bd1bab80f4cc266ec19f1dc8e"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-46",
@@ -12202,7 +12458,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 5269
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-11",
+        "sourceIdentity": {
+          "sourceSku": "IC-006177"
+        },
+        "approvalDigest": "1159d598614a91e89d32c79f9c1428f33efb9290520754b3ade6e99301e705da"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-49",
@@ -12303,7 +12567,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 110
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-11",
+        "sourceIdentity": {
+          "sourceSku": "IC-002957"
+        },
+        "approvalDigest": "ebc34fc60f9d790e5e574cfc9b852ff9116e79f01ca69dcf254e6cf9a9108aba"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-52",
@@ -12372,7 +12644,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6786
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-11",
+        "sourceIdentity": {
+          "sourceSku": "IC-005590"
+        },
+        "approvalDigest": "7d5e4245e1e08d0ab6fb35ae90c1f30f0f5e0b00c3b37b6b2f0fc7298d9ff7d5"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-54",
@@ -12436,7 +12716,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6111
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-11",
+        "sourceIdentity": {
+          "sourceSku": "IC-005328"
+        },
+        "approvalDigest": "4e1958203e059aca8baf180b71287eeb474232d948c731d88e792a3096fbc129"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-56",
@@ -12500,7 +12788,15 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 6383
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-11",
+        "sourceIdentity": {
+          "sourceSku": "IC-006121"
+        },
+        "approvalDigest": "293d9e6b6f9a6c2984ed0c4656d81264b06e6272bdb59083cdf95e2efe1a8635"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-58",
@@ -12660,7 +12956,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 190
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-12",
+        "sourceIdentity": {
+          "sourceSku": "IC-005939"
+        },
+        "approvalDigest": "beca4d1f07c0bdfacf4890b3bd05e584f36597c4ae30e1842404786935addf5e"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-63",
@@ -12697,7 +13001,15 @@
           "sourceSha256": "82326f53eef3d715937a37b84bfc30c075d880a3524adba081c90784ab7c4625",
           "sourceRow": 259
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-12",
+        "sourceIdentity": {
+          "sourceSku": "IC-000513"
+        },
+        "approvalDigest": "a1c907c13f8a5387d24a442eae2f718a6441710f06b817ce0df8ff16c27896a6"
+      }
     }
   ]
 }
