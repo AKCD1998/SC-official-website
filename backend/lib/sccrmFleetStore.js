@@ -16,8 +16,10 @@ async function transaction(pool,operation){const db=await pool.connect();try{awa
 async function heartbeat(pool,staff,body){
  const value=heartbeatInput(body);
  return transaction(pool,async db=>{
-  const node=(await db.query('SELECT * FROM sccrm_fleet.nodes WHERE node_id=$1',[value.nodeId])).rows[0];
+  const node=(await db.query('SELECT * FROM sccrm_fleet.nodes WHERE node_id=$1 FOR UPDATE',[value.nodeId])).rows[0];
   if(!node||node.hostname.toLowerCase()!==value.hostname.toLowerCase())throw error('UNAPPROVED_NODE',403);
+  const approved=(await db.query('SELECT staff_device_id,node_id FROM sccrm_fleet.staff_device_access WHERE staff_device_id=$1 OR node_id=$2',[staff.id,value.nodeId])).rows;
+  if(approved.some(row=>row.staff_device_id!==staff.id||row.node_id!==value.nodeId))throw error('ENROLLMENT_REQUIRES_REVIEW',409);
   const prior=(await db.query('SELECT * FROM sccrm_fleet.devices WHERE staff_device_id=$1 OR node_id=$2 FOR UPDATE',[staff.id,value.nodeId])).rows;
   if(prior.some(row=>row.staff_device_id!==staff.id||row.node_id!==value.nodeId))throw error('ENROLLMENT_REQUIRES_REVIEW',409);
   await db.query(`INSERT INTO sccrm_fleet.devices(staff_device_id,node_id,protocol,version,binary_hash,readiness)
@@ -58,9 +60,14 @@ async function inventory(pool){
  const devices=(await pool.query(`SELECT n.node_id AS "nodeId",n.branch_code AS "branchCode",n.pos_code AS "posCode",n.hostname,
   d.version,d.binary_hash AS "binaryHash",d.readiness,d.last_seen_at AS "lastSeenAt",d.protocol,
   (sd.revoked_at IS NULL AND d.staff_device_id IS NOT NULL) AS enrolled,COALESCE(d.last_seen_at>now()-interval '90 seconds',false) AS online,
+  CASE WHEN a.code_expires_at > now() THEN 'pending'
+       WHEN sd.revoked_at IS NOT NULL OR (sd.id IS NULL AND a.last_revoked_at IS NOT NULL) THEN 'revoked'
+       WHEN a.approved_at IS NOT NULL THEN 'approved'
+       WHEN d.staff_device_id IS NOT NULL THEN 'existing' ELSE 'unregistered' END AS "staffAccess",
   j.id AS "jobId",j.state AS "jobState",j.release_version AS "targetVersion",j.result_code AS "resultCode",j.updated_at AS "jobUpdatedAt"
   FROM sccrm_fleet.nodes n LEFT JOIN sccrm_fleet.devices d ON d.node_id=n.node_id
-  LEFT JOIN public.staff_devices sd ON sd.id=d.staff_device_id
+  LEFT JOIN sccrm_fleet.staff_device_access a ON a.node_id=n.node_id
+  LEFT JOIN public.staff_devices sd ON sd.id=COALESCE(a.staff_device_id,d.staff_device_id)
   LEFT JOIN LATERAL(SELECT * FROM sccrm_fleet.jobs WHERE staff_device_id=d.staff_device_id ORDER BY created_at DESC LIMIT 1)j ON true
   ORDER BY n.branch_code,n.pos_code`)).rows;
  const enabled=(await pool.query('SELECT enabled FROM sccrm_fleet.settings WHERE id=1')).rows[0]?.enabled===true;
@@ -81,7 +88,7 @@ async function issue(pool,admin,body,getRelease){
   if(body.expectedReleaseHash!==release.sha256)throw error('RELEASE_CHANGED_REVIEW_AGAIN',409);
   const nodes=(await db.query(`SELECT n.node_id,d.staff_device_id,d.protocol,sd.revoked_at FROM sccrm_fleet.nodes n
     LEFT JOIN sccrm_fleet.devices d ON d.node_id=n.node_id LEFT JOIN public.staff_devices sd ON sd.id=d.staff_device_id
-    WHERE n.node_id=ANY($1::text[]) ORDER BY n.node_id`,[targets])).rows;
+    WHERE n.node_id=ANY($1::text[]) ORDER BY n.node_id FOR UPDATE OF n`,[targets])).rows;
   if(nodes.length!==targets.length)throw error('UNAPPROVED_TARGET',400);
   await db.query('INSERT INTO sccrm_fleet.batches(id,request_hash,created_by,release_version,release_hash,targets) VALUES($1,$2,$3,$4,$5,$6::jsonb)',[body.requestId,requestHash,admin.id,release.version,release.sha256,JSON.stringify(targets)]);
   const jobs=[],notReady=[];

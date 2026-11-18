@@ -43,7 +43,7 @@ async function connect(){
   await db.query(fs.readFileSync(path.join(__dirname,'../migrations/202610200001_crm_counter_bootstrap.sql'),'utf8'));
   await require('./provision-central-promotions.cjs').provisionCentralPromotions(db,{apply:true});
   await require('./provision-purchase-history.cjs').provisionPurchaseHistory(db,{apply:true});
-  Object.assign(process.env,{SC_OFFICIAL_SUPABASE_DATABASE_URL:connectionString,SCCRM_STAFF_PIN:'synthetic-history-pin',SCCRM_REFRESH_TOKEN_SECRET:'synthetic-history-secret',SCCRM_ALLOWED_STAFF_DEVICE_NAMES:'synthetic-history-device'});
+  Object.assign(process.env,{SC_OFFICIAL_SUPABASE_DATABASE_URL:connectionString,SCCRM_REFRESH_TOKEN_SECRET:'synthetic-history-secret'});
   const express=require('express');pool=require('../db');const app=express();
   app.use('/join',require('../routes/publicMemberRegistration').createPublicMemberRegistration({pool,maxRequests:1000}));app.use(express.json());app.use('/api/sccrm',require('../routes/sccrm'));app.use('/api/members',require('../routes/loyalty'));app.use('/api/loyalty',require('../routes/loyalty'));
   server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});base='http://127.0.0.1:'+server.address().port;
@@ -52,9 +52,11 @@ async function connect(){
 }
 async function verify(){
  stage='owned-members-and-staff';
- const names=String((live?config.SCCRM_ALLOWED_STAFF_DEVICE_NAMES:process.env.SCCRM_ALLOWED_STAFF_DEVICE_NAMES)||'').split(',').map(s=>s.trim()).filter(Boolean);
- const auth=await send('/api/sccrm/auth/staff-device','POST',{deviceId,deviceName:names[0]||'synthetic-history-device',pin:live?config.SCCRM_STAFF_PIN:process.env.SCCRM_STAFF_PIN},null);
- assert.equal(auth.status,200);token=auth.data.staffToken;
+ if(live)process.env.SCCRM_REFRESH_TOKEN_SECRET=config.SCCRM_REFRESH_TOKEN_SECRET||'';
+ const {createId,createOpaqueToken,hashOpaqueToken}=require('../lib/sccrm');
+ token=createOpaqueToken();
+ await db.query('INSERT INTO staff_devices(id,device_id,device_name,token_hash) VALUES($1,$2,$3,$4)',
+  [createId(),deviceId,'synthetic-history-device',hashOpaqueToken(token)]);
  for(const [index,method] of ['QR','STAFF'].entries()){
   let phone;for(;;){phone='099'+String(randomInt(10000000)).padStart(7,'0');if(!(await db.query('SELECT 1 FROM users WHERE phone_number=$1',[phone])).rowCount)break;}
   const name=marker+' '+method;members.push({phone,name});

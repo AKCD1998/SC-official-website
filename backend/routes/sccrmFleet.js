@@ -4,6 +4,7 @@ const crypto=require('node:crypto');
 const defaultPool=require('../db');
 const releases=require('../lib/sccrmFleetRelease');
 const store=require('../lib/sccrmFleetStore');
+const staffAccess=require('../lib/staffDeviceEnrollment');
 const {hashOpaqueToken}=require('../lib/sccrm');
 
 function createFleetRouter({pool=defaultPool,getRelease=releases.latest}={}){
@@ -33,6 +34,9 @@ function createFleetRouter({pool=defaultPool,getRelease=releases.latest}={}){
  router.get('/admin/status',admin,run(()=>store.inventory(pool)));
  router.get('/admin/release',admin,run(async()=>{const r=await getRelease();return {ok:true,version:r.version,sha256:r.sha256};}));
  router.post('/admin/commands',admin,run(req=>store.issue(pool,req.fleetAdmin,req.body,getRelease)));
+ router.post('/admin/staff/approve-current',admin,run(req=>staffAccess.approveCurrent(pool,req.body,`fleet-admin:${req.fleetAdmin.id}`)));
+ router.post('/admin/staff/issue-code',admin,run(req=>staffAccess.issueCode(pool,req.body,`fleet-admin:${req.fleetAdmin.id}`)));
+ router.post('/admin/staff/revoke',admin,run(req=>staffAccess.revoke(pool,req.body,`fleet-admin:${req.fleetAdmin.id}`)));
  router.post('/admin/pause',admin,run(async req=>{
   if(typeof req.body?.enabled!=='boolean'||Object.keys(req.body).length!==1)throw store.error('INVALID_PAUSE_REQUEST');
   await pool.query('UPDATE sccrm_fleet.settings SET enabled=$1 WHERE id=1',[req.body.enabled]);return {ok:true,enabled:req.body.enabled};

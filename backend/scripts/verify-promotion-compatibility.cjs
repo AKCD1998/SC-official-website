@@ -42,7 +42,7 @@ async function connect(){
   const connectionString='postgresql://postgres@127.0.0.1:55441/'+name;
   db=new Client({connectionString,ssl:false});await db.connect();await db.query(fs.readFileSync(path.join(__dirname,'../migrations/202610200001_crm_counter_bootstrap.sql'),'utf8'));
   await require('./provision-central-promotions.cjs').provisionCentralPromotions(db,{apply:true});
-  Object.assign(process.env,{SC_OFFICIAL_SUPABASE_DATABASE_URL:connectionString,SCCRM_STAFF_PIN:'synthetic-fixture-pin',SCCRM_REFRESH_TOKEN_SECRET:'synthetic-fixture-secret',SCCRM_ALLOWED_STAFF_DEVICE_NAMES:'synthetic-promotion-fixture',JWT_SECRET:'synthetic-admin-fixture',SCCRM_PROMOTION_ADMIN_EMAILS:marker.toLowerCase()+'@example.invalid'});
+  Object.assign(process.env,{SC_OFFICIAL_SUPABASE_DATABASE_URL:connectionString,SCCRM_REFRESH_TOKEN_SECRET:'synthetic-fixture-secret',JWT_SECRET:'synthetic-admin-fixture',SCCRM_PROMOTION_ADMIN_EMAILS:marker.toLowerCase()+'@example.invalid'});
   const express=require('express');pool=require('../db');const app=express();
   app.use('/join',require('../routes/publicMemberRegistration').createPublicMemberRegistration({pool,maxRequests:1000}));app.use('/sccrm/promotions',require('../routes/promotionPortal'));app.use(express.json());app.use('/api/sccrm',require('../routes/sccrm'));app.use('/api/loyalty',require('../routes/loyalty'));app.use('/api/members',require('../routes/loyalty'));app.use('/api/auth',require('../routes/auth'));
   server=await new Promise(resolve=>{const s=app.listen(0,'127.0.0.1',()=>resolve(s));});base='http://127.0.0.1:'+server.address().port;
@@ -74,8 +74,15 @@ async function verify(){
  for(;;){phone='099'+String(randomInt(10000000)).padStart(7,'0');if(!(await db.query('SELECT 1 FROM users WHERE phone_number=$1',[phone])).rowCount)break;}
  const join=await send('/join/submit','POST',{firstName:marker,lastName:'QR fixture',phone,consent:true});assert.ok([200,201].includes(join.status));
  const member=await db.query('SELECT id FROM users WHERE phone_number=$1 AND full_name=$2',[phone,marker+' QR fixture']);assert.equal(member.rowCount,1);memberId=member.rows[0].id;
- const names=String((live?config.SCCRM_ALLOWED_STAFF_DEVICE_NAMES:process.env.SCCRM_ALLOWED_STAFF_DEVICE_NAMES)||'').split(',').map(s=>s.trim()).filter(Boolean);
- const tokens=[];for(const id of deviceIds){const login=await send('/api/sccrm/auth/staff-device','POST',{deviceId:id,deviceName:names[0]||'synthetic-promotion-fixture',pin:live?config.SCCRM_STAFF_PIN:process.env.SCCRM_STAFF_PIN});assert.equal(login.status,200);tokens.push(login.data.staffToken);}
+ if(live)process.env.SCCRM_REFRESH_TOKEN_SECRET=config.SCCRM_REFRESH_TOKEN_SECRET||'';
+ const {createId,createOpaqueToken,hashOpaqueToken}=require('../lib/sccrm');
+ const tokens=[];
+ for(const id of deviceIds){
+  const token=createOpaqueToken();
+  await db.query('INSERT INTO staff_devices(id,device_id,device_name,token_hash) VALUES($1,$2,$3,$4)',
+   [createId(),id,'synthetic-promotion-fixture',hashOpaqueToken(token)]);
+  tokens.push(token);
+ }
  stage='admin-boundary';assert.equal((await send('/api/sccrm/promotions','POST',{name:'must not create'},tokens[0])).status,401);
  stage='double-points';await savePromotion(0,2);const first=await pair(tokens,'DOUBLE',20);
  const global=await send('/api/sccrm/promotions/active');assert.equal(global.data.promotions.some(p=>promotionIds.includes(p.id)),false);

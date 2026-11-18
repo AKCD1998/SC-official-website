@@ -47,31 +47,6 @@ async function mockQuery(sql, params = []) {
     return { rows: [], rowCount: 1 };
   }
 
-  if (text.startsWith("SELECT id FROM staff_devices WHERE device_id =")) {
-    const found = state.staffDevices.find((item) => item.device_id === params[0]);
-    return { rows: found ? [{ id: found.id }] : [], rowCount: found ? 1 : 0 };
-  }
-
-  if (text.startsWith("INSERT INTO staff_devices")) {
-    state.staffDevices.push({
-      id: params[0],
-      device_id: params[1],
-      device_name: params[2],
-      token_hash: params[3],
-      branch_id: params[4] || null,
-      branch_name: null,
-      branch_code: null,
-      revoked_at: null,
-    });
-    return { rows: [], rowCount: 1 };
-  }
-
-  if (text.startsWith("UPDATE staff_devices SET device_name =")) {
-    const found = state.staffDevices.find((item) => item.id === params[0]);
-    Object.assign(found, { device_name: params[1], token_hash: params[2], branch_id: params[3] || found.branch_id, revoked_at: null });
-    return { rows: [], rowCount: 1 };
-  }
-
   if (text.startsWith("SELECT id FROM users WHERE lower(email) = lower(")) {
     const found = state.customers.find((item) => item.email?.toLowerCase() === String(params[0]).toLowerCase());
     return { rows: found ? [{ id: found.id }] : [], rowCount: found ? 1 : 0 };
@@ -183,6 +158,19 @@ jest.mock("../db", () => ({
 
 const sgMail = require("@sendgrid/mail");
 const sccrmRouter = require("../routes/sccrm");
+const { hashOpaqueToken } = require("../lib/sccrm");
+
+function existingStaffSession() {
+  const token = "existing-staff-session-fixture";
+  state.staffDevices.push({
+    id: "staff-1",
+    device_id: "device-1",
+    device_name: "Counter Tablet",
+    token_hash: hashOpaqueToken(token),
+    revoked_at: null,
+  });
+  return token;
+}
 
 function createApp() {
   const app = express();
@@ -212,17 +200,16 @@ afterAll(() => {
 });
 
 describe("SCCRM routes", () => {
-  test("POST /auth/staff-device exchanges PIN for a staff token", async () => {
+  test("POST /auth/staff-device rejects a configured shared PIN", async () => {
     const response = await request(createApp()).post("/api/sccrm/auth/staff-device").send({
       deviceId: "device-1",
       deviceName: "Counter Tablet",
       pin: "654321",
     });
 
-    expect(response.status).toBe(200);
-    expect(response.body.ok).toBe(true);
-    expect(typeof response.body.staffToken).toBe("string");
-    expect(state.staffDevices).toHaveLength(1);
+    expect(response.status).toBe(401);
+    expect(response.body.staffToken).toBeUndefined();
+    expect(state.staffDevices).toHaveLength(0);
   });
 
   test("POST /auth/register send-otp stores verification request and sends email", async () => {
@@ -238,15 +225,11 @@ describe("SCCRM routes", () => {
   });
 
   test("POST /points/earn creates transaction and ledger entries", async () => {
-    const staffBootstrap = await request(createApp()).post("/api/sccrm/auth/staff-device").send({
-      deviceId: "device-1",
-      deviceName: "Counter Tablet",
-      pin: "654321",
-    });
+    const staffToken = existingStaffSession();
 
     const response = await request(createApp())
       .post("/api/sccrm/points/earn")
-      .set("Authorization", `Bearer ${staffBootstrap.body.staffToken}`)
+      .set("Authorization", `Bearer ${staffToken}`)
       .send({
         customer_id: "cust-1",
         amount_thb: 250,
@@ -262,11 +245,7 @@ describe("SCCRM routes", () => {
   });
 
   test("POST /import/pos skips duplicate refs and counts unmatched customers", async () => {
-    const staffBootstrap = await request(createApp()).post("/api/sccrm/auth/staff-device").send({
-      deviceId: "device-1",
-      deviceName: "Counter Tablet",
-      pin: "654321",
-    });
+    const staffToken = existingStaffSession();
 
     state.transactions.push({
       id: "txn-existing",
@@ -280,7 +259,7 @@ describe("SCCRM routes", () => {
 
     const response = await request(createApp())
       .post("/api/sccrm/import/pos")
-      .set("Authorization", `Bearer ${staffBootstrap.body.staffToken}`)
+      .set("Authorization", `Bearer ${staffToken}`)
       .send([
         {
           pos_ref_id: "dup-1",

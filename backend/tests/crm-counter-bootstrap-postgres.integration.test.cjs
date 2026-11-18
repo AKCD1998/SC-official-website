@@ -101,22 +101,22 @@ describePostgres("CRM counter bootstrap with PostgreSQL and real route handlers"
     expect(sync.status).toBe(401);
   });
 
-  test("rejects a wrong staff PIN before creating a device", async () => {
+  test("rejects a shared staff PIN before creating a device", async () => {
     const response = await request(app).post("/api/sccrm/auth/staff-device").send({
-      deviceId: "synthetic-fixture-device", deviceName: "synthetic-counter-fixture", pin: "incorrect",
+      deviceId: "synthetic-fixture-device", deviceName: "synthetic-counter-fixture", pin: "synthetic-fixture-pin",
     });
     expect(response.status).toBe(401);
     const count = await mockClient.query("SELECT count(*)::int AS count FROM public.staff_devices");
     expect(count.rows[0].count).toBe(0);
   });
 
-  test("authenticates the existing staff-device contract and registers profile/consent atomically", async () => {
-    const login = await request(app).post("/api/sccrm/auth/staff-device").send({
-      deviceId: "synthetic-fixture-device", deviceName: "synthetic-counter-fixture", pin: "synthetic-fixture-pin",
-    });
-    expect(login.status).toBe(200);
-    expect(typeof login.body.staffToken === "string").toBe(true);
-    staffToken = login.body.staffToken;
+  test("keeps existing staff sessions and registers profile/consent atomically", async () => {
+    const { createOpaqueToken, hashOpaqueToken } = require("../lib/sccrm");
+    staffToken = createOpaqueToken();
+    await mockClient.query(
+      "INSERT INTO public.staff_devices (device_id, device_name, token_hash) VALUES ($1,$2,$3)",
+      ["synthetic-fixture-device", "synthetic-counter-fixture", hashOpaqueToken(staffToken)],
+    );
     const registration = await request(app).post("/api/crm/members")
       .set("Authorization", `Bearer ${staffToken}`).send(member);
     expect(registration.status).toBe(201);
