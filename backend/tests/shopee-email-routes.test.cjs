@@ -1,6 +1,12 @@
 const express = require("express");
 const request = require("supertest");
 
+const fixtureAdmin = { username: "admin001", password: "admin-password" };
+
+function requestAsAdmin(app) {
+  return request.agent(app).auth(fixtureAdmin.username, fixtureAdmin.password);
+}
+
 let lastFilters = null;
 jest.mock("../src/modules/seamless/services/shopeeEmailInboxService", () => ({
   CATEGORY_QUERIES: {
@@ -48,10 +54,10 @@ function buildApp() {
 
 beforeEach(() => {
   lastFilters = null;
-  delete process.env.SEAMLESS_APP_BASIC_USER;
-  delete process.env.SEAMLESS_APP_BASIC_PASSWORD;
-  delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
-  delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
+  process.env.SEAMLESS_APP_BASIC_USER = "fixture-staff";
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "fixture-staff-password";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = fixtureAdmin.username;
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = fixtureAdmin.password;
 });
 
 describe("Shopee email inbox API", () => {
@@ -104,7 +110,7 @@ describe("Shopee email inbox API", () => {
   });
 
   test("converts a single ICT calendar day to an inclusive/exclusive timestamp range", async () => {
-    const response = await request(buildApp()).get(
+    const response = await requestAsAdmin(buildApp()).get(
       "/api/app/shopee/inbox?shopCode=sc-drug-store&receivedFrom=2026-08-24&receivedTo=2026-08-24",
     );
 
@@ -114,7 +120,7 @@ describe("Shopee email inbox API", () => {
   });
 
   test("routes an explicit DR.Morepen inbox request to its mailbox config", async () => {
-    const response = await request(buildApp()).get(
+    const response = await requestAsAdmin(buildApp()).get(
       "/api/app/shopee/inbox?shopCode=dr-morepen",
     );
 
@@ -129,7 +135,7 @@ describe("Shopee email inbox API", () => {
     ["receivedFrom=2026-02-31", "receivedFrom"],
     ["receivedFrom=2026-08-25&receivedTo=2026-08-24", "receivedFrom"],
   ])("rejects invalid query parameters: %s", async (query, messagePart) => {
-    const response = await request(buildApp()).get(
+    const response = await requestAsAdmin(buildApp()).get(
       `/api/app/shopee/inbox?shopCode=sc-drug-store&${query}`,
     );
 
@@ -139,14 +145,14 @@ describe("Shopee email inbox API", () => {
   });
 
   test("defaults to the all-shops inbox when shopCode is omitted", async () => {
-    const response = await request(buildApp()).get("/api/app/shopee/inbox");
+    const response = await requestAsAdmin(buildApp()).get("/api/app/shopee/inbox");
 
     expect(response.status).toBe(200);
     expect(lastFilters.shopCode).toBe("all");
   });
 
   test("accepts the explicit all-shops inbox scope", async () => {
-    const response = await request(buildApp()).get("/api/app/shopee/inbox?shopCode=all");
+    const response = await requestAsAdmin(buildApp()).get("/api/app/shopee/inbox?shopCode=all");
 
     expect(response.status).toBe(200);
     expect(lastFilters.shopCode).toBe("all");

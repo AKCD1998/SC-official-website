@@ -1,6 +1,12 @@
 const express = require("express");
 const request = require("supertest");
 
+const fixtureAdmin = { username: "admin001", password: "admin-password" };
+
+function requestAsAdmin(app) {
+  return request.agent(app).auth(fixtureAdmin.username, fixtureAdmin.password);
+}
+
 const ORDER_NUMBER = "26082471YK8C02";
 const listMock = jest.fn(async () => ({
   hasMore: false,
@@ -64,21 +70,21 @@ function buildApp() {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  delete process.env.SEAMLESS_APP_BASIC_USER;
-  delete process.env.SEAMLESS_APP_BASIC_PASSWORD;
-  delete process.env.SEAMLESS_APP_ADMIN_BASIC_USER;
-  delete process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD;
+  process.env.SEAMLESS_APP_BASIC_USER = "fixture-staff";
+  process.env.SEAMLESS_APP_BASIC_PASSWORD = "fixture-staff-password";
+  process.env.SEAMLESS_APP_ADMIN_BASIC_USER = fixtureAdmin.username;
+  process.env.SEAMLESS_APP_ADMIN_BASIC_PASSWORD = fixtureAdmin.password;
 });
 
 test("admin can list safe review candidates and save a review-only choice", async () => {
-  const list = await request(buildApp()).get(
+  const list = await requestAsAdmin(buildApp()).get(
     "/api/app/shopee/orders/legacy-reconciliation?status=pending&limit=10",
   );
   expect(list.status).toBe(200);
   expect(list.body.reviewOnly).toBe(true);
   expect(JSON.stringify(list.body)).not.toMatch(/gmail|mailbox|subject|buyer/iu);
 
-  const save = await request(buildApp())
+  const save = await requestAsAdmin(buildApp())
     .post(`/api/app/shopee/orders/legacy-reconciliation/${ORDER_NUMBER}`)
     .send({ shopCode: "dr-morepen" });
   expect(save.status).toBe(200);
@@ -119,7 +125,7 @@ test("regular app users cannot dry-run or apply a legacy timeline plan", async (
 
 test("admin can dry-run and apply the exact legacy timeline plan digest", async () => {
   const app = buildApp();
-  const plan = await request(app)
+  const plan = await requestAsAdmin(app)
     .get("/api/app/shopee/orders/legacy-reconciliation/apply-plan");
   expect(plan.status).toBe(200);
   expect(plan.body).toMatchObject({
@@ -130,7 +136,7 @@ test("admin can dry-run and apply the exact legacy timeline plan digest", async 
   });
   expect(plan.body.attributions).toBeUndefined();
 
-  const apply = await request(app)
+  const apply = await requestAsAdmin(app)
     .post("/api/app/shopee/orders/legacy-reconciliation/apply")
     .send({ planDigest: "a".repeat(64) });
   expect(apply.status).toBe(200);
@@ -138,7 +144,7 @@ test("admin can dry-run and apply the exact legacy timeline plan digest", async 
 });
 
 test("legacy timeline apply rejects malformed digests before the service runs", async () => {
-  const response = await request(buildApp())
+  const response = await requestAsAdmin(buildApp())
     .post("/api/app/shopee/orders/legacy-reconciliation/apply")
     .send({ planDigest: "not-a-digest" });
   expect(response.status).toBe(400);
