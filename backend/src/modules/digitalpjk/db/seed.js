@@ -2,44 +2,19 @@ import "dotenv/config";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import bcrypt from "bcrypt";
+import { LOGIN_ADMIN_USERNAME } from "../config/constants.js";
 import { closePool, hasDatabase, pool } from "./pool.js";
 import { syncBranchesFromFiles } from "./syncBranchesFromFiles.js";
 import { syncPartTimePharmacists } from "./syncPartTimePharmacists.js";
 
 const SALT_ROUNDS = 10;
 
-const USER_SEEDS = [
-  {
-    username: "admin000",
-    role: "admin",
-    branch_code: "001",
-    display_name_th: "ผู้ดูแลระบบ",
-  },
-  {
-    username: "user001",
-    role: "user",
-    branch_code: "001",
-    display_name_th: "ภญ. มณีรัตน์ มาลัยมาลย์",
-  },
-  {
-    username: "user003",
-    role: "user",
-    branch_code: "003",
-    display_name_th: "ภญ. ศุภิสรา ศิริมงคล",
-  },
-  {
-    username: "user004",
-    role: "user",
-    branch_code: "004",
-    display_name_th: "ภญ. วรรณพร ฉัตรวิชชานนท์",
-  },
-  {
-    username: "user005",
-    role: "user",
-    branch_code: "005",
-    display_name_th: "ภก. ชวิศ ดิษฐาพร",
-  },
-];
+const ADMIN_SEED = {
+  username: LOGIN_ADMIN_USERNAME,
+  role: "admin",
+  branch_code: "001",
+  display_name_th: "ผู้ดูแลระบบ",
+};
 
 async function insertUserIfMissing(client, user, branchId) {
   const findUser = () =>
@@ -99,18 +74,11 @@ export async function runSeed() {
       syncedBranches.map((branch) => [branch.branch_code, branch.id])
     );
 
-    let adminUserId = null;
-    for (const user of USER_SEEDS) {
-      const branchId = branchIdByCode.get(user.branch_code);
-      if (!branchId) {
-        throw new Error(`Missing branch for code ${user.branch_code}`);
-      }
-
-      const row = await insertUserIfMissing(client, user, branchId);
-      if (row.username === "admin000") {
-        adminUserId = row.id;
-      }
+    const branchId = branchIdByCode.get(ADMIN_SEED.branch_code);
+    if (!branchId) {
+      throw new Error(`Missing branch for code ${ADMIN_SEED.branch_code}`);
     }
+    const admin = await insertUserIfMissing(client, ADMIN_SEED, branchId);
 
     await client.query(
       `
@@ -128,7 +96,7 @@ export async function runSeed() {
         updated_by = EXCLUDED.updated_by,
         updated_at = NOW();
       `,
-      [adminUserId]
+      [admin.id]
     );
 
     await client.query("COMMIT");
