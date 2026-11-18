@@ -309,7 +309,7 @@ test('Ada-mode registration retains registration behavior and reports an unknown
 beforeEach(() => {
   resetState();
   process.env.POS_API_KEY = "pos-key";
-  process.env.BRANCH_STOCK_SYNC_TOKEN = "legacy-key";
+  process.env.BRANCH_STOCK_SYNC_TOKEN = "stock-sync-key";
 });
 
 afterAll(() => {
@@ -347,6 +347,15 @@ describe("loyalty member demographics", () => {
     expect((await request(app).put(`/api/members/${id}`).set("Authorization", "Bearer test-staff-token").send({ remark: "staff profile edit" })).status).toBe(200);
     const denied = await request(app).put(`/api/members/${id}`).set("Authorization", "Bearer invalid-token").set("x-pos-api-key", "pos-key").send({ name: "Must not save" });
     expect(denied.status).toBe(401);
+    expect(state.members[0].full_name).toBe("Alice Pharmacist");
+  });
+  test("a stock sync key cannot read or edit member data", async () => {
+    const app = createApp();
+    const route = "/api/members/11111111-1111-1111-1111-111111111111";
+
+    expect((await request(app).get(route).set("x-pos-api-key", "stock-sync-key")).status).toBe(401);
+    expect((await request(app).get(`${route}/purchase-history`).set("x-pos-api-key", "stock-sync-key")).status).toBe(401);
+    expect((await request(app).put(route).set("x-pos-api-key", "stock-sync-key").send({ name: "Must not save" })).status).toBe(401);
     expect(state.members[0].full_name).toBe("Alice Pharmacist");
   });
   test("basic profile reads do not require unprovisioned points or pharmacy tables", async () => {

@@ -43,24 +43,19 @@ async function requireStaff(req, res, next) {
     }
 }
 
-// ── POS API Key Auth (for WinForms POS / branch sync) ────────────────────────
-// Accepts the shared secret via x-pos-api-key header.
-// Falls back to BRANCH_STOCK_SYNC_TOKEN for backward compat.
+// ── POS API Key Auth (for existing POS integrations) ─────────────────────────
 
 function requirePosApiKey(req, res, next) {
     const provided = req.headers["x-pos-api-key"];
     if (!provided) return res.status(401).json({ error: "Missing x-pos-api-key header." });
 
-  const validKeys = [
-        process.env.POS_API_KEY,
-        process.env.BRANCH_STOCK_SYNC_TOKEN,
-      ].filter(Boolean);
+  const expected = process.env.POS_API_KEY;
 
-  if (validKeys.length === 0) {
+  if (!expected) {
         return res.status(500).json({ error: "POS_API_KEY is not configured on the server." });
   }
 
-  if (!validKeys.includes(provided)) {
+  if (provided !== expected) {
         return res.status(401).json({ error: "Invalid x-pos-api-key." });
   }
 
