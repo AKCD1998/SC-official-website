@@ -1,0 +1,6 @@
+rules:
+  - id: sccrm-no-stock-sync-credential
+    languages: [javascript]
+    severity: ERROR
+    message: The StockDay stock-sync credential belongs in StockDay, never in the SCCRM backend.
+    pattern-regex: '\bBRANCH_STOCK_SYNC_TOKEN\b'
