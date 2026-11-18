@@ -1,5 +1,5 @@
 const crypto = require("node:crypto");
-const { readAppAdminBasicCredentials, readAppBasicCredentials, readInternalApiToken } = require("../config");
+const { readAppAdminBasicCredentials, requireAppBasicCredentials, readInternalApiToken } = require("../config");
 const { unauthorized } = require("../errors");
 const { getSessionIdentity } = require("./session");
 
@@ -59,17 +59,7 @@ function matchesAnyUsername(candidate, usernames) {
 }
 
 function appAuth(req, res, next) {
-  const { users: appBasicUsers, password: appBasicPassword } = readAppBasicCredentials();
-
-  if (!appBasicUsers.length || !appBasicPassword) {
-    // Default-open (no credentials configured at all, e.g. local dev) — everyone gets admin so
-    // nothing is hidden while poking around locally.
-    req.appRole = "admin";
-    req.appAuthSource = "local_default_open";
-    req.appActor = "";
-    next();
-    return;
-  }
+  const { users: appBasicUsers, password: appBasicPassword } = requireAppBasicCredentials();
 
   const sessionIdentity = getSessionIdentity(req);
   if (sessionIdentity) {
