@@ -1,3 +1,4 @@
+import { LOGIN_ADMIN_USERNAME } from "../config/constants.js";
 import { comparePassword, signAccessToken } from "../services/auth.service.js";
 import { getCurrentDocumentDate } from "../services/document-date.service.js";
 import {
@@ -50,8 +51,12 @@ export async function login(req, res, next) {
       return res.status(400).json({ error: "username and password are required." });
     }
 
+    if (username !== LOGIN_ADMIN_USERNAME) {
+      return res.status(401).json({ error: "Invalid username or password." });
+    }
+
     const row = await findUserWithBranchByUsername(username);
-    if (!row) {
+    if (!row || row.role !== "admin") {
       return res.status(401).json({ error: "Invalid username or password." });
     }
 
@@ -80,7 +85,7 @@ export async function login(req, res, next) {
 export async function getMe(req, res, next) {
   try {
     const row = await findUserWithBranchById(req.auth.userId);
-    if (!row) {
+    if (!row || row.role !== "admin") {
       return res.status(404).json({ error: "User profile not found." });
     }
 

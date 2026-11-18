@@ -1,6 +1,8 @@
+import { LOGIN_ADMIN_USERNAME } from "../config/constants.js";
+import { pool } from "../db/pool.js";
 import { verifyAccessToken } from "../services/auth.service.js";
 
-export function authRequired(req, res, next) {
+export async function authRequired(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -14,22 +16,22 @@ export function authRequired(req, res, next) {
 
   try {
     const payload = verifyAccessToken(token);
-    if (!payload?.userId || !payload?.role) {
+    if (!payload?.userId || payload.role !== "admin") {
       return res.status(401).json({ error: "Invalid token payload." });
     }
 
-    if (!["admin", "user"].includes(payload.role)) {
-      return res.status(401).json({ error: "Invalid token payload." });
-    }
-
-    if (payload.role !== "admin" && !payload?.branchId) {
+    const { rows } = await pool.query(
+      "SELECT branch_id FROM users WHERE id = $1 AND username = $2 AND role = 'admin'",
+      [payload.userId, LOGIN_ADMIN_USERNAME]
+    );
+    if (!rows[0]) {
       return res.status(401).json({ error: "Invalid token payload." });
     }
 
     req.auth = {
       userId: payload.userId,
       role: payload.role,
-      branchId: payload.branchId || null,
+      branchId: rows[0].branch_id || null,
     };
 
     return next();
