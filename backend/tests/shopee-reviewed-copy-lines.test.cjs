@@ -254,3 +254,68 @@ test('the newly evidenced packs retain five sachets, twenty sachets, one GEN-DM 
     expect(resolve(SC,item,{...reusableFixture().order,items:[item]},0)).toMatchObject({sku,unit,factor});
   }
 });
+
+test.each([
+  ['01','630020316','ชิ้น',1],['02','IC-005616','กล่อง',1],
+  ['03','IC-000426','กล่อง',1],['04','IC-000605','กล่อง',1],
+  ['05','IC-002635','ซอง',1],['06','630010042','ซอง',20],
+  ['07','IC-003484','กล่อง',1],['08','IC-004754','ซอง',1],
+  ['09','IC-004755','ซอง',1],['10','IC-001334','ขวด',1],
+  ['11','IC-006071','กล่อง',1],['12','IC-003483','กล่อง',1],
+  ['13','IC-002952','กล่อง',1],['15','IC-003003','เครื่อง',1],
+  ['16','630020333','กระป๋อง',2],['17','630010225','ขวด',6],
+  ['18','IC-003482','กล่อง',1],
+])('22 November reviewed option %s preserves the independently checked base unit and pack on later orders',(id,sku,unit,factor)=>{
+  const data=require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
+  const c=data.reviewedCopySourceContracts.find(c=>c.contractId==='sc-copy-review-20261122-'+id);
+  const resolve=buildReviewedCopyLineResolver(data),f=fixture();
+  Object.assign(f.item,{name:c.productName,variant:c.variant,copySourceIdentity:{sourceSku:sku}});
+  Object.assign(f.order,{orderNumber:'SYNTHETIC-LATER-'+id,orderedAt:'2026-11-20T00:00:00Z',paidAt:'2026-11-20T01:00:00Z'});
+  expect(resolve(SC,f.item,f.order,0)).toMatchObject({sku,unit,factor,
+    matchingProvenance:{method:'reviewed_product_option',contractId:c.contractId}});
+  f.item.copySourceIdentity.sourceSku='UNAPPROVED-SKU';
+  expect(resolve(SC,f.item,f.order,0).reason).toBeTruthy();
+});
+
+test('a renamed missing-SKU GHP option cannot borrow another product packaging proof',()=>{
+  const data=structuredClone(require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json'));
+  data.reviewedCopySourceContracts=data.reviewedCopySourceContracts.filter(c=>c.contractId!=='sc-copy-review-20261122-14');
+  const f=fixture();
+  Object.assign(f.item,{name:'GHP NasiCare Nasal Washer ขวดล้างจมูก ชนิดอัตโนมัติ ปุ่มกด On/Off ขนาด 300ml ใช้ได้กับน้ำเกลือ',variant:'ขวดล้าง 1 ชิ้น'});
+  delete f.item.copySourceIdentity;
+  f.order.orderedAt='2026-11-20T00:00:00Z';
+  expect(buildReviewedCopyLineResolver(data)(SC,f.item,f.order,0)).toBeNull();
+});
+
+function priorCatalogueFixture(){
+  const data=structuredClone(require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json'));
+  const contract=data.reviewedCopySourceContracts.find(c=>c.contractId==='sc-copy-review-20261122-14');
+  const prior=data.rules.find(r=>r.shopCode===SC&&r.productName===contract.productName&&r.variant==='1 ขวด');
+  const f=fixture();Object.assign(f.item,{name:contract.productName,variant:contract.variant});delete f.item.copySourceIdentity;
+  Object.assign(f.order,{orderNumber:'SYNTHETIC-GHP-LATER',orderedAt:'2026-11-20T00:00:00Z',paidAt:'2026-11-20T01:00:00Z'});
+  return {...f,data,contract,prior};
+}
+
+test('the uniquely linked GHP rename reuses its independently verified prior retail box',()=>{
+  const f=priorCatalogueFixture();
+  expect(buildReviewedCopyLineResolver(f.data)(SC,f.item,f.order,0)).toMatchObject({sku:'IC-004143',unit:'กล่อง',factor:1,
+    matchingProvenance:{method:'reviewed_product_option',contractId:f.contract.contractId}});
+});
+
+test.each([
+  ['pack',f=>{f.prior.quantityPerSale=2;}],
+  ['unit',f=>{f.prior.evidence.erpUnit='ขวด';}],
+  ['barcode',f=>{f.prior.evidence.erpBarcode='9999999999999';}],
+  ['unverified authority',f=>{f.prior.authority='proposed';}],
+  ['disabled approval',f=>{f.prior.enabled=false;}],
+  ['revoked approval',f=>{f.prior.status='revoked';}],
+  ['ambiguous prior option',f=>{f.data.rules.push(structuredClone(f.prior));}],
+  ['missing fresh package proof',f=>{delete f.contract.evidence.sourceIdentityLink.packagingPhotoSha256;}],
+  ['new conflicting source SKU',f=>{f.item.copySourceIdentity={sourceSku:'OTHER'};}],
+  ['new unreviewed native ID',f=>{f.item.copySourceIdentity={variationId:'999'};}],
+])('the GHP prior-catalogue path holds conflicting %s evidence',(_,change)=>{
+  const f=priorCatalogueFixture();change(f);
+  f.contract.evidence.sourceIdentityLink.priorRuleDigest=require('node:crypto').createHash('sha256').update(JSON.stringify(f.prior)).digest('hex');
+  f.contract.productReuse.approvalDigest=reviewedCopyProductDigest(f.contract);
+  expect(buildReviewedCopyLineResolver(f.data)(SC,f.item,f.order,0).reason).toBeTruthy();
+});

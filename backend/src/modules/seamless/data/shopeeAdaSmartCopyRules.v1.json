@@ -14234,6 +14234,973 @@
         },
         "approvalDigest": "5e7102a3378712753a17b5f1a8be758bf8de318d628e1adfb064dd3b6385c181"
       }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-01",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พลาสเตอร์บรรเทาปวด ตราเสือ เอชอาร์ สูตรเย็น 7x10 / 10x14 ซม. 2 แผ่น 1 ซอง Tiger Balm Medicated Plaster-HR",
+      "variant": "เล็ก 7x10 ซม.",
+      "sourceSku": "630020316",
+      "components": [
+        {
+          "companySku": "630020316",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "ปกติ แผ่นแปะตราเสือขาว 7x10 ซม. 2 แผ่น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851990406028"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.776Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 196,
+        "descriptionSourceRow": 102,
+        "listingId": "54771644539",
+        "variationId": "316735016202",
+        "sellerGtin": "8851990406028",
+        "packBasis": "Seller description sells one 7x10 cm pouch containing two patches. Its base GTIN matches the whole two-patch POS unit named piece; factor 1, not 2.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "547fb881620422604fedde0fc1e26585867a48e387d81dfc1d88abbc517ca914",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1005
+        },
+        {
+          "fingerprint": "f4f7a4e372a68cb1415a4bf743d57237c7ff910d5972fb89614dcaf6b31689cd",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1102
+        },
+        {
+          "fingerprint": "174131370f8883a820a460cb1f368d9479c80dd685bdee0a7acaec2e5ac13195",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1116
+        },
+        {
+          "fingerprint": "b30c458d1fe1103e600e050effafa88d7b5b02ed26a8cac22ad7b63e043c088f",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1132
+        },
+        {
+          "fingerprint": "7e362f9a3b625dc002973045b9958b86cdb4e34b03dbf6a8b162c3e15d15f7e6",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1160
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "630020316"
+        },
+        "approvalDigest": "df279b665546fda940bb67040092633f82d435d08b94216f19fa7a8e8940ac78"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-02",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Deeday ดีเดย์ ผลิตภัณฑ์เสริมอาหาร เลือกสูตร Biotin Zinc Night’s Story Bio C Fish Oil BioMag Luti-berry Fiber",
+      "variant": "Night's Story",
+      "sourceSku": "IC-005616",
+      "components": [
+        {
+          "companySku": "IC-005616",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ดีเดย์ ไนท์ สตอรี่ 30 แคปซูล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859612278411"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.778Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 570,
+        "descriptionSourceRow": 301,
+        "listingId": "46611245180",
+        "variationId": "316035732190",
+        "sellerGtin": "8859612278411",
+        "packBasis": "The uniquely selected Night's Story option has the exact base-box SKU/GTIN. Seller gallery shows one retail box of each selectable formula and description excludes a combined set. POS identifies that box as 30 capsules; factor 1 box.",
+        "posBarcodeLevel": 1,
+        "packagingPhoto": {
+          "sourceUrl": "https://down-th.img.susercontent.com/th-11134207-81ztf-mtaf7b1me7lwc8",
+          "sourceSha256": "251fc965eb9a81c2f62ed6f9da096d34f937c750c0b9182670c06f53f17a2c6b",
+          "basis": "One retail box per selectable formula; not the seven-formula bundle."
+        }
+      },
+      "bindings": [
+        {
+          "fingerprint": "dde6284f421db97fdaffcd624bc49f2562df7f8cafc0ae44fdfc0d194d49eaa2",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1122
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-005616"
+        },
+        "approvalDigest": "ce90f988672c0e6556df8d720d601d98bb1c61a7712a720ca4e9e8287beffbd9"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-03",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "เซนทรัม ซิลเวอร์ 50+ โฮลิสติค ผลิตภัณฑ์เสริมอาหาร 30/90 เม็ด Centrum Silver 50+ Holistic",
+      "variant": "เซนทรัม 30 เม็ด",
+      "sourceSku": "IC-000426",
+      "components": [
+        {
+          "companySku": "IC-000426",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ เซนทรัมซิลเวอร์50+ 30 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851005100057"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.780Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 382,
+        "descriptionSourceRow": 208,
+        "listingId": "50821382710",
+        "variationId": "308080991161",
+        "sellerGtin": "8851005100057",
+        "packBasis": "Seller description sells one 30-tablet retail bottle with its box. The selected GTIN is the POS base box, not 30 base units.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "7cbc36994a4087c5da889f26dec602023b5de34dfc3aadc8c2c46bac32aab02b",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1129
+        },
+        {
+          "fingerprint": "c0e262a6ec6c994750765e80ef81f0cf256d2e432c7ccbbaf0c495931c91b44d",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1130
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-000426"
+        },
+        "approvalDigest": "eba9b867930ebcdca4b1b5692ba0aea66eb6627b47ae61c7d648fbe690cd9c06"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-04",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "เซนทรัม ซิลเวอร์ 50+ โฮลิสติค ผลิตภัณฑ์เสริมอาหาร 30/90 เม็ด Centrum Silver 50+ Holistic",
+      "variant": "เซนทรัม 90 เม็ด",
+      "sourceSku": "IC-000605",
+      "components": [
+        {
+          "companySku": "IC-000605",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ เซนทรัมซิลเวอร์50+ 90 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851005100064"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.782Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 383,
+        "descriptionSourceRow": 208,
+        "listingId": "50821382710",
+        "variationId": "308080991162",
+        "sellerGtin": "8851005100064",
+        "packBasis": "Seller description sells one 90-tablet retail bottle with its box. The selected GTIN is the POS base box, not 90 base units.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "3c983fa133577664dcc36cd0cfee87737afe01159520efde45a51e637a574540",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1131
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-000605"
+        },
+        "approvalDigest": "d5814fdda65648b23eeec53643e6d3358f8c879fcbae3da36e1ca82a1541be97"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-05",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "พลาสเตอร์บรรเทาปวด ตราเสือ เอชอาร์ สูตรเย็น 7x10 / 10x14 ซม. 2 แผ่น 1 ซอง Tiger Balm Medicated Plaster-HR",
+      "variant": "ใหญ่ 10x14 ซม.",
+      "sourceSku": "IC-002635",
+      "components": [
+        {
+          "companySku": "IC-002635",
+          "quantityPerSale": 1,
+          "unit": "ซอง",
+          "productName": "ปกติ แผ่นแปะตราเสือขาว 10x14 ซม 2 แผ่น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851990406042"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.784Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 197,
+        "descriptionSourceRow": 102,
+        "listingId": "54771644539",
+        "variationId": "316735016203",
+        "sellerGtin": "8851990406042",
+        "packBasis": "Seller description sells one 10x14 cm pouch containing two patches. Exact base GTIN matches the POS sachet; factor 1, not 2.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "91b4533c3944485688deeca8155fae89d82c77eb9ff9bfcff4fe238f615b30a1",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1133
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-002635"
+        },
+        "approvalDigest": "d6acd987869954a99af3098a92a59482494ebdcf68c70c0f66cc57d7072b4060"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-06",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "ส้ม 20 ซอง",
+      "sourceSku": "630010042",
+      "components": [
+        {
+          "companySku": "630010042",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ ยาอมมายบาซินซิงค์ รสส้ม 10 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294022013"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.786Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 777,
+        "descriptionSourceRow": 411,
+        "listingId": "40085294524",
+        "variationId": "406635342333",
+        "sellerGtin": "8852294022013",
+        "packBasis": "The selected orange Mybacin box contains 20 sachets of ten lozenges each. Seller GTIN identifies a single POS base sachet. Factor 20 follows the explicit selected box and description, not the unrelated POS medium pack of 140.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "7dd358e8fdf1ef0e9f04339cf90cf5cb3711151a97b4c260597a5a9c2573d247",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1187
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "630010042"
+        },
+        "approvalDigest": "395b8d647eff109d6949ba368f526c11e13388ea5bbb867c80086010acdf14cc"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-07",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ฟ้า,S",
+      "sourceSku": "IC-003484",
+      "components": [
+        {
+          "companySku": "IC-003484",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีฟ้า ไซส์ S 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903718"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.788Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 17,
+        "descriptionSourceRow": 12,
+        "listingId": "57920898658",
+        "variationId": "411684695953",
+        "sellerGtin": "8859095903718",
+        "packBasis": "Selected powder-free blue S gloves are one box containing 100 pieces by weight. Exact base GTIN matches the entire POS box; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "12a20403a368f138af864bc3f45c5d9cd0ea800e72e420b7a47af2c49422e079",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1220
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-003484"
+        },
+        "approvalDigest": "e76e76a6f601fc8596b5ddd86a8f7bf010b6bd02665102f5d3b35876bc45838d"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-08",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "VICKS VapoDrops วิคส์ วาโปดรอป 8 เม็ด รสน้ำผึ้งมะนาว / รสส้ม",
+      "variant": "น้ำผึ้งมะนาว 8 เม็ด",
+      "sourceSku": "IC-004754",
+      "components": [
+        {
+          "companySku": "IC-004754",
+          "quantityPerSale": 1,
+          "unit": "ซอง",
+          "productName": "สามัญ วิคส์ วาโปดรอป รสน้ำผึ้งมะนาว 8 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4987176019950"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.789Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 760,
+        "descriptionSourceRow": 404,
+        "listingId": "40534547294",
+        "variationId": "396528051881",
+        "sellerGtin": "4987176019950",
+        "packBasis": "Seller description states one ordered unit is one honey-lemon sachet containing eight lozenges. GTIN matches the POS base sachet; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "50af6792dea63af780dd703f9e3a73f33bbb8f8c3df09c471695844ab7b9f14e",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1354
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-004754"
+        },
+        "approvalDigest": "32c3642ef6c423f0873a2ceb48b10131a9476eb733dff16656eb3a8d795eaec5"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-09",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "VICKS VapoDrops วิคส์ วาโปดรอป 8 เม็ด รสน้ำผึ้งมะนาว / รสส้ม",
+      "variant": "ส้ม 8 เม็ด",
+      "sourceSku": "IC-004755",
+      "components": [
+        {
+          "companySku": "IC-004755",
+          "quantityPerSale": 1,
+          "unit": "ซอง",
+          "productName": "สามัญ วิคส์ วาโปดรอป รสส้ม 8 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4987176019974"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.790Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 761,
+        "descriptionSourceRow": 404,
+        "listingId": "40534547294",
+        "variationId": "396528051882",
+        "sellerGtin": "4987176019974",
+        "packBasis": "Seller description states one ordered unit is one orange sachet containing eight lozenges. GTIN matches the POS base sachet; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "c251dc674c156fb136c63b18d00a35dae116e0ac92afe6415cce9c54270403f2",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1355
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-004755"
+        },
+        "approvalDigest": "0eb59a0c7f4f62f773b954835bf8f6796ed6170fb69f88b9095b236bd9d5e372"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-10",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "มามารีน ผลิตภัณฑ์เสริมอาหารชนิดน้ำ 120 มล. เลือกสูตร Bio-C Elderberry Omega-3 Mamarine",
+      "variant": "ฟ้า Omega-3",
+      "sourceSku": "IC-001334",
+      "components": [
+        {
+          "companySku": "IC-001334",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ มามารีนคิดส์ออริจินอล 120 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858757009225"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.791Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 302,
+        "descriptionSourceRow": 164,
+        "listingId": "52221612973",
+        "variationId": "401736123438",
+        "sellerGtin": "8858757009225",
+        "packBasis": "Seller description identifies blue Omega-3 as the Original formula, sold as one 120 mL bottle. Exact GTIN matches the POS Original base bottle; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "63ed77e40bb90a39cdebb9d10d22ea871349fc674348353f156bb07546a475ae",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1468
+        },
+        {
+          "fingerprint": "5cc2e2988f7545fa3dea5c4782a00e13a5be69ed35630a08fe71a75caa3a8798",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2073
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-001334"
+        },
+        "approvalDigest": "3dad58c410a165648582799e9f43d5a25110c0fe47e3d574e26f881d029becfb"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-11",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยผู้ใหญ่ 3 ชั้น แบบคล้องหู 50 ชิ้น/กล่อง Klean Mask Longmed",
+      "variant": "เขียว",
+      "sourceSku": "IC-006071",
+      "components": [
+        {
+          "companySku": "IC-006071",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัย ลองเมด สีเขียว 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900700"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.792Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 515,
+        "descriptionSourceRow": 269,
+        "listingId": "47769366138",
+        "variationId": "326620384222",
+        "sellerGtin": "8859095900700",
+        "packBasis": "Selected green Klean Mask is one box containing 50 masks. Exact base GTIN matches the entire POS box; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "be47e70e54ac89b6fd8e9e9a84dc777b8a3ffb95d021fba7688856c8b32bd229",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1520
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-006071"
+        },
+        "approvalDigest": "f4c968b9c981dff5290de0fb2743883fe677d9b1c6596df4deda5b3472eccb9e"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-12",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ฟ้า,M",
+      "sourceSku": "IC-003483",
+      "components": [
+        {
+          "companySku": "IC-003483",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีฟ้า ไซส์ M 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903732"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.793Z",
+        "masterSourceSha256": "ad79380e3aedd89d2f74765136de5245d97c74cb1cf20bfb09ac9f5310327cbc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 18,
+        "descriptionSourceRow": 12,
+        "listingId": "57920898658",
+        "variationId": "411684695954",
+        "sellerGtin": "8859095903732",
+        "packBasis": "Selected powder-free blue M gloves are one box containing 100 pieces by weight. Exact base GTIN matches the entire POS box; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "a71d401b308d6af440a40ead16edb0141e4151b3263a2f8f4a330b1fe7acbeea",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1523
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-18",
+        "sourceIdentity": {
+          "sourceSku": "IC-003483"
+        },
+        "approvalDigest": "6f916e96ad9dad0b69fa51de93e73f59518fca85a3845c0de39a409ed4a422b0"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-13",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยผู้ใหญ่ 3 ชั้น แบบคล้องหู 50 ชิ้น/กล่อง Klean Mask Longmed",
+      "variant": "ขาว",
+      "sourceSku": "IC-002952",
+      "components": [
+        {
+          "companySku": "IC-002952",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอานามัย ลองเมด สี ขาว 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095901363"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.794Z",
+        "masterSourceSha256": "b99da7bf8d7544fb1adbcb6a2157c72fa9c370a362fb8a9ee7fbaa7370040bfb",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 517,
+        "descriptionSourceRow": 269,
+        "listingId": "47769366138",
+        "variationId": "326620384224",
+        "sellerGtin": "8859095901363",
+        "packBasis": "Selected white Klean Mask is one box containing 50 masks. Exact base GTIN matches the entire POS box; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "bb820c9dc6c04a68f3eb380d4e0814ded215a70dc0369adf5244ca89dcd9783e",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 1844
+        },
+        {
+          "fingerprint": "1447b9205ba56fb6093d64a8a2eb438c72e667eb70290a0b3d3808d827694b2c",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2027
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-19",
+        "sourceIdentity": {
+          "sourceSku": "IC-002952"
+        },
+        "approvalDigest": "e0e9ce29fdffb3a63eaa71c13d5d6aa1d12c120be53714f03558cc31b5fd2ea0"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-14",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "GHP NasiCare Nasal Washer ขวดล้างจมูก ชนิดอัตโนมัติ ปุ่มกด On/Off ขนาด 300ml ใช้ได้กับน้ำเกลือ",
+      "variant": "ขวดล้าง 1 ชิ้น",
+      "sourceSku": "",
+      "components": [
+        {
+          "companySku": "IC-004143",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ จีเอชพี นาซิแคร์ นาซอล วอชเชอร์ ขวดล้างจมูกอัตโนมัติ 300 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853644004260"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.795Z",
+        "masterSourceSha256": "de621f52efc924db50827715f590c3fcea19a33754db4416894870e1e0a8b0fc",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 141,
+        "descriptionSourceRow": 73,
+        "listingId": "55815800400",
+        "variationId": "426486290447",
+        "sellerGtin": "",
+        "packBasis": "The unique renamed option sells one GHP NasiCare automatic 300 mL washer with its included child/adult nozzles. Fresh description and package photo agree with the already verified September catalogue identity for the same exact listing title, old option one bottle, IC-004143 base box. The old catalogue barcode matches fresh POS 004. The barcode comes from the prior verified catalogue, not from an unreadable photograph.",
+        "posBarcodeLevel": 1,
+        "sourceIdentityLink": {
+          "kind": "unique_seller_option_prior_verified_catalog_pos",
+          "uniqueSellerOption": true,
+          "sellerSku": "",
+          "listingId": "55815800400",
+          "variationId": "426486290447",
+          "sellerSourceRow": 141,
+          "descriptionSourceRow": 73,
+          "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+          "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+          "posSourceSha256": "de621f52efc924db50827715f590c3fcea19a33754db4416894870e1e0a8b0fc",
+          "packagingPhotoSha256": "95a911cc2a2f3acb4bef04edb5f21470894082f4209d24e036b22e22519ad883",
+          "packagingPhotoUrl": "https://down-th.img.susercontent.com/th-11134207-81ztj-msur8f7rj56ue2",
+          "unchangedRetailPack": true,
+          "priorVariant": "1 ขวด",
+          "priorRuleDigest": "eddfa184bfb20d6e9f8324f3aa04588e1bf02fb4f315d73454ac14554754f253"
+        }
+      },
+      "bindings": [
+        {
+          "fingerprint": "8212e3ad80378f7c043a8140b8a71ef819112494ff3ade4d8918055c0c7fe983",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2019
+        },
+        {
+          "fingerprint": "d097676d20e3f878cb0063b97ecd87fd2b554f4dbca527bcad9c1193ab25ee25",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2068
+        },
+        {
+          "fingerprint": "18afac1ea219c2a95f289b538943abd1975a723c8047e36792d372a3ea86e83e",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2121
+        },
+        {
+          "fingerprint": "86eadd595f204058bd31fc93475572d22293c9eec783d1bdd7219190587e7ff0",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2197
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-19",
+        "sourceIdentity": {},
+        "approvalDigest": "d88d6d2ffa64c60ac8657502a077e7a6f6db057fd3e77640246614e2ccb26ffb"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-15",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "เครื่องช่วยฟัง แบบคล้องหู Beurer HA20 บอยเร่อร์ Blue Dot B-HA01 B-HA02 บลูดอท",
+      "variant": "Beurer HA20",
+      "sourceSku": "IC-003003",
+      "components": [
+        {
+          "companySku": "IC-003003",
+          "quantityPerSale": 1,
+          "unit": "เครื่อง",
+          "productName": "สามัญ เครื่องช่วยฟังบอยเรอร์ HA 20 1 เครื่อง",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4211125641061"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.797Z",
+        "masterSourceSha256": "b99da7bf8d7544fb1adbcb6a2157c72fa9c370a362fb8a9ee7fbaa7370040bfb",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 217,
+        "descriptionSourceRow": 111,
+        "listingId": "54121345290",
+        "variationId": "331715743877",
+        "sellerGtin": "4211125641061",
+        "packBasis": "Seller description sells one complete Beurer HA20 retail set. Exact GTIN identifies the POS base hearing-aid unit. Included accessories remain inside this one base unit.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "4be3b316602dc3874c58281920135ad49488c1c2256b84eef613636c2d233f42",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2054
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-19",
+        "sourceIdentity": {
+          "sourceSku": "IC-003003"
+        },
+        "approvalDigest": "38419afd0a95eb873a7cd54a987e4c494b51c1a596b36dae637cd938088920af"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-16",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Kangaroo Brand จิงโจ้ สเปรย์ปรับอากาศ น้ำมันยูคาลิปตัส 300 มล. 1 กระป๋อง",
+      "variant": "จิงโจ้ 2 กระป๋อง",
+      "sourceSku": "630020333",
+      "components": [
+        {
+          "companySku": "630020333",
+          "quantityPerSale": 2,
+          "unit": "กระป๋อง",
+          "productName": "สามัญ สเปรย์น้ำมันยูคาลิปตัส ตราจิงโจ้ 300 มล.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850672010058"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.799Z",
+        "masterSourceSha256": "b99da7bf8d7544fb1adbcb6a2157c72fa9c370a362fb8a9ee7fbaa7370040bfb",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 672,
+        "descriptionSourceRow": 353,
+        "listingId": "44721016534",
+        "variationId": "351735204599",
+        "sellerGtin": "8850672010058",
+        "packBasis": "Order All and the unique Seller option explicitly select two 300 mL Kangaroo cans. SKU/GTIN identify the same one-can POS base used by the separately confirmed one- and three-can options; factor 2. The parent description describes the base can.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "71d032e9b228a30bd3b891b78fb6607a6684c47a57bd2c5b4973bec297da372e",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2066
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-19",
+        "sourceIdentity": {
+          "sourceSku": "630020333"
+        },
+        "approvalDigest": "0b0d9961bc51d16d0ac8956e896e1f3fcdc5c64e16704c976a5e37d438500711"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-17",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% สีฟ้า / สีชมพู ขนาด 60 และ 450 มล. แพ็ค 6 ขวด",
+      "variant": "สีฟ้า 450 มล. 6 ขวด",
+      "sourceSku": "630010225",
+      "components": [
+        {
+          "companySku": "630010225",
+          "quantityPerSale": 6,
+          "unit": "ขวด",
+          "productName": "สามัญ แอลกอฮอล์เสือดาว สีฟ้า 450 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853042000536"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.802Z",
+        "masterSourceSha256": "b99da7bf8d7544fb1adbcb6a2157c72fa9c370a362fb8a9ee7fbaa7370040bfb",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 291,
+        "descriptionSourceRow": 158,
+        "listingId": "52568044578",
+        "variationId": "436527694432",
+        "sellerGtin": "8853042000536",
+        "packBasis": "Seller description explicitly sells one six-bottle pack of blue 450 mL ALSOFF. Exact base GTIN and POS medium factor 6 agree; factor 6 base bottles.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "cf4f1a75a23efe93729d30a77913283ed5e1df5e7ff9531e902b2273a67067e8",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2117
+        },
+        {
+          "fingerprint": "8c971531f95c806d428f52377c81b36674b29b6b0b6e1cd3e841ff12725b171b",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2163
+        },
+        {
+          "fingerprint": "c41f7c601d13ca7b3997a73cca323b5b0f2c66ecf2c0d51848c0c242f5d76ba8",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2198
+        },
+        {
+          "fingerprint": "b0687f3a3898dbef44559a8fbf797357f6e667133ca4977a350f1921d6940585",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2192
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-19",
+        "sourceIdentity": {
+          "sourceSku": "630010225"
+        },
+        "approvalDigest": "aeab2250bd3b2c10f2632cb18425fa4786ce884c99ea1530c707235fad0715d6"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261122-18",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ฟ้า,L",
+      "sourceSku": "IC-003482",
+      "components": [
+        {
+          "companySku": "IC-003482",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีฟ้า ไซส์ L 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903756"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-22T10:17:41.804Z",
+        "masterSourceSha256": "b99da7bf8d7544fb1adbcb6a2157c72fa9c370a362fb8a9ee7fbaa7370040bfb",
+        "reviewSourceSha256": "f2d5329a3df77770ca99ee340b43c3e36da4033d5d41a7a3e257f18a3e0b3120",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 19,
+        "descriptionSourceRow": 12,
+        "listingId": "57920898658",
+        "variationId": "411684695947",
+        "sellerGtin": "8859095903756",
+        "packBasis": "Selected powder-free blue L gloves are one box containing 100 pieces by weight. Exact base GTIN matches the entire POS box; factor 1.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "cc622f4a70a7083f129f34a204ae7889135a25c619d1757e5fa6c24a915253a5",
+          "sourceSha256": "c65fc7fe86d72c2348706738d94d9b88c00a944294c58b59a840c26f2a08fea4",
+          "sourceRow": 2108
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-19",
+        "sourceIdentity": {
+          "sourceSku": "IC-003482"
+        },
+        "approvalDigest": "90f030bc1ebe6130117a0985252c669643a0454e3ce824b5e2f202e2b653225f"
+      }
     }
   ]
 }

@@ -1,5 +1,8 @@
 # SC remaining copy evidence — 18 November 2026
 
+The current 95-alert incident, additional verified options and updated #143
+replay are recorded in [the 22 November review](shopee-copy-warning-95-20261122.md).
+
 ## Production release of PR #142
 
 PR [#142](https://github.com/AKCD1998/SC-official-website/pull/142) passed its
