@@ -7,7 +7,7 @@ const { normalizeIdentityUnit } = require('./shopee004IdentityRules');
 const { localDate, validDate } = require('./shopeeCopyBusinessDate');
 
 const VERSION = 'reviewed-copy-source-equivalence-2026-11-13-v1';
-const PRODUCT_REUSE_VERSION = 'reviewed-copy-product-option-2026-11-18-v1';
+const PRODUCT_REUSE_VERSION = 'reviewed-copy-product-option-2026-11-22-v1';
 const hash = value => /^[a-f0-9]{64}$/u.test(value || '');
 const code = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/u.test(value);
 const label = value => String(value ?? '').normalize('NFC').replace(/\s+/gu, ' ').trim();
@@ -25,9 +25,40 @@ function reviewedCopyProductDigest(contract) {
   })).digest('hex');
 }
 
-function sourceIdentityAgrees(item, expected) {
-  const source = item.copySourceIdentity;
-  if (!source || source.invalid || !code(expected?.sourceSku)) return false;
+function missingSkuProofAgrees(contract, priorRules) {
+  const proof = contract.evidence?.sourceIdentityLink;
+  const common = contract.sourceSku === '' && contract.components?.length === 1
+    && proof?.uniqueSellerOption === true && proof.sellerSku === ''
+    && /^\d{1,40}$/u.test(proof.listingId || '') && /^\d{1,40}$/u.test(proof.variationId || '')
+    && [proof.sellerSourceRow,proof.descriptionSourceRow].every(row => Number.isSafeInteger(row) && row > 1)
+    && [proof.sellerSourceSha256,proof.descriptionSourceSha256,proof.packagingPhotoSha256].every(hash)
+    && proof.posSourceSha256 === contract.evidence.masterSourceSha256;
+  if (!common) return false;
+  if (proof.kind === 'unique_seller_option_packaging_barcode_pos') {
+    return proof.packagingBarcode === contract.components[0].baseUnitBarcode;
+  }
+  if (proof.kind !== 'unique_seller_option_prior_verified_catalog_pos'
+    || proof.unchangedRetailPack !== true || !hash(proof.priorRuleDigest)) return false;
+  const matches = (priorRules || []).filter(rule => rule.shopCode === contract.shopCode
+    && label(rule.productName) === label(contract.productName)
+    && label(rule.variant) === label(proof.priorVariant));
+  if (matches.length !== 1) return false;
+  const prior = matches[0], part = contract.components[0];
+  return prior.authority === 'stockday_verified_exact_identity_20260928'
+    && prior.enabled !== false && (prior.status == null || prior.status === 'verified')
+    && prior.verifiedOn === '2026-09-28' && prior.evidence?.masterEvidenceId === 'stockday-004-20260928'
+    && Number.isSafeInteger(prior.evidence.masterSourceRow) && prior.evidence.masterSourceRow > 1
+    && prior.companySku === part.companySku && prior.quantityPerSale === part.quantityPerSale
+    && normalizeIdentityUnit(prior.evidence.erpUnit) === normalizeIdentityUnit(part.unit)
+    && prior.evidence.erpBarcode === part.baseUnitBarcode
+    && createHash('sha256').update(JSON.stringify(prior)).digest('hex') === proof.priorRuleDigest;
+}
+
+function sourceIdentityAgrees(item, expected, allowMissingSku) {
+  if (!expected || typeof expected !== 'object' || Array.isArray(expected)) return false;
+  const source = item.copySourceIdentity ?? (allowMissingSku ? {} : null);
+  if (!source || typeof source !== 'object' || Array.isArray(source)
+    || source.invalid || (!allowMissingSku && !code(expected?.sourceSku))) return false;
   if (Object.keys(source).some(key => !['sourceSku','listingId','variationId','invalid'].includes(key))) return false;
   if (['sourceSku','listingId','variationId'].some(key => String(source[key] ?? '') !== String(expected[key] ?? ''))) return false;
   const directKeys = ['productId','listingProductId','variationId','listingVariationId','barcode','sourceBarcode','sourceSku','variantSku'];
@@ -102,14 +133,15 @@ function buildReviewedCopyLineResolver(data = registry) {
         && (c.productReuse.validThrough == null || date <= c.productReuse.validThrough));
       if (active.length !== 1) return review('ช่วงแพ็กที่ยืนยันขาดหายหรือมีหลักฐานทับซ้อนกัน');
       const c = active[0], approval = c.productReuse;
+      const missingSku = !approval.sourceIdentity?.sourceSku && missingSkuProofAgrees(c, data.rules);
       const conflicting = (otherIdentities.get(key) || []).some(parts => parts.length !== c.components?.length
         || parts.some(part => !c.components.some(approved => part.companySku === approved.companySku
           && part.quantityPerSale === approved.quantityPerSale)));
       if (approval.status !== 'verified' || !hash(approval.approvalDigest)
         || approval.approvalDigest !== reviewedCopyProductDigest(c)
-        || !sourceIdentityAgrees(item,approval.sourceIdentity)
+        || !sourceIdentityAgrees(item,approval.sourceIdentity,missingSku)
         || conflicting
-        || c.components?.length !== 1 || c.components[0].companySku !== c.sourceSku
+        || c.components?.length !== 1 || (!missingSku && c.components[0].companySku !== c.sourceSku)
         || !c.bindings?.length) return review('SKU หรือหลักฐานสินค้าและแพ็กไม่ตรงกับคำยืนยันเดิม');
       const binding = c.bindings.find(b => hash(b.fingerprint) && hash(b.sourceSha256)
         && Number.isSafeInteger(b.sourceRow) && b.sourceRow >= 2);
