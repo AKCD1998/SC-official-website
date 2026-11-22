@@ -190,12 +190,7 @@ The build includes a `404.html` entry so refresh on `/login`, `/signup`, etc. wo
   - `npm --prefix backend run digitalpjk:migrate`
   - `npm --prefix backend run digitalpjk:seed`
   - or `npm --prefix backend run digitalpjk:setup`
-- Seeded auth users created by the current seed script:
-  - `admin000`
-  - `user001`
-  - `user003`
-  - `user004`
-  - `user005`
+- DigitalPJK sign-in is restricted to `admin000`. Seed and setup create this account only if missing and require `DIGITALPJK_SEED_PASSWORD_ADMIN000` for that initial creation (non-blank, at most 72 UTF-8 bytes). Existing account rows are preserved.
 - Branch and pharmacist seed data live under `backend/src/modules/digitalpjk/data/branches` and `backend/src/modules/digitalpjk/db/syncPartTimePharmacists.js`.
 
 ## DB

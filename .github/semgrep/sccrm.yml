@@ -4,3 +4,8 @@ rules:
     severity: ERROR
     message: The StockDay stock-sync credential belongs in StockDay, never in the SCCRM backend.
     pattern-regex: '\bBRANCH_STOCK_SYNC_TOKEN\b'
+  - id: sccrm-no-shared-staff-pin
+    languages: [javascript]
+    severity: ERROR
+    message: Staff enrollment uses administrator-issued credentials scoped to one device.
+    pattern-regex: '\bSCCRM_STAFF_PIN\b'

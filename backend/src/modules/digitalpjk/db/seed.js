@@ -2,52 +2,35 @@ import "dotenv/config";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import bcrypt from "bcrypt";
+import { LOGIN_ADMIN_USERNAME } from "../config/constants.js";
 import { closePool, hasDatabase, pool } from "./pool.js";
 import { syncBranchesFromFiles } from "./syncBranchesFromFiles.js";
 import { syncPartTimePharmacists } from "./syncPartTimePharmacists.js";
 
 const SALT_ROUNDS = 10;
 
-const USER_SEEDS = [
-  {
-    username: "admin000",
-    password: "S123123c",
-    role: "admin",
-    branch_code: "001",
-    display_name_th: "ผู้ดูแลระบบ",
-  },
-  {
-    username: "user001",
-    password: "123123",
-    role: "user",
-    branch_code: "001",
-    display_name_th: "ภญ. มณีรัตน์ มาลัยมาลย์",
-  },
-  {
-    username: "user003",
-    password: "123123",
-    role: "user",
-    branch_code: "003",
-    display_name_th: "ภญ. ศุภิสรา ศิริมงคล",
-  },
-  {
-    username: "user004",
-    password: "123123",
-    role: "user",
-    branch_code: "004",
-    display_name_th: "ภญ. วรรณพร ฉัตรวิชชานนท์",
-  },
-  {
-    username: "user005",
-    password: "123123",
-    role: "user",
-    branch_code: "005",
-    display_name_th: "ภก. ชวิศ ดิษฐาพร",
-  },
-];
+const ADMIN_SEED = {
+  username: LOGIN_ADMIN_USERNAME,
+  role: "admin",
+  branch_code: "001",
+  display_name_th: "ผู้ดูแลระบบ",
+};
 
-async function upsertUser(client, user, branchId) {
-  const passwordHash = await bcrypt.hash(user.password, SALT_ROUNDS);
+async function insertUserIfMissing(client, user, branchId) {
+  const findUser = () =>
+    client.query("SELECT id, username FROM users WHERE username = $1", [user.username]);
+  const existing = await findUser();
+  if (existing.rowCount > 0) {
+    return existing.rows[0];
+  }
+
+  const passwordEnv = `DIGITALPJK_SEED_PASSWORD_${user.username.toUpperCase()}`;
+  const password = process.env[passwordEnv];
+  if (!password || !password.trim() || Buffer.byteLength(password, "utf8") > 72) {
+    throw new Error(`${passwordEnv} must contain a non-blank password of at most 72 UTF-8 bytes.`);
+  }
+
+  const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
   const params = [
     user.username,
     passwordHash,
@@ -66,19 +49,13 @@ async function upsertUser(client, user, branchId) {
       display_name_th
     )
     VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (username) DO UPDATE
-    SET
-      password_hash = EXCLUDED.password_hash,
-      role = EXCLUDED.role,
-      branch_id = EXCLUDED.branch_id,
-      display_name_th = EXCLUDED.display_name_th,
-      updated_at = NOW()
+    ON CONFLICT (username) DO NOTHING
     RETURNING id, username;
     `,
     params
   );
 
-  return result.rows[0];
+  return result.rows[0] ?? (await findUser()).rows[0];
 }
 
 export async function runSeed() {
@@ -97,18 +74,11 @@ export async function runSeed() {
       syncedBranches.map((branch) => [branch.branch_code, branch.id])
     );
 
-    let adminUserId = null;
-    for (const user of USER_SEEDS) {
-      const branchId = branchIdByCode.get(user.branch_code);
-      if (!branchId) {
-        throw new Error(`Missing branch for code ${user.branch_code}`);
-      }
-
-      const row = await upsertUser(client, user, branchId);
-      if (row.username === "admin000") {
-        adminUserId = row.id;
-      }
+    const branchId = branchIdByCode.get(ADMIN_SEED.branch_code);
+    if (!branchId) {
+      throw new Error(`Missing branch for code ${ADMIN_SEED.branch_code}`);
     }
+    const admin = await insertUserIfMissing(client, ADMIN_SEED, branchId);
 
     await client.query(
       `
@@ -126,7 +96,7 @@ export async function runSeed() {
         updated_by = EXCLUDED.updated_by,
         updated_at = NOW();
       `,
-      [adminUserId]
+      [admin.id]
     );
 
     await client.query("COMMIT");
