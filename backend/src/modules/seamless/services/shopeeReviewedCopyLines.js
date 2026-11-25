@@ -5,14 +5,17 @@ const registry = require('../data/shopeeAdaSmartCopyRules.v1.json');
 const { moneyCents } = require('./shopeeSalesAccounting');
 const { normalizeIdentityUnit } = require('./shopee004IdentityRules');
 const { localDate, validDate } = require('./shopeeCopyBusinessDate');
+const { formattingKey } = require('./shopeeVerifiedCopyMatcher');
 
 const VERSION = 'reviewed-copy-source-equivalence-2026-11-13-v1';
-const PRODUCT_REUSE_VERSION = 'reviewed-copy-product-option-2026-11-22-v1';
+const PRODUCT_REUSE_VERSION = 'reviewed-copy-product-option-2026-11-25-v2';
 const hash = value => /^[a-f0-9]{64}$/u.test(value || '');
 const code = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/u.test(value);
+const id = value => typeof value === 'string' && /^\d{1,40}$/u.test(value);
 const label = value => String(value ?? '').normalize('NFC').replace(/\s+/gu, ' ').trim();
 const timestamp = value => Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : null;
 const productKey = (shopCode, item) => JSON.stringify([shopCode,label(item.productName ?? item.name),label(item.variant)]);
+const optionKey = (shopCode, variationId) => JSON.stringify([shopCode,variationId]);
 
 // A reusable approval binds product facts, independently of any order's price
 // or quantity. Order-specific exceptions retain the original fingerprint path.
@@ -54,15 +57,37 @@ function missingSkuProofAgrees(contract, priorRules) {
     && createHash('sha256').update(JSON.stringify(prior)).digest('hex') === proof.priorRuleDigest;
 }
 
-function sourceIdentityAgrees(item, expected, allowMissingSku) {
+function evidencedOption(contract, hasMissingSkuProof) {
+  const e = contract.evidence;
+  const proof = hasMissingSkuProof ? e.sourceIdentityLink : e;
+  if (!id(proof?.listingId) || !id(proof.variationId) || !hash(proof.sellerSourceSha256)
+    || !Number.isSafeInteger(proof.sellerSourceRow) || proof.sellerSourceRow < 2
+    || (!hasMissingSkuProof && !proof.packBasis)) return null;
+  return { listingId:proof.listingId, variationId:proof.variationId };
+}
+
+function sourceIdentityAgrees(item, contract, option, allowMissingSku) {
+  const expected = contract.productReuse.sourceIdentity;
   if (!expected || typeof expected !== 'object' || Array.isArray(expected)) return false;
   const source = item.copySourceIdentity ?? (allowMissingSku ? {} : null);
   if (!source || typeof source !== 'object' || Array.isArray(source)
     || source.invalid || (!allowMissingSku && !code(expected?.sourceSku))) return false;
   if (Object.keys(source).some(key => !['sourceSku','listingId','variationId','invalid'].includes(key))) return false;
-  if (['sourceSku','listingId','variationId'].some(key => String(source[key] ?? '') !== String(expected[key] ?? ''))) return false;
-  const directKeys = ['productId','listingProductId','variationId','listingVariationId','barcode','sourceBarcode','sourceSku','variantSku'];
-  return directKeys.every(key => item[key] == null || String(item[key]).trim() === String(expected[key] ?? ''));
+  const sku = allowMissingSku ? contract.components[0].companySku : expected.sourceSku;
+  const listingId = expected.listingId || option?.listingId;
+  const variationId = expected.variationId || option?.variationId;
+  const barcode = expected.barcode || contract.evidence.sellerGtin
+    || (allowMissingSku && contract.evidence.sourceIdentityLink.packagingBarcode) || '';
+  const agrees = (value, approved) => value == null || String(value).trim() === ''
+    || String(value).trim() === approved;
+  if (!allowMissingSku && (source.sourceSku !== sku || contract.sourceSku !== sku)) return false;
+  if (option && (option.listingId !== listingId || option.variationId !== variationId)) return false;
+  if ((expected.listingId && source.listingId !== expected.listingId)
+    || (expected.variationId && source.variationId !== expected.variationId)) return false;
+  return [source.sourceSku,item.sourceSku,item.variantSku].every(value => agrees(value,sku))
+    && [source.listingId,item.productId,item.listingProductId].every(value => agrees(value,listingId))
+    && [source.variationId,item.variationId,item.listingVariationId].every(value => agrees(value,variationId))
+    && agrees(item.barcode,barcode) && agrees(item.sourceBarcode,barcode);
 }
 
 // A review follows the same immutable order line through later rolling exports.
@@ -89,20 +114,31 @@ function buildReviewedCopyLineResolver(data = registry) {
   const masters = new Map(data.masters.map(row => [row.companySku, row]));
   const fingerprints = new Map();
   const products = new Map();
+  const options = new Map();
   const holds = new Set((data.copyIdentityHolds || []).map(item => productKey(item.shopCode,item)));
   const otherIdentities = new Map();
   for (const row of [...(data.rules || []),...(data.supplementalCopyIdentities || [])]) {
     const key = productKey(row.shopCode,row);
     const matches = otherIdentities.get(key) || [];
-    matches.push(row.components || [{companySku:row.companySku,quantityPerSale:row.quantityPerSale}]);
+    matches.push(row.components || [{companySku:row.companySku,quantityPerSale:row.quantityPerSale,
+      unit:row.evidence?.erpUnit || row.evidence?.pos?.smallUnit}]);
     otherIdentities.set(key,matches);
   }
   for (const contract of data.reviewedCopySourceContracts || []) {
     if (contract.productReuse) {
       const key = productKey(contract.shopCode,contract);
+      const missingSku = !contract.productReuse.sourceIdentity?.sourceSku && missingSkuProofAgrees(contract, data.rules);
+      const option = evidencedOption(contract,missingSku);
+      const record = { contract, missingSku, option };
       const matches = products.get(key) || [];
-      matches.push(contract);
+      matches.push(record);
       products.set(key,matches);
+      if (option) {
+        const key = optionKey(contract.shopCode,option.variationId);
+        const matches = options.get(key) || [];
+        matches.push(record);
+        options.set(key,matches);
+      }
     }
     for (const binding of contract.bindings || []) {
       if (!hash(binding.fingerprint) || !hash(binding.sourceSha256)
@@ -116,33 +152,55 @@ function buildReviewedCopyLineResolver(data = registry) {
     const fingerprint = reviewedCopyLineFingerprint(shopCode, item, order, index);
     let matches = fingerprints.get(fingerprint) || [];
     let reuse = false;
+    let reviewOption;
     const review = reason => ({ reason, matchingReview:{ status:'review',
-      reasonCode:'reviewed_copy_source_conflict', candidates:[] } });
+      reasonCode:'reviewed_copy_source_conflict', candidates:[], ...(reviewOption ? { option:reviewOption } : {}) } });
     if (!matches.length) {
       const key = productKey(shopCode,item);
-      const known = products.get(key) || [];
-      if (!known.length || shopCode !== 'sc-drug-store' || order?.shopCode !== shopCode) return null;
+      if (shopCode !== 'sc-drug-store' || order?.shopCode !== shopCode) return null;
+      const variationId = item.copySourceIdentity?.variationId || item.variationId || item.listingVariationId;
+      const identified = id(variationId) ? options.get(optionKey(shopCode,variationId)) || [] : [];
+      const named = products.get(key) || [];
+      const known = identified.length ? identified : named;
+      if (!known.length) return null;
+      if (known.every(record => record.option?.variationId === known[0].option?.variationId)) {
+        reviewOption = known[0].option;
+      }
       if (holds.has(key)) return review('มีหลักฐานขัดกันที่ยังต้องตรวจสำหรับตัวเลือกนี้');
       const date = localDate(order.orderedAt);
-      if (!date || known.some(c => !validDate(c.productReuse.validFrom)
-        || (c.productReuse.validThrough != null && (!validDate(c.productReuse.validThrough)
-          || c.productReuse.validThrough < c.productReuse.validFrom)))) return review('วันที่มีผลของแพ็กที่ยืนยันไม่ครบหรือขัดกัน');
+      const approvals = known.map(record => record.contract.productReuse);
+      if (!date || approvals.some(a => !validDate(a.validFrom)
+        || (a.validThrough != null && (!validDate(a.validThrough)
+          || a.validThrough < a.validFrom)))) return review('วันที่มีผลของแพ็กที่ยืนยันไม่ครบหรือขัดกัน');
       // Earlier orders retain their existing historical resolver.
-      if (known.every(c => date < c.productReuse.validFrom)) return null;
-      const active = known.filter(c => date >= c.productReuse.validFrom
-        && (c.productReuse.validThrough == null || date <= c.productReuse.validThrough));
+      if (approvals.every(a => date < a.validFrom)) return null;
+      const active = known.filter(({contract:{productReuse:a}}) => date >= a.validFrom
+        && (a.validThrough == null || date <= a.validThrough));
       if (active.length !== 1) return review('ช่วงแพ็กที่ยืนยันขาดหายหรือมีหลักฐานทับซ้อนกัน');
-      const c = active[0], approval = c.productReuse;
-      const missingSku = !approval.sourceIdentity?.sourceSku && missingSkuProofAgrees(c, data.rules);
-      const conflicting = (otherIdentities.get(key) || []).some(parts => parts.length !== c.components?.length
-        || parts.some(part => !c.components.some(approved => part.companySku === approved.companySku
-          && part.quantityPerSale === approved.quantityPerSale)));
+      const {contract:c, missingSku, option} = active[0];
+      const approval = c.productReuse;
+      reviewOption = option;
+      const approvedKey = productKey(shopCode,c);
+      if (holds.has(approvedKey)) return review('มีหลักฐานขัดกันที่ยังต้องตรวจสำหรับตัวเลือกนี้');
+      const approved = c.components?.length === 1 ? c.components[0] : null;
+      const identityRules = [...(otherIdentities.get(key) || []),
+        ...(key === approvedKey ? [] : otherIdentities.get(approvedKey) || [])];
+      const conflicting = identityRules.some(parts => parts.length !== 1
+        || parts[0].companySku !== approved?.companySku
+        || parts[0].quantityPerSale !== approved?.quantityPerSale
+        || (parts[0].unit && normalizeIdentityUnit(parts[0].unit) !== normalizeIdentityUnit(approved?.unit)));
       if (approval.status !== 'verified' || !hash(approval.approvalDigest)
         || approval.approvalDigest !== reviewedCopyProductDigest(c)
-        || !sourceIdentityAgrees(item,approval.sourceIdentity,missingSku)
+        || !sourceIdentityAgrees(item,c,option,missingSku)
         || conflicting
-        || c.components?.length !== 1 || (!missingSku && c.components[0].companySku !== c.sourceSku)
+        || !approved || (!missingSku && approved.companySku !== c.sourceSku)
         || !c.bindings?.length) return review('SKU หรือหลักฐานสินค้าและแพ็กไม่ตรงกับคำยืนยันเดิม');
+      // Stable IDs can corroborate a formatting-only change. A substantive
+      // new label can indicate repackaging under an otherwise unchanged ID.
+      if (key !== approvedKey && !(identified.length && formattingKey(c.productName) === formattingKey(item.name)
+        && formattingKey(c.variant) === formattingKey(item.variant))) {
+        return review('ชื่อตัวเลือกหรือสินค้าเปลี่ยน ต้องยืนยันว่าแพ็กเดิมยังใช้ได้');
+      }
       const binding = c.bindings.find(b => hash(b.fingerprint) && hash(b.sourceSha256)
         && Number.isSafeInteger(b.sourceRow) && b.sourceRow >= 2);
       if (!binding) return review('หลักฐานแถวต้นทางที่ใช้ยืนยันสินค้ายังไม่ครบ');
@@ -153,9 +211,9 @@ function buildReviewedCopyLineResolver(data = registry) {
     const { contract:c, binding } = matches[0];
     if (!hash(order.sourceSha256) || !Number.isSafeInteger(order.sourceRows?.[index])
       || order.sourceRows[index] < 2 || !c.contractId || c.scope !== 'accounting_copy_only'
-      || c.shopCode !== shopCode || label(c.productName) !== label(item.name)
-      || label(c.variant) !== label(item.variant)
-      || String(c.sourceSku ?? '') !== String(item.copySourceIdentity?.sourceSku ?? '')
+      || c.shopCode !== shopCode
+      || (!reuse && (label(c.productName) !== label(item.name) || label(c.variant) !== label(item.variant)
+        || String(c.sourceSku ?? '') !== String(item.copySourceIdentity?.sourceSku ?? '')))
       || !hash(c.evidence?.masterSourceSha256) || !hash(c.evidence?.reviewSourceSha256)
       || !Number.isFinite(Date.parse(c.evidence.reviewedAt))
       || !Array.isArray(c.components) || !c.components.length || c.components.length > 10
@@ -181,7 +239,8 @@ function buildReviewedCopyLineResolver(data = registry) {
       matchingProvenance:{ version:reuse ? PRODUCT_REUSE_VERSION : VERSION,
         method:reuse ? 'reviewed_product_option' : 'reviewed_order_source_equivalence',
         contractId:c.contractId, ...(reuse ? { approvalDigest:c.productReuse.approvalDigest,
-          validFrom:c.productReuse.validFrom,validThrough:c.productReuse.validThrough ?? null } : { fingerprint }),
+          validFrom:c.productReuse.validFrom,validThrough:c.productReuse.validThrough ?? null,
+          ...(reviewOption || {}) } : { fingerprint }),
         reviewedSourceSha256:binding.sourceSha256,
         reviewedSourceRow:binding.sourceRow, masterSourceSha256:c.evidence.masterSourceSha256,
         ...(c.evidence.ownerContentsResponseSha256 ? { ownerContentsResponseSha256:c.evidence.ownerContentsResponseSha256 } : {}) } };

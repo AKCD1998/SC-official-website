@@ -229,6 +229,70 @@ test('missing Order All SKU needs a unique Seller option and independent packagi
 });
 
 test.each([
+  ['sc-copy-review-20261118-08','IC-001444','ถุง'],
+  ['sc-copy-review-20261122-14','IC-004143','กล่อง'],
+])('reviewed option %s accepts new corroborating fields in rolling Order All exports',(contractId,sku,unit)=>{
+  const data=require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
+  const c=data.reviewedCopySourceContracts.find(row=>row.contractId===contractId);
+  const {listingId,variationId}=c.evidence.sourceIdentityLink;
+  const resolve=buildReviewedCopyLineResolver(data);
+  const {order}=reusableFixture();
+  const item={name:c.productName,variant:c.variant};
+  const late={...order,orderedAt:'2026-11-24T05:00:00Z'};
+  for(const copySourceIdentity of [{sourceSku:sku},{listingId,variationId},{sourceSku:sku,listingId,variationId}]) {
+    expect(resolve(SC,{...item,copySourceIdentity},late,0)).toMatchObject({sku,unit,factor:1,
+      matchingProvenance:{listingId,variationId,contractId}});
+  }
+  expect(resolve(SC,{...item,copySourceIdentity:{sourceSku:sku,listingId:'999',variationId}},late,0))
+    .toMatchObject({matchingReview:{status:'review',option:{listingId,variationId}}});
+});
+
+test('same shop and variation group pack, unit and SKU conflicts with their source rows',()=>{
+  const f=missingSkuFixture();
+  const option={listingId:'100',variationId:'200'};
+  f.registry.rules=[{shopCode:SC,productName:'new title',variant:f.item.variant,companySku:'TEST-BASE',
+    quantityPerSale:12,evidence:{erpUnit:'กล่อง'}}];
+  const resolve=buildReviewedCopyLineResolver(f.registry);
+  const variants=[
+    {...f.item,name:'new title',copySourceIdentity:option},
+    {...f.item,variant:'10 bottles',copySourceIdentity:option},
+    {...f.item,copySourceIdentity:{...option,sourceSku:'OTHER'}},
+  ];
+  const orders=variants.map((item,index)=>({...f.order,orderNumber:`SYNTHETIC-${index}`,sourceRows:[300+index],items:[item]}));
+  for (const order of orders) {
+    const product=resolve(SC,order.items[0],order,0);
+    expect(product).toMatchObject({matchingReview:{status:'review',option}});
+    expect(product.sku).toBeUndefined();
+  }
+  expect(resolve('dr-morepen',orders[0].items[0],{...orders[0],shopCode:'dr-morepen'},0)).toBeNull();
+  const filters={shopCode:SC,startDate:'2026-11-18',endDate:'2026-11-18'};
+  const confirmed={...filters,status:'source_backed',salesTotal:720,orderCount:3,
+    shops:[{shopCode:SC,sources:[{sourceSha256:'a'.repeat(64)}]}]};
+  const plan=buildAdaSmartCopyPlan(orders,confirmed,filters,[],[],{copyVariationResolver:resolve});
+  expect(plan).toMatchObject({status:'review_required',columns:null,rows:[],issues:Array(3).fill(expect.any(Object)),
+    issueGroups:[{option,reasons:expect.arrayContaining([
+      'ชื่อตัวเลือกหรือสินค้าเปลี่ยน ต้องยืนยันว่าแพ็กเดิมยังใช้ได้',
+    ]),affectedLines:orders.map(order=>({orderNumber:order.orderNumber,sourceRow:order.sourceRows[0]}))}]});
+});
+
+test('stable IDs allow formatting changes and keep two pack options on the same SKU separate',()=>{
+  const f=missingSkuFixture();
+  const smaller=structuredClone(f.contract);
+  smaller.contractId='synthetic-smaller-pack';
+  smaller.variant='6 bottles';
+  smaller.components[0].quantityPerSale=6;
+  smaller.evidence.sourceIdentityLink.variationId='201';
+  smaller.productReuse.approvalDigest=reviewedCopyProductDigest(smaller);
+  f.registry.reviewedCopySourceContracts.push(smaller);
+  const resolve=buildReviewedCopyLineResolver(f.registry);
+  const item={...f.item,name:f.item.name.toUpperCase(),copySourceIdentity:{listingId:'100',variationId:'200'}};
+  expect(resolve(SC,item,f.order,0)).toMatchObject({sku:'TEST-BASE',factor:12,unit:'ขวด'});
+  expect(resolve(SC,{...item,variant:'6 bottles',copySourceIdentity:{listingId:'100',variationId:'201'}},f.order,0))
+    .toMatchObject({sku:'TEST-BASE',factor:6,unit:'ขวด'});
+  expect(resolve(SC,{...item,variant:'6 bottles'},f.order,0)).toMatchObject({matchingReview:{status:'review'}});
+});
+
+test.each([
   ['photograph',f=>{delete f.contract.evidence.sourceIdentityLink.packagingPhotoSha256;}],
   ['unique Seller option',f=>{f.contract.evidence.sourceIdentityLink.uniqueSellerOption=false;}],
   ['POS barcode',f=>{f.contract.evidence.sourceIdentityLink.packagingBarcode='9999999999999';}],

@@ -16,12 +16,38 @@ const UNIT_LABELS = { bar: 'ก้อน', blister: 'แผง', box: 'กล่
   pack: 'แพ็ก', piece: 'ชิ้น', sachet: 'ซอง' };
 const safeCode = value => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/u.test(value);
 const priceText = cents => `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+const optionId = value => typeof value === 'string' && /^\d{1,40}$/u.test(value);
+const issueLabel = value => String(value ?? '').normalize('NFC').replace(/\s+/gu, ' ').trim();
 const AUTOMATIC_REVIEW_LABELS = {
   automatic_attributes_or_pack_incomplete: 'ข้อมูลสูตร ขนาด หรือจำนวนต่อแพ็กยังไม่ครบหรือขัดกัน',
   automatic_attributes_or_pack_not_verified: 'ยังไม่มีหลักฐานยืนยันสูตร ขนาด และแพ็กที่ตรงกัน',
   automatic_evidence_conflict: 'หลักฐานจับคู่ระบุรหัสหรือจำนวนต่อแพ็กไม่ตรงกัน',
   automatic_bundle_or_special_authority_hold: 'ชุดหลายสินค้าหรือกฎเฉพาะต้องใช้การจับคู่ที่ยืนยันไว้',
 };
+
+function groupCopyIssues(issues, shopCode) {
+  const byOption = new Map();
+  const groups = [];
+  for (const issue of issues) {
+    const { productName, variant, option, reason, orderNumber, sourceRow } = issue;
+    if (!productName || !orderNumber) {
+      groups.push(issue);
+      continue;
+    }
+    const key = JSON.stringify(option?.variationId ? [shopCode,option.variationId]
+      : [shopCode,option?.listingId || '',issueLabel(productName),issueLabel(variant)]);
+    let group = byOption.get(key);
+    if (!group) {
+      group = { productName, variant, option, reason, reasons:[], affectedLines:[] };
+      byOption.set(key,group);
+      groups.push(group);
+    }
+    if (!group.reasons.includes(reason)) group.reasons.push(reason);
+    group.affectedLines.push({ orderNumber, sourceRow, reason, sku:issue.sku,
+      ...(issue.components?.length ? { components:issue.components } : {}) });
+  }
+  return groups;
+}
 
 function resolveLegacyCopyProduct(shopCode, item) {
   let override = rules.rules.find(row => row.shopCode === shopCode
@@ -185,11 +211,19 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
   const usedPolicies = new Map(); const voucherRestorations = [];
   let merchandiseCents = 0; let supportCents = 0; let sellerCents = 0;
   let cohortCents = 0; let financialComplete = true; let sourceLineCount = 0;
-  const addIssue = (reason, order, item, index, sku, components, matchingReview) => issues.push({ reason, sku: sku || null,
-    ...(components?.length ? { components } : {}),
-    ...(matchingReview ? { matchingReview } : {}),
-    orderNumber: order?.orderNumber || null, sourceRow: order?.sourceRows?.[index] || null,
-    productName: item?.name || null, variant: item?.variant || null, listingQuantity: item?.quantity || null });
+  const addIssue = (reason, order, item, index, sku, components, matchingReview) => {
+    const source = item?.copySourceIdentity;
+    const option = matchingReview?.option || (!source?.invalid && {
+      listingId: optionId(source?.listingId) ? source.listingId : null,
+      variationId: optionId(source?.variationId) ? source.variationId : null,
+    });
+    issues.push({ reason, sku: sku || null,
+      ...(components?.length ? { components } : {}),
+      ...(matchingReview ? { matchingReview } : {}),
+      ...(option && (option.listingId || option.variationId) ? { option } : {}),
+      orderNumber: order?.orderNumber || null, sourceRow: order?.sourceRows?.[index] || null,
+      productName: item?.name || null, variant: item?.variant || null, listingQuantity: item?.quantity || null });
+  };
   if (shopCode === 'all') {
     addIssue('เลือกหนึ่งร้านสำหรับคัดลอกเข้า AdaSmart');
   }
@@ -328,7 +362,8 @@ function buildAdaSmartCopyPlan(orders, confirmedSales, filters, businessDateCorr
     skuCount: new Set(rows.map(row => row.sku)).size, rowCount: rows.length, totalQuantity: rows.reduce((sum, row) => sum + row.quantity, 0),
     merchandiseCents, supportCents, sellerCents, cohortTotalCents: financialComplete ? cohortCents : null,
     totalCents: readyTotalCents, targetCents, varianceCents: targetCents == null ? null : readyTotalCents - targetCents,
-    rows, issues, confirmedSales, ...(dailyReconciliation ? { dailyReconciliation } : {}),
+    rows, issues, issueGroups:groupCopyIssues(issues,shopCode), confirmedSales,
+    ...(dailyReconciliation ? { dailyReconciliation } : {}),
     sourceEvidence: [...evidence.values()], masterEvidence: rules.masterEvidence,
     additionalMasterEvidence: rules.additionalMasterEvidence || [],
     columns: ready ? { sku: rows.map(row => row.sku).join('\n'),
