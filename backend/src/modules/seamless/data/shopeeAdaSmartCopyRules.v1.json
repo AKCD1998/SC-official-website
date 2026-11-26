@@ -18008,6 +18008,72 @@
         },
         "approvalDigest": "d3c13801feed8f5dc254d4cfcff007eee0c4bbe52ad3dd98b0cf8069c59966b6"
       }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-siribuncha-180-carton",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ศิริบัญชา แอลกอฮอล์ 70% ยกลัง 180 มล. 48 ขวด / 450 มล. 24 ขวด Siribuncha",
+      "variant": "180มล.x48ขวด",
+      "sourceSku": "IC-000455",
+      "components": [
+        {
+          "companySku": "IC-000455",
+          "quantityPerSale": 48,
+          "unit": "ขวด",
+          "productName": "สามัญ แอลกอฮอล์ศิริบัญชา 180 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851124101805"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:42:57.5015418+07:00",
+        "masterSourceSha256": "7123e6b2908a27ce396168890b41afc9fb1b6e09dd1cacdfee220a0b344cdcb4",
+        "reviewSourceSha256": "61dc778dd3d7da660ae5487bdf8b02f28ceb12314e6a1b26444d34eea3092639",
+        "basis": "seller_carton_option_sku_and_pos004_base_unit",
+        "sellerSourceKind": "seller_centre_sales_export_and_owner_screenshot",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/45017975192",
+        "sellerSourceSha256": "5ab4f1f036d8a4a921a2326bc2cde2a5107e07466f6d0774e2170d9ca5beb3f3",
+        "descriptionSourceSha256": "5ab4f1f036d8a4a921a2326bc2cde2a5107e07466f6d0774e2170d9ca5beb3f3",
+        "sellerSourceRow": 658,
+        "descriptionSourceRow": 345,
+        "listingId": "45017975192",
+        "variationId": "411610938416",
+        "sellerGtin": "8851124104592",
+        "packBasis": "Seller Centre specifies 48 bottles of 180 mL; three Order All lines carry the same option and IC-000455. AdaPos 004 records IC-000455 in single bottles.",
+        "sellerGtinConflict": {
+          "posSku": "IC-000270",
+          "posUnit": "bottle",
+          "resolution": "Use the exact carton option and SKU. If a new order line supplies a barcode, require the IC-000455 base-unit barcode."
+        }
+      },
+      "bindings": [
+        {
+          "fingerprint": "895f46bc634557e127c16ce5ef0f8eb291fbc5dddca2920b50f1a378b349e2d8",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2540
+        },
+        {
+          "fingerprint": "2e12d896f2b9316278a3c9919b465a0cc6b87614297387610637229b2f6fd8aa",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4428
+        },
+        {
+          "fingerprint": "8f10a6a576e7ac172fbaafb1a89ac90b1b764c4ede4272cc2330058d378c6bce",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4477
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-000455",
+          "barcode": "8851124101805"
+        },
+        "approvalDigest": "12ad001417fe73fc4bc529a0d3d2357b8478a275c1792eee756451cdfb987da1"
+      }
     }
   ]
 }
