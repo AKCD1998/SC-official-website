@@ -190,7 +190,8 @@ test('pack versions use creation time, hold gaps or overlaps, and preserve older
 
 test('the 39 promoted SC approvals retain their individually reviewed SKU, ERP unit and pack on new orders',()=>{
   const data=require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
-  const promoted=data.reviewedCopySourceContracts.filter(c=>c.productReuse&&c.contractId.startsWith('sc-copy-review-20261113-'));
+  const promoted=data.reviewedCopySourceContracts.filter(c=>c.productReuse&&!c.productReuse.bundleAllocation
+    &&c.contractId.startsWith('sc-copy-review-20261113-'));
   expect(promoted).toHaveLength(39);
   const resolve=buildReviewedCopyLineResolver(data);
   for(const c of promoted) {

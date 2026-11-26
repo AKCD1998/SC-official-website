@@ -12418,7 +12418,13 @@
         "masterSourceSha256": "4aca302a0ce7b32b161786ecf1cf4706aa15a052873551f161f178bc4d54f588",
         "reviewSourceSha256": "43b94a5deafc3f1882501a73f1e1cf2659a0f8dedeb4d8f68c042fe8909254e4",
         "basis": "direct_owner_confirmed_contents_and_existing_pos_units",
-        "ownerContentsResponseSha256": "0e649119795098eea8098f7db89cee3a1950f07597afa990dfd6fdcc63d49c52"
+        "ownerContentsResponseSha256": "0e649119795098eea8098f7db89cee3a1950f07597afa990dfd6fdcc63d49c52",
+        "listingId": "40735044760",
+        "variationId": "298008802896",
+        "sellerSourceSha256": "5ab4f1f036d8a4a921a2326bc2cde2a5107e07466f6d0774e2170d9ca5beb3f3",
+        "sellerSourceRow": 750,
+        "descriptionSourceRow": 400,
+        "packBasis": "Owner-confirmed 100-needle option: one meter box, one additional 50-strip box, and two 50-needle boxes. The exact Seller Centre option has no seller SKU or GTIN."
       },
       "bindings": [
         {
@@ -12426,7 +12432,21 @@
           "sourceSha256": "53f99c8efcb01285f8fdc87cc5d46966f385a82cc6af3999d340d14cf3d3f585",
           "sourceRow": 5365
         }
-      ]
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-13",
+        "sourceIdentity": {
+          "sourceSku": ""
+        },
+        "bundleAllocation": {
+          "policyKey": "sinocare-smart-100-primary-nominal-lines-v1",
+          "responseSha256": "05ab6febbb14e127dc7eed3e213762156661611fb7606bca3240753e7cefb07e",
+          "supersededHoldSha256": "c8692e464736dd91760526c6a58153d310dcc964466ed51d7af77c5ec48cb9a9",
+          "policySha256": "9fc18b639e21428ac028bc620e14a84f540deb5f3443e97b769cca0a9852304f"
+        },
+        "approvalDigest": "c914528dfdc1adb450bdf75131185a535a1fb7ce6ee858e4aca57ea0fc8175d6"
+      }
     },
     {
       "contractId": "sc-copy-review-20261113-48",

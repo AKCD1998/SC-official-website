@@ -1,5 +1,7 @@
 // Owner-approved accounting allocations are separate from Shopee source prices.
 // Keep all arithmetic in integer satang and leave the immutable source untouched.
+const { createHash } = require('node:crypto');
+
 function allocateCents(total, weights) {
   if (!Number.isSafeInteger(total) || total < 0 || !Array.isArray(weights)
     || !weights.length || weights.some(value => !Number.isSafeInteger(value) || value < 0)) return null;
@@ -31,7 +33,17 @@ function sellerAllocationPolicy(policies, shopCode) {
     && policy.method === 'proportional_net_merchandise_largest_remainder');
 }
 
-function bundleAllocation(policies, shopCode, item, components, totalCents) {
+function bundlePolicyDigest(policy) {
+  if (!Array.isArray(policy?.components) || policy.components.some(part => typeof part?.sku !== 'string')) return null;
+  const components = [...policy.components].sort((a, b) => a.sku.localeCompare(b.sku));
+  const canonical = JSON.stringify({ ...policy, components }, (_, value) =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? Object.fromEntries(Object.keys(value).sort().map(key => [key, value[key]]))
+      : value);
+  return createHash('sha256').update(canonical).digest('hex');
+}
+
+function bundleAllocation(policies, shopCode, item, components, totalCents, approval) {
   // A renamed listing may reuse an approval only through an exact, evidenced
   // rule with the same component identities and quantities. Never infer an
   // approval from a brand name, similar wording, or an equal bundle amount.
@@ -50,6 +62,10 @@ function bundleAllocation(policies, shopCode, item, components, totalCents) {
     'equal_components_actual_source_amount',
     'primary_component_with_nominal_secondary_lines'].includes(policy.method)
     || !Array.isArray(policy.components) || policy.components.length !== components.length) return null;
+  if (approval && (record.policyKey !== approval.policyKey
+    || record.approval.responseSha256 !== approval.responseSha256
+    || record.approval.contentsResponseSha256 !== approval.contentsResponseSha256
+    || bundlePolicyDigest(policy) !== approval.policySha256)) return null;
   const parts = components.map(component => ({ ...component,
     allocation: policy.components.find(row => row.sku === component.sku && row.factor === component.factor) }));
   if (parts.some(row => !row.allocation || !Number.isSafeInteger(row.allocation.weight) || row.allocation.weight < 0)
@@ -127,4 +143,4 @@ function policyReference(record) {
     approval: record.approval, approvedBy: record.approvedBy, approvedAt: record.approvedAt };
 }
 
-module.exports = { allocateCents, sellerAllocationPolicy, bundleAllocation, policyReference };
+module.exports = { allocateCents, sellerAllocationPolicy, bundleAllocation, bundlePolicyDigest, policyReference };

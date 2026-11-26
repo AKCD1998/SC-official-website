@@ -25,6 +25,7 @@ function reviewedCopyProductDigest(contract) {
     sourceSku:contract.sourceSku,components:contract.components,evidence:contract.evidence,
     sourceIdentity:contract.productReuse?.sourceIdentity,validFrom:contract.productReuse?.validFrom,
     validThrough:contract.productReuse?.validThrough ?? null,
+    ...(contract.productReuse?.bundleAllocation ? { bundleAllocation:contract.productReuse.bundleAllocation } : {}),
   })).digest('hex');
 }
 
@@ -66,12 +67,12 @@ function evidencedOption(contract, hasMissingSkuProof) {
   return { listingId:proof.listingId, variationId:proof.variationId };
 }
 
-function sourceIdentityAgrees(item, contract, option, allowMissingSku) {
+function sourceIdentityAgrees(item, contract, option, allowMissingSku, bundle) {
   const expected = contract.productReuse.sourceIdentity;
   if (!expected || typeof expected !== 'object' || Array.isArray(expected)) return false;
-  const source = item.copySourceIdentity ?? (allowMissingSku ? {} : null);
+  const source = item.copySourceIdentity ?? (allowMissingSku || bundle ? {} : null);
   if (!source || typeof source !== 'object' || Array.isArray(source)
-    || source.invalid || (!allowMissingSku && !code(expected?.sourceSku))) return false;
+    || source.invalid || (!allowMissingSku && !bundle && !code(expected.sourceSku))) return false;
   if (Object.keys(source).some(key => !['sourceSku','listingId','variationId','invalid'].includes(key))) return false;
   const sku = allowMissingSku ? contract.components[0].companySku : expected.sourceSku;
   const listingId = expected.listingId || option?.listingId;
@@ -80,7 +81,7 @@ function sourceIdentityAgrees(item, contract, option, allowMissingSku) {
     || (allowMissingSku && contract.evidence.sourceIdentityLink.packagingBarcode) || '';
   const agrees = (value, approved) => value == null || String(value).trim() === ''
     || String(value).trim() === approved;
-  if (!allowMissingSku && (source.sourceSku !== sku || contract.sourceSku !== sku)) return false;
+  if (!allowMissingSku && !bundle && (source.sourceSku !== sku || contract.sourceSku !== sku)) return false;
   if (option && (option.listingId !== listingId || option.variationId !== variationId)) return false;
   if ((expected.listingId && source.listingId !== expected.listingId)
     || (expected.variationId && source.variationId !== expected.variationId)) return false;
@@ -115,7 +116,13 @@ function buildReviewedCopyLineResolver(data = registry) {
   const fingerprints = new Map();
   const products = new Map();
   const options = new Map();
-  const holds = new Set((data.copyIdentityHolds || []).map(item => productKey(item.shopCode,item)));
+  const holds = new Map();
+  for (const hold of data.copyIdentityHolds || []) {
+    const key = productKey(hold.shopCode,hold);
+    const registered = holds.get(key) || [];
+    registered.push(hold);
+    holds.set(key,registered);
+  }
   const otherIdentities = new Map();
   for (const row of [...(data.rules || []),...(data.supplementalCopyIdentities || [])]) {
     const key = productKey(row.shopCode,row);
@@ -166,7 +173,6 @@ function buildReviewedCopyLineResolver(data = registry) {
       if (known.every(record => record.option?.variationId === known[0].option?.variationId)) {
         reviewOption = known[0].option;
       }
-      if (holds.has(key)) return review('มีหลักฐานขัดกันที่ยังต้องตรวจสำหรับตัวเลือกนี้');
       const date = localDate(order.orderedAt);
       const approvals = known.map(record => record.contract.productReuse);
       if (!date || approvals.some(a => !validDate(a.validFrom)
@@ -181,24 +187,34 @@ function buildReviewedCopyLineResolver(data = registry) {
       const approval = c.productReuse;
       reviewOption = option;
       const approvedKey = productKey(shopCode,c);
-      if (holds.has(approvedKey)) return review('มีหลักฐานขัดกันที่ยังต้องตรวจสำหรับตัวเลือกนี้');
-      const approved = c.components?.length === 1 ? c.components[0] : null;
+      const bundle = approval.bundleAllocation;
+      const activeHolds = [...(holds.get(key) || []), ...(key === approvedKey ? [] : holds.get(approvedKey) || [])];
+      // A renewed approval can supersede only the exact conflict the owner reviewed.
+      if (activeHolds.length && (!bundle || activeHolds.length !== 1
+        || createHash('sha256').update(JSON.stringify(activeHolds[0])).digest('hex') !== bundle.supersededHoldSha256)) {
+        return review('มีหลักฐานขัดกันที่ยังต้องตรวจสำหรับตัวเลือกนี้');
+      }
+      const approved = Array.isArray(c.components) ? c.components : [];
+      const validPack = bundle
+        ? approved.length > 1 && Boolean(option) && c.sourceSku === null
+          && approval.sourceIdentity?.sourceSku === '' && !approval.sourceIdentity.barcode && !c.evidence.sellerGtin
+          && code(bundle.policyKey) && hash(bundle.responseSha256) && hash(bundle.policySha256)
+          && hash(c.evidence.ownerContentsResponseSha256)
+        : approved.length === 1 && (missingSku || approved[0].companySku === c.sourceSku);
       const identityRules = [...(otherIdentities.get(key) || []),
         ...(key === approvedKey ? [] : otherIdentities.get(approvedKey) || [])];
-      const conflicting = identityRules.some(parts => parts.length !== 1
-        || parts[0].companySku !== approved?.companySku
-        || parts[0].quantityPerSale !== approved?.quantityPerSale
-        || (parts[0].unit && normalizeIdentityUnit(parts[0].unit) !== normalizeIdentityUnit(approved?.unit)));
+      const conflicting = identityRules.some(parts => parts.length !== approved.length
+        || approved.some(component => !parts.some(part => part.companySku === component.companySku
+          && part.quantityPerSale === component.quantityPerSale
+          && (!part.unit || normalizeIdentityUnit(part.unit) === normalizeIdentityUnit(component.unit)))));
       if (approval.status !== 'verified' || !hash(approval.approvalDigest)
         || approval.approvalDigest !== reviewedCopyProductDigest(c)
-        || !sourceIdentityAgrees(item,c,option,missingSku)
-        || conflicting
-        || !approved || (!missingSku && approved.companySku !== c.sourceSku)
-        || !c.bindings?.length) return review('SKU หรือหลักฐานสินค้าและแพ็กไม่ตรงกับคำยืนยันเดิม');
+        || !validPack || !sourceIdentityAgrees(item,c,option,missingSku,Boolean(bundle))
+        || conflicting || !c.bindings?.length) return review('SKU หรือหลักฐานสินค้าและแพ็กไม่ตรงกับคำยืนยันเดิม');
       // Stable IDs can corroborate a formatting-only change. A substantive
       // new label can indicate repackaging under an otherwise unchanged ID.
-      if (key !== approvedKey && !(identified.length && formattingKey(c.productName) === formattingKey(item.name)
-        && formattingKey(c.variant) === formattingKey(item.variant))) {
+      if (key !== approvedKey && (bundle || !(identified.length && formattingKey(c.productName) === formattingKey(item.name)
+        && formattingKey(c.variant) === formattingKey(item.variant)))) {
         return review('ชื่อตัวเลือกหรือสินค้าเปลี่ยน ต้องยืนยันว่าแพ็กเดิมยังใช้ได้');
       }
       const binding = c.bindings.find(b => hash(b.fingerprint) && hash(b.sourceSha256)
@@ -244,7 +260,10 @@ function buildReviewedCopyLineResolver(data = registry) {
         reviewedSourceSha256:binding.sourceSha256,
         reviewedSourceRow:binding.sourceRow, masterSourceSha256:c.evidence.masterSourceSha256,
         ...(c.evidence.ownerContentsResponseSha256 ? { ownerContentsResponseSha256:c.evidence.ownerContentsResponseSha256 } : {}) } };
+    const allocation = reuse && c.productReuse.bundleAllocation;
     return components.length === 1 ? { ...components[0], ...common } : { components, ...common,
+      ...(allocation ? { bundleApproval:{ policyKey:allocation.policyKey, responseSha256:allocation.responseSha256,
+        contentsResponseSha256:c.evidence.ownerContentsResponseSha256, policySha256:allocation.policySha256 } } : {}),
       reason:'ยืนยันส่วนประกอบชุดแล้ว ต้องใช้กฎแบ่งราคาที่เจ้าของอนุมัติตรงกับชุดนี้' };
   };
 }
