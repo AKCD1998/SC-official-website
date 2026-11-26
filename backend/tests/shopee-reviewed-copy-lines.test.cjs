@@ -383,3 +383,34 @@ test.each([
   f.contract.productReuse.approvalDigest=reviewedCopyProductDigest(f.contract);
   expect(buildReviewedCopyLineResolver(f.data)(SC,f.item,f.order,0).reason).toBeTruthy();
 });
+
+test('SC can reuse the verified Siribuncha 180 mL carton without borrowing the 450 mL barcode', () => {
+  const data = require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
+  const resolve = buildReviewedCopyLineResolver(data);
+  const { item, order } = fixture();
+  Object.assign(item, {
+    name: 'ศิริบัญชา แอลกอฮอล์ 70% ยกลัง 180 มล. 48 ขวด / 450 มล. 24 ขวด Siribuncha',
+    variant: '180มล.x48ขวด',
+    copySourceIdentity: { sourceSku: 'IC-000455' },
+  });
+  Object.assign(order, { orderedAt: '2026-11-28T03:00:00Z', paidAt: '2026-11-28T03:01:00Z',
+    observedAt: '2026-11-29T00:00:00Z' });
+  const filters = { shopCode: SC, startDate: '2026-11-28', endDate: '2026-11-28' };
+  const confirmed = { ...filters, status: 'source_backed', salesTotal: 240, orderCount: 1,
+    shops: [{ shopCode: SC, sources: [{ sourceSha256: 'a'.repeat(64) }] }] };
+  const plan = buildAdaSmartCopyPlan([order], confirmed, filters);
+  expect(plan).toMatchObject({ status: 'ready', issues: [], totalQuantity: 96, totalCents: 24000 });
+  expect(plan.rows.every(row => row.sku === 'IC-000455' && row.unit === 'ขวด')).toBe(true);
+  expect(resolve(SC, { ...item, sourceBarcode: '8851124101805' }, order, 0)).toMatchObject({
+    sku: 'IC-000455', factor: 48,
+  });
+  for (const conflicting of [
+    { ...item, sourceBarcode: '8851124104592' },
+    { ...item, copySourceIdentity: { ...item.copySourceIdentity, variationId: '311519389376' } },
+    { ...item, copySourceIdentity: { sourceSku: 'IC-000270' } },
+  ]) {
+    expect(resolve(SC, conflicting, order, 0)).toMatchObject({
+      matchingReview: { status: 'review', reasonCode: 'reviewed_copy_source_conflict' },
+    });
+  }
+});
