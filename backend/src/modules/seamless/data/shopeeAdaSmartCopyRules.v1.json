@@ -15201,6 +15201,2813 @@
         },
         "approvalDigest": "90f030bc1ebe6130117a0985252c669643a0454e3ce824b5e2f202e2b653225f"
       }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-01",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% สีฟ้า / สีชมพู ขนาด 60 และ 450 มล. แพ็ค 6 ขวด",
+      "variant": "ชมพู 450 มล. 6 ขวด",
+      "sourceSku": "IC-003073",
+      "components": [
+        {
+          "companySku": "IC-003073",
+          "quantityPerSale": 6,
+          "unit": "ขวด",
+          "productName": "สามัญ แอลกอฮอล์เสือดาวกลิ่นซากุระ สีชมพู 450 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853042002103"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 290,
+        "descriptionSourceRow": 158,
+        "listingId": "52568044578",
+        "variationId": "401590044876",
+        "sellerGtin": "9999900083156",
+        "packBasis": "Selected Sakura pink 450 mL variant and Seller description specify six identical bottles. Seller GTIN is the POS half-dozen and converts to six base bottles.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "b8d36acbcf4de7c9bf38d7b97a8e28f9d09adf89d9f1111e151469f12e4d420e",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 824
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-003073"
+        },
+        "approvalDigest": "ef1101b62f8e3f72a270c8a6a600a18b6abed30056e21745b27f21f403099946"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-02",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "นูโทรเพล็กซ์ โอลิโกพลัส อาหารเสริมชนิดน้ำ รสส้ม 60/100 มล. Nutroplex Oligo Plus",
+      "variant": "100 มล.",
+      "sourceSku": "IC-003613",
+      "components": [
+        {
+          "companySku": "IC-003613",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ นูโทรเพล็กซ์ โอลิโกพลัส รสส้ม 100 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858965400265"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 148,
+        "descriptionSourceRow": 78,
+        "listingId": "55671752219",
+        "variationId": "336743061878",
+        "sellerGtin": "8858965400265",
+        "packBasis": "Selected 100 mL orange liquid is one bottle with its retail carton. Exact base GTIN and POS bottle agree.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "353ff96914f4b1ea48ff07fdc0257bda0e92f8028b3daea38ad70eddaa5ccc7a",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 927
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-003613"
+        },
+        "approvalDigest": "d2e71f3c22b9f7257ddcf6737268d58bf851252511dfaa24a0414977057fc312"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-03",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "นีโอ-มูน อาหารทางการแพทย์ชนิดผง กลิ่นวานิลลา 400 กรัม 1 กระป๋อง Neo-Mune",
+      "variant": "400 กรัม 1 กระป๋อง",
+      "sourceSku": "IC-001049",
+      "components": [
+        {
+          "companySku": "IC-001049",
+          "quantityPerSale": 1,
+          "unit": "กระป๋อง",
+          "productName": "สามัญ นีโอมูน กลิ่นวนิลา 400 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852629214052"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 226,
+        "descriptionSourceRow": 116,
+        "listingId": "53921715736",
+        "variationId": "346743173825",
+        "sellerGtin": "8852629214052",
+        "packBasis": "Exact vanilla 400 g variant, retail GTIN and one-can description.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "5c1a484b5708785ebac016b39c102bdb9b9c2e47e76e47981b67e2692304a414",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 895
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-001049"
+        },
+        "approvalDigest": "b901fdcd9112a11ada9a24d60b822dec53347828f1b88346f7336e7dd90f7338"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-04",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด อุปกรณ์ประคบเย็นและร้อน พร้อมปลอกผ้า ขนาดเล็กและใหญ่ 1 ชิ้น Longmed Cold Hot Pad",
+      "variant": "เล็ก 12x10.5 ซม.",
+      "sourceSku": "IC-004750",
+      "components": [
+        {
+          "companySku": "IC-004750",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ อุปกรณ์ประคบเย็นและร้อน ลองเมด ขนาด 12x10.5 ซม 1 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095901950"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 50,
+        "descriptionSourceRow": 25,
+        "listingId": "57521803874",
+        "variationId": "426750863617",
+        "sellerGtin": "8859095901950",
+        "packBasis": "Selected small 12 × 10.5 cm pad. Seller sells one box containing one pad, the POS piece.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "2d1e55aa221e73c28ac654343ccd1c855e7dc96c39ccf8fa98d2899f51c2f0d7",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2008
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-004750"
+        },
+        "approvalDigest": "934405bf9f109f8586cce831c83de9f1861b8748396863be2d7b38c1b2cecdce"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-05",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยเด็ก 3 ชั้น 50 ชิ้น 1 กล่อง Klean Mask Kid",
+      "variant": "ขาว เด็ก",
+      "sourceSku": "IC-006235",
+      "components": [
+        {
+          "companySku": "IC-006235",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัยคลีนมาส์กเด็ก สีขาว 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095901660"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 260,
+        "descriptionSourceRow": 142,
+        "listingId": "53221707832",
+        "variationId": "254388917326",
+        "sellerGtin": "8859095901660",
+        "packBasis": "White kid masks. Seller specifies one 50-mask box and the GTIN is the entire POS box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "1def071bf729baf4598ec17f5638ec5e7f9c4db489cd8eb11537854d273d9c70",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1199
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-006235"
+        },
+        "approvalDigest": "b71f81283c363f67ceec3c8788083f784339251d06a6d006925385b71bf1d156"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-06",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด อุปกรณ์ประคบเย็นและร้อน พร้อมปลอกผ้า ขนาดเล็กและใหญ่ 1 ชิ้น Longmed Cold Hot Pad",
+      "variant": "ใหญ่ 25x10 ซม.",
+      "sourceSku": "IC-006240",
+      "components": [
+        {
+          "companySku": "IC-006240",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ อุปกรณ์ประคบเย็นและร้อน ลองเมด ขนาด 25x10 ซม 1 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095901967"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 49,
+        "descriptionSourceRow": 25,
+        "listingId": "57521803874",
+        "variationId": "426750863618",
+        "sellerGtin": "8859095901967",
+        "packBasis": "Selected large 25 × 10 cm pad. Seller sells one box containing one pad, the POS piece.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "a103b8709f197ae0a9499a64490319fa969845d786489e17746552ab54ef11cc",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2102
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-006240"
+        },
+        "approvalDigest": "b09bf28f6a52e51e6ad92b92128040acdc779b34e40c5d7a962e5ff1c12b4ea1"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-07",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด เมดอีลาส ผ้ายืดพันเคล็ด 2 3 4 6 นิ้ว ยาว 5 หลา 1 ม้วน Longmed Medelas Elastic Bandage",
+      "variant": "4 นิ้ว",
+      "sourceSku": "IC-000572",
+      "components": [
+        {
+          "companySku": "IC-000572",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ผ้ายืดพันเคล็ดเมดอีลาส ลองเมด 4 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900267"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 803,
+        "descriptionSourceRow": 417,
+        "listingId": "28646168528",
+        "variationId": "416682175241",
+        "sellerGtin": "8859095900267",
+        "packBasis": "4-inch × 5-yard Medelas. Seller explicitly sells one individually wrapped roll; the GTIN is one POS piece.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "5479a5c5602c99454370d1fec733a7d201b10f3ceb5744183d57b1bffaf17def",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1637
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-000572"
+        },
+        "approvalDigest": "4e490f21e5b7928b323a1987ea56c2913a50799484c7e055a45e795fc5bc3e07"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-08",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยเด็ก 3 ชั้น 50 ชิ้น 1 กล่อง Klean Mask Kid",
+      "variant": "ฟ้า เด็ก",
+      "sourceSku": "IC-006236",
+      "components": [
+        {
+          "companySku": "IC-006236",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัยคลีนมาส์กเด็ก สีฟ้า 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903466"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 262,
+        "descriptionSourceRow": 142,
+        "listingId": "53221707832",
+        "variationId": "254388917328",
+        "sellerGtin": "8859095903466",
+        "packBasis": "Blue kid masks. One box containing 50 masks.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "2c6ebf8fe2c36fac46cb3d770cb90641a2c8c17611398bae2b6ba1e8d458d942",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1463
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-006236"
+        },
+        "approvalDigest": "8ad697a9fa98314f59d54d8429c2969d2a8fda9f7606913a546e4ce983219d6a"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-09",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยเด็ก 3 ชั้น 50 ชิ้น 1 กล่อง Klean Mask Kid",
+      "variant": "เขียว เด็ก",
+      "sourceSku": "IC-006237",
+      "components": [
+        {
+          "companySku": "IC-006237",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัยคลีนมาส์กเด็ก สีเขียว 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903480"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 264,
+        "descriptionSourceRow": 142,
+        "listingId": "53221707832",
+        "variationId": "254388917330",
+        "sellerGtin": "8859095903480",
+        "packBasis": "Green kid masks. One box containing 50 masks.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "5fda4296c6538993e55d84b837baa4e0cf5c2232665e16946eb9ff42c7268b7b",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1329
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-006237"
+        },
+        "approvalDigest": "a41f42a1609396ea4c7f261fa5390f7ab8e610f03ef215893cb1de9f6e0c5f74"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-10",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ตาบู ครีมอาบน้ำ กลิ่นเซนชวลไนท์ 500 มล. ขวดปั๊ม TABU Sensual Night Shower Cream",
+      "variant": "500 มล. 1 ขวด",
+      "sourceSku": "IC-006216",
+      "components": [
+        {
+          "companySku": "IC-006216",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ครีมอาบน้ำ ตาบู ซิลกี้ สมูท แอนด์ มอยส์เจอร์ไรซิ่ง 500 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850195710787"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 193,
+        "descriptionSourceRow": 99,
+        "listingId": "54871917989",
+        "variationId": "401754722787",
+        "sellerGtin": "8850195710787",
+        "packBasis": "Seller description binds the Sensual Night scent to the Silky Smooth and Moisturizing line. Exact POS base GTIN and 500 mL pump bottle.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "3f7075e1929bd983812d396b17459b739729d588012f76b6b6c82c153b9b5046",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2771
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-006216"
+        },
+        "approvalDigest": "07b4ab17ab38c4ed2eb1ecd94d42235e7962b1e177fb6809e5dc8c2db7719e75"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-11",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด ผ้ายืดพันแผล 2 3 4 6 นิ้ว ยาว 5 หลา 1 กล่อง 12 ม้วน Longmed Conforming Bandage",
+      "variant": "3 นิ้ว พันแผล 12ม้วน",
+      "sourceSku": "IC-000017",
+      "components": [
+        {
+          "companySku": "IC-000017",
+          "quantityPerSale": 12,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ผ้ายืดคอนฟอร์ม ลองเมด 3 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900113"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 277,
+        "descriptionSourceRow": 151,
+        "listingId": "52921941148",
+        "variationId": "326759525810",
+        "sellerGtin": "8859095900564",
+        "packBasis": "Three-inch Conforming Bandage, not Medelas. Seller box count and POS dozen barcode agree on twelve base rolls.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "3cc1e82f731cd4b3edc681ccf85e07bedf871eafc9a4a46137e427edc63b8954",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2867
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-000017"
+        },
+        "approvalDigest": "13aec6aa8a421c935286548acaa4b6955d8ce8d754bdc735d3e183aef1a01cc6"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-12",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Comfy Lozenge เม็ดอมคอมฟีร์ ขิง ไม่ง่วง รสน้ำผึ้งมะนาวมิ้นท์ 8 เม็ด",
+      "variant": "1กล่อง8เม็ดexp030527",
+      "sourceSku": "IC-004642",
+      "components": [
+        {
+          "companySku": "IC-004642",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ เม็ดอมคอมฟีร์ กลิ่นน้ำผึ้งมะนาวและมิ้นท์ 8 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513014384"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 566,
+        "descriptionSourceRow": 299,
+        "listingId": "46666167210",
+        "variationId": "366376948792",
+        "sellerGtin": "8856513014384",
+        "packBasis": "Expiry-labelled honey lemon mint variant. One eight-lozenge retail box and exact POS box barcode.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "c09012262d6f0126432d4f0b7d4cdd641dc0fc4c28ad0a8bb565890b31a0e22f",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1698
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-004642"
+        },
+        "approvalDigest": "79520985f1263a0bc389b3265174a9713525f442bc5e02cd312469530c7ee960"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-13",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด เมดอีลาส ผ้ายืดพันเคล็ด 2 3 4 6 นิ้ว ยาว 5 หลา 1 ม้วน Longmed Medelas Elastic Bandage",
+      "variant": "3 นิ้ว",
+      "sourceSku": "630010169",
+      "components": [
+        {
+          "companySku": "630010169",
+          "quantityPerSale": 1,
+          "unit": "ม้วน",
+          "productName": "สามัญ ผ้ายืดพันเคล็ดเมดอีลาส ลองเมด 3 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900137"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 802,
+        "descriptionSourceRow": 417,
+        "listingId": "28646168528",
+        "variationId": "416682175240",
+        "sellerGtin": "8859095900137",
+        "packBasis": "Three-inch Medelas single-roll listing. Same base SKU as the 12-roll listing, distinct option and GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "b10d013832c2e831925789262ea01a6fe475d009949dcd89b10bff2f29892242",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1846
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "630010169"
+        },
+        "approvalDigest": "65f9bf77ac208c1e8ff86724a64d448966bff2e9f3a8284f8e87a586d08e5b1d"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-14",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แอนตาซิล พลัส อาโมจิน โอทีซี แท็บ คาร์โยพิน-เอฟ ยาเม็ดเคี้ยว 10 เม็ด Antacil Plus Amogin OTC Tab Caryopin-F",
+      "variant": "อาโมจินOTC10เม็ด",
+      "sourceSku": "IC-004881",
+      "components": [
+        {
+          "companySku": "IC-004881",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ อาโมจิน โอทีซี แท็บ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8855459009683"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 123,
+        "descriptionSourceRow": 62,
+        "listingId": "56171097867",
+        "variationId": "421695473786",
+        "sellerGtin": "8855459009683",
+        "packBasis": "Amogin OTC 10-tablet option. One retail blister as identified by the exact POS GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "ca24e6e9d9f163fb582ed87e28e8569b4af3b66354a5075042736663a7e422ba",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1956
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-004881"
+        },
+        "approvalDigest": "986969f9d355bdfda3f031b15a036d851a99d0f25f2894009ab79263fa856683"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-15",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ONCE Dialyze วันซ์ ไดอะไลซ์ กลิ่นวานิลลา 400 กรัม อาหารทางการแพทย์ 1 กระป๋อง",
+      "variant": "800 กรัม",
+      "sourceSku": "IC-006233",
+      "components": [
+        {
+          "companySku": "IC-006233",
+          "quantityPerSale": 1,
+          "unit": "กระป๋อง",
+          "productName": "สามัญ อาหารผู้ป่วยล้างไต วันซ์ไดอะไลซ์ กลิ่นวานิลลา 800 กรัม.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852629001591"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 179,
+        "descriptionSourceRow": 90,
+        "listingId": "55267674345",
+        "variationId": "441742792464",
+        "sellerGtin": "8852629001591",
+        "packBasis": "The selected 800 g vanilla option and its GTIN identify one 800 g POS can. The description specifies one can; the parent title names the other 400 g size.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "e2c35798df34e96061070d4920627a4cd095f39808e1c3829fbff08b2fb43443",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2472
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-006233"
+        },
+        "approvalDigest": "1cb92bc24e590961cd6f945cefefba516cad6905601e393510bd05d679792adc"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-16",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "เมก้า วีแคร์ แนท บี แคปซูล ผลิตภัณฑ์เสริมอาหาร 40 และ 100 แคปซูล 1 ขวด MEGA We care NAT B",
+      "variant": "40 แคปซูล",
+      "sourceSku": "630020010",
+      "components": [
+        {
+          "companySku": "630020010",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "ปกติ แนทบีเมกกะ 40 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850769008913"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 338,
+        "descriptionSourceRow": 183,
+        "listingId": "51521932442",
+        "variationId": "169200801860",
+        "sellerGtin": "8850769008913",
+        "packBasis": "Selected 40-capsule Nat B retail bottle. One exact POS base bottle.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "6e440621896719d308bbd1f3440742781d44e221e34f37e199dd434105e2c538",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3181
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "630020010"
+        },
+        "approvalDigest": "e1c6890f989050881c299878336f9747c948b43a968040de7aa766db55923866"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-17",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยผู้ใหญ่ 3 ชั้น แบบคล้องหู 50 ชิ้น/กล่อง Klean Mask Longmed",
+      "variant": "ฟ้า",
+      "sourceSku": "IC-006234",
+      "components": [
+        {
+          "companySku": "IC-006234",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัย ลองเมด สีฟ้า 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095901233"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 514,
+        "descriptionSourceRow": 269,
+        "listingId": "47769366138",
+        "variationId": "316743109437",
+        "sellerGtin": "8859095901233",
+        "packBasis": "Adult Klean Mask blue, not the child option. Exact POS 50-mask box GTIN, color and one-box selling unit.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "eb53a9c1611ea3aa766ebb2aa3d0a66923b7016aa7c2bc54d6c0655f9a8044e8",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1341
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-006234"
+        },
+        "approvalDigest": "ce5e7bc85293cb024f98da6efd77177de4829cc396b863f12207b3560789e96f"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-18",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยเด็ก 3 ชั้น 50 ชิ้น 1 กล่อง Klean Mask Kid",
+      "variant": "ชมพู เด็ก",
+      "sourceSku": "IC-006238",
+      "components": [
+        {
+          "companySku": "IC-006238",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัยคลีนมาส์กเด็ก สีชมพู 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903442"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 263,
+        "descriptionSourceRow": 142,
+        "listingId": "53221707832",
+        "variationId": "254388917329",
+        "sellerGtin": "8859095903442",
+        "packBasis": "Pink kid masks. One box containing 50 masks.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "e5fa8132978f4af29ed2b66a9971dbb4236cf9cfd3d24c539f2882c2a5f27693",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1464
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-006238"
+        },
+        "approvalDigest": "4e0e2634671c417bd29528c9ab5462aca6b8b844110cfd1ba2ee53133fed30a9"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-19",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด เมดอีลาส ผ้ายืดพันเคล็ด 2 3 4 6 นิ้ว ยาว 5 หลา 1 ม้วน Longmed Medelas Elastic Bandage",
+      "variant": "2 นิ้ว",
+      "sourceSku": "630010170",
+      "components": [
+        {
+          "companySku": "630010170",
+          "quantityPerSale": 1,
+          "unit": "ม้วน",
+          "productName": "สามัญ ผ้ายืดพันเคล็ดเมดอีลาส ลองเมด 2 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900120"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 805,
+        "descriptionSourceRow": 417,
+        "listingId": "28646168528",
+        "variationId": "416682175239",
+        "sellerGtin": "8859095900120",
+        "packBasis": "Two-inch Medelas single-roll listing. One base roll, not the separate twelve-roll option.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "be25300600e5748db3a39c09411766110be40bbe30f4377d1ef6226758d3d630",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1860
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "630010170"
+        },
+        "approvalDigest": "f959e2ff1938241e0f3eeb45bf5abe70db95f8c266127060a0d2695c379a482e"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-20",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แอนตาซิล พลัส อาโมจิน โอทีซี แท็บ คาร์โยพิน-เอฟ ยาเม็ดเคี้ยว 10 เม็ด Antacil Plus Amogin OTC Tab Caryopin-F",
+      "variant": "แอนตาซิลพลัส10เม็ด",
+      "sourceSku": "IC-005345",
+      "components": [
+        {
+          "companySku": "IC-005345",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ แอนตาซิล พลัส 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851473013781"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 124,
+        "descriptionSourceRow": 62,
+        "listingId": "56171097867",
+        "variationId": "421695473787",
+        "sellerGtin": "8851473013781",
+        "packBasis": "Antacil Plus 10-tablet option. Exact product GTIN identifies one POS blister.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "be452feff016ca67d48165dfa9bc3643c3e8f586f4f89f6dde81b964c2750dfc",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2423
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-005345"
+        },
+        "approvalDigest": "a4131f45c9c88e7964d7eb2c28c833bb1f0d5696d7f049dd1085d76f1fb754a4"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-21",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพรโพลิซ เมาท์ สเปรย์ ระงับกลิ่นปาก 15 มล. กล่อง 24 ขวด Propoliz Mouth Spray",
+      "variant": "15 มล. x 24 ขวด",
+      "sourceSku": "IC-001292",
+      "components": [
+        {
+          "companySku": "IC-001292",
+          "quantityPerSale": 24,
+          "unit": "กล่อง",
+          "productName": "สามัญ โพรโพลิซ เมาท์ สเปรย์ 15 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8857121535131"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 320,
+        "descriptionSourceRow": 177,
+        "listingId": "51671891894",
+        "variationId": "416751156306",
+        "sellerGtin": "8857121535131",
+        "packBasis": "Seller case specifies 24 original 15 mL bottles. The separate single-bottle option and the independently verified accounting rule use this same GTIN and POS box unit for one retail bottle in its carton.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "8438d325ee780636eb7d408bd5613d578d470689d3de8ff3b338fb5a5318dc0c",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2371
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-001292"
+        },
+        "approvalDigest": "a9b428fc95689d5f271f3525bedf19001d1c7ad6f026dc9f004da65c448937dc"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-23",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด ผ้ายืดพันแผล 2 3 4 6 นิ้ว ยาว 5 หลา 1 กล่อง 12 ม้วน Longmed Conforming Bandage",
+      "variant": "4 นิ้ว พันแผล 12ม้วน",
+      "sourceSku": "IC-000016",
+      "components": [
+        {
+          "companySku": "IC-000016",
+          "quantityPerSale": 12,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ผ้ายืดคอนฟอร์ม ลองเมด 4 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900250"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 278,
+        "descriptionSourceRow": 151,
+        "listingId": "52921941148",
+        "variationId": "326759525811",
+        "sellerGtin": "8859095900571",
+        "packBasis": "Four-inch Conforming Bandage. Seller case count and POS dozen GTIN both imply twelve base rolls.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "745f33f59c87eae46a902317e843bd02f1ca8143e50541b9f4215f3f4804da7b",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3039
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-000016"
+        },
+        "approvalDigest": "1cf56a187909fecf4cac9994423f11cce2a3e53adae3535658bd67db3403a693"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-24",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด ผ้ายืดพันแผล 2 3 4 6 นิ้ว ยาว 5 หลา 1 กล่อง 12 ม้วน Longmed Conforming Bandage",
+      "variant": "2 นิ้ว พันแผล 12ม้วน",
+      "sourceSku": "IC-000018",
+      "components": [
+        {
+          "companySku": "IC-000018",
+          "quantityPerSale": 12,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ผ้ายืดคอนฟอร์ม ลองเมด 2 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900106"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 276,
+        "descriptionSourceRow": 151,
+        "listingId": "52921941148",
+        "variationId": "326759525809",
+        "sellerGtin": "8859095900557",
+        "packBasis": "Two-inch Conforming Bandage. Seller case count and POS dozen GTIN both imply twelve base rolls.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "fbb6a882304a1ffa3bbdbddd0ed637aacfa25c6d5ac3ce1fb5a482b2d3bf1a90",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3267
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-000018"
+        },
+        "approvalDigest": "6e81d78a4f0c041e4974c3a532af2af2466c5a0f31eaa7e5aca674c04cfee47f"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-25",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "มามารีน ผลิตภัณฑ์เสริมอาหารชนิดน้ำ 120 มล. เลือกสูตร Bio-C Elderberry Omega-3 Mamarine",
+      "variant": "ส้ม Bio-C",
+      "sourceSku": "IC-001332",
+      "components": [
+        {
+          "companySku": "IC-001332",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ มามารีนคิดส์บูทส์เตอร์ไบโอซี 120 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858757009447"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 304,
+        "descriptionSourceRow": 164,
+        "listingId": "52221612973",
+        "variationId": "401736123436",
+        "sellerGtin": "8858757009430",
+        "packBasis": "Orange Bio-C, 120 mL. Seller explicitly sells one bottle. Its GTIN is the POS retail carton containing one base bottle (POS factor 1).",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "748814ebabc1e51e31fad8046399805c1ef3733de89b3e734484fca83359e2ad",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 831
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-001332"
+        },
+        "approvalDigest": "98a82f3f0e3259f93f8d0ff8baecc2930a6964137d26a178881201156043c0f8"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-26",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ยาหม่องตราเสือ เอชอาร์ สูตรขาว 10 19.4 และ 30 กรัม 1 กระปุก Tiger Balm HR Ointment",
+      "variant": "19.4 กรัม",
+      "sourceSku": "630010094",
+      "components": [
+        {
+          "companySku": "630010094",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ ยาหม่องเสือขาว เอชอาร์ 19.4 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851990210298"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 138,
+        "descriptionSourceRow": 72,
+        "listingId": "55821605049",
+        "variationId": "298090968687",
+        "sellerGtin": "8851990210298",
+        "packBasis": "Exact white HR 19.4 g option and GTIN. The selected jar corresponds to one POS base unit.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "7746db425dc97d618c0cbaca55f66827ca5cbf1127c672479dea3b0645d7b9ca",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1416
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "630010094"
+        },
+        "approvalDigest": "504a65141f343825c7d3d3db9ff3c28f2867cab39d30f7e049bea6a8a22ce3f5"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-27",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยเด็ก 3 ชั้น 50 ชิ้น 1 กล่อง Klean Mask Kid",
+      "variant": "ดำ เด็ก",
+      "sourceSku": "IC-006072",
+      "components": [
+        {
+          "companySku": "IC-006072",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัยคลีนมาส์กเด็ก สีดำ 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903503"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 261,
+        "descriptionSourceRow": 142,
+        "listingId": "53221707832",
+        "variationId": "254388917327",
+        "sellerGtin": "8859095903503",
+        "packBasis": "Black kid masks. One box containing 50 masks.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "3ed0f6cc399c7ec89766a1647c9010a42ac08b8fdd572046cb6c4f734eb4e056",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2307
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-006072"
+        },
+        "approvalDigest": "0382bb8cfd3fcb5e3d0e39b69edde116a0827bb1770c18a96c6911b81ca7303f"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-28",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ONCE Dialyze วันซ์ ไดอะไลซ์ กลิ่นวานิลลา 400 กรัม อาหารทางการแพทย์ 1 กระป๋อง",
+      "variant": "400 กรัม",
+      "sourceSku": "IC-002099",
+      "components": [
+        {
+          "companySku": "IC-002099",
+          "quantityPerSale": 1,
+          "unit": "กระป๋อง",
+          "productName": "สามัญ อาหารผู้ป่วยล้างไต วันซ์ไดอะไลซ์ 400 กรัม.",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852629000334"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 178,
+        "descriptionSourceRow": 90,
+        "listingId": "55267674345",
+        "variationId": "411500028270",
+        "sellerGtin": "8852629000334",
+        "packBasis": "Selected Once Dialyze 400 g vanilla option and exact GTIN. One POS can.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "39567fdb02c4cf3ec5056b52d7975e07e893434ddfd62a934aa0216d188dab33",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2309
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-002099"
+        },
+        "approvalDigest": "966429c6a69b09d7b33b17d0c13d11fb1dfe5c658e72ad251d4bb8da46040c94"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-29",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF แอลซอฟฟ์ ตราเสือดาว แอลกอฮอล์ 70% สีฟ้า / สีชมพู ขนาด 60 และ 450 มล. แพ็ค 6 ขวด",
+      "variant": "สีฟ้า 60 มล. 6 ขวด",
+      "sourceSku": "IC-006155",
+      "components": [
+        {
+          "companySku": "IC-006155",
+          "quantityPerSale": 6,
+          "unit": "ขวด",
+          "productName": "สามัญ แอลกอฮอล์ แอลซอฟฟ์ สีฟ้า 60 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853042002011"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 292,
+        "descriptionSourceRow": 158,
+        "listingId": "52568044578",
+        "variationId": "396645259317",
+        "sellerGtin": "8853042002011",
+        "packBasis": "Selected blue 60 mL six-bottle pack. Seller uses the single bottle GTIN and explicitly states six; POS also lists a six-bottle pack.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "854ed8dc0ad331221c64bdcb1d88f97b3b6b6149bf3cb5c66d3406793024b9d1",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2319
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-006155"
+        },
+        "approvalDigest": "f252ce880dcb693f557989f708ca7476f55db1087b2644432b6d9343363b5290"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-31",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด เมดอีลาส ผ้ายืดพันเคล็ด 2 3 4 6 นิ้ว ยาว 5 หลา 1 กล่อง 12 ม้วน Longmed Medelas",
+      "variant": "3 นิ้ว 12ม้วน/กล่อง",
+      "sourceSku": "630010169",
+      "components": [
+        {
+          "companySku": "630010169",
+          "quantityPerSale": 12,
+          "unit": "ม้วน",
+          "productName": "สามัญ ผ้ายืดพันเคล็ดเมดอีลาส ลองเมด 3 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900137"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 77,
+        "descriptionSourceRow": 36,
+        "listingId": "56921931565",
+        "variationId": "381759185139",
+        "sellerGtin": "8859095900595",
+        "packBasis": "Three-inch Medelas box. Seller listing and the POS dozen GTIN establish twelve base rolls.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "7ffc302f12b1c1ae459864b913512af6a528bf699c8179d89bfea2830c267e76",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3269
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "630010169"
+        },
+        "approvalDigest": "42f9216acb4be5f6e717efab84b11de81bdbf138d83ef205849e2b330da1aba2"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-32",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ไวต้า-ซี / โพรโพลิซ แคนดี้ป๊อป อมยิ้มไม่มีน้ำตาล ยกกล่อง 10 ซอง Vita-C / Propoliz Candy Pop",
+      "variant": "โพรโพลิซ 10ซอง",
+      "sourceSku": "IC-005294",
+      "components": [
+        {
+          "companySku": "IC-005294",
+          "quantityPerSale": 10,
+          "unit": "ชิ้น",
+          "productName": "สามัญ โพรโพลิซ แคนดี้ป๊อป รสฮันนี่เลม่อน 7 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513016869"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 469,
+        "descriptionSourceRow": 241,
+        "listingId": "49463620257",
+        "variationId": "283050736365",
+        "sellerGtin": "8856513016852",
+        "packBasis": "Selected Propoliz ten-sachet box. Seller description and POS ten-unit GTIN agree; base is the individual wrapped 7 g unit.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "0e5caa9b847e2797bbe99df43239922276cd943118d659107f81ec2dabf3da15",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3516
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-24",
+        "sourceIdentity": {
+          "sourceSku": "IC-005294"
+        },
+        "approvalDigest": "cef07d8616ce5e6e3670a267b86b30391b8f94a17d6f4993140214920228b92e"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-35",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF Absolute Food Grade แอลซอฟฟ์ แอลกอฮอล์ทำความสะอาดมือ 70% 5 ลิตร / ยกลัง 4 แกลลอน",
+      "variant": "1 ลัง 4 แกลลอน",
+      "sourceSku": "IC-005953",
+      "components": [
+        {
+          "companySku": "IC-005953",
+          "quantityPerSale": 4,
+          "unit": "แกลลอน",
+          "productName": "สามัญ แอลซอฟฟ์ แฮนด์ ซานิไทซิง แอบโซลูท 70% 5 ลิตร",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853287002319"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 518,
+        "descriptionSourceRow": 270,
+        "listingId": "47768819109",
+        "variationId": "287999198835",
+        "sellerGtin": "8853287002319",
+        "packBasis": "Selected case of four 5 L Absolute Food Grade units. Seller uses one-gallon GTIN; approved prior row and exact description support four base gallons.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "b06fbe5ccd846ba88bade9c43d385632e4eca41e57ae4a9e461efeb769cbe283",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1093
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-005953"
+        },
+        "approvalDigest": "eac2df07921cf857a8a6a4941b5a302e15452d340808f81430c59eb6318cdcf0"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-36",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ปรอทวัดไข้ดิจิทัล เครื่องวัดอุณหภูมิ เลือกรุ่น Omron MC-341 / Beurer FT09/1 จำนวน 1 เครื่อง",
+      "variant": "Omron MC-341",
+      "sourceSku": "IC-004977",
+      "components": [
+        {
+          "companySku": "IC-004977",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ออมรอนปรอทวัดไข้ดิจิตอล รุ่น MC-341 1 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "4975479498039"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 435,
+        "descriptionSourceRow": 228,
+        "listingId": "50071461627",
+        "variationId": "331718529070",
+        "sellerGtin": "4975479498039",
+        "packBasis": "Omron MC-341 selected independently of Beurer. One exact POS thermometer unit.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "e981b40001480fde5b7d997ae2a084ef8e8509b380e867df7b007bb00e8498cb",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1120
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-004977"
+        },
+        "approvalDigest": "c3b284fe0a26f6802c518fd3823847fa8b1f96404b4b36554a0a54f9415fa82b"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-37",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "นูโทรเพล็กซ์ โอลิโกพลัส อาหารเสริมชนิดน้ำ รสส้ม 60/100 มล. Nutroplex Oligo Plus",
+      "variant": "60 มล.",
+      "sourceSku": "IC-003542",
+      "components": [
+        {
+          "companySku": "IC-003542",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ นิวโทรเพล็กซ์ โอลิโกพลัส 60 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858965400623"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 149,
+        "descriptionSourceRow": 78,
+        "listingId": "55671752219",
+        "variationId": "336743061877",
+        "sellerGtin": "8858965400623",
+        "packBasis": "Selected 60 mL Nutroplex liquid. One exact POS base bottle.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "d48e296fbb6e8db18fd2ddb922b953d9532ae73cc8b3392924cecd823ef9830d",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1280
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-20",
+        "sourceIdentity": {
+          "sourceSku": "IC-003542"
+        },
+        "approvalDigest": "8f821123cd3ba0829b3d5b63e0f414ee6efe26e49853783d303ab6b9bb9dbb75"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-38",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "ลิ้นจี่ 20 ซอง",
+      "sourceSku": "IC-005715",
+      "components": [
+        {
+          "companySku": "IC-005715",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ เม็ดอมซิงค์ พลัส วิตามินซี กลิ่นลิ้นจี่ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294037017"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 772,
+        "descriptionSourceRow": 411,
+        "listingId": "40085294524",
+        "variationId": "263031796529",
+        "sellerGtin": "8852294037024",
+        "packBasis": "Lychee 20-sachet box. Seller variant and its POS pack GTIN agree; prior reviewed order confirms twenty base sachets.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "cd9ebf488ba8717a3629e02c32f34ca23481b1bfd37c1e60fcb21d354d498203",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1671
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-005715"
+        },
+        "approvalDigest": "25af0aeccaebe4fcd8e8791030afaa2c9bd28b1b55b81023b7a33894acac4135"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-39",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "องุ่นมะนาว 20 ซอง",
+      "sourceSku": "IC-004322",
+      "components": [
+        {
+          "companySku": "IC-004322",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ เม็ดอมซิงค์ พลัสวิตามินซีและโคคิวเทน กลิ่นองุ่น มะนาว 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294033040"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 781,
+        "descriptionSourceRow": 411,
+        "listingId": "40085294524",
+        "variationId": "263031796525",
+        "sellerGtin": "8852294033057",
+        "packBasis": "Grape lime 20-sachet box. Seller variant and its POS pack GTIN agree; prior reviewed order confirms twenty base sachets.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "aeb15aa1ae562a86d6d7d1114489180a5d00a8a1e4b554e60cf478ac71f49f0d",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1672
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-004322"
+        },
+        "approvalDigest": "b219088786b5f199dab7832aadb5ff524f0fceec14277d545826f62d54588e18"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-40",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "สตรอว์เบอร์ฯ 20 ซอง",
+      "sourceSku": "IC-005366",
+      "components": [
+        {
+          "companySku": "IC-005366",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ มายเซพติค มายบาซิน ซิงค์พลัสเบต้า กลูแคน กลิ่นสตรอว์เบอร์รี่ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294034016"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 779,
+        "descriptionSourceRow": 411,
+        "listingId": "40085294524",
+        "variationId": "263031796528",
+        "sellerGtin": "8852294034023",
+        "packBasis": "Strawberry 20-sachet box. Seller variant and its POS pack GTIN agree; prior reviewed order confirms twenty base sachets.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "32f19755dd39c5ae8ed0b36488b0b5f6e803ed1b5c7c7235ac9a84d5a6f4849b",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1673
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-005366"
+        },
+        "approvalDigest": "0ff95a37697f551cc40df6b059d69e37cad3d16251cd315578d23272abd423bb"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-41",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "แบล็คเคอร์ฯ 20 ซอง",
+      "sourceSku": "IC-004321",
+      "components": [
+        {
+          "companySku": "IC-004321",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ เกร๊ทเตอร์ มายเซพติค มายบาซินเม็ดอมซิงค์ พลัสลูทีนและบิลเบอร์รี่ กลิ่นแบล็คเคอร์แรนท์ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294032043"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 774,
+        "descriptionSourceRow": 411,
+        "listingId": "40085294524",
+        "variationId": "263031796524",
+        "sellerGtin": "8852294032050",
+        "packBasis": "Blackcurrant 20-sachet box. Seller variant and its POS pack GTIN agree; prior reviewed order confirms twenty base sachets.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "194b661939396019bf0bec01f68d5195369f6f90472bce72136dd7eac9fc22b7",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1676
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-004321"
+        },
+        "approvalDigest": "9073197f06295e3fe169f4aeb35f8be403e94f746f3e916e2387aaa1a07f870c"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-42",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนโกรฟ ถุงมือไนไตรสังเคราะห์ ไม่มีแป้ง สีฟ้า สีดำ S M L XL 100 ชิ้นโดยน้ำหนัก 1 กล่อง Kleanglove N Series",
+      "variant": "ไม่มีแป้ง ฟ้า,XL",
+      "sourceSku": "IC-004186",
+      "components": [
+        {
+          "companySku": "IC-004186",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ถุงมือยางลองเมด สีฟ้า ไซส์ XL 100 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095903770"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 20,
+        "descriptionSourceRow": 12,
+        "listingId": "57920898658",
+        "variationId": "411684695948",
+        "sellerGtin": "8859095903770",
+        "packBasis": "Selected powder-free blue XL. One POS box containing 100 gloves by weight; the count is inside the POS box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "ebc1fb4ad014d22bcabe4112551cb3956ef04d00ef88ccc8ff2c80aad9ceeeac",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1694
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-004186"
+        },
+        "approvalDigest": "9e3fa17fcd7142269d32048152000ddad641d3b2fbe180ae962ee1495d412b34"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-43",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "มามารีน ผลิตภัณฑ์เสริมอาหารชนิดน้ำ 120 มล. เลือกสูตร Bio-C Elderberry Omega-3 Mamarine",
+      "variant": "น้ำเงิน Forte",
+      "sourceSku": "IC-001333",
+      "components": [
+        {
+          "companySku": "IC-001333",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "สามัญ มามารีนคิดส์ฟอร์ทไลซีน 120 มล",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8858757009249"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 303,
+        "descriptionSourceRow": 164,
+        "listingId": "52221612973",
+        "variationId": "401736123435",
+        "sellerGtin": "8858757009249",
+        "packBasis": "Selected dark blue Forte formula. Exact 120 mL POS bottle GTIN and the one-bottle description.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "d37bf9e8aad220b54553baef2604175a588be9ac0d9c720bf16781a9e4a94f99",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 1807
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-21",
+        "sourceIdentity": {
+          "sourceSku": "IC-001333"
+        },
+        "approvalDigest": "e33b94d941d52e51a1773eab481b4ea5bf966bd6ab1fac174438518963686c40"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-44",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด เมดอีลาส ผ้ายืดพันเคล็ด 2 3 4 6 นิ้ว ยาว 5 หลา 1 ม้วน Longmed Medelas Elastic Bandage",
+      "variant": "6 นิ้ว",
+      "sourceSku": "IC-006239",
+      "components": [
+        {
+          "companySku": "IC-006239",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ ผ้ายืดพันเคล็ดเมดอีลาส ลองเมด 6 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095901479"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 804,
+        "descriptionSourceRow": 417,
+        "listingId": "28646168528",
+        "variationId": "341759349921",
+        "sellerGtin": "8859095901479",
+        "packBasis": "Selected 6-inch Medelas, individually wrapped one roll. Exact POS base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "721964350748cb1e28deac1ce9c2ee9818eaf6aa9d79bfa67a57a41ee515c843",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2558
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-22",
+        "sourceIdentity": {
+          "sourceSku": "IC-006239"
+        },
+        "approvalDigest": "4044fc51113e0015afa74037fe0e0687ebbfac0e617e1c2251c9ea62ee5d3065"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-45",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "แอนตาซิล พลัส อาโมจิน โอทีซี แท็บ คาร์โยพิน-เอฟ ยาเม็ดเคี้ยว 10 เม็ด Antacil Plus Amogin OTC Tab Caryopin-F",
+      "variant": "คาร์โยพิน-เอฟ10เม็ด",
+      "sourceSku": "IC-005754",
+      "components": [
+        {
+          "companySku": "IC-005754",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ คาร์โยพิน เอฟ 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851802020381"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 122,
+        "descriptionSourceRow": 62,
+        "listingId": "56171097867",
+        "variationId": "356759639719",
+        "sellerGtin": "8851802020381",
+        "packBasis": "Selected Caryopin-F 10-tablet option. One retail unit mapped to one POS blister by GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "df4fdf0bdd8b4b46892106d4ee2dfdc823cbbb8fb13d929ea1e9fb5c65e8716f",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2649
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-005754"
+        },
+        "approvalDigest": "2caac018243d25b7b2760d6fc11084dab413f61bd2118b22a7978a915a2e929e"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-46",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Mybacin Zinc / Zinc Plus มายบาซิน ซิงค์ / ซิงค์ พลัส เม็ดอม ยกกล่อง 20 ซอง เลือกรสและขนาด",
+      "variant": "เลมอน 20 ซอง",
+      "sourceSku": "IC-000720",
+      "components": [
+        {
+          "companySku": "IC-000720",
+          "quantityPerSale": 20,
+          "unit": "ซอง",
+          "productName": "สามัญ ยาอมมายบาซินซิงส์ มะนาว 10 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852294021016"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 775,
+        "descriptionSourceRow": 411,
+        "listingId": "40085294524",
+        "variationId": "406635342334",
+        "sellerGtin": "8852294021016",
+        "packBasis": "Selected Mybacin Zinc lemon box of twenty sachets. Seller title, selected option and description specify twenty; the barcode identifies the individual POS sachet.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "adaa527728246944ac78736593832a818b989b56b02f402c5d746cfdc2c80911",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2833
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-000720"
+        },
+        "approvalDigest": "9358d2716f46558bcaaac37b2475b987a11e5bd650ab5928af1e5ae1eb91298e"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-47",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "สบู่ไมด้า ซัลเฟอร์ 2.5% ขนาด 30 และ 80 กรัม Myda Soap (กล่องละ 24 ก้อน)",
+      "variant": "30 กรัม x 24 ก้อน",
+      "sourceSku": "IC-003560",
+      "components": [
+        {
+          "companySku": "IC-003560",
+          "quantityPerSale": 24,
+          "unit": "ก้อน",
+          "productName": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5% 30 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513013608"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 597,
+        "descriptionSourceRow": 312,
+        "listingId": "45971929803",
+        "variationId": "288100271853",
+        "sellerGtin": "8856513013608",
+        "packBasis": "Selected 30 g Myda case explicitly contains 24 bars. Exact GTIN is one 30 g POS bar.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "d6e4e0a38715b615cb30121e098e8c1f4cfd6813e87a03784385026f221d35a1",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3073
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-003560"
+        },
+        "approvalDigest": "f48263e6a871e7fdfe92871aaf98e78c9f496dcba3dcf957fe58de3e98f5ce2d"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-48",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ลองเมด เมดอีลาส ผ้ายืดพันเคล็ด 2 3 4 6 นิ้ว ยาว 5 หลา 1 กล่อง 12 ม้วน Longmed Medelas",
+      "variant": "2 นิ้ว 12ม้วน/กล่อง",
+      "sourceSku": "630010170",
+      "components": [
+        {
+          "companySku": "630010170",
+          "quantityPerSale": 12,
+          "unit": "ม้วน",
+          "productName": "สามัญ ผ้ายืดพันเคล็ดเมดอีลาส ลองเมด 2 นิ้ว 5 หลา",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900120"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 76,
+        "descriptionSourceRow": 36,
+        "listingId": "56921931565",
+        "variationId": "381759185142",
+        "sellerGtin": "8859095900588",
+        "packBasis": "Two-inch Medelas box. Seller listing and POS dozen GTIN establish twelve base rolls.",
+        "posBarcodeLevel": 2
+      },
+      "bindings": [
+        {
+          "fingerprint": "786d1216d5eba94ae9061277da3f1bd265c9cbb29e6c3f56cb1aa64c7ae1e416",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3270
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "630010170"
+        },
+        "approvalDigest": "8d8ea43a2c0693f335939b55f1535e1de17161693c5a4b4681eaf7df8ef383d0"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-50",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Vita-C ไวต้า-ซี Multi-Fruit กัมมี่สีเหลือง / กัมมี่พลัสสีชมพู / ชิววี่ กลิ่นผลไม้รวม 6 / 12 ซอง",
+      "variant": "ชมพู,3 ซอง",
+      "sourceSku": "IC-001510",
+      "components": [
+        {
+          "companySku": "IC-001510",
+          "quantityPerSale": 3,
+          "unit": "ซอง",
+          "productName": "สามัญ ไวต้า ซี มัลติฟรุตกัมมี่พลัส ชมพู 20 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513008963"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 532,
+        "descriptionSourceRow": 280,
+        "listingId": "47462014654",
+        "variationId": "356676062437",
+        "sellerGtin": "8856513008963",
+        "packBasis": "Both Order All and the exact Seller variation ID specify three pink sachets; barcode is one base sachet. The generic parent copy lists other sizes and directs fulfilment by selected quantity.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "df74733575cc4e8842ddfb9c996e196b2383f7a82bcba03711ab8cf142716285",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3723
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-24",
+        "sourceIdentity": {
+          "sourceSku": "IC-001510"
+        },
+        "approvalDigest": "0b85c427cfdc4cd63f53309b392fd69f51a13e433012bb388f9ae21ee5562159"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-51",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ซิการ์แคร์ แผ่นซิลิโคนเจล 12x3 และ 12x15 ซม. 1 แผ่น CICA-CARE Smith+Nephew",
+      "variant": "12x15 ซม.",
+      "sourceSku": "IC-006174",
+      "components": [
+        {
+          "companySku": "IC-006174",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ ซิการ์แคร์ แผ่นซิลิโคนเจล 12x15 ซม 1 แผ่น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852266001053"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 229,
+        "descriptionSourceRow": 118,
+        "listingId": "53871180636",
+        "variationId": "336699238600",
+        "sellerGtin": "8852266001053",
+        "packBasis": "Selected 12 × 15 cm Cica-Care. Seller specifies one box containing one sheet, exact POS box barcode.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "740e1bba20a289c002e615e25296a19cdce38c2bae6e2fddd6ffc98a8fca5b77",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3746
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-24",
+        "sourceIdentity": {
+          "sourceSku": "IC-006174"
+        },
+        "approvalDigest": "915aae532e8a98c01687cac8be85e5ddfdcdb962bac01befb75ab4e8b35d6106"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-52",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "CU Phar Biotin Zinc / Biotin Zinc Plus ไบโอติน ซิงค์ / ไบโอติน ซิงค์ พลัส ผลิตภัณฑ์เสริมอาหาร เลือกสูตรและขนาด",
+      "variant": "ซิงค์ 90 เม็ด",
+      "sourceSku": "IC-005993",
+      "components": [
+        {
+          "companySku": "IC-005993",
+          "quantityPerSale": 1,
+          "unit": "กระปุก",
+          "productName": "สามัญ ไบโอติน ซิงก์ 250 มก 90 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856351001096"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 94,
+        "descriptionSourceRow": 42,
+        "listingId": "56665551712",
+        "variationId": "316330259296",
+        "sellerGtin": "8856351001096",
+        "packBasis": "Selected zinc 90-tablet CU Phar variant, not Zinc Plus. Exact GTIN identifies one POS jar.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "f4c00e535872d0506099cd0df1dbb72b992b390243c3e90b18e2e27ee7117eb8",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3754
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-24",
+        "sourceIdentity": {
+          "sourceSku": "IC-005993"
+        },
+        "approvalDigest": "51ab14a40d308f47b749168cd29f4e94d342914da94d626cfc77b1e6d346d76b"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-53",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "สบู่ไมด้า ซัลเฟอร์ 2.5% ขนาด 30 และ 80 กรัม Myda Soap (กล่องละ 24 ก้อน)",
+      "variant": "80 กรัม x 24 ก้อน",
+      "sourceSku": "IC-003493",
+      "components": [
+        {
+          "companySku": "IC-003493",
+          "quantityPerSale": 24,
+          "unit": "ก้อน",
+          "productName": "สามัญ สบู่ไมด้า ซัลเฟอร์ 2.5 % 80 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8856513013615"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 596,
+        "descriptionSourceRow": 312,
+        "listingId": "45971929803",
+        "variationId": "288100271854",
+        "sellerGtin": "8856513013615",
+        "packBasis": "Selected 80 g Myda case explicitly contains 24 bars. Exact GTIN identifies one 80 g POS bar.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "308f8a801b4171c8c5895bd64df6853c3fee86015af7c423b2c1f3adcfd1600d",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3809
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-24",
+        "sourceIdentity": {
+          "sourceSku": "IC-003493"
+        },
+        "approvalDigest": "8b3c845acb7f5c10f58f14c121fdce707dadb3742dd0b5fd7b90dd9342e48448"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-55",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "เมก้า วีแคร์ แนท บี แคปซูล ผลิตภัณฑ์เสริมอาหาร 40 และ 100 แคปซูล 1 ขวด MEGA We care NAT B",
+      "variant": "100 แคปซูล",
+      "sourceSku": "IC-001599",
+      "components": [
+        {
+          "companySku": "IC-001599",
+          "quantityPerSale": 1,
+          "unit": "ขวด",
+          "productName": "ปกติ แนทบีเมกกะ 100 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850769009453"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 337,
+        "descriptionSourceRow": 183,
+        "listingId": "51521932442",
+        "variationId": "169200801861",
+        "sellerGtin": "8850769009453",
+        "packBasis": "Selected 100-capsule Nat B retail bottle. Exact POS base GTIN.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "cd872a92424906891059508303814c90cfcfb9b588cb0b61624e02c20246e809",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4376
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-001599"
+        },
+        "approvalDigest": "c4178f218039ad6eca17ceeddbf47374f748d18ffef76e25bff59941b734e5c1"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-57",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนมาส์ก หน้ากากอนามัยผู้ใหญ่ 3 ชั้น แบบคล้องหู 50 ชิ้น/กล่อง Klean Mask Longmed",
+      "variant": "ชมพู",
+      "sourceSku": "IC-006070",
+      "components": [
+        {
+          "companySku": "IC-006070",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ หน้ากากอนามัย ลองเมด สีชมพู 50 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8859095900786"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "caadafa2064304087cf0baa05d73d808de913bd87094d248425fa8b6b19849fa",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceSha256": "b46cb2652165ae38e882d8198052f45030b9f8644525076a251a25432c97708f",
+        "descriptionSourceSha256": "13ed753880c5baec59d92f3876d8febbf98f16607f9340c5d8e312f2d2827f05",
+        "sellerSourceRow": 516,
+        "descriptionSourceRow": 269,
+        "listingId": "47769366138",
+        "variationId": "326620384223",
+        "sellerGtin": "8859095900786",
+        "packBasis": "Adult Klean Mask pink. Exact POS GTIN represents one 50-mask box, distinct from the child option.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "39183bbfea59220abcdc56542f913784e3c3713afcc5525ac4992a3e3dc9e841",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4527
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-006070"
+        },
+        "approvalDigest": "a403a09a5a8d76a9e7f2bcdac56dd39b021ab675f8c2b464bce70a6727a3970b"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-30",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ ครีมติดฟันปลอม 20/40/60 กรัม และเม็ดฟู่โปรรีเทนเนอร์ 30 เม็ด Polident",
+      "variant": "เฟรช มินท์ 60 กรัม",
+      "sourceSku": "IC-000219",
+      "components": [
+        {
+          "companySku": "IC-000219",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ กาวติดฟันปลอมโพลิเดนท์ 60 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850090132035"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53671151968",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 2,
+        "descriptionSourceRow": 2,
+        "listingId": "53671151968",
+        "variationId": "376697830210",
+        "sellerGtin": "8850090132035",
+        "packBasis": "Selected Fresh Mint 60 g. Exact Seller variant and POS barcode must identify one boxed tube.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "60a074ed631e9d9fb123a9319c00f19ecd3446f5de99aab6bb794015c4f96e4b",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2914
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-000219"
+        },
+        "approvalDigest": "80fd8ea5cfd16522de015cc8c0ad59abaf0a0ab320604ff6767d0cf8924a0251"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-33",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนแอนด์แคร์ จุกล้างจมูก 2 ชิ้น รุ่นนุ๊มนุ่ม และอุปกรณ์ต่อขวด Klean&Kare Nasal Connect",
+      "variant": "นุ๊มนุ่ม",
+      "sourceSku": "IC-001984",
+      "components": [
+        {
+          "companySku": "IC-001984",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ จุกล้างจมูกคลีนแคร์เอเอ็นบีแบบนุ่ม 1 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8854060901119"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/45972218428",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 3,
+        "descriptionSourceRow": 3,
+        "listingId": "45972218428",
+        "variationId": "366772226036",
+        "sellerGtin": "8854060901119",
+        "packBasis": "The specific soft silicone option explicitly sells one piece per blister in Seller Centre. The separately listed two-piece option is another SKU. Exact retail GTIN matches the POS base piece.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "6a2e5dd3e5e45660bd88bc238206c197cd7b4713da83bc6fca3b45bd6e0e19c6",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3770
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-24",
+        "sourceIdentity": {
+          "sourceSku": "IC-001984"
+        },
+        "approvalDigest": "7205062f0cd0304ba2ce25fc6d7061431779629c23c8906d608041aa535d9a4a"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-34",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ ครีมติดฟันปลอม 20/40/60 กรัม และเม็ดฟู่โปรรีเทนเนอร์ 30 เม็ด Polident",
+      "variant": "เฟรช มินท์ 20 กรัม",
+      "sourceSku": "630010211",
+      "components": [
+        {
+          "companySku": "630010211",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ กาวติดฟันปลอมโพลิเดนท์ 20 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851007143106"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53671151968",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 4,
+        "descriptionSourceRow": 4,
+        "listingId": "53671151968",
+        "variationId": "376697830209",
+        "sellerGtin": "8851007143106",
+        "packBasis": "Selected Fresh Mint 20 g. Exact current Seller option and POS barcode identify one tube.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "fe73ca4a0a7570e7b5925549c5ceeea32f108ead1358766d48431e2f32054276",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4532
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "630010211"
+        },
+        "approvalDigest": "b59ce6fd0969c54da0934b670b74f53c53df0d50e0e70869dd9c032b8e33d708"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-54",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "Air-x รสมะนาว",
+      "sourceSku": "IC-000023",
+      "components": [
+        {
+          "companySku": "IC-000023",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ แอร์ เอ็กซ์ มะนาว 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852673000359"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53165692767",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 5,
+        "descriptionSourceRow": 5,
+        "listingId": "53165692767",
+        "variationId": "381685694462",
+        "sellerGtin": "8852673000359",
+        "packBasis": "Selected lime Air-X 10-tablet blister. Current Seller option and POS base barcode must agree.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "bae9e98d82ab6bb3a7a9c3bebe57c7513d02a2a03e30c9a8d1028b9b53bb4373",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4230
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-000023"
+        },
+        "approvalDigest": "d6a4f07d900eb65d3797bf6be10c21b3b78b046e169366cdbdddd7fa92b48319"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-56",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "Air-x รสส้ม",
+      "sourceSku": "630010147",
+      "components": [
+        {
+          "companySku": "630010147",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ แอร์ เอ็กซ์ ส้ม 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852673000205"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53165692767",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 6,
+        "descriptionSourceRow": 6,
+        "listingId": "53165692767",
+        "variationId": "381685694461",
+        "sellerGtin": "8852673000205",
+        "packBasis": "Selected orange Air-X 10-tablet blister. Current Seller option and POS base barcode must agree.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "7297d23c10ae3bb771a9bba684445706dfba84a4791c50e74414e206f00c0413",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4501
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "630010147"
+        },
+        "approvalDigest": "7f0dfb556fb5f4ee6b73615a813acb57183249a406e631e0425137ca40deeabe"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-58",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ ครีมติดฟันปลอม 20/40/60 กรัม และเม็ดฟู่โปรรีเทนเนอร์ 30 เม็ด Polident",
+      "variant": "โปรรีเทนเนอร์30เม็ด",
+      "sourceSku": "IC-002032",
+      "components": [
+        {
+          "companySku": "IC-002032",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ โพลิเดนท์ โปร รีเทนเนอร์ 30 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851007130786"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53671151968",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 7,
+        "descriptionSourceRow": 7,
+        "listingId": "53671151968",
+        "variationId": "321764119150",
+        "sellerGtin": "8851007130786",
+        "packBasis": "Selected Pro Retainer 30 tablets. Current exact Seller option and POS barcode must identify one retail box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "b75f4e3304ec631e845daaed449bb2888a2032a79a15fd40da5189286f585fee",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4537
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-002032"
+        },
+        "approvalDigest": "10958b9379997537c5298fcd9e6c4f97c978a9eb28c18a72bc2759f2de5a64b4"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-59",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF Alcohol Pad แอลซอฟฟ์ แผ่นชุบเอทิลแอลกอฮอล์ 70% ขนาด 4x8 ซม. กล่อง 20 ซอง",
+      "variant": "แพด 1 กล่อง 20 ซอง",
+      "sourceSku": "IC-003661",
+      "components": [
+        {
+          "companySku": "IC-003661",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ แอลซอฟฟ์ แอลกอฮอล์ แพด แผ่นชุบเอทิลแอลกอฮอล์ 4x8 ซม 20 ซอง",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853042002943"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53719685094",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 8,
+        "descriptionSourceRow": 8,
+        "listingId": "53719685094",
+        "variationId": "273107603530",
+        "sellerGtin": "8853042002943",
+        "packBasis": "Selected ALSOFF pads 4 × 8 cm. Exact Seller variant and POS barcode must identify one whole retail box containing 20 sachets.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "20d77e16dec99d212229600ac5a766da9bb737a543addc4a090c1bf3822d830d",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4796
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-003661"
+        },
+        "approvalDigest": "d3c13801feed8f5dc254d4cfcff007eee0c4bbe52ad3dd98b0cf8069c59966b6"
+      }
     }
   ]
 }
