@@ -1,8 +1,9 @@
 'use strict';
 const rules=require('../src/modules/seamless/data/shopeeAdaSmartCopyRules.v1.json');
-const {resolveCopyProduct}=require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
+const {resolveCopyProduct,buildAdaSmartCopyPlan}=require('../src/modules/seamless/services/shopeeAdaSmartCopyService');
 const {resolveSupplementalCopyIdentity}=require('../src/modules/seamless/services/shopeeCopyIdentityEvidence');
 const {bundleAllocation}=require('../src/modules/seamless/services/shopeeCopyAllocation');
+const {buildReviewedCopyLineResolver,resolveReviewedCopyLine}=require('../src/modules/seamless/services/shopeeReviewedCopyLines');
 const {enrichShopeeOrderItems}=require('../src/modules/seamless/services/shopeeProductMatcher');
 const rule=rules.supplementalCopyIdentities.find(r=>r.components&&r.variant==='เครื่องแผ่น50เข็ม50');
 const shop='sc-drug-store',masters=new Map(rules.masters.map(m=>[m.companySku,m]));
@@ -55,4 +56,70 @@ test('missing owner evidence, inactive POS identities, duplicate components and 
  finally{restore();}
  const conflictingMaster=new Map(masters);conflictingMaster.set('IC-006010',{unit:'แผง'});
  expect(resolveSupplementalCopyIdentity(shop,source,conflictingMaster)).toBeNull();
+});
+
+function smart100Order(quantity = 1) {
+  const contract = rules.reviewedCopySourceContracts.find(row => row.contractId === 'sc-copy-review-20261113-47');
+  const { policyKey, responseSha256 } = contract.productReuse.bundleAllocation;
+  const item = { ...source, variant: 'เครื่องแผ่น50เข็ม100', quantity };
+  const date = '2026-11-24';
+  const order = {
+    shopCode: shop, orderNumber: 'SYNTHETIC-SMART-100-NEW', sourceRows: [2], sourceFilename: 'Order.all.xlsx',
+    sourceSha256: 'b'.repeat(64), orderedAt: date + 'T02:00:00Z', paidAt: date + 'T03:00:00Z',
+    observedAt: date + 'T04:00:00Z', items: [item], sellerVoucher: 0, shopeeProductDiscount: 0,
+    itemSubtotal: 500 * quantity, lineFinancials: [{ netSale: 500 * quantity, shopeeProductDiscount: 0 }],
+  };
+  const filters = { shopCode: shop, startDate: date, endDate: date };
+  const confirmed = { ...filters, status: 'source_backed', salesTotal: 500 * quantity, orderCount: 1,
+    shops: [{ shopCode: shop, sources: [{ sourceSha256: 'c'.repeat(64) }] }] };
+  const approved = {
+    ...structuredClone(policy), policyKey,
+    approval: { ...policy.approval, responseSha256, contentsResponseSha256: contract.evidence.ownerContentsResponseSha256 },
+    policy: { ...structuredClone(policy.policy), variant: item.variant },
+  };
+  approved.policy.components.find(part => part.sku === 'IC-001230').factor = 2;
+  const plan = (allocationPolicies = [approved]) => buildAdaSmartCopyPlan([order], confirmed, filters, [], [],
+    { allocationPolicies });
+  return { item, order, approved, plan };
+}
+
+test('new orders with the same Smart 100-needle option reuse both approved contents and pricing', () => {
+  const single = smart100Order();
+  expect(single.plan()).toMatchObject({ status: 'ready', issues: [], totalCents: 50000 });
+  expect(single.plan().rows.map(row => [row.sku, row.quantity, row.amountCents])).toEqual([
+    ['IC-001230', 2, 10], ['IC-003101', 1, 10], ['IC-006010', 1, 49980],
+  ]);
+  const two = smart100Order(2);
+  two.item.copySourceIdentity = { listingId: '40735044760', variationId: '298008802896' };
+  two.approved.policy.components.reverse();
+  expect(two.plan()).toMatchObject({ status: 'ready', issues: [], totalCents: 100000 });
+  expect(two.plan().rows.find(row => row.sku === 'IC-001230')).toMatchObject({ quantity: 4, unitPrice: '0.05' });
+});
+
+test('new Smart 100-needle orders stay in review when option data or approved pricing changes', () => {
+  const { item, order, approved, plan } = smart100Order();
+  const option = { listingId: '40735044760', variationId: '298008802896' };
+  for (const changed of [
+    { ...item, variant: 'เครื่องแผ่น50เข็ม50', copySourceIdentity: option },
+    { ...item, copySourceIdentity: { ...option, variationId: '298008802897' } },
+    { ...item, copySourceIdentity: { ...option, listingId: '99999999999' } },
+    { ...item, copySourceIdentity: { sourceSku: 'IC-006010' } },
+    { ...item, sourceBarcode: '6934175025398' },
+  ]) expect(resolveReviewedCopyLine(shop, changed, order, 0)).toMatchObject({
+    matchingReview: { status: 'review' },
+  });
+  for (const changed of [
+    { ...approved, enabled: false },
+    { ...approved, policyKey: 'other-policy' },
+    { ...approved, approval: { ...approved.approval, contentsResponseSha256: 'd'.repeat(64) } },
+    { ...approved, policy: { ...approved.policy, components: approved.policy.components.map(part =>
+      part.sku === 'IC-003101' ? { ...part, nominalLineCentsPerSale: 20 } : part) } },
+  ]) expect(plan([changed])).toMatchObject({ status: 'review_required', columns: null, rows: [] });
+  expect(plan([])).toMatchObject({ status: 'review_required', columns: null, rows: [] });
+
+  const revised = structuredClone(rules);
+  revised.copyIdentityHolds.find(hold => hold.variant === item.variant).reason = 'New pack evidence conflicts';
+  expect(buildReviewedCopyLineResolver(revised)(shop, item, order, 0)).toMatchObject({
+    matchingReview: { status: 'review' },
+  });
 });
