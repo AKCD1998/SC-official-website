@@ -17651,6 +17651,363 @@
         },
         "approvalDigest": "a403a09a5a8d76a9e7f2bcdac56dd39b021ab675f8c2b464bce70a6727a3970b"
       }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-30",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ ครีมติดฟันปลอม 20/40/60 กรัม และเม็ดฟู่โปรรีเทนเนอร์ 30 เม็ด Polident",
+      "variant": "เฟรช มินท์ 60 กรัม",
+      "sourceSku": "IC-000219",
+      "components": [
+        {
+          "companySku": "IC-000219",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ กาวติดฟันปลอมโพลิเดนท์ 60 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8850090132035"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53671151968",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 2,
+        "descriptionSourceRow": 2,
+        "listingId": "53671151968",
+        "variationId": "376697830210",
+        "sellerGtin": "8850090132035",
+        "packBasis": "Selected Fresh Mint 60 g. Exact Seller variant and POS barcode must identify one boxed tube.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "60a074ed631e9d9fb123a9319c00f19ecd3446f5de99aab6bb794015c4f96e4b",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 2914
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-23",
+        "sourceIdentity": {
+          "sourceSku": "IC-000219"
+        },
+        "approvalDigest": "80fd8ea5cfd16522de015cc8c0ad59abaf0a0ab320604ff6767d0cf8924a0251"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-33",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "คลีนแอนด์แคร์ จุกล้างจมูก 2 ชิ้น รุ่นนุ๊มนุ่ม และอุปกรณ์ต่อขวด Klean&Kare Nasal Connect",
+      "variant": "นุ๊มนุ่ม",
+      "sourceSku": "IC-001984",
+      "components": [
+        {
+          "companySku": "IC-001984",
+          "quantityPerSale": 1,
+          "unit": "ชิ้น",
+          "productName": "สามัญ จุกล้างจมูกคลีนแคร์เอเอ็นบีแบบนุ่ม 1 ชิ้น",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8854060901119"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/45972218428",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 3,
+        "descriptionSourceRow": 3,
+        "listingId": "45972218428",
+        "variationId": "366772226036",
+        "sellerGtin": "8854060901119",
+        "packBasis": "The specific soft silicone option explicitly sells one piece per blister in Seller Centre. The separately listed two-piece option is another SKU. Exact retail GTIN matches the POS base piece.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "6a2e5dd3e5e45660bd88bc238206c197cd7b4713da83bc6fca3b45bd6e0e19c6",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 3770
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-24",
+        "sourceIdentity": {
+          "sourceSku": "IC-001984"
+        },
+        "approvalDigest": "7205062f0cd0304ba2ce25fc6d7061431779629c23c8906d608041aa535d9a4a"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-34",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ ครีมติดฟันปลอม 20/40/60 กรัม และเม็ดฟู่โปรรีเทนเนอร์ 30 เม็ด Polident",
+      "variant": "เฟรช มินท์ 20 กรัม",
+      "sourceSku": "630010211",
+      "components": [
+        {
+          "companySku": "630010211",
+          "quantityPerSale": 1,
+          "unit": "หลอด",
+          "productName": "สามัญ กาวติดฟันปลอมโพลิเดนท์ 20 กรัม",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851007143106"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53671151968",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 4,
+        "descriptionSourceRow": 4,
+        "listingId": "53671151968",
+        "variationId": "376697830209",
+        "sellerGtin": "8851007143106",
+        "packBasis": "Selected Fresh Mint 20 g. Exact current Seller option and POS barcode identify one tube.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "fe73ca4a0a7570e7b5925549c5ceeea32f108ead1358766d48431e2f32054276",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4532
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "630010211"
+        },
+        "approvalDigest": "b59ce6fd0969c54da0934b670b74f53c53df0d50e0e70869dd9c032b8e33d708"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-54",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "Air-x รสมะนาว",
+      "sourceSku": "IC-000023",
+      "components": [
+        {
+          "companySku": "IC-000023",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ แอร์ เอ็กซ์ มะนาว 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852673000359"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53165692767",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 5,
+        "descriptionSourceRow": 5,
+        "listingId": "53165692767",
+        "variationId": "381685694462",
+        "sellerGtin": "8852673000359",
+        "packBasis": "Selected lime Air-X 10-tablet blister. Current Seller option and POS base barcode must agree.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "bae9e98d82ab6bb3a7a9c3bebe57c7513d02a2a03e30c9a8d1028b9b53bb4373",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4230
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-000023"
+        },
+        "approvalDigest": "d6a4f07d900eb65d3797bf6be10c21b3b78b046e169366cdbdddd7fa92b48319"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-56",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "Air-X แอร์เอ็กซ์ ยาแก้ท้องอืด ท้องเฟ้อ จุกเสียด 3 รส ส้ม มินต์ มะนาว แผง 10 เม็ด",
+      "variant": "Air-x รสส้ม",
+      "sourceSku": "630010147",
+      "components": [
+        {
+          "companySku": "630010147",
+          "quantityPerSale": 1,
+          "unit": "แผง",
+          "productName": "สามัญ แอร์ เอ็กซ์ ส้ม 10 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8852673000205"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53165692767",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 6,
+        "descriptionSourceRow": 6,
+        "listingId": "53165692767",
+        "variationId": "381685694461",
+        "sellerGtin": "8852673000205",
+        "packBasis": "Selected orange Air-X 10-tablet blister. Current Seller option and POS base barcode must agree.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "7297d23c10ae3bb771a9bba684445706dfba84a4791c50e74414e206f00c0413",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4501
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "630010147"
+        },
+        "approvalDigest": "7f0dfb556fb5f4ee6b73615a813acb57183249a406e631e0425137ca40deeabe"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-58",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "โพลิเดนท์ ครีมติดฟันปลอม 20/40/60 กรัม และเม็ดฟู่โปรรีเทนเนอร์ 30 เม็ด Polident",
+      "variant": "โปรรีเทนเนอร์30เม็ด",
+      "sourceSku": "IC-002032",
+      "components": [
+        {
+          "companySku": "IC-002032",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ โพลิเดนท์ โปร รีเทนเนอร์ 30 เม็ด",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8851007130786"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53671151968",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 7,
+        "descriptionSourceRow": 7,
+        "listingId": "53671151968",
+        "variationId": "321764119150",
+        "sellerGtin": "8851007130786",
+        "packBasis": "Selected Pro Retainer 30 tablets. Current exact Seller option and POS barcode must identify one retail box.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "b75f4e3304ec631e845daaed449bb2888a2032a79a15fd40da5189286f585fee",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4537
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-002032"
+        },
+        "approvalDigest": "10958b9379997537c5298fcd9e6c4f97c978a9eb28c18a72bc2759f2de5a64b4"
+      }
+    },
+    {
+      "contractId": "sc-copy-review-20261126-59",
+      "scope": "accounting_copy_only",
+      "shopCode": "sc-drug-store",
+      "productName": "ALSOFF Alcohol Pad แอลซอฟฟ์ แผ่นชุบเอทิลแอลกอฮอล์ 70% ขนาด 4x8 ซม. กล่อง 20 ซอง",
+      "variant": "แพด 1 กล่อง 20 ซอง",
+      "sourceSku": "IC-003661",
+      "components": [
+        {
+          "companySku": "IC-003661",
+          "quantityPerSale": 1,
+          "unit": "กล่อง",
+          "productName": "สามัญ แอลซอฟฟ์ แอลกอฮอล์ แพด แผ่นชุบเอทิลแอลกอฮอล์ 4x8 ซม 20 ซอง",
+          "smallFactor": 1,
+          "active": true,
+          "baseUnitBarcode": "8853042002943"
+        }
+      ],
+      "evidence": {
+        "reviewedAt": "2026-11-26T10:01:28.6926580+07:00",
+        "masterSourceSha256": "aaf8f5c67539dd7c5aac77300c5974838d3443bffacb0f1bf89ce15bbcdd9581",
+        "reviewSourceSha256": "5f276cafff9cb57c9a11a25b02fd8534867c3dba2eb6ef513cfc601fc1e27562",
+        "basis": "seller_variation_pack_gtin_pos004",
+        "sellerSourceKind": "seller_centre_current_option_and_pack",
+        "sellerSourceUrl": "https://seller.shopee.co.th/portal/product/53719685094",
+        "sellerSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "descriptionSourceSha256": "a806ec49caab97e616a0c1c0821a1c097d863d234b558a33b2496257341fe59c",
+        "sellerSourceRow": 8,
+        "descriptionSourceRow": 8,
+        "listingId": "53719685094",
+        "variationId": "273107603530",
+        "sellerGtin": "8853042002943",
+        "packBasis": "Selected ALSOFF pads 4 × 8 cm. Exact Seller variant and POS barcode must identify one whole retail box containing 20 sachets.",
+        "posBarcodeLevel": 1
+      },
+      "bindings": [
+        {
+          "fingerprint": "20d77e16dec99d212229600ac5a766da9bb737a543addc4a090c1bf3822d830d",
+          "sourceSha256": "503530dbbc6e46d52c752e455ecf4040c45d399a51a7e795bf5079f737c4e462",
+          "sourceRow": 4796
+        }
+      ],
+      "productReuse": {
+        "status": "verified",
+        "validFrom": "2026-11-25",
+        "sourceIdentity": {
+          "sourceSku": "IC-003661"
+        },
+        "approvalDigest": "d3c13801feed8f5dc254d4cfcff007eee0c4bbe52ad3dd98b0cf8069c59966b6"
+      }
     }
   ]
 }
